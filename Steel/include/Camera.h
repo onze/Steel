@@ -35,8 +35,29 @@ public:
 	Camera &operator=(const Camera &camera);
 	void setMode(Mode mode);
 
+	/**
+	 * TARGET mode only.
+	 * rotates the camera of delta radians around its target, on the XZ plane.
+	 */
 	void rotateAroundTarget(float delta);
+	/**
+	 * TARGET mode only.
+	 * rotates the camera of delta around its target, on a plane perpendicular to the ground and
+	 * containing the camera axis.
+	 */
 	void pitchAroundTarget(float delta);
+
+	/**
+	 * TARGET mode only.
+	 * zoom the camera of t units towards its target, then multiplies the distance to it by r.
+	 */
+	void zoom(float t, float r=1.f);
+
+	/**
+	 * TARGET mode only.
+	 * returns the dist to its target.
+	 */
+	float zoom();
 
 	inline Ogre::Camera *cam(){return mCamera;};
 

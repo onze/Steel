@@ -59,25 +59,28 @@ Camera &Camera::operator=(const Camera &camera)
 
 void Camera::pitchAroundTarget(float delta)
 {
+	assert(mMode==Camera::TARGET);
 	//rotation on the zx plane
 	Ogre::Quaternion q(Ogre::Radian(delta), Ogre::Vector3::UNIT_Y);
 	q.normalise();
 	//vector perpendicular to the 'plane vector' q and the vector going from the target to the camera
-	Ogre::Vector3 axis=(q*Ogre::Vector3::UNIT_SCALE).crossProduct(mCameraNode->getPosition()-mTarget->getPosition());
+	Ogre::Vector3 axis = (q * Ogre::Vector3::UNIT_SCALE).crossProduct(mCameraNode->getPosition()
+			- mTarget->getPosition());
 	axis.normalise();
 	//get a rotation around that
 	Ogre::Quaternion b(Ogre::Radian(delta), axis);
 	//make sure we have no roll
-	b.y=Ogre::Real(0);
+	b.y = Ogre::Real(0);
 	b.normalise();
-	mCameraNode->setPosition(b*mCameraNode->getPosition());
+	mCameraNode->setPosition(b * mCameraNode->getPosition());
 }
 
 void Camera::rotateAroundTarget(float delta)
 {
+	assert(mMode==Camera::TARGET);
 	Ogre::Quaternion q(Ogre::Radian(delta), Ogre::Vector3::UNIT_Y);
 	q.normalise();
-	mCameraNode->setPosition(q*mCameraNode->getPosition());
+	mCameraNode->setPosition(q * mCameraNode->getPosition());
 }
 
 void Camera::setMode(Camera::Mode mode)
@@ -93,6 +96,23 @@ void Camera::setMode(Camera::Mode mode)
 			mCamera->setAutoTracking(false);
 			break;
 	}
+}
+
+float Camera::zoom()
+{
+	return float(mCameraNode->getPosition().distance(mTarget->getPosition()));
+}
+
+void Camera::zoom(float t, float r)
+{
+	Ogre::Quaternion q(mCamera->getOrientation());
+	q.normalise();
+
+	if (t != .0f)
+		throw "Not implemented !";
+
+	if (r != 1.f)
+		mCameraNode->translate(q * Ogre::Vector3(0.f, 0.f, r * zoom()), Ogre::SceneNode::TS_LOCAL);
 }
 
 }
