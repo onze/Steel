@@ -16,6 +16,8 @@
 #include <OgreRenderWindow.h>
 #include <OgreString.h>
 
+#include "Camera.h"
+
 namespace Steel
 {
 
@@ -35,14 +37,21 @@ public:
 				int height = 600,
 				Ogre::String windowTitle = Ogre::String("Steel Window"));
 	/**
-	 *
+	 * editor init.
 	 */
-	void embeddedInit(	Ogre::String plugins,
-	                  	std::string windowHandle,
-						int width,
-						int height);
+	void embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height);
+	//getters
+	inline Ogre::RenderWindow *renderWindow()
+	{
+		return mRenderWindow;
+	}
+	;
+	inline Camera *camera()
+	{
+		return mCamera;
+	}
+	;
 
-	inline Ogre::RenderWindow *renderWindow(){return mRenderWindow;};
 private:
 	bool preWindowingSetup(Ogre::String &plugins, int width, int height);
 	bool postWindowingSetup();
@@ -50,7 +59,7 @@ private:
 	Ogre::SceneManager *mSceneManager;
 	Ogre::RenderWindow *mRenderWindow;
 	Ogre::Viewport *mViewport;
-	Ogre::Camera *mCamera;
+	Camera *mCamera;
 };
 
 }

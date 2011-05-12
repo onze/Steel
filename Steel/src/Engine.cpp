@@ -21,7 +21,6 @@ namespace Steel
 Engine::Engine() :
 	mSceneManager(0), mRenderWindow(0), mViewport(0), mCamera(0)
 {
-	cout << "Engine::Engine()" << endl;
 }
 
 Engine::~Engine()
@@ -106,27 +105,23 @@ bool Engine::postWindowingSetup()
 	// initialise all resource groups
 	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
-	mSceneManager = mRoot->createSceneManager("DefaultSceneManager");
+	mSceneManager = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
 	// Create the camera
-	mCamera = mSceneManager->createCamera("PlayerCam");
+	mCamera=new Camera(mSceneManager);
 
-	// Position it at 500 in Z direction
-	mCamera->setPosition(Ogre::Vector3(0, 0, 80));
-	// Look back along -Z
-	mCamera->lookAt(Ogre::Vector3(0, 0, -300));
-	mCamera->setNearClipDistance(5);
+	mCamera->cam()->setNearClipDistance(5);
 
 	// Create one viewport, entire window
-	mViewport = mRenderWindow->addViewport(mCamera);
+	mViewport = mRenderWindow->addViewport(mCamera->cam());
 	mViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
 
 	// Alter the camera aspect ratio to match the viewport
-	mCamera->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
+	mCamera->cam()->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
 
-	Ogre::Entity* ogreHead = mSceneManager->createEntity("Head", "ogrehead.mesh");
+	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
 
-	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode();
+	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
 	headNode->attachObject(ogreHead);
 
 	// Set ambient light
@@ -135,6 +130,7 @@ bool Engine::postWindowingSetup()
 	// Create a light
 	Ogre::Light* l = mSceneManager->createLight("MainLight");
 	l->setPosition(20, 80, 50);
+
 	return true;
 }
 
@@ -148,7 +144,7 @@ void Engine::resizeWindow(int width, int height)
 		if (mCamera)
 		{
 			Ogre::Real aspectRatio = Ogre::Real(width) / Ogre::Real(height);
-			mCamera->setAspectRatio(aspectRatio);
+			mCamera->cam()->setAspectRatio(aspectRatio);
 		}
 	}
 }
