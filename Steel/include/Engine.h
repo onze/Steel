@@ -26,6 +26,9 @@ class Engine
 public:
 	Engine();
 	virtual ~Engine();
+	/**
+	 * called to resize the window.
+	 */
 	void resizeWindow(int width, int height);
 	bool update(void);
 	/**
@@ -40,6 +43,11 @@ public:
 	 * editor init.
 	 */
 	void embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height);
+	inline std::string &windowHandle()
+	{
+		return mWindowHandle;
+	}
+	;
 	//getters
 	inline Ogre::RenderWindow *renderWindow()
 	{
@@ -54,12 +62,13 @@ public:
 
 private:
 	bool preWindowingSetup(Ogre::String &plugins, int width, int height);
-	bool postWindowingSetup();
+	bool postWindowingSetup(int width, int height);
 	Ogre::Root *mRoot;
 	Ogre::SceneManager *mSceneManager;
 	Ogre::RenderWindow *mRenderWindow;
 	Ogre::Viewport *mViewport;
 	Camera *mCamera;
+	std::string mWindowHandle;
 };
 
 }

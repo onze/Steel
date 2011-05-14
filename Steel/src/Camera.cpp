@@ -11,32 +11,30 @@ using namespace std;
 #include <OgreMath.h>
 #include <OgreQuaternion.h>
 #include <OgreVector3.h>
+#include <OgreEntity.h>
 
 #include "Camera.h"
 
 namespace Steel
 {
 
-Camera::Camera()
+Camera::Camera() :
+	mCamera(0), mCameraNode(0), mSceneManager(0)
 {
-	mMode = Camera::FREE;
-	mCamera = NULL;
 }
 
 Camera::Camera(Ogre::SceneManager *sceneManager)
 {
 	mSceneManager = sceneManager;
-	mMode = Camera::FREE;
 
 	mCamera = sceneManager->createCamera("camera");
-	mCamera->setPosition(0.0, 0.0, 0.0);
+	mCamera->setPosition(0.0, 0.0, -.0);
 
-	mCameraNode = mSceneManager->getRootSceneNode()->createChildSceneNode("cameraNode");
+	mCameraNode = sceneManager->getRootSceneNode()->createChildSceneNode("cameraNode");
 	mCameraNode->attachObject(mCamera);
-	mCameraNode->setPosition(0.0, 50.0, -200.0);
 
-	mTarget = mSceneManager->getRootSceneNode()->createChildSceneNode("cameraTarget");
-	mTarget->setPosition(0.0, 0.0, 0.0);
+	mCameraNode->setPosition(0.0, 50.0, 200.0);
+	mCameraNode->lookAt(Ogre::Vector3::ZERO, Ogre::SceneNode::TS_WORLD);
 }
 
 Camera::Camera(const Camera &camera)
@@ -48,7 +46,6 @@ Camera::~Camera()
 {
 	mCameraNode->detachAllObjects();
 	mSceneManager->destroySceneNode("cameraNode");
-	mSceneManager->destroySceneNode("cameraTarget");
 }
 
 Camera &Camera::operator=(const Camera &camera)
@@ -57,62 +54,20 @@ Camera &Camera::operator=(const Camera &camera)
 	return *this;
 }
 
-void Camera::pitchAroundTarget(float delta)
+void Camera::lookTowards(float x, float y, float roll, float factor)
 {
-	assert(mMode==Camera::TARGET);
-	//rotation on the zx plane
-	Ogre::Quaternion q(Ogre::Radian(delta), Ogre::Vector3::UNIT_Y);
-	q.normalise();
-	//vector perpendicular to the 'plane vector' q and the vector going from the target to the camera
-	Ogre::Vector3 axis = (q * Ogre::Vector3::UNIT_SCALE).crossProduct(mCameraNode->getPosition()
-			- mTarget->getPosition());
-	axis.normalise();
-	//get a rotation around that
-	Ogre::Quaternion b(Ogre::Radian(delta), axis);
-	//make sure we have no roll
-	b.y = Ogre::Real(0);
-	b.normalise();
-	mCameraNode->setPosition(b * mCameraNode->getPosition());
+	x *= factor;
+	y *= factor;
+
+	mCameraNode->pitch(Ogre::Degree(x),Ogre::SceneNode::TS_LOCAL);
+	mCameraNode->yaw(Ogre::Degree(y),Ogre::SceneNode::TS_WORLD);
 }
 
-void Camera::rotateAroundTarget(float delta)
+void Camera::translate(float dx,float dy,float dz)
 {
-	assert(mMode==Camera::TARGET);
-	Ogre::Quaternion q(Ogre::Radian(delta), Ogre::Vector3::UNIT_Y);
-	q.normalise();
-	mCameraNode->setPosition(q * mCameraNode->getPosition());
-}
-
-void Camera::setMode(Camera::Mode mode)
-{
-	mMode = mode;
-	switch (mode)
-	{
-		case Camera::TARGET:
-			mCameraNode->setAutoTracking(true, mTarget);
-			mCameraNode->setFixedYawAxis(true);
-			break;
-		case Camera::FREE:
-			mCamera->setAutoTracking(false);
-			break;
-	}
-}
-
-float Camera::zoom()
-{
-	return float(mCameraNode->getPosition().distance(mTarget->getPosition()));
-}
-
-void Camera::zoom(float t, float r)
-{
-	Ogre::Quaternion q(mCamera->getOrientation());
-	q.normalise();
-
-	if (t != .0f)
-		throw "Not implemented !";
-
-	if (r != 1.f)
-		mCameraNode->translate(q * Ogre::Vector3(0.f, 0.f, r * zoom()), Ogre::SceneNode::TS_LOCAL);
+	cout<<"from: "<<mCameraNode->getPosition();
+	mCameraNode->translate(mCameraNode->getOrientation()*(Ogre::Vector3(dx,dy,dz)));
+	cout<<" to "<<mCameraNode->getPosition()<<endl;
 }
 
 }

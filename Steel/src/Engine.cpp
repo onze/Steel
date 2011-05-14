@@ -19,27 +19,39 @@ namespace Steel
 {
 
 Engine::Engine() :
-	mSceneManager(0), mRenderWindow(0), mViewport(0), mCamera(0)
+	mSceneManager(0), mRenderWindow(0), mViewport(0), mCamera(0)//, mInputMan(0)
 {
 }
 
 Engine::~Engine()
 {
-
+	delete mRoot;
 }
 
 void Engine::init(Ogre::String plugins, bool fullScreen, int width, int height, Ogre::String windowTitle)
 {
 	preWindowingSetup(plugins, width, height);
-	mRenderWindow = mRoot->initialise(true, windowTitle);
-	postWindowingSetup();
+
+	//window setup
+	mRenderWindow = mRoot->initialise(false);
+
+	Ogre::NameValuePairList opts;
+	opts["resolution"] = Ogre::StringConverter::toString(width) + "x" + Ogre::StringConverter::toString(height);
+	opts["fullscreen"] = "false";
+	opts["vsync"] = "false";
+	mRenderWindow = mRoot->createRenderWindow(windowTitle, width, height, false, &opts);
+
+	//borrowed to
+	//http://www.ogre3d.org/tikiwiki/MadMarx+Tutorial+10&structure=Tutorials
+	unsigned long windowHandle;
+	mRenderWindow->getCustomAttribute("WINDOW", &windowHandle);
+	mWindowHandle = Ogre::StringConverter::toString(windowHandle);
+
+	postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
 
 }
 
-void Engine::embeddedInit(	Ogre::String plugins,
-    	                  	std::string windowHandle,
-							int width,
-							int height)
+void Engine::embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height)
 {
 
 	preWindowingSetup(plugins, width, height);
@@ -49,10 +61,11 @@ void Engine::embeddedInit(	Ogre::String plugins,
 
 	Ogre::NameValuePairList viewConfig;
 	viewConfig["parentWindowHandle"] = windowHandle.c_str();
+	mWindowHandle = windowHandle;
 
 	mRenderWindow = mRoot->createRenderWindow("Steel embedded window", width, height, false, &viewConfig);
 
-	postWindowingSetup();
+	postWindowingSetup(width, height);
 
 }
 bool Engine::preWindowingSetup(Ogre::String &plugins, int width, int height)
@@ -90,15 +103,11 @@ bool Engine::preWindowingSetup(Ogre::String &plugins, int width, int height)
 	assert( renderSystem );
 
 	mRoot->setRenderSystem(renderSystem);
-	mRoot->getRenderSystem()->setConfigOption("Full Screen", "No");
-	renderSystem->setConfigOption(	"Video Mode",
-									Ogre::StringConverter::toString(width) + "x"
-											+ Ogre::StringConverter::toString(height));
 
 	return true;
 }
 
-bool Engine::postWindowingSetup()
+bool Engine::postWindowingSetup(int width, int height)
 {
 	// Set default mipmap level (NB some APIs ignore this)
 	Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
@@ -108,7 +117,7 @@ bool Engine::postWindowingSetup()
 	mSceneManager = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
 	// Create the camera
-	mCamera=new Camera(mSceneManager);
+	mCamera = new Camera(mSceneManager);
 
 	mCamera->cam()->setNearClipDistance(5);
 
@@ -120,8 +129,8 @@ bool Engine::postWindowingSetup()
 	mCamera->cam()->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
 
 	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
-
-	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
+	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",
+																						Ogre::Vector3(0, 0, 0));
 	headNode->attachObject(ogreHead);
 
 	// Set ambient light
@@ -130,6 +139,8 @@ bool Engine::postWindowingSetup()
 	// Create a light
 	Ogre::Light* l = mSceneManager->createLight("MainLight");
 	l->setPosition(20, 80, 50);
+
+	mRoot->clearEventTimes();
 
 	return true;
 }
@@ -151,14 +162,12 @@ void Engine::resizeWindow(int width, int height)
 
 bool Engine::update(void)
 {
-	mRoot->_fireFrameRenderingQueued();
 
+	mRoot->_fireFrameRenderingQueued();
 	mRenderWindow->update();
 	mRoot->_updateAllRenderTargets();
 	mRoot->_fireFrameEnded();
-
 	return true;
 }
-
 
 }
