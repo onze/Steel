@@ -65,9 +65,7 @@ void Camera::lookTowards(float x, float y, float roll, float factor)
 
 void Camera::translate(float dx,float dy,float dz)
 {
-	cout<<"from: "<<mCameraNode->getPosition();
 	mCameraNode->translate(mCameraNode->getOrientation()*(Ogre::Vector3(dx,dy,dz)));
-	cout<<" to "<<mCameraNode->getPosition()<<endl;
 }
 
 }

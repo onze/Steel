@@ -19,7 +19,8 @@ namespace Steel
 {
 
 Engine::Engine() :
-	mSceneManager(0), mRenderWindow(0), mViewport(0), mCamera(0)//, mInputMan(0)
+	mSceneManager(0), mRenderWindow(0), mViewport(0), mCamera(0), mInputMan(0), mIsGrabbingInputs(false),
+			mMustAbortMainLoop(false)
 {
 }
 
@@ -48,7 +49,7 @@ void Engine::init(Ogre::String plugins, bool fullScreen, int width, int height, 
 	mWindowHandle = Ogre::StringConverter::toString(windowHandle);
 
 	postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
-
+	grabInputs();
 }
 
 void Engine::embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height)
@@ -141,7 +142,7 @@ bool Engine::postWindowingSetup(int width, int height)
 	l->setPosition(20, 80, 50);
 
 	mRoot->clearEventTimes();
-
+	mInputMan = new InputManager(this);
 	return true;
 }
 
@@ -160,14 +161,99 @@ void Engine::resizeWindow(int width, int height)
 	}
 }
 
-bool Engine::update(void)
+bool Engine::mainLoop(bool singleLoop)
 {
+	mMustAbortMainLoop = false;
+	while (!mMustAbortMainLoop)
+	{
+		mRoot->_fireFrameStarted();
+		if (!processInputs())
+			return false;
 
-	mRoot->_fireFrameRenderingQueued();
-	mRenderWindow->update();
-	mRoot->_updateAllRenderTargets();
-	mRoot->_fireFrameEnded();
+		mRoot->_updateAllRenderTargets();
+		mRenderWindow->update();
+		mRoot->_fireFrameRenderingQueued();
+		mRoot->_fireFrameEnded();
+
+		if(singleLoop)
+			break;
+	}
 	return true;
+}
+
+void Engine::redraw(void)
+{
+	mRoot->_fireFrameStarted();
+	mRoot->_updateAllRenderTargets();
+	mRenderWindow->update();
+	mRoot->_fireFrameRenderingQueued();
+	mRoot->_fireFrameEnded();
+}
+
+void Engine::grabInputs(void)
+{
+	cout << "Engine::grabInputs(void)" << endl;
+	mInputMan->grab();
+	mIsGrabbingInputs = true;
+}
+
+void Engine::releaseInputs(void)
+{
+	cout << "Engine::releaseInputs(void)" << endl;
+	mInputMan->release();
+	mIsGrabbingInputs = false;
+}
+
+bool Engine::processInputs(void)
+{
+	//update inputs
+	mInputMan->update();
+
+	//process keyboard
+	float dx = .0f, dy = .0f, dz = .0f, speed = 2.f;
+	for (list<OIS::KeyCode>::iterator it = mInputMan->keysPressed().begin(); it != mInputMan->keysPressed().end(); ++it)
+	{
+		switch (*it)
+		{
+			case OIS::KC_W:
+				dz -= speed;
+				break;
+			case OIS::KC_A:
+				dx -= speed;
+				break;
+			case OIS::KC_S:
+				dz += speed;
+				break;
+			case OIS::KC_D:
+				dx += speed;
+				break;
+			case OIS::KC_SPACE:
+				dy += speed;
+				break;
+			case OIS::KC_LSHIFT:
+				dy -= speed;
+				break;
+			case OIS::KC_ESCAPE:
+				mInputMan->resetAllData();
+				if(mIsGrabbingInputs)
+					releaseInputs();
+				return false;
+				break;
+			default:
+				break;
+		}
+	}
+	mCamera->translate(dx, dy, dz);
+
+	//process mouse
+	if (mInputMan->hasMouseMoved())
+	{
+		Ogre::Vector2 move = mInputMan->mouseMove();
+		mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
+	}
+	mInputMan->resetFrameBasedData();
+	return true;
+
 }
 
 }

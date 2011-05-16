@@ -21,6 +21,8 @@
 namespace Steel
 {
 
+class InputManager;
+
 class Engine
 {
 public:
@@ -30,25 +32,32 @@ public:
 	 * called to resize the window.
 	 */
 	void resizeWindow(int width, int height);
-	bool update(void);
+	bool mainLoop(bool singleLoop=false);
+	void redraw(void);
 	/**
 	 * game-side/standalone init.
+	 * Automaticaly grabs mouse/keyboard inputs.
 	 */
 	void init(	Ogre::String plugins,
 				bool fullScreen = false,
 				int width = 800,
 				int height = 600,
 				Ogre::String windowTitle = Ogre::String("Steel Window"));
+
 	/**
-	 * editor init.
+	 * init from an app that already has created the engine's rendering window.
+	 * Does not grab any input (this can be done with a call to grabInputs).
 	 */
 	void embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height);
+
+	void grabInputs(void);
+	void releaseInputs(void);
+	//getters
 	inline std::string &windowHandle()
 	{
 		return mWindowHandle;
 	}
 	;
-	//getters
 	inline Ogre::RenderWindow *renderWindow()
 	{
 		return mRenderWindow;
@@ -59,18 +68,33 @@ public:
 		return mCamera;
 	}
 	;
-
+	inline bool isGrabbingInputs()
+	{
+		return mIsGrabbingInputs;
+	}
+	;
+	inline InputManager *inputMan(void){return mInputMan;};
+	inline void abortMainLoop(){mMustAbortMainLoop=true;};
 private:
 	bool preWindowingSetup(Ogre::String &plugins, int width, int height);
 	bool postWindowingSetup(int width, int height);
+
+	bool processInputs(void);
+
 	Ogre::Root *mRoot;
 	Ogre::SceneManager *mSceneManager;
 	Ogre::RenderWindow *mRenderWindow;
 	Ogre::Viewport *mViewport;
 	Camera *mCamera;
+
+	InputManager *mInputMan;
 	std::string mWindowHandle;
+	bool mIsGrabbingInputs;
+	bool mMustAbortMainLoop;
 };
+
 
 }
 
+#include "InputManager.h"
 #endif /* ENGINE_H_ */
