@@ -52,10 +52,14 @@ void Engine::init(Ogre::String plugins, bool fullScreen, int width, int height, 
 	grabInputs();
 }
 
-void Engine::embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height)
+void Engine::embeddedInit(	Ogre::String plugins,
+							std::string windowHandle,
+							int width,
+							int height,
+							Ogre::String defaultLog)
 {
 
-	preWindowingSetup(plugins, width, height);
+	preWindowingSetup(plugins, width, height, defaultLog);
 
 	//false so that no window is opened
 	mRoot->initialise(false);
@@ -69,10 +73,10 @@ void Engine::embeddedInit(Ogre::String plugins, std::string windowHandle, int wi
 	postWindowingSetup(width, height);
 
 }
-bool Engine::preWindowingSetup(Ogre::String &plugins, int width, int height)
+bool Engine::preWindowingSetup(Ogre::String &plugins, int width, int height, Ogre::String defaultLog)
 {
 
-	mRoot = new Ogre::Root(plugins);
+	mRoot = new Ogre::Root(plugins, "", defaultLog);
 
 	// setup resources
 	// Load resource paths from config file
@@ -175,7 +179,7 @@ bool Engine::mainLoop(bool singleLoop)
 		mRoot->_fireFrameRenderingQueued();
 		mRoot->_fireFrameEnded();
 
-		if(singleLoop)
+		if (singleLoop)
 			break;
 	}
 	return true;
@@ -235,7 +239,7 @@ bool Engine::processInputs(void)
 				break;
 			case OIS::KC_ESCAPE:
 				mInputMan->resetAllData();
-				if(mIsGrabbingInputs)
+				if (mIsGrabbingInputs)
 					releaseInputs();
 				return false;
 				break;

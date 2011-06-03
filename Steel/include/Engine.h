@@ -32,7 +32,7 @@ public:
 	 * called to resize the window.
 	 */
 	void resizeWindow(int width, int height);
-	bool mainLoop(bool singleLoop=false);
+	bool mainLoop(bool singleLoop = false);
 	void redraw(void);
 	/**
 	 * game-side/standalone init.
@@ -48,7 +48,11 @@ public:
 	 * init from an app that already has created the engine's rendering window.
 	 * Does not grab any input (this can be done with a call to grabInputs).
 	 */
-	void embeddedInit(Ogre::String plugins, std::string windowHandle, int width, int height);
+	void embeddedInit(	Ogre::String plugins,
+						std::string windowHandle,
+						int width,
+						int height,
+						Ogre::String defaultLog = Ogre::String("ogre_log.log"));
 
 	void grabInputs(void);
 	void releaseInputs(void);
@@ -73,10 +77,22 @@ public:
 		return mIsGrabbingInputs;
 	}
 	;
-	inline InputManager *inputMan(void){return mInputMan;};
-	inline void abortMainLoop(){mMustAbortMainLoop=true;};
+	inline InputManager *inputMan(void)
+	{
+		return mInputMan;
+	}
+	;
+	inline void abortMainLoop()
+	{
+		mMustAbortMainLoop = true;
+	}
+	;
 private:
-	bool preWindowingSetup(Ogre::String &plugins, int width, int height);
+	bool preWindowingSetup(	Ogre::String &plugins,
+							int width,
+							int height,
+							Ogre::String defaultLog = Ogre::String("ogre_log.log"));
+
 	bool postWindowingSetup(int width, int height);
 
 	bool processInputs(void);
@@ -92,7 +108,6 @@ private:
 	bool mIsGrabbingInputs;
 	bool mMustAbortMainLoop;
 };
-
 
 }
 
