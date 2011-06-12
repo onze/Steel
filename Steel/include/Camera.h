@@ -20,27 +20,25 @@ class Camera
 	/**
 	 * wraps ogre camera and add features to ease its manipulation.
 	 */
-public:
-	/**
-	 * in TARGET mode, the camera constantly looks at an Ogre::MovableObject.
-	 */
-	enum Mode
-	{
-		FREE, TARGET
-	};
-	Camera(void);
-	Camera(Ogre::SceneManager *sceneManager);
+private:
+	Camera();
 	Camera(const Camera &camera);
-	virtual ~Camera();
 	Camera &operator=(const Camera &camera);
-	void setMode(Mode mode);
+public:
+	Camera(Ogre::SceneManager *sceneManager);
+	virtual ~Camera();
 
-	void lookTowards(float x, float y, float roll= .0f,float factor=1.f);
-	void translate(float dx,float dy,float dz);
+	void lookTowards(float x, float y, float roll = .0f, float factor = 1.f);
+	void translate(float dx, float dy, float dz);
 
 	inline Ogre::Camera *cam()
 	{
 		return mCamera;
+	}
+	;
+	inline Ogre::SceneNode *camNode()
+	{
+		return mCameraNode;
 	}
 	;
 

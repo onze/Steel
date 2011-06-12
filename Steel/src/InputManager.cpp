@@ -90,7 +90,7 @@ void InputManager::grab(void)
 
 bool InputManager::keyPressed(const OIS::KeyEvent& evt)
 {
-	cout << "InputManager::keyPressed()" << endl;
+//	cout << "InputManager::keyPressed()" << endl;
 	mKeysPressed.push_front(evt.key);
 	mKeysPressed.unique();
 	return true;
@@ -98,7 +98,7 @@ bool InputManager::keyPressed(const OIS::KeyEvent& evt)
 
 bool InputManager::keyReleased(const OIS::KeyEvent& evt)
 {
-	cout << "InputManager::keyReleased()" << endl;
+//	cout << "InputManager::keyReleased()" << endl;
 	mKeysPressed.remove_if(equals(evt.key));
 	return true;
 }

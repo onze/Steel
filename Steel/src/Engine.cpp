@@ -10,6 +10,7 @@
 #include <OgreStringConverter.h>
 #include <OgreEntity.h>
 #include <OgreConfigFile.h>
+#include <OgreResourceGroupManager.h>
 
 #include "Engine.h"
 
@@ -18,15 +19,23 @@ using namespace std;
 namespace Steel
 {
 
+Ogre::String sRootdir = "./";
+
 Engine::Engine() :
-	mSceneManager(0), mRenderWindow(0), mViewport(0), mCamera(0), mInputMan(0), mIsGrabbingInputs(false),
-			mMustAbortMainLoop(false)
+	mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL),
+			mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL)
 {
+
 }
 
 Engine::~Engine()
 {
-	delete mRoot;
+	if (mLevel)
+		delete mLevel;
+	if (mInputMan)
+		delete mInputMan;
+	if (mRoot)
+		delete mRoot;
 }
 
 void Engine::init(Ogre::String plugins, bool fullScreen, int width, int height, Ogre::String windowTitle)
@@ -133,17 +142,17 @@ bool Engine::postWindowingSetup(int width, int height)
 	// Alter the camera aspect ratio to match the viewport
 	mCamera->cam()->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
 
-	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
-	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",
-																						Ogre::Vector3(0, 0, 0));
-	headNode->attachObject(ogreHead);
+	//	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
+	//	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",
+	//																						Ogre::Vector3(0, 0, 0));
+	//	headNode->attachObject(ogreHead);
 
 	// Set ambient light
 	mSceneManager->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
 
 	// Create a light
-	Ogre::Light* l = mSceneManager->createLight("MainLight");
-	l->setPosition(20, 80, 50);
+		Ogre::Light* l = mSceneManager->createLight("MainLight");
+		l->setPosition(20, 80, 50);
 
 	mRoot->clearEventTimes();
 	mInputMan = new InputManager(this);
@@ -163,6 +172,12 @@ void Engine::resizeWindow(int width, int height)
 			mCamera->cam()->setAspectRatio(aspectRatio);
 		}
 	}
+}
+
+Level *Engine::createLevel(Ogre::String name)
+{
+	Level *level = new Level(name,mSceneManager);
+	return level;
 }
 
 bool Engine::mainLoop(bool singleLoop)
@@ -201,20 +216,13 @@ void Engine::grabInputs(void)
 	mIsGrabbingInputs = true;
 }
 
-void Engine::releaseInputs(void)
-{
-	cout << "Engine::releaseInputs(void)" << endl;
-	mInputMan->release();
-	mIsGrabbingInputs = false;
-}
-
 bool Engine::processInputs(void)
 {
 	//update inputs
 	mInputMan->update();
 
 	//process keyboard
-	float dx = .0f, dy = .0f, dz = .0f, speed = 2.f;
+	float dx = .0f, dy = .0f, dz = .0f, speed = 1.f;
 	for (list<OIS::KeyCode>::iterator it = mInputMan->keysPressed().begin(); it != mInputMan->keysPressed().end(); ++it)
 	{
 		switch (*it)
@@ -258,6 +266,19 @@ bool Engine::processInputs(void)
 	mInputMan->resetFrameBasedData();
 	return true;
 
+}
+
+void Engine::releaseInputs(void)
+{
+	cout << "Engine::releaseInputs(void)" << endl;
+	mInputMan->release();
+	mIsGrabbingInputs = false;
+}
+
+void Engine::shutdown(void)
+{
+	if (mLevel)
+		mLevel->unload();
 }
 
 }

@@ -4,9 +4,11 @@
  *  Created on: 2011-05-11
  *      Author: onze
  */
+#ifdef DEBUG
 #include <iostream>
 using namespace std;
 #include <assert.h>
+#endif
 
 #include <OgreMath.h>
 #include <OgreQuaternion.h>
@@ -17,11 +19,6 @@ using namespace std;
 
 namespace Steel
 {
-
-Camera::Camera() :
-	mCamera(0), mCameraNode(0), mSceneManager(0)
-{
-}
 
 Camera::Camera(Ogre::SceneManager *sceneManager)
 {
@@ -37,21 +34,10 @@ Camera::Camera(Ogre::SceneManager *sceneManager)
 	mCameraNode->lookAt(Ogre::Vector3::ZERO, Ogre::SceneNode::TS_WORLD);
 }
 
-Camera::Camera(const Camera &camera)
-{
-	assert(false);
-}
-
 Camera::~Camera()
 {
 	mCameraNode->detachAllObjects();
 	mSceneManager->destroySceneNode("cameraNode");
-}
-
-Camera &Camera::operator=(const Camera &camera)
-{
-	assert(false);
-	return *this;
 }
 
 void Camera::lookTowards(float x, float y, float roll, float factor)
@@ -59,13 +45,13 @@ void Camera::lookTowards(float x, float y, float roll, float factor)
 	x *= factor;
 	y *= factor;
 
-	mCameraNode->pitch(Ogre::Degree(x),Ogre::SceneNode::TS_LOCAL);
-	mCameraNode->yaw(Ogre::Degree(y),Ogre::SceneNode::TS_WORLD);
+	mCameraNode->pitch(Ogre::Degree(x), Ogre::SceneNode::TS_LOCAL);
+	mCameraNode->yaw(Ogre::Degree(y), Ogre::SceneNode::TS_WORLD);
 }
 
-void Camera::translate(float dx,float dy,float dz)
+void Camera::translate(float dx, float dy, float dz)
 {
-	mCameraNode->translate(mCameraNode->getOrientation()*(Ogre::Vector3(dx,dy,dz)));
+	mCameraNode->translate(mCameraNode->getOrientation() * (Ogre::Vector3(dx, dy, dz)));
 }
 
 }

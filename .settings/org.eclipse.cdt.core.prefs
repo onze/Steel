@@ -1,5 +1,15 @@
-#Sat May 07 04:03:33 EDT 2011
+#Mon Jun 06 21:03:35 EDT 2011
 eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/OGRE_LOC/value=/media/z2/src/ogre_src_v1-7-2
+environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/append=true
+environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/appendContributed=true
+environment/project/cdt.managedbuild.config.gnu.exe.release.1773923752/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.exe.release.1773923752/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.config.gnu.exe.release.1773923752/OGRE_LOC/value=/media/z2/src/ogre_src_v1-7-2
+environment/project/cdt.managedbuild.config.gnu.exe.release.1773923752/append=true
+environment/project/cdt.managedbuild.config.gnu.exe.release.1773923752/appendContributed=true
 environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/OGRE_LOC/delimiter=\:
 environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/OGRE_LOC/operation=append
 environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/OGRE_LOC/value=/media/z2/src/ogre_src_v1-7-2/

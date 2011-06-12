@@ -17,6 +17,7 @@
 #include <OgreString.h>
 
 #include "Camera.h"
+#include "Level.h"
 
 namespace Steel
 {
@@ -53,26 +54,39 @@ public:
 						int width,
 						int height,
 						Ogre::String defaultLog = Ogre::String("ogre_log.log"));
-
+	void shutdown(void);
 	void grabInputs(void);
 	void releaseInputs(void);
+	Level *createLevel(Ogre::String name);
+
+	inline void abortMainLoop(void)
+	{
+		mMustAbortMainLoop = true;
+	}
+	;
+
 	//getters
-	inline std::string &windowHandle()
+	inline Ogre::String rootdir(void)
+	{
+		return sRootdir;
+	}
+	;
+	inline std::string &windowHandle(void)
 	{
 		return mWindowHandle;
 	}
 	;
-	inline Ogre::RenderWindow *renderWindow()
+	inline Ogre::RenderWindow *renderWindow(void)
 	{
 		return mRenderWindow;
 	}
 	;
-	inline Camera *camera()
+	inline Camera *camera(void)
 	{
 		return mCamera;
 	}
 	;
-	inline bool isGrabbingInputs()
+	inline bool isGrabbingInputs(void)
 	{
 		return mIsGrabbingInputs;
 	}
@@ -82,12 +96,17 @@ public:
 		return mInputMan;
 	}
 	;
-	inline void abortMainLoop()
+
+	//setters
+	void setRootdir(Ogre::String rootdir)
 	{
-		mMustAbortMainLoop = true;
+		sRootdir = rootdir;
+		Level::setPath(rootdir + "/levels/");
 	}
 	;
+
 private:
+	Ogre::String sRootdir;
 	bool preWindowingSetup(	Ogre::String &plugins,
 							int width,
 							int height,
@@ -107,6 +126,11 @@ private:
 	std::string mWindowHandle;
 	bool mIsGrabbingInputs;
 	bool mMustAbortMainLoop;
+
+	/**
+	 * current level.
+	 */
+	Level *mLevel;
 };
 
 }
