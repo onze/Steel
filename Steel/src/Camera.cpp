@@ -38,6 +38,7 @@ Camera::~Camera()
 {
 	mCameraNode->detachAllObjects();
 	mSceneManager->destroySceneNode("cameraNode");
+	mSceneManager->destroyCamera(mCamera);
 }
 
 void Camera::lookTowards(float x, float y, float roll, float factor)

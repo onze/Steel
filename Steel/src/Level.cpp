@@ -13,7 +13,8 @@ using namespace std;
 
 #include <Ogre.h>
 
-#include "../include/Level.h"
+#include "Level.h"
+#include "Model.h"
 
 namespace Steel
 {
@@ -23,44 +24,42 @@ Ogre::String Level::sPath = "levels/";
 Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
 	mName(name), mSceneManager(sceneManager)
 {
-	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/inanimate",
+	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/meshes",
 																		"FileSystem",
 																		mName,
 																		false);
 	mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3(0, 0, 0));
-	mInanimates = std::vector<Inanimate *>();
-	mInanimates.push_back(NULL);
+	mThings = std::map<ThingId, Steel::Thing *>();
+	mOgreModelMan=new OgreModelManager(mSceneManager,mLevelRoot);
 }
 
 Level::~Level()
 {
-	unload();
+	mOgreModelMan->clear();
+	delete mOgreModelMan;
 }
 
-unsigned long Level::createInanimate(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
+ThingId Level::newThing(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
 {
 
 #ifdef DEBUG
-	cout << "Level::createInanimate():" << " meshName: " << meshName << " pos:" << pos << " rot: " << rot << endl;
+	cout << "Level::newThing():" << " meshName: " << meshName << " pos:" << pos << " rot: " << rot << endl;
 	assert(mSceneManager);
 	assert(mLevelRoot);
 #endif
 
-	Ogre::Entity *entity = mSceneManager->createEntity(meshName);
-	Ogre::SceneNode* sceneNode = mLevelRoot->createChildSceneNode(pos, rot);
-	sceneNode->attachObject(entity);
-
-	Inanimate *i = new Inanimate(sceneNode);
-	mInanimates.push_back(i);
-	return mInanimates.size()-1;
+	Thing *t = new Thing(this);
+	t->addModel(MT_OGRE,mOgreModelMan->newModel(meshName,pos,rot));
+	mThings.insert(std::pair<ThingId, Thing *>(t->id(), t));
+	return t->id();
 }
 
-
-Inanimate *Level::getInanimate(unsigned long id)
+Thing *Level::getThing(ThingId id)
 {
-	if(id>=(unsigned long)mInanimates.size())
+	map<ThingId,Thing *>::iterator it=mThings.find(id);
+	if(it==mThings.end())
 		return NULL;
-	return mInanimates[id];
+	return it->second;
 }
 
 bool Level::isOver(void)

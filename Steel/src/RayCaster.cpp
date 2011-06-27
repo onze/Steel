@@ -32,7 +32,7 @@ RayCaster::~RayCaster()
 
 bool RayCaster::fromRay(Ogre::Ray &ray, std::list<Ogre::SceneNode *> &nodes)
 {
-	Debug::log("RayCaster::fromray()").endl();
+	Debug::log("RayCaster::fromRay()").endl();
 
 	// check we are initialised
 	if (mRaySceneQuery != NULL)

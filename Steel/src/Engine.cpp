@@ -13,6 +13,8 @@
 #include <OgreResourceGroupManager.h>
 
 #include "Engine.h"
+#include "OgreModelManager.h"
+#include "Debug.h"
 
 using namespace std;
 
@@ -23,25 +25,66 @@ Ogre::String sRootdir = "./";
 
 Engine::Engine() :
 	mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL),
-			mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL)
+			mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
 {
-
+	mSelection = std::list<ThingId>();
 }
 
 Engine::~Engine()
 {
+	//custom structs
+
 	if (mLevel)
+	{
+		mLevel->unload();
 		delete mLevel;
+	}
 	if (mInputMan)
 		delete mInputMan;
+
+	//ogre structs
+	if (mSceneManager)
+	{
+		delete mCamera;
+		mSceneManager->clearScene();
+		mSceneManager->destroyAllCameras();
+	}
+	if (mRenderWindow)
+	{
+		delete mRenderWindow;
+	}
 	if (mRoot)
-		delete mRoot;
+	{
+		mRoot->destroySceneManager(mSceneManager);
+	}
 }
 
-void Engine::init(Ogre::String plugins, bool fullScreen, int width, int height, Ogre::String windowTitle)
+Level *Engine::createLevel(Ogre::String name)
 {
+	//single level only for now
+	if (mLevel == NULL)
+		mLevel = new Level(name, mSceneManager);
+	return mLevel;
+}
+
+void Engine::grabInputs(void)
+{
+	Debug::log("Engine::grabInputs(void)").endl();
+	mInputMan->grab();
+	mIsGrabbingInputs = true;
+}
+
+void Engine::init(	Ogre::String plugins,
+					bool fullScreen,
+					int width,
+					int height,
+					Ogre::String windowTitle,
+					Ogre::LogListener *logListener)
+{
+	std::cout << "Engine::init()" << std::endl;
 	preWindowingSetup(plugins, width, height);
 
+	std::cout << "creating window, " << std::cout.flush();
 	//window setup
 	mRenderWindow = mRoot->initialise(false);
 
@@ -65,10 +108,11 @@ void Engine::embeddedInit(	Ogre::String plugins,
 							std::string windowHandle,
 							int width,
 							int height,
-							Ogre::String defaultLog)
+							Ogre::String defaultLog,
+							Ogre::LogListener *logListener)
 {
 
-	preWindowingSetup(plugins, width, height, defaultLog);
+	preWindowingSetup(plugins, width, height, defaultLog, logListener);
 
 	//false so that no window is opened
 	mRoot->initialise(false);
@@ -82,10 +126,16 @@ void Engine::embeddedInit(	Ogre::String plugins,
 	postWindowingSetup(width, height);
 
 }
-bool Engine::preWindowingSetup(Ogre::String &plugins, int width, int height, Ogre::String defaultLog)
+bool Engine::preWindowingSetup(	Ogre::String &plugins,
+								int width,
+								int height,
+								Ogre::String defaultLog,
+								Ogre::LogListener *logListener)
 {
-
-	mRoot = new Ogre::Root(plugins, "", defaultLog);
+	std::cout << "Engine::preWindowingSetup()" << std::endl;
+	Debug::init(defaultLog, logListener);
+	Debug::log("Debug setup.").endl();
+	mRoot = new Ogre::Root(plugins, "");
 
 	// setup resources
 	// Load resource paths from config file
@@ -123,6 +173,7 @@ bool Engine::preWindowingSetup(Ogre::String &plugins, int width, int height, Ogr
 
 bool Engine::postWindowingSetup(int width, int height)
 {
+	std::cout << "Engine::postWindowingSetup()" << std::endl;
 	// Set default mipmap level (NB some APIs ignore this)
 	Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
 	// initialise all resource groups
@@ -151,11 +202,14 @@ bool Engine::postWindowingSetup(int width, int height)
 	mSceneManager->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
 
 	// Create a light
-		Ogre::Light* l = mSceneManager->createLight("MainLight");
-		l->setPosition(20, 80, 50);
+	Ogre::Light* l = mSceneManager->createLight("MainLight");
+	l->setPosition(20, 80, 50);
 
 	mRoot->clearEventTimes();
 	mInputMan = new InputManager(this);
+
+	mRayCaster = new RayCaster(mSceneManager);
+
 	return true;
 }
 
@@ -172,12 +226,6 @@ void Engine::resizeWindow(int width, int height)
 			mCamera->cam()->setAspectRatio(aspectRatio);
 		}
 	}
-}
-
-Level *Engine::createLevel(Ogre::String name)
-{
-	Level *level = new Level(name,mSceneManager);
-	return level;
 }
 
 bool Engine::mainLoop(bool singleLoop)
@@ -209,11 +257,22 @@ void Engine::redraw(void)
 	mRoot->_fireFrameEnded();
 }
 
-void Engine::grabInputs(void)
+void Engine::pickThings(std::list<ModelId> &selection, int x, int y)
 {
-	cout << "Engine::grabInputs(void)" << endl;
-	mInputMan->grab();
-	mIsGrabbingInputs = true;
+	std::cout << "Engine::pickThings()" << endl;
+	//get nodes that collide
+	std::list<Ogre::SceneNode *> nodes;
+	Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
+	Ogre::Real _y = float(y) / float(mRenderWindow->getHeight());
+	Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
+	if (!mRayCaster->fromRay(ray, nodes))
+	{
+		Ogre::LogManager::getSingletonPtr()->logMessage("Engine::selectThings(): raycast failed.");
+		return;
+	}
+
+	//retrieve Thing's that own them
+	mLevel->ogreModelMan()->getThingsIdsFromSceneNodes(nodes, selection);
 }
 
 bool Engine::processInputs(void)
@@ -273,6 +332,34 @@ void Engine::releaseInputs(void)
 	cout << "Engine::releaseInputs(void)" << endl;
 	mInputMan->release();
 	mIsGrabbingInputs = false;
+}
+
+void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
+{
+	Debug::log("Engine::setSelectedThings(): ");
+	//unselect last selection if any
+	Thing *thing;
+	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	{
+		thing = mLevel->getThing(*it);
+		if (thing == NULL)
+			continue;
+		thing->ogreModel()->setSelected(false);
+	}
+	mSelection.clear();
+
+	//process actual selections
+	for (std::list<ThingId>::iterator it = selection.begin(); it != selection.end(); ++it)
+	{
+		Debug::log(*it)(",");
+		thing = mLevel->getThing(*it);
+		if (thing == NULL)
+			continue;
+		mSelection.push_back(*it);
+		thing->ogreModel()->setSelected(selected);
+	}
+	Debug::log.endl();
+
 }
 
 void Engine::shutdown(void)

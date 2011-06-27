@@ -35,4 +35,13 @@ Ogre::Vector3 OgreModel::position()
 	return mSceneNode->getPosition();
 }
 
+void OgreModel::setSelected(bool selected)
+{
+
+#ifdef DEBUG
+	mSceneNode->showBoundingBox(selected);
+#endif
+
+}
+
 }

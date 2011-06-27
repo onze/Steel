@@ -8,9 +8,11 @@
 #ifndef LEVEL_H_
 #define LEVEL_H_
 
-#include <vector>
+#include <map>
 
-#include "Inanimate.h"
+#include "steeltypes.h"
+#include "OgreModelManager.h"
+#include "Thing.h"
 
 namespace Steel
 {
@@ -27,9 +29,9 @@ public:
 	/**
 	 *
 	 */
-	unsigned long createInanimate(	Ogre::String name,
-									Ogre::Vector3 pos = Ogre::Vector3::ZERO,
-									Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
+	ThingId newThing(	Ogre::String name,
+						Ogre::Vector3 pos = Ogre::Vector3::ZERO,
+						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
 	bool isOver(void);
 	bool unload(void);
 	//getters
@@ -39,7 +41,11 @@ public:
 	}
 	;
 
-	Inanimate *getInanimate(unsigned long id);
+	Thing *getThing(ThingId id);
+	inline OgreModelManager *ogreModelMan()
+	{
+		return mOgreModelMan;
+	}
 	//setters
 	inline static void setPath(Ogre::String _path)
 	{
@@ -49,6 +55,8 @@ public:
 protected:
 	//static
 	static Ogre::String sPath;
+	//endof static
+
 	Ogre::String mName;
 	/**
 	 * Pointer to steel's global scene manager.
@@ -62,7 +70,11 @@ protected:
 	/**
 	 * entity container.
 	 */
-	std::vector<Steel::Inanimate *> mInanimates;
+	std::map<ThingId, Steel::Thing *> mThings;
+	/**
+	 * responsible for ogreModel
+	 */
+	OgreModelManager *mOgreModelMan;
 };
 
 }

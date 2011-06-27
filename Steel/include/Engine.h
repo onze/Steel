@@ -9,8 +9,10 @@
 #define ENGINE_H_
 
 #include <string>
+#include <list>
 
 #include <OgreRoot.h>
+#include <OgreLog.h>
 #include <OgreViewport.h>
 #include <OgreSceneManager.h>
 #include <OgreRenderWindow.h>
@@ -18,6 +20,7 @@
 
 #include "Camera.h"
 #include "Level.h"
+#include "RayCaster.h"
 
 namespace Steel
 {
@@ -29,21 +32,13 @@ class Engine
 public:
 	Engine();
 	virtual ~Engine();
-	/**
-	 * called to resize the window.
-	 */
-	void resizeWindow(int width, int height);
-	bool mainLoop(bool singleLoop = false);
-	void redraw(void);
-	/**
-	 * game-side/standalone init.
-	 * Automaticaly grabs mouse/keyboard inputs.
-	 */
-	void init(	Ogre::String plugins,
-				bool fullScreen = false,
-				int width = 800,
-				int height = 600,
-				Ogre::String windowTitle = Ogre::String("Steel Window"));
+
+	inline void abortMainLoop(void)
+	{
+		mMustAbortMainLoop = true;
+	}
+	;
+	Level *createLevel(Ogre::String name);
 
 	/**
 	 * init from an app that already has created the engine's rendering window.
@@ -53,17 +48,35 @@ public:
 						std::string windowHandle,
 						int width,
 						int height,
-						Ogre::String defaultLog = Ogre::String("ogre_log.log"));
-	void shutdown(void);
+						Ogre::String defaultLog = Ogre::String("ogre_log.log"),
+						Ogre::LogListener *logListener = NULL);
 	void grabInputs(void);
-	void releaseInputs(void);
-	Level *createLevel(Ogre::String name);
+	/**
+	 * game-side/standalone init.
+	 * Automaticaly grabs mouse/keyboard inputs.
+	 */
+	void init(	Ogre::String plugins,
+				bool fullScreen = false,
+				int width = 800,
+				int height = 600,
+				Ogre::String windowTitle = Ogre::String("Steel Window"),
+				Ogre::LogListener *logListener = NULL);
 
-	inline void abortMainLoop(void)
-	{
-		mMustAbortMainLoop = true;
-	}
-	;
+	bool mainLoop(bool singleLoop = false);
+	/**
+	 * Takes window coordinates and lists under the given list all things that collide with a ray going from the camera
+	 * center to the given coordinates.
+	 * see http://www.ogre3d.org/tikiwiki/Raycasting+to+the+polygon+level
+	 */
+	void pickThings(std::list<ModelId> &selection, int x, int y);
+	void redraw(void);
+	void setSelectedThings(std::list<ThingId> selection,bool selected);
+	void shutdown(void);
+	void releaseInputs(void);
+	/**
+	 * called to resize the window.
+	 */
+	void resizeWindow(int width, int height);
 
 	//getters
 	inline Ogre::String rootdir(void)
@@ -110,7 +123,8 @@ private:
 	bool preWindowingSetup(	Ogre::String &plugins,
 							int width,
 							int height,
-							Ogre::String defaultLog = Ogre::String("ogre_log.log"));
+							Ogre::String defaultLog = Ogre::String("steel_default_log.log"),
+							Ogre::LogListener *logListener = NULL);
 
 	bool postWindowingSetup(int width, int height);
 
@@ -131,6 +145,11 @@ private:
 	 * current level.
 	 */
 	Level *mLevel;
+	/**
+	 * object that handles all this raycasting thingies.
+	 */
+	RayCaster *mRayCaster;
+	std::list<ThingId> mSelection;
 };
 
 }

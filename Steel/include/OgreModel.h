@@ -26,6 +26,7 @@ public:
 	virtual ~OgreModel();
 
 	Ogre::Vector3 position();
+	void setSelected(bool selected);
 
 protected:
 	Ogre::SceneNode *mSceneNode;
