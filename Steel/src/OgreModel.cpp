@@ -17,12 +17,12 @@ OgreModel::OgreModel(Ogre::SceneNode *sceneNode) :
 
 OgreModel::OgreModel(const OgreModel &m)
 {
-	(*this)=m;
+	(*this) = m;
 }
 
 OgreModel &OgreModel::operator=(const OgreModel &m)
 {
-	mSceneNode=m.mSceneNode;
+	mSceneNode = m.mSceneNode;
 	return *this;
 }
 
@@ -42,6 +42,11 @@ void OgreModel::setSelected(bool selected)
 	mSceneNode->showBoundingBox(selected);
 #endif
 
+}
+
+void OgreModel::translate(Ogre::Vector3 t)
+{
+	mSceneNode->translate(t);
 }
 
 }

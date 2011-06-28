@@ -27,6 +27,7 @@ public:
 
 	Ogre::Vector3 position();
 	void setSelected(bool selected);
+	void translate(Ogre::Vector3 t);
 
 protected:
 	Ogre::SceneNode *mSceneNode;

@@ -51,6 +51,10 @@ public:
 						Ogre::String defaultLog = Ogre::String("ogre_log.log"),
 						Ogre::LogListener *logListener = NULL);
 	void grabInputs(void);
+	inline bool hasSelection()
+	{
+		return !mSelection.empty();
+	}
 	/**
 	 * game-side/standalone init.
 	 * Automaticaly grabs mouse/keyboard inputs.
@@ -70,33 +74,29 @@ public:
 	 */
 	void pickThings(std::list<ModelId> &selection, int x, int y);
 	void redraw(void);
-	void setSelectedThings(std::list<ThingId> selection,bool selected);
+	void setSelectedThings(std::list<ThingId> selection, bool selected);
 	void shutdown(void);
 	void releaseInputs(void);
 	/**
 	 * called to resize the window.
 	 */
 	void resizeWindow(int width, int height);
+	/**
+	 * Returns the mean of all positions of selected things.
+	 */
+	Ogre::Vector3 selectionPosition();
+	void translateSelection(Ogre::Vector3 v);
 
+	////////////////////////////////////////////////
 	//getters
-	inline Ogre::String rootdir(void)
-	{
-		return sRootdir;
-	}
-	;
-	inline std::string &windowHandle(void)
-	{
-		return mWindowHandle;
-	}
-	;
-	inline Ogre::RenderWindow *renderWindow(void)
-	{
-		return mRenderWindow;
-	}
-	;
 	inline Camera *camera(void)
 	{
 		return mCamera;
+	}
+	;
+	inline InputManager *inputMan(void)
+	{
+		return mInputMan;
 	}
 	;
 	inline bool isGrabbingInputs(void)
@@ -104,9 +104,24 @@ public:
 		return mIsGrabbingInputs;
 	}
 	;
-	inline InputManager *inputMan(void)
+	inline Ogre::RenderWindow *renderWindow(void)
 	{
-		return mInputMan;
+		return mRenderWindow;
+	}
+	;
+	inline Ogre::String rootdir(void)
+	{
+		return sRootdir;
+	}
+	;
+	inline std::list<ThingId> selection()
+	{
+		return mSelection;
+	}
+	;
+	inline std::string &windowHandle(void)
+	{
+		return mWindowHandle;
 	}
 	;
 

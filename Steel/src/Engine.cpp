@@ -248,15 +248,6 @@ bool Engine::mainLoop(bool singleLoop)
 	return true;
 }
 
-void Engine::redraw(void)
-{
-	mRoot->_fireFrameStarted();
-	mRoot->_updateAllRenderTargets();
-	mRenderWindow->update();
-	mRoot->_fireFrameRenderingQueued();
-	mRoot->_fireFrameEnded();
-}
-
 void Engine::pickThings(std::list<ModelId> &selection, int x, int y)
 {
 	std::cout << "Engine::pickThings()" << endl;
@@ -327,11 +318,34 @@ bool Engine::processInputs(void)
 
 }
 
+void Engine::redraw(void)
+{
+	mRoot->_fireFrameStarted();
+	mRoot->_updateAllRenderTargets();
+	mRenderWindow->update();
+	mRoot->_fireFrameRenderingQueued();
+	mRoot->_fireFrameEnded();
+}
+
 void Engine::releaseInputs(void)
 {
 	cout << "Engine::releaseInputs(void)" << endl;
 	mInputMan->release();
 	mIsGrabbingInputs = false;
+}
+
+Ogre::Vector3 Engine::selectionPosition()
+{
+	Ogre::Vector3 pos=Ogre::Vector3();
+	Thing *thing;
+	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	{
+		thing = mLevel->getThing(*it);
+		if (thing == NULL)
+			continue;
+		pos+=thing->ogreModel()->position();
+	}
+	return pos/Ogre::Real(mSelection.size());
 }
 
 void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
@@ -366,6 +380,19 @@ void Engine::shutdown(void)
 {
 	if (mLevel)
 		mLevel->unload();
+}
+
+
+void Engine::translateSelection(Ogre::Vector3 t)
+{
+	Thing *thing;
+	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	{
+		thing = mLevel->getThing(*it);
+		if (thing == NULL)
+			continue;
+		thing->ogreModel()->translate(t);
+	}
 }
 
 }
