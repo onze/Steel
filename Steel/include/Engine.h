@@ -39,7 +39,7 @@ public:
 	}
 	;
 	Level *createLevel(Ogre::String name);
-
+	void deleteSelection();
 	/**
 	 * init from an app that already has created the engine's rendering window.
 	 * Does not grab any input (this can be done with a call to grabInputs).
@@ -81,6 +81,7 @@ public:
 	 * called to resize the window.
 	 */
 	void resizeWindow(int width, int height);
+	void rotateSelection(Ogre::Vector3 rotation);
 	/**
 	 * Returns the mean of all positions of selected things.
 	 */

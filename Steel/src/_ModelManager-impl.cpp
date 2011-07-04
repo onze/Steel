@@ -5,9 +5,9 @@
  *      Author: onze
  */
 
-#include "ModelManager.cpp"
+#include "_ModelManager.cpp"
 #include "OgreModelManager.h"
 #include "OgreModel.h"
 
-template class Steel::ModelManager<Steel::OgreModel>;
+template class Steel::_ModelManager<Steel::OgreModel>;
 

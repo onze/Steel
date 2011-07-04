@@ -14,13 +14,13 @@
 #include <OgreSceneManager.h>
 
 #include "steeltypes.h"
-#include "ModelManager.h"
+#include "_ModelManager.h"
 #include "OgreModel.h"
 
 namespace Steel
 {
 
-class OgreModelManager: public ModelManager<OgreModel>
+class OgreModelManager: public _ModelManager<OgreModel>
 {
 public:
 	OgreModelManager();
@@ -30,10 +30,13 @@ public:
 	 * initialize a new OgreModel and returns its identifier.
 	 */
 	ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
-	/**
-	 * fills the ModelId list with ids of Things that own nodes in the the given list.
-	 */
-	void getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
+
+	///////////////////////////////////////////////////////////
+	//getters
+	inline Ogre::SceneManager *sceneManager()
+	{
+		return mSceneManager;
+	}
 
 protected:
 	Ogre::SceneManager *mSceneManager;

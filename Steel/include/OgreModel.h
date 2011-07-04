@@ -9,6 +9,7 @@
 #define OGREMODEL_H_
 
 #include <OgreSceneNode.h>
+#include <OgreEntity.h>
 
 #include "Model.h"
 
@@ -20,17 +21,21 @@ class OgreModel: public Model
 private:
 	OgreModel();
 public:
-	OgreModel(Ogre::SceneNode *sceneNode);
+	OgreModel(Ogre::SceneNode *sceneNode,Ogre::Entity *entity);
 	OgreModel(const OgreModel &m);
 	OgreModel &operator=(const OgreModel &m);
 	virtual ~OgreModel();
 
 	Ogre::Vector3 position();
+	Ogre::Quaternion rotation();
+	void rotate(Ogre::Vector3 &rotation);
 	void setSelected(bool selected);
 	void translate(Ogre::Vector3 t);
 
 protected:
+	virtual void cleanup();
 	Ogre::SceneNode *mSceneNode;
+	Ogre::Entity *mEntity;
 };
 
 }

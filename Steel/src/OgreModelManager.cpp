@@ -16,13 +16,13 @@ namespace Steel
 {
 
 OgreModelManager::OgreModelManager() :
-	ModelManager<OgreModel> (), mSceneManager(NULL), mLevelRoot(NULL)
+	_ModelManager<OgreModel> (), mSceneManager(NULL), mLevelRoot(NULL)
 {
 
 }
 
 OgreModelManager::OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot) :
-	ModelManager<OgreModel> (), mSceneManager(sceneManager), mLevelRoot(levelRoot)
+	_ModelManager<OgreModel> (), mSceneManager(sceneManager), mLevelRoot(levelRoot)
 {
 
 }
@@ -38,28 +38,13 @@ ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogr
 	Ogre::SceneNode* sceneNode = mLevelRoot->createChildSceneNode(pos, rot);
 	sceneNode->attachObject(entity);
 
-	ModelId id = (ModelId) mModels.size()+1;
+	ModelId id=insertModel(OgreModel(sceneNode,entity));
+	Debug::log("OgreModelManager::newModel() id:")(id)(" sceneNode name: ")(sceneNode->getName()).endl();
 	sceneNode->setUserAny(Ogre::Any(id));
-
-	mModels.insert(std::pair<ModelId, OgreModel>(id, OgreModel(sceneNode)));
-	ModelMapIterator it=mModels.find(id);
-
-	it->second.incRef();
 	return id;
 }
 
-void OgreModelManager::getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
-{
-	Debug::log("OgreModelManager::getThingsIdsFromSceneNodes()").endl();
-	ModelId id;
-	for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
-	{
-		id = Ogre::any_cast<ModelId>((*it)->getUserAny());
-		if (!isValid(id))
-			continue;
-		selection.push_back(id);
-	}
-}
+
 
 }
 

@@ -8,6 +8,8 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
+#include "Debug.h"
+
 namespace Steel
 {
 
@@ -15,22 +17,38 @@ class Model
 {
 public:
 	Model();
+	Model(const Model &m);
 	virtual ~Model();
+
+	virtual Model &operator=(const Model &m);
 	inline void incRef()
 	{
+		Debug::log("refCount++").endl();
 		++mRefCount;
 	}
-	;
-	inline unsigned long decRef()
+	inline void decRef()
 	{
-		return isFree() ? 0L : --mRefCount;
+		Debug::log("refCount--").endl();
+		if (--mRefCount <= 0L)
+			cleanup();
 	}
 	inline bool isFree()
 	{
-		return mRefCount == 0;
+		return mRefCount <= 0L;
+	}
+	//getters
+	inline unsigned long refCount()
+	{
+		return mRefCount;
+	}
+protected:
+	/**
+	 * called by decRef() when the ref count gets below 0.
+	 */
+	virtual void cleanup()
+	{
 	}
 	;
-protected:
 	/**
 	 * Number of things referencing it.
 	 */

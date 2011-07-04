@@ -44,9 +44,29 @@ public:
 	}
 	;
 	void addModel(ModelType modelType, ModelId modelId);
-	OgreModel *ogreModel();
 
+	/**
+	 * returns an address to the model of the given type, if any. returns NULL otherwise.
+	 */
 	Model *model(ModelType modelType);
+	/**
+	 * return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
+	 */
+	ModelId modelId(ModelType modelType);
+	/**
+	 * shortcut to Thing::model(MT_OGRE).
+	 */
+	inline OgreModel *ogreModel()
+	{
+		return (OgreModel *) model(MT_OGRE);
+	}
+	/**
+	 * shortcut to Thing::modelId(MT_OGRE).
+	 */
+	inline ModelId ogreModelId()
+	{
+		return modelId(MT_OGRE);
+	}
 
 private:
 	//static stuff

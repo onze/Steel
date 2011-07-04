@@ -67,6 +67,14 @@ Level *Engine::createLevel(Ogre::String name)
 	return mLevel;
 }
 
+void Engine::deleteSelection()
+{
+	if(!hasSelection())
+		return;
+	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+		mLevel->deleteThing(*it);
+}
+
 void Engine::grabInputs(void)
 {
 	Debug::log("Engine::grabInputs(void)").endl();
@@ -258,12 +266,12 @@ void Engine::pickThings(std::list<ModelId> &selection, int x, int y)
 	Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
 	if (!mRayCaster->fromRay(ray, nodes))
 	{
-		Ogre::LogManager::getSingletonPtr()->logMessage("Engine::selectThings(): raycast failed.");
+		Debug::log("Engine::selectThings(): raycast failed.").endl();
 		return;
 	}
 
 	//retrieve Thing's that own them
-	mLevel->ogreModelMan()->getThingsIdsFromSceneNodes(nodes, selection);
+	mLevel->getThingsIdsFromSceneNodes(nodes, selection);
 }
 
 bool Engine::processInputs(void)
@@ -272,7 +280,7 @@ bool Engine::processInputs(void)
 	mInputMan->update();
 
 	//process keyboard
-	float dx = .0f, dy = .0f, dz = .0f, speed = 1.f;
+	float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
 	for (list<OIS::KeyCode>::iterator it = mInputMan->keysPressed().begin(); it != mInputMan->keysPressed().end(); ++it)
 	{
 		switch (*it)
@@ -334,6 +342,19 @@ void Engine::releaseInputs(void)
 	mIsGrabbingInputs = false;
 }
 
+void Engine::rotateSelection(Ogre::Vector3 rotation)
+{
+	//TODO:make selection child of a node on which the rotation is applied
+	Thing *thing;
+	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	{
+		thing = mLevel->getThing(*it);
+		if (thing == NULL)
+			continue;
+		thing->ogreModel()->rotate(rotation);
+	}
+}
+
 Ogre::Vector3 Engine::selectionPosition()
 {
 	Ogre::Vector3 pos=Ogre::Vector3();
@@ -365,11 +386,11 @@ void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
 	//process actual selections
 	for (std::list<ThingId>::iterator it = selection.begin(); it != selection.end(); ++it)
 	{
-		Debug::log(*it)(",");
 		thing = mLevel->getThing(*it);
+		Debug::log(*it)(", ");
 		if (thing == NULL)
 			continue;
-		mSelection.push_back(*it);
+		mSelection.push_back(thing->id());
 		thing->ogreModel()->setSelected(selected);
 	}
 	Debug::log.endl();

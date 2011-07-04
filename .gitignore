@@ -1,3 +1,5 @@
 *.o
 *.d
 *.directory
+*.so
+*.mk

@@ -61,6 +61,11 @@ public:
 			return (*this)(msg);
 		}
 
+		DebugObject &log(Ogre::Quaternion const &msg)
+		{
+			return (*this)(msg);
+		}
+
 		DebugObject &log(long unsigned int msg)
 		{
 			return (*this)(msg);
@@ -82,6 +87,11 @@ public:
 		}
 
 		DebugObject &operator()(Ogre::Vector3 msg)
+		{
+			return (*this)(Ogre::StringConverter::toString(msg));
+		}
+
+		DebugObject &operator()(Ogre::Quaternion msg)
 		{
 			return (*this)(Ogre::StringConverter::toString(msg));
 		}

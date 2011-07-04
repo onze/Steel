@@ -26,6 +26,7 @@ private:
 public:
 	Level(Ogre::String name, Ogre::SceneManager *sceneManager);
 	virtual ~Level();
+	void deleteThing(ThingId id);
 	/**
 	 *
 	 */
@@ -39,13 +40,17 @@ public:
 	{
 		return sPath;
 	}
-	;
-
 	Thing *getThing(ThingId id);
+	/**
+	 * fills the ModelId list with ids of Things that own nodes in the the given list.
+	 */
+	void getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
 	inline OgreModelManager *ogreModelMan()
 	{
 		return mOgreModelMan;
 	}
+	//not used yet
+	ModelManager *modelManager(ModelType modelType);
 	//setters
 	inline static void setPath(Ogre::String _path)
 	{
@@ -70,7 +75,7 @@ protected:
 	/**
 	 * entity container.
 	 */
-	std::map<ThingId, Steel::Thing *> mThings;
+	std::map<ThingId, Thing *> mThings;
 	/**
 	 * responsible for ogreModel
 	 */

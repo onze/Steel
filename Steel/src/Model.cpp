@@ -16,9 +16,20 @@ Model::Model() :
 
 }
 
+Model::Model(const Model &m)
+{
+	this->operator =(m);
+}
+
 Model::~Model()
 {
-	// TODO Auto-generated destructor stub
+
+}
+
+Model &Model::operator=(const Model &m)
+{
+	mRefCount=m.mRefCount;
+	return *this;
 }
 
 }
