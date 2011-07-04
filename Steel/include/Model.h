@@ -23,12 +23,10 @@ public:
 	virtual Model &operator=(const Model &m);
 	inline void incRef()
 	{
-		Debug::log("refCount++").endl();
 		++mRefCount;
 	}
 	inline void decRef()
 	{
-		Debug::log("refCount--").endl();
 		if (--mRefCount <= 0L)
 			cleanup();
 	}

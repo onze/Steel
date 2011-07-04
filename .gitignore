@@ -3,3 +3,4 @@
 *.directory
 *.so
 *.mk
+current_commit

@@ -69,7 +69,7 @@ Level *Engine::createLevel(Ogre::String name)
 
 void Engine::deleteSelection()
 {
-	if(!hasSelection())
+	if (!hasSelection())
 		return;
 	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 		mLevel->deleteThing(*it);
@@ -357,16 +357,18 @@ void Engine::rotateSelection(Ogre::Vector3 rotation)
 
 Ogre::Vector3 Engine::selectionPosition()
 {
-	Ogre::Vector3 pos=Ogre::Vector3();
+	if (!hasSelection())
+		return Ogre::Vector3(.0f, .0f, .0f);
+	Ogre::Vector3 pos = Ogre::Vector3::ZERO;
 	Thing *thing;
 	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 	{
 		thing = mLevel->getThing(*it);
 		if (thing == NULL)
 			continue;
-		pos+=thing->ogreModel()->position();
+		pos += thing->ogreModel()->position();
 	}
-	return pos/Ogre::Real(mSelection.size());
+	return pos / Ogre::Real(mSelection.size());
 }
 
 void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
@@ -397,12 +399,23 @@ void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
 
 }
 
+void Engine::setSelectionPosition(Ogre::Vector3 pos)
+{
+	Thing *thing;
+	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	{
+		thing = mLevel->getThing(*it);
+		if (thing == NULL)
+			continue;
+		thing->ogreModel()->setPosition(pos);
+	}
+}
+
 void Engine::shutdown(void)
 {
 	if (mLevel)
 		mLevel->unload();
 }
-
 
 void Engine::translateSelection(Ogre::Vector3 t)
 {

@@ -23,10 +23,15 @@ Ogre::String Level::sPath = "levels/";
 Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
 	mName(name), mSceneManager(sceneManager)
 {
+	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/materials",
+																		"FileSystem",
+																		mName,
+																		false);
 	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/meshes",
 																		"FileSystem",
 																		mName,
 																		false);
+	Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(mName);
 	mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3(0, 0, 0));
 	mThings = std::map<ThingId, Thing *>();
 	mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
@@ -40,7 +45,7 @@ Level::~Level()
 
 void Level::deleteThing(ThingId id)
 {
-	Debug::log("Level::deleteThing() id: ")( id ).endl();
+	Debug::log("Level::deleteThing() id: ")(id).endl();
 	std::map<ThingId, Thing *>::iterator it = mThings.find(id);
 	if (it == mThings.end())
 		return;
@@ -89,30 +94,30 @@ void Level::getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std:
 	Debug::log("Level::getThingsIdsFromSceneNodes()").endl();
 	//retrieving models
 	ModelId id;
-//	Debug::log("adding ids:");
+	//	Debug::log("adding ids:");
 	std::list<ModelId> models = std::list<ModelId>();
 	for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
 		id = Ogre::any_cast<ModelId>((*it)->getUserAny());
 		if (!mOgreModelMan->isValid(id))
 			continue;
-//		Debug::log("scenenode: ")((*it)->getName())("-> model id: ")(id)(", ");
+		//		Debug::log("scenenode: ")((*it)->getName())("-> model id: ")(id)(", ");
 		models.push_back(id);
 	}
-//	Debug::log.endl()("then mapping models to things: ");
+	//	Debug::log.endl()("then mapping models to things: ");
 
 	//retrieving things
 	Thing *t;
 	ModelId modelId;
 	for (std::map<ThingId, Thing *>::iterator it_things = mThings.begin(); it_things != mThings.end(); ++it_things)
 	{
-		t=(*it_things).second;
-		modelId=t->ogreModelId();
+		t = (*it_things).second;
+		modelId = t->ogreModelId();
 		for (std::list<ModelId>::iterator it_models = models.begin(); it_models != models.end(); ++it_models)
-			if(mOgreModelMan->isValid(modelId) && modelId==(*it_models))
+			if (mOgreModelMan->isValid(modelId) && modelId == (*it_models))
 				selection.push_back(t->id());
 	}
-//	Debug::log("done.");
+	//	Debug::log("done.");
 }
 
 bool Level::isOver(void)

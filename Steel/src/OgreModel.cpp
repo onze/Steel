@@ -47,6 +47,7 @@ void OgreModel::cleanup()
 
 Ogre::Vector3 OgreModel::position()
 {
+	Debug::log("my pos: ")(mSceneNode->getPosition()).endl();
 	return mSceneNode->getPosition();
 }
 
@@ -60,6 +61,12 @@ void OgreModel::rotate(Ogre::Vector3 &rotation)
 Ogre::Quaternion OgreModel::rotation()
 {
 	return mSceneNode->getOrientation();
+}
+
+void OgreModel::setPosition(Ogre::Vector3 pos)
+{
+	Debug::log("my pos: ")(mSceneNode->getPosition()).endl();
+	mSceneNode->setPosition(pos);
 }
 
 void OgreModel::setSelected(bool selected)

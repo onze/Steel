@@ -53,7 +53,7 @@ Thing &Thing::operator=(const Thing &t)
 
 void Thing::addModel(ModelType modelType, ModelId modelId)
 {
-	Debug::log("Thing::addModel(ModelType ")(modelType)(", ModelId ")(modelId)(")");
+	Debug::log("Thing::addModel(ModelType ")(modelType)(", ModelId ")(modelId)(")").endl();
 	mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
 	//cannot inref here if the model is newly created because its refcount is still 0 and then says it is free.
 //	mLevel->modelManager(modelType)->at(modelId)->incRef();

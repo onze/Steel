@@ -29,6 +29,7 @@ public:
 	Ogre::Vector3 position();
 	Ogre::Quaternion rotation();
 	void rotate(Ogre::Vector3 &rotation);
+	void setPosition(Ogre::Vector3 pos);
 	void setSelected(bool selected);
 	void translate(Ogre::Vector3 t);
 

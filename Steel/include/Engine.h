@@ -94,37 +94,30 @@ public:
 	{
 		return mCamera;
 	}
-	;
 	inline InputManager *inputMan(void)
 	{
 		return mInputMan;
 	}
-	;
 	inline bool isGrabbingInputs(void)
 	{
 		return mIsGrabbingInputs;
 	}
-	;
 	inline Ogre::RenderWindow *renderWindow(void)
 	{
 		return mRenderWindow;
 	}
-	;
 	inline Ogre::String rootdir(void)
 	{
 		return sRootdir;
 	}
-	;
 	inline std::list<ThingId> selection()
 	{
 		return mSelection;
 	}
-	;
 	inline std::string &windowHandle(void)
 	{
 		return mWindowHandle;
 	}
-	;
 
 	//setters
 	void setRootdir(Ogre::String rootdir)
@@ -132,8 +125,7 @@ public:
 		sRootdir = rootdir;
 		Level::setPath(rootdir + "/levels/");
 	}
-	;
-
+	void setSelectionPosition(Ogre::Vector3 pos);
 private:
 	Ogre::String sRootdir;
 	bool preWindowingSetup(	Ogre::String &plugins,
