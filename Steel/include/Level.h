@@ -24,15 +24,24 @@ private:
 	Level(Level &level);
 	Level &operator=(const Level &level);
 public:
+	/**
+	 * since ogre can't reload resource from the same resourceGroup easily, a level can duplicate it's
+	 */
 	Level(Ogre::String name, Ogre::SceneManager *sceneManager);
 	virtual ~Level();
+	Ogre::String addAuxiliaryResourceName(Ogre::String name);
 	void deleteThing(ThingId id);
 	/**
-	 *
+	 * creates a new instance of Thing.
+	 * name: name of the mesh to use
+	 * pos: position of the node
+	 * rot: rotation of the node
+	 * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
 	 */
 	ThingId newThing(	Ogre::String name,
 						Ogre::Vector3 pos = Ogre::Vector3::ZERO,
-						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
+						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
+						bool involvesNewResources=false);
 	bool isOver(void);
 	bool unload(void);
 	//getters
@@ -59,6 +68,7 @@ public:
 	;
 protected:
 	//static
+	///path to level folders
 	static Ogre::String sPath;
 	//endof static
 
@@ -80,6 +90,8 @@ protected:
 	 * responsible for ogreModel
 	 */
 	OgreModelManager *mOgreModelMan;
+	///
+	unsigned int mResGroupAux;
 };
 
 }

@@ -40,14 +40,12 @@ OgreModel::~OgreModel()
 void OgreModel::cleanup()
 {
 	Debug::log("OgreModel::cleanup()").endl();
-
 	mSceneNode->removeAndDestroyAllChildren();
 	mSceneNode->detachAllObjects();
 }
 
 Ogre::Vector3 OgreModel::position()
 {
-	Debug::log("my pos: ")(mSceneNode->getPosition()).endl();
 	return mSceneNode->getPosition();
 }
 
@@ -65,7 +63,6 @@ Ogre::Quaternion OgreModel::rotation()
 
 void OgreModel::setPosition(Ogre::Vector3 pos)
 {
-	Debug::log("my pos: ")(mSceneNode->getPosition()).endl();
 	mSceneNode->setPosition(pos);
 }
 

@@ -21,18 +21,10 @@ namespace Steel
 Ogre::String Level::sPath = "levels/";
 
 Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
-	mName(name), mSceneManager(sceneManager)
+	mName(name), mSceneManager(sceneManager),mResGroupAux(0)
 {
-	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/materials",
-																		"FileSystem",
-																		mName,
-																		false);
-	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/meshes",
-																		"FileSystem",
-																		mName,
-																		false);
-	Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(mName);
-	mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3(0, 0, 0));
+	addAuxiliaryResourceName(mName);
+	mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
 	mThings = std::map<ThingId, Thing *>();
 	mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
 }
@@ -40,7 +32,29 @@ Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
 Level::~Level()
 {
 	mOgreModelMan->clear();
+	Ogre::ResourceGroupManager *rgm=Ogre::ResourceGroupManager::getSingletonPtr();
+	Ogre::String name;
+	for(unsigned int i=0;i<mResGroupAux;++i)
+	{
+		name=mName+"__aux_name_#__"+Ogre::StringConverter::toString(i);
+		rgm->destroyResourceGroup(name);
+	}
 	delete mOgreModelMan;
+}
+
+Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
+{
+	Ogre::String name=baseName+"__aux_name_#__"+Ogre::StringConverter::toString(mResGroupAux++);
+	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/materials",
+																		"FileSystem",
+																		name,
+																		false);
+	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path() + mName + "/meshes",
+																		"FileSystem",
+																		name,
+																		false);
+	Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(name);
+	return name;
 }
 
 void Level::deleteThing(ThingId id)
@@ -65,7 +79,7 @@ ModelManager *Level::modelManager(ModelType modelType)
 	return mm;
 }
 
-ThingId Level::newThing(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
+ThingId Level::newThing(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot,bool involvesNewResources)
 {
 	Debug::log("Level::newThing(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot);
 
@@ -76,6 +90,8 @@ ThingId Level::newThing(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaterni
 
 	Thing *t = new Thing(this);
 	Debug::log(" with id:")(t->id()).endl();
+	if(involvesNewResources)
+		addAuxiliaryResourceName(mName);
 	t->addModel(MT_OGRE, mOgreModelMan->newModel(meshName, pos, rot));
 	mThings.insert(std::pair<ThingId, Thing *>(t->id(), t));
 	return t->id();
@@ -127,7 +143,6 @@ bool Level::isOver(void)
 
 bool Level::unload(void)
 {
-	Ogre::ResourceGroupManager::getSingletonPtr()->removeResourceLocation(Level::path() + mName + "/mesh", mName);
 	return true;
 }
 
