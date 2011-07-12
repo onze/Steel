@@ -69,13 +69,10 @@ bool _ModelManager<M>::isValid(ModelId id)
 template<class M>
 void _ModelManager<M>::releaseModel(ModelId id)
 {
-	Debug::log("_ModelManager<M>::releaseModel(")(id)(")");
 	if (!isValid(id))
 		return;
 	M *m = at(id);
-	Debug::log(" refCount going from ")(m->refCount());
 	m->decRef();
-	Debug::log(" to ")(m->refCount()).endl();
 	//TODO: use a heap (priority queue)
 	if (m->isFree())
 		mModelsFreeList.push_front(id);

@@ -1,5 +1,5 @@
 /*
- * Thing.cpp
+ * Agent.cpp
  *
  *  Created on: 2011-06-15
  *      Author: onze
@@ -8,7 +8,7 @@
 #include <exception>
 
 #include "Debug.h"
-#include "Thing.h"
+#include "Agent.h"
 #include "_ModelManager.h"
 #include "OgreModelManager.h"
 #include "Level.h"
@@ -16,21 +16,21 @@
 namespace Steel
 {
 
-ThingId Thing::sNextId = 1;
+AgentId Agent::sNextId = 1;
 
-Thing::Thing(Level *level) :
-	mId(Thing::getNextId()), mLevel(level)
+Agent::Agent(Level *level) :
+	mId(Agent::getNextId()), mLevel(level)
 {
 	mModelIds = std::map<ModelType, ModelId>();
 }
 
-Thing::~Thing()
+Agent::~Agent()
 {
 	for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
 		mLevel->modelManager(it->first)->releaseModel(it->second);
 }
 
-Thing::Thing(const Thing &t) :
+Agent::Agent(const Agent &t) :
 	mId(t.mId), mLevel(t.mLevel), mModelIds(t.mModelIds)
 {
 	for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
@@ -39,7 +39,7 @@ Thing::Thing(const Thing &t) :
 	}
 }
 
-Thing &Thing::operator=(const Thing &t)
+Agent &Agent::operator=(const Agent &t)
 {
 	mId = t.mId;
 	mLevel = t.mLevel;
@@ -51,7 +51,7 @@ Thing &Thing::operator=(const Thing &t)
 	return *this;
 }
 
-void Thing::addModel(ModelType modelType, ModelId modelId)
+void Agent::addModel(ModelType modelType, ModelId modelId)
 {
 	Debug::log("Thing::addModel(ModelType ")(modelType)(", ModelId ")(modelId)(")").endl();
 	mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
@@ -59,7 +59,7 @@ void Thing::addModel(ModelType modelType, ModelId modelId)
 //	mLevel->modelManager(modelType)->at(modelId)->incRef();
 }
 
-Model *Thing::model(ModelType modelType)
+Model *Agent::model(ModelType modelType)
 {
 	ModelId id=modelId(modelType);
 
@@ -77,7 +77,7 @@ Model *Thing::model(ModelType modelType)
 	}
 }
 
-ModelId Thing::modelId(ModelType modelType)
+ModelId Agent::modelId(ModelType modelType)
 {
 	std::map<ModelType, ModelId>::iterator it = mModelIds.find(modelType);
 	return (it == mModelIds.end() ? INVALID_ID : it->second);

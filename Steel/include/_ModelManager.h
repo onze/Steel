@@ -27,7 +27,7 @@ public:
 	/**
 	 * Returns a pointer to the model referenced by the given id, if the model is in use. Return NULL otherwise.
 	 * Since model addresses can change without notice, models pointers are not supposed to be stored.
-	 * ModelIds are meant for this, as seen in Thing.h/cpp.
+	 * ModelIds are meant for this, as seen in Agent.h/cpp.
 	 */
 	virtual M *at(ModelId id);
 	/**

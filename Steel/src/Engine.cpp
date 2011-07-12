@@ -27,7 +27,7 @@ Engine::Engine() :
 	mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL),
 			mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
 {
-	mSelection = std::list<ThingId>();
+	mSelection = std::list<AgentId>();
 }
 
 Engine::~Engine()
@@ -71,8 +71,8 @@ void Engine::deleteSelection()
 {
 	if (!hasSelection())
 		return;
-	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
-		mLevel->deleteThing(*it);
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+		mLevel->deleteAgent(*it);
 }
 
 void Engine::grabInputs(void)
@@ -256,9 +256,9 @@ bool Engine::mainLoop(bool singleLoop)
 	return true;
 }
 
-void Engine::pickThings(std::list<ModelId> &selection, int x, int y)
+void Engine::pickAgents(std::list<ModelId> &selection, int x, int y)
 {
-	std::cout << "Engine::pickThings()" << endl;
+	std::cout << "Engine::pickAgents()" << endl;
 	//get nodes that collide
 	std::list<Ogre::SceneNode *> nodes;
 	Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
@@ -266,12 +266,12 @@ void Engine::pickThings(std::list<ModelId> &selection, int x, int y)
 	Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
 	if (!mRayCaster->fromRay(ray, nodes))
 	{
-		Debug::log("Engine::selectThings(): raycast failed.").endl();
+		Debug::log("Engine::selectAgents(): raycast failed.").endl();
 		return;
 	}
 
-	//retrieve Thing's that own them
-	mLevel->getThingsIdsFromSceneNodes(nodes, selection);
+	//retrieve Agent's that own them
+	mLevel->getAgentsIdsFromSceneNodes(nodes, selection);
 }
 
 bool Engine::processInputs(void)
@@ -345,13 +345,13 @@ void Engine::releaseInputs(void)
 void Engine::rotateSelection(Ogre::Vector3 rotation)
 {
 	//TODO:make selection child of a node on which the rotation is applied
-	Thing *thing;
-	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	Agent *agent;
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 	{
-		thing = mLevel->getThing(*it);
-		if (thing == NULL)
+		agent = mLevel->getAgent(*it);
+		if (agent == NULL)
 			continue;
-		thing->ogreModel()->rotate(rotation);
+		agent->ogreModel()->rotate(rotation);
 	}
 }
 
@@ -360,40 +360,40 @@ Ogre::Vector3 Engine::selectionPosition()
 	if (!hasSelection())
 		return Ogre::Vector3(.0f, .0f, .0f);
 	Ogre::Vector3 pos = Ogre::Vector3::ZERO;
-	Thing *thing;
-	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	Agent *agent;
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 	{
-		thing = mLevel->getThing(*it);
-		if (thing == NULL)
+		agent = mLevel->getAgent(*it);
+		if (agent== NULL)
 			continue;
-		pos += thing->ogreModel()->position();
+		pos += agent->ogreModel()->position();
 	}
 	return pos / Ogre::Real(mSelection.size());
 }
 
-void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
+void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 {
-	Debug::log("Engine::setSelectedThings(): ");
+	Debug::log("Engine::setSelectedAgents(): ");
 	//unselect last selection if any
-	Thing *thing;
-	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	Agent *agent;
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 	{
-		thing = mLevel->getThing(*it);
-		if (thing == NULL)
+		agent= mLevel->getAgent(*it);
+		if (agent == NULL)
 			continue;
-		thing->ogreModel()->setSelected(false);
+		agent->ogreModel()->setSelected(false);
 	}
 	mSelection.clear();
 
 	//process actual selections
-	for (std::list<ThingId>::iterator it = selection.begin(); it != selection.end(); ++it)
+	for (std::list<AgentId>::iterator it = selection.begin(); it != selection.end(); ++it)
 	{
-		thing = mLevel->getThing(*it);
+		agent= mLevel->getAgent(*it);
 		Debug::log(*it)(", ");
-		if (thing == NULL)
+		if (agent== NULL)
 			continue;
-		mSelection.push_back(thing->id());
-		thing->ogreModel()->setSelected(selected);
+		mSelection.push_back(agent->id());
+		agent->ogreModel()->setSelected(selected);
 	}
 	Debug::log.endl();
 
@@ -401,13 +401,13 @@ void Engine::setSelectedThings(std::list<ThingId> selection, bool selected)
 
 void Engine::setSelectionPosition(Ogre::Vector3 pos)
 {
-	Thing *thing;
-	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	Agent *agent;
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 	{
-		thing = mLevel->getThing(*it);
-		if (thing == NULL)
+		agent= mLevel->getAgent(*it);
+		if (agent== NULL)
 			continue;
-		thing->ogreModel()->setPosition(pos);
+		agent->ogreModel()->setPosition(pos);
 	}
 }
 
@@ -419,13 +419,13 @@ void Engine::shutdown(void)
 
 void Engine::translateSelection(Ogre::Vector3 t)
 {
-	Thing *thing;
-	for (std::list<ThingId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	Agent *agent;
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
 	{
-		thing = mLevel->getThing(*it);
-		if (thing == NULL)
+		agent= mLevel->getAgent(*it);
+		if (agent== NULL)
 			continue;
-		thing->ogreModel()->translate(t);
+		agent->ogreModel()->translate(t);
 	}
 }
 

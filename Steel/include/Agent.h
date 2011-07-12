@@ -1,5 +1,5 @@
 /*
- * Thing.h
+ * Agent.h
  *
  *  Created on: 2011-06-15
  *      Author: onze
@@ -23,22 +23,22 @@ namespace Steel
 class Level;
 
 /**
- * Thing is the base class of Steel objects. (Object was too common, Entity was taken by Ogre, so I did not see that
+ * Agent is the base class of Steel objects. (Object was too common, Entity was taken by Ogre, so I did not see that
  * many possibilities.)
  *
- * Thing uses composition of Model subclasses to achieve different behaviors. One can think of things as entries in a
+ * Agent uses composition of Model subclasses to achieve different behaviors. One can think of things as entries in a
  * table, that merely contains only ids of the models the are made of.
  */
-class Thing
+class Agent
 {
 public:
-	Thing(Level *level);
-	virtual ~Thing();
-	Thing(const Thing &t);
-	Thing &operator=(const Thing &);
+	Agent(Level *level);
+	virtual ~Agent();
+	Agent(const Agent &t);
+	Agent &operator=(const Agent &);
 
 	//getter
-	inline ThingId id()
+	inline AgentId id()
 	{
 		return mId;
 	}
@@ -54,14 +54,14 @@ public:
 	 */
 	ModelId modelId(ModelType modelType);
 	/**
-	 * shortcut to Thing::model(MT_OGRE).
+	 * shortcut to Agent::model(MT_OGRE).
 	 */
 	inline OgreModel *ogreModel()
 	{
 		return (OgreModel *) model(MT_OGRE);
 	}
 	/**
-	 * shortcut to Thing::modelId(MT_OGRE).
+	 * shortcut to Agent::modelId(MT_OGRE).
 	 */
 	inline ModelId ogreModelId()
 	{
@@ -70,8 +70,8 @@ public:
 
 private:
 	//static stuff
-	static ThingId sNextId;
-	static inline ThingId getNextId()
+	static AgentId sNextId;
+	static inline AgentId getNextId()
 	{
 		if (sNextId == ULONG_MAX)
 			throw "Steel::Thing::sNextId has reached ULONG_MAX.";
@@ -82,7 +82,7 @@ private:
 	/**
 	 * unique id.
 	 */
-	ThingId mId;
+	AgentId mId;
 	/**
 	 * ptr to the level the thing is in.
 	 */

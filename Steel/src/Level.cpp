@@ -25,7 +25,7 @@ Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
 {
 	addAuxiliaryResourceName(mName);
 	mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
-	mThings = std::map<ThingId, Thing *>();
+	mAgents = std::map<AgentId, Agent *>();
 	mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
 }
 
@@ -57,14 +57,14 @@ Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
 	return name;
 }
 
-void Level::deleteThing(ThingId id)
+void Level::deleteAgent(AgentId id)
 {
 	Debug::log("Level::deleteThing() id: ")(id).endl();
-	std::map<ThingId, Thing *>::iterator it = mThings.find(id);
-	if (it == mThings.end())
+	std::map<AgentId, Agent *>::iterator it = mAgents.find(id);
+	if (it == mAgents.end())
 		return;
 	delete (*it).second;
-	mThings.erase(it);
+	mAgents.erase(it);
 }
 
 ModelManager *Level::modelManager(ModelType modelType)
@@ -79,7 +79,7 @@ ModelManager *Level::modelManager(ModelType modelType)
 	return mm;
 }
 
-ThingId Level::newThing(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot,bool involvesNewResources)
+AgentId Level::newAgent(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot,bool involvesNewResources)
 {
 	Debug::log("Level::newThing(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot);
 
@@ -88,24 +88,24 @@ ThingId Level::newThing(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaterni
 	assert(mLevelRoot);
 #endif
 
-	Thing *t = new Thing(this);
+	Agent *t = new Agent(this);
 	Debug::log(" with id:")(t->id()).endl();
 	if(involvesNewResources)
 		addAuxiliaryResourceName(mName);
 	t->addModel(MT_OGRE, mOgreModelMan->newModel(meshName, pos, rot));
-	mThings.insert(std::pair<ThingId, Thing *>(t->id(), t));
+	mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
 	return t->id();
 }
 
-Thing *Level::getThing(ThingId id)
+Agent *Level::getAgent(AgentId id)
 {
-	std::map<ThingId, Thing *>::iterator it = mThings.find(id);
-	if (it == mThings.end())
+	std::map<AgentId, Agent *>::iterator it = mAgents.find(id);
+	if (it == mAgents.end())
 		return NULL;
 	return it->second;
 }
 
-void Level::getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
+void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
 {
 	Debug::log("Level::getThingsIdsFromSceneNodes()").endl();
 	//retrieving models
@@ -123,9 +123,9 @@ void Level::getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std:
 	//	Debug::log.endl()("then mapping models to things: ");
 
 	//retrieving things
-	Thing *t;
+	Agent *t;
 	ModelId modelId;
-	for (std::map<ThingId, Thing *>::iterator it_things = mThings.begin(); it_things != mThings.end(); ++it_things)
+	for (std::map<AgentId, Agent *>::iterator it_things = mAgents.begin(); it_things != mAgents.end(); ++it_things)
 	{
 		t = (*it_things).second;
 		modelId = t->ogreModelId();

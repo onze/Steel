@@ -68,13 +68,13 @@ public:
 
 	bool mainLoop(bool singleLoop = false);
 	/**
-	 * Takes window coordinates and lists under the given list all things that collide with a ray going from the camera
+	 * Takes window coordinates and lists under the given list all Agent's that collide with a ray going from the camera
 	 * center to the given coordinates.
 	 * see http://www.ogre3d.org/tikiwiki/Raycasting+to+the+polygon+level
 	 */
-	void pickThings(std::list<ModelId> &selection, int x, int y);
+	void pickAgents(std::list<ModelId> &selection, int x, int y);
 	void redraw(void);
-	void setSelectedThings(std::list<ThingId> selection, bool selected);
+	void setSelectedAgents(std::list<AgentId> selection, bool selected);
 	void shutdown(void);
 	void releaseInputs(void);
 	/**
@@ -110,7 +110,7 @@ public:
 	{
 		return sRootdir;
 	}
-	inline std::list<ThingId> selection()
+	inline std::list<AgentId> selection()
 	{
 		return mSelection;
 	}
@@ -157,7 +157,7 @@ private:
 	 * object that handles all this raycasting thingies.
 	 */
 	RayCaster *mRayCaster;
-	std::list<ThingId> mSelection;
+	std::list<AgentId> mSelection;
 };
 
 }

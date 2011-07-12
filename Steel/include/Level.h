@@ -12,7 +12,7 @@
 
 #include "steeltypes.h"
 #include "OgreModelManager.h"
-#include "Thing.h"
+#include "Agent.h"
 
 namespace Steel
 {
@@ -30,15 +30,15 @@ public:
 	Level(Ogre::String name, Ogre::SceneManager *sceneManager);
 	virtual ~Level();
 	Ogre::String addAuxiliaryResourceName(Ogre::String name);
-	void deleteThing(ThingId id);
+	void deleteAgent(AgentId id);
 	/**
-	 * creates a new instance of Thing.
+	 * creates a new instance of Agent.
 	 * name: name of the mesh to use
 	 * pos: position of the node
 	 * rot: rotation of the node
 	 * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
 	 */
-	ThingId newThing(	Ogre::String name,
+	AgentId newAgent(	Ogre::String name,
 						Ogre::Vector3 pos = Ogre::Vector3::ZERO,
 						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
 						bool involvesNewResources=false);
@@ -49,11 +49,11 @@ public:
 	{
 		return sPath;
 	}
-	Thing *getThing(ThingId id);
+	Agent *getAgent(AgentId id);
 	/**
 	 * fills the ModelId list with ids of Things that own nodes in the the given list.
 	 */
-	void getThingsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
+	void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
 	inline OgreModelManager *ogreModelMan()
 	{
 		return mOgreModelMan;
@@ -85,7 +85,7 @@ protected:
 	/**
 	 * entity container.
 	 */
-	std::map<ThingId, Thing *> mThings;
+	std::map<AgentId, Agent *> mAgents;
 	/**
 	 * responsible for ogreModel
 	 */

@@ -1,0 +1,3 @@
+- fixed filename filters in resource browser. looks better now !
+- fixed reloading of deleted files.
+- added on the fly new resource loading into ogre

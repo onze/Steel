@@ -13,7 +13,7 @@
 namespace Steel
 {
 
-typedef unsigned long ThingId;
+typedef unsigned long AgentId;
 typedef unsigned long ModelId;
 
 const unsigned long INVALID_ID=ULONG_MAX;
