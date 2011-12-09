@@ -8,9 +8,9 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
-#include <OgreCamera.h>
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
+#include <OGRE/OgreCamera.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
 
 namespace Steel
 {

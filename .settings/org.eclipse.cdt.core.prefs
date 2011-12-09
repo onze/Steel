@@ -1,4 +1,4 @@
-#Mon Jun 06 21:03:35 EDT 2011
+#Sun Sep 25 11:22:06 EDT 2011
 eclipse.preferences.version=1
 environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/OGRE_LOC/delimiter=\:
 environment/project/cdt.managedbuild.config.gnu.exe.debug.974794459/OGRE_LOC/operation=append
@@ -15,8 +15,23 @@ environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/OGRE_LOC/ope
 environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/OGRE_LOC/value=/media/z2/src/ogre_src_v1-7-2/
 environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/append=true
 environment/project/cdt.managedbuild.config.gnu.so.debug.1153985434/appendContributed=true
+environment/project/cdt.managedbuild.config.gnu.so.debug.225846877/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.so.debug.225846877/OGRE_LOC/operation=replace
+environment/project/cdt.managedbuild.config.gnu.so.debug.225846877/OGRE_LOC/value=/media/z2/src/ogre
+environment/project/cdt.managedbuild.config.gnu.so.debug.225846877/append=true
+environment/project/cdt.managedbuild.config.gnu.so.debug.225846877/appendContributed=true
 environment/project/cdt.managedbuild.config.gnu.so.release.1942072918/OGRE_LOC/delimiter=\:
 environment/project/cdt.managedbuild.config.gnu.so.release.1942072918/OGRE_LOC/operation=append
 environment/project/cdt.managedbuild.config.gnu.so.release.1942072918/OGRE_LOC/value=/media/z2/src/ogre_src_v1-7-2/
 environment/project/cdt.managedbuild.config.gnu.so.release.1942072918/append=true
 environment/project/cdt.managedbuild.config.gnu.so.release.1942072918/appendContributed=true
+environment/project/cdt.managedbuild.config.gnu.so.release.862452707/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.so.release.862452707/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.config.gnu.so.release.862452707/OGRE_LOC/value=/media/z2/src/ogre
+environment/project/cdt.managedbuild.config.gnu.so.release.862452707/append=true
+environment/project/cdt.managedbuild.config.gnu.so.release.862452707/appendContributed=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1569898390/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1569898390/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1569898390/OGRE_LOC/value=/media/z2/src/ogre
+environment/project/cdt.managedbuild.toolchain.gnu.base.1569898390/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1569898390/appendContributed=true

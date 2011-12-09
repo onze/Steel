@@ -1,0 +1,22 @@
+/*
+ * steeltypes.cpp
+ *
+ *  Created on: 2011-08-11
+ *      Author: onze
+ */
+
+#include "steeltypes.h"
+
+namespace Steel
+{
+
+Ogre::String modelTypesAsString__data[] =
+{ "MT_OGRE" };
+
+std::vector<Ogre::String> modelTypesAsString =
+		std::vector<Ogre::String>(	modelTypesAsString__data,
+									modelTypesAsString__data
+											+ sizeof(Ogre::String)
+													/ sizeof(Ogre::String));
+
+}

@@ -5,7 +5,7 @@
  *      Author: onze
  */
 
-#include "../include/Model.h"
+#include "Model.h"
 
 namespace Steel
 {

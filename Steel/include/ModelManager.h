@@ -19,6 +19,7 @@ class ModelManager
 public:
 	virtual Model *at(ModelId id)=0;
 	virtual void releaseModel(ModelId modelId)=0;
+	virtual void toJson(Json::Value &object)=0;
 };
 
 }

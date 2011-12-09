@@ -10,8 +10,10 @@
 
 #include <list>
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <json/json.h>
+
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include "steeltypes.h"
 #include "_ModelManager.h"
@@ -27,10 +29,13 @@ public:
 	OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
 	virtual ~OgreModelManager();
 	/**
+	 * initialize new OgreModel according to data in the json serialization.
+	 */
+	void loadModels(Json::Value models);
+	/**
 	 * initialize a new OgreModel and returns its identifier.
 	 */
 	ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
-
 	///////////////////////////////////////////////////////////
 	//getters
 	inline Ogre::SceneManager *sceneManager()

@@ -24,11 +24,12 @@ private:
 	Level(Level &level);
 	Level &operator=(const Level &level);
 public:
-	/**
-	 * since ogre can't reload resource from the same resourceGroup easily, a level can duplicate it's
-	 */
 	Level(Ogre::String name, Ogre::SceneManager *sceneManager);
 	virtual ~Level();
+
+	/**
+	 * TODO: write this
+	 */
 	Ogre::String addAuxiliaryResourceName(Ogre::String name);
 	void deleteAgent(AgentId id);
 	/**
@@ -43,7 +44,9 @@ public:
 						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
 						bool involvesNewResources=false);
 	bool isOver(void);
+	void save();
 	bool unload(void);
+
 	//getters
 	inline static Ogre::String path(void)
 	{
@@ -58,8 +61,11 @@ public:
 	{
 		return mOgreModelMan;
 	}
-	//not used yet
+	/**
+	 * Return the level's model manager for the given type.
+	 */
 	ModelManager *modelManager(ModelType modelType);
+
 	//setters
 	inline static void setPath(Ogre::String _path)
 	{
@@ -68,9 +74,9 @@ public:
 	;
 protected:
 	//static
-	///path to level folders
+	///path to levels folder
 	static Ogre::String sPath;
-	//endof static
+	//end of static
 
 	Ogre::String mName;
 	/**
@@ -83,11 +89,11 @@ protected:
 	 */
 	Ogre::SceneNode *mLevelRoot;
 	/**
-	 * entity container.
+	 * agent container.
 	 */
 	std::map<AgentId, Agent *> mAgents;
 	/**
-	 * responsible for ogreModel
+	 * responsible for OgreModel's instances.
 	 */
 	OgreModelManager *mOgreModelMan;
 	///

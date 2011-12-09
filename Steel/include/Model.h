@@ -8,6 +8,8 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
+#include <json/json.h>
+
 #include "Debug.h"
 
 namespace Steel
@@ -34,6 +36,10 @@ public:
 	{
 		return mRefCount <= 0L;
 	}
+	///serialize itself into the given Json object
+	virtual void toJson(Json::Value &object)=0;
+	///deserialize itself from the given Json object
+	virtual void fromJson(Json::Value &object)=0;
 	//getters
 	inline unsigned long refCount()
 	{

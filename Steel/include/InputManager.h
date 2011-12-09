@@ -11,7 +11,7 @@
 #include <string>
 #include <list>
 
-#include <OgreWindowEventUtilities.h>
+#include <OGRE/OgreWindowEventUtilities.h>
 #include <OIS/OIS.h>
 
 #include "Engine.h"

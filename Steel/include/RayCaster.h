@@ -10,10 +10,10 @@
 
 #include <list>
 
-#include <OgreRay.h>
-#include <OgreVector3.h>
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <OGRE/OgreRay.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include "steeltypes.h"
 

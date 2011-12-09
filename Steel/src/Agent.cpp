@@ -16,7 +16,7 @@
 namespace Steel
 {
 
-AgentId Agent::sNextId = 1;
+AgentId Agent::sNextId = 0;
 
 Agent::Agent(Level *level) :
 	mId(Agent::getNextId()), mLevel(level)
@@ -53,7 +53,7 @@ Agent &Agent::operator=(const Agent &t)
 
 void Agent::addModel(ModelType modelType, ModelId modelId)
 {
-	Debug::log("Thing::addModel(ModelType ")(modelType)(", ModelId ")(modelId)(")").endl();
+	Debug::log("Agent::addModel(ModelType ")(modelType)(", ModelId ")(modelId)(")").endl();
 	mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
 	//cannot inref here if the model is newly created because its refcount is still 0 and then says it is free.
 //	mLevel->modelManager(modelType)->at(modelId)->incRef();
@@ -72,8 +72,8 @@ Model *Agent::model(ModelType modelType)
 			return mLevel->ogreModelMan()->at(id);
 			break;
 		default:
-			Debug::error("in Thing::model(): unknown modelType: ")(modelType)(" for id: ")(id).endl();
-			throw std::runtime_error("in Thing::model(): unknown modelType");
+			Debug::error("in Agent::model(): unknown modelType: ")(modelType)(" for id: ")(id).endl();
+			throw std::runtime_error("in Agent::model(): unknown modelType");
 	}
 }
 

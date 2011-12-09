@@ -7,10 +7,10 @@
 
 #include <iostream>
 
-#include <OgreStringConverter.h>
-#include <OgreEntity.h>
-#include <OgreConfigFile.h>
-#include <OgreResourceGroupManager.h>
+#include <OGRE/OgreStringConverter.h>
+#include <OGRE/OgreEntity.h>
+#include <OGRE/OgreConfigFile.h>
+#include <OGRE/OgreResourceGroupManager.h>
 
 #include "Engine.h"
 #include "OgreModelManager.h"
@@ -63,7 +63,8 @@ Level *Engine::createLevel(Ogre::String name)
 {
 	//single level only for now
 	if (mLevel == NULL)
-		mLevel = new Level(name, mSceneManager);
+		mLevel = new Level(name,mSceneManager);
+
 	return mLevel;
 }
 
@@ -238,6 +239,7 @@ void Engine::resizeWindow(int width, int height)
 
 bool Engine::mainLoop(bool singleLoop)
 {
+    //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
 	mMustAbortMainLoop = false;
 	while (!mMustAbortMainLoop)
 	{

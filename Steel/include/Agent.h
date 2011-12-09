@@ -5,13 +5,13 @@
  *      Author: onze
  */
 
-#ifndef THING_H_
-#define THING_H_
+#ifndef AGENT_H_
+#define AGENT_H_
 
 #include <limits.h>
 #include <exception>
 
-#include <OgreString.h>
+#include <OGRE/OgreString.h>
 
 #include "steeltypes.h"
 #include "Model.h"
@@ -42,7 +42,6 @@ public:
 	{
 		return mId;
 	}
-	;
 	void addModel(ModelType modelType, ModelId modelId);
 
 	/**
@@ -53,6 +52,13 @@ public:
 	 * return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
 	 */
 	ModelId modelId(ModelType modelType);
+	/**
+	 * return all ids of all contained model types.
+	 */
+	std::map<ModelType, ModelId> &modelsIds()
+	{
+		return mModelIds;
+	}
 	/**
 	 * shortcut to Agent::model(MT_OGRE).
 	 */
@@ -79,12 +85,13 @@ private:
 	}
 	;
 	//end of static stuff
+
 	/**
 	 * unique id.
 	 */
 	AgentId mId;
 	/**
-	 * ptr to the level the thing is in.
+	 * ptr to the level the agent is in.
 	 */
 	Level *mLevel;
 	std::map<ModelType, ModelId> mModelIds;
@@ -92,4 +99,4 @@ private:
 
 }
 
-#endif /* THING_H_ */
+#endif /* AGENT_H_ */

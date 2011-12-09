@@ -11,12 +11,12 @@
 #include <string>
 #include <list>
 
-#include <OgreRoot.h>
-#include <OgreLog.h>
-#include <OgreViewport.h>
-#include <OgreSceneManager.h>
-#include <OgreRenderWindow.h>
-#include <OgreString.h>
+#include <OGRE/OgreRoot.h>
+#include <OGRE/OgreLog.h>
+#include <OGRE/OgreViewport.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreRenderWindow.h>
+#include <OGRE/OgreString.h>
 
 #include "Camera.h"
 #include "Level.h"

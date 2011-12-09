@@ -10,10 +10,10 @@
 
 #include <iostream>
 
-#include <OgreLog.h>
-#include <OgreLogManager.h>
-#include <OgreString.h>
-#include <OgreStringConverter.h>
+#include <OGRE/OgreLog.h>
+#include <OGRE/OgreLogManager.h>
+#include <OGRE/OgreString.h>
+#include <OGRE/OgreStringConverter.h>
 
 namespace Steel
 {

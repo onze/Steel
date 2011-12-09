@@ -13,7 +13,7 @@ namespace Steel
 
 template<class M>
 _ModelManager<M>::_ModelManager() :
-	ModelManager()
+		ModelManager()
 {
 	mModels = std::vector<M>();
 	mModelsFreeList = std::list<ModelId>();
@@ -42,19 +42,18 @@ void _ModelManager<M>::clear()
 }
 
 template<class M>
-ModelId _ModelManager<M>::insertModel(M model)
+ModelId _ModelManager<M>::allocateModel()
 {
-	ModelId id= 0L;
-	if(mModelsFreeList.size()>0)
+	ModelId id = INVALID_ID;
+	if (mModelsFreeList.size() > 0)
 	{
-		id=mModelsFreeList.front();
+		id = mModelsFreeList.front();
 		mModelsFreeList.pop_front();
-		mModels[id]=model;
 	}
 	else
 	{
-		id=(ModelId) mModels.size();
-		mModels.push_back(model);
+		id = (ModelId) mModels.size();
+		mModels.push_back(M());
 	}
 	mModels[id].incRef();
 	return id;
@@ -73,9 +72,22 @@ void _ModelManager<M>::releaseModel(ModelId id)
 		return;
 	M *m = at(id);
 	m->decRef();
-	//TODO: use a heap (priority queue)
+	//TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
 	if (m->isFree())
 		mModelsFreeList.push_front(id);
+}
+
+template<class M>
+void _ModelManager<M>::toJson(Json::Value &object)
+{
+	Debug::log("_ModelManager():")(mModels.size())(" models in stock").endl();
+	for (ModelId id = 0; id < mModels.size(); ++id)
+	{
+		Model *m = (Model *) &(mModels[id]);
+		if (m->isFree())
+			continue;
+		m->toJson(object[Ogre::StringConverter::toString(id)]);
+	}
 }
 
 }

@@ -7,7 +7,7 @@
 
 #include "../include/Debug.h"
 
-#include <Ogre.h>
+#include <OGRE/Ogre.h>
 
 namespace Steel
 {
