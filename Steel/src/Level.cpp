@@ -40,6 +40,7 @@ Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
 
 Level::~Level()
 {
+	Debug::log("Level::~Level()").endl();
 	mOgreModelMan->clear();
 	Ogre::ResourceGroupManager *rgm =
 			Ogre::ResourceGroupManager::getSingletonPtr();
@@ -54,6 +55,7 @@ Level::~Level()
 
 Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
 {
+	Debug::log("Level::addAuxiliaryResourceName(): ")(baseName).endl();
 	Ogre::String name = baseName + "__aux_name_#__"
 			+ Ogre::StringConverter::toString(mResGroupAux++);
 	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path()
@@ -80,6 +82,18 @@ void Level::deleteAgent(AgentId id)
 		return;
 	delete (*it).second;
 	mAgents.erase(it);
+}
+
+Ogre::String Level::getFilePath()
+{
+	//TODO: make this interoperable
+	return sPath + "/" + Ogre::String(mName) + "/" + Ogre::String(mName)
+			+ ".lvl";
+}
+
+void Level::load()
+{
+
 }
 
 ModelManager *Level::modelManager(ModelType modelType)
@@ -170,6 +184,19 @@ void Level::save()
 {
 	Debug::log("Level::save():").endl();
 
+	Ogre::String s, filename = getFilePath();
+	serialize(s);
+
+	std::ofstream outfile(	filename.c_str(),
+							std::ios::out | std::ofstream::binary);
+	outfile.write(s.c_str(), s.size());
+	outfile.close();
+	Debug::log("Level::save() into ")(filename).endl();
+}
+
+void Level::serialize(Ogre::String &s)
+{
+
 	Json::Value root;
 	root["name"] = mName;
 
@@ -222,12 +249,13 @@ void Level::save()
 	}
 	root["models"] = models;
 
-	Debug::log(root.toStyledString()).endl();
+	s = root.toStyledString();
+	Debug::log(s).endl();
 }
 
-bool Level::unload(void)
+void Level::deserialize(Ogre::String &s)
 {
-	return true;
+
 }
 
 }

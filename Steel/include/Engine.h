@@ -127,11 +127,15 @@ public:
 	}
 	void setSelectionPosition(Ogre::Vector3 pos);
 private:
+	// <static>
+	static Ogre::String sApplicationPath;
+	// </static>
 	Ogre::String sRootdir;
 	bool preWindowingSetup(	Ogre::String &plugins,
 							int width,
 							int height,
-							Ogre::String defaultLog = Ogre::String("steel_default_log.log"),
+							Ogre::String defaultLog =
+									Ogre::String("steel_default_log.log"),
 							Ogre::LogListener *logListener = NULL);
 
 	bool postWindowingSetup(int width, int height);

@@ -28,10 +28,37 @@ public:
 	virtual ~Level();
 
 	/**
-	 * TODO: write this
+	 * TODO: write this docstring.
 	 */
 	Ogre::String addAuxiliaryResourceName(Ogre::String name);
+
 	void deleteAgent(AgentId id);
+
+	/**
+	 * read properties in the given string and set them where they should.
+	 */
+	void deserialize(Ogre::String &s);
+
+	Agent *getAgent(AgentId id);
+
+	/**
+	 * fills the ModelId list with ids of Things that own nodes in the the given list.
+	 */
+	void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes,
+									std::list<ModelId> &selection);
+
+	/**
+	 * returns the name of the save file for this level.
+	 */
+	Ogre::String getFilePath();
+
+	bool isOver(void);
+
+	/**
+	 * loads a level serialization string from a file and restore the state it represents.
+	 */
+	void load();
+
 	/**
 	 * creates a new instance of Agent.
 	 * name: name of the mesh to use
@@ -42,21 +69,22 @@ public:
 	AgentId newAgent(	Ogre::String name,
 						Ogre::Vector3 pos = Ogre::Vector3::ZERO,
 						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
-						bool involvesNewResources=false);
-	bool isOver(void);
+						bool involvesNewResources = false);
+
+	/**
+	 * save a seralization string into a file that can be loaded and read back with a call to load.
+	 */
 	void save();
-	bool unload(void);
+	/**
+	 * collects level's agents' properties and put them in a string.
+	 */
+	void serialize(Ogre::String &s);
 
 	//getters
 	inline static Ogre::String path(void)
 	{
 		return sPath;
 	}
-	Agent *getAgent(AgentId id);
-	/**
-	 * fills the ModelId list with ids of Things that own nodes in the the given list.
-	 */
-	void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
 	inline OgreModelManager *ogreModelMan()
 	{
 		return mOgreModelMan;

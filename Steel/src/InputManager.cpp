@@ -14,7 +14,7 @@ class equals
 {
 public:
 	equals(OIS::KeyCode _v) :
-		v(_v)
+			v(_v)
 	{
 	}
 	;
@@ -30,8 +30,9 @@ namespace Steel
 {
 
 InputManager::InputManager(Steel::Engine *engine) :
-	mEngine(engine), mInputManager(0), mMouse(0), mKeyboard(0), mKeysPressed(std::list<OIS::KeyCode>()),
-			mHasMouseMoved(false), mMousePos(Ogre::Vector2(-1.f, -1.f))
+		mEngine(engine), mInputManager(0), mMouse(0), mKeyboard(0), mKeysPressed(std::list<
+				OIS::KeyCode>()), mHasMouseMoved(false), mMousePos(Ogre::Vector2(	-1.f,
+																					-1.f))
 {
 
 }
@@ -43,7 +44,7 @@ InputManager::~InputManager()
 
 void InputManager::resetFrameBasedData(void)
 {
-	mHasMouseMoved=false;
+	mHasMouseMoved = false;
 	mMouseMove = Ogre::Vector2::ZERO;
 }
 
@@ -64,26 +65,33 @@ void InputManager::grab(void)
 		std::ostringstream windowHndStr;
 		mEngine->renderWindow()->getCustomAttribute("WINDOW", &windowHnd);
 		windowHndStr << windowHnd;
-		params.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
+		params.insert(std::make_pair(	std::string("WINDOW"),
+										windowHndStr.str()));
 
 		//		params.insert(std::make_pair(std::string("WINDOW"), mEngine->windowHandle()));
 		mInputManager = OIS::InputManager::createInputSystem(params);
 
 		bool bufferedKeys = true;
-		mKeyboard = static_cast<OIS::Keyboard*> (mInputManager->createInputObject(OIS::OISKeyboard, bufferedKeys));
+		mKeyboard =
+				static_cast<OIS::Keyboard*>(mInputManager->createInputObject(	OIS::OISKeyboard,
+																				bufferedKeys));
 		mKeyboard->setEventCallback(this);
 
 		bool bufferedMouse = true;
-		mMouse = static_cast<OIS::Mouse*> (mInputManager->createInputObject(OIS::OISMouse, bufferedMouse));
+		mMouse =
+				static_cast<OIS::Mouse*>(mInputManager->createInputObject(	OIS::OISMouse,
+																			bufferedMouse));
 		mMouse->setEventCallback(this);
 
 		const OIS::MouseState &ms = mMouse->getMouseState();
 		ms.width = mEngine->renderWindow()->getWidth();
 		ms.height = mEngine->renderWindow()->getHeight();
-		cout << "keeping mouse within " << ms.width << " and " << ms.height << endl;
+		cout << "keeping mouse within " << ms.width << " and " << ms.height
+				<< endl;
 
 		mKeysPressed.clear();
-		Ogre::WindowEventUtilities::addWindowEventListener(mEngine->renderWindow(), this);
+		Ogre::WindowEventUtilities::addWindowEventListener(	mEngine->renderWindow(),
+															this);
 		resetAllData();
 	}
 }
@@ -115,14 +123,16 @@ bool InputManager::mouseMoved(const OIS::MouseEvent& evt)
 	return true;
 }
 
-bool InputManager::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+bool InputManager::mousePressed(const OIS::MouseEvent& evt,
+								OIS::MouseButtonID id)
 {
 	OIS::MouseState ms = evt.state;
 	mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
 	return true;
 }
 
-bool InputManager::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+bool InputManager::mouseReleased(	const OIS::MouseEvent& evt,
+									OIS::MouseButtonID id)
 {
 	OIS::MouseState ms = evt.state;
 	mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
@@ -155,7 +165,6 @@ void InputManager::update(void)
 
 }
 
-
 void InputManager::windowResized(Ogre::RenderWindow* rw)
 {
 	cout << "InputManager::windowResized():" << endl;
@@ -176,7 +185,8 @@ void InputManager::windowClosed(Ogre::RenderWindow* rw)
 	//Only close for window that created OIS (the main window in these demos)
 	if (rw == mEngine->renderWindow())
 	{
-		Ogre::WindowEventUtilities::removeWindowEventListener(mEngine->renderWindow(), this);
+		Ogre::WindowEventUtilities::removeWindowEventListener(	mEngine->renderWindow(),
+																this);
 		windowClosed(rw);
 		release();
 	}

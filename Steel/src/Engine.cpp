@@ -24,8 +24,7 @@ namespace Steel
 Ogre::String sRootdir = "./";
 
 Engine::Engine() :
-	mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL),
-			mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
+		mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL), mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
 {
 	mSelection = std::list<AgentId>();
 }
@@ -34,26 +33,31 @@ Engine::~Engine()
 {
 	//custom structs
 
-	if (mLevel)
+	if (mLevel != NULL)
 	{
-		mLevel->unload();
 		delete mLevel;
+		mLevel = NULL;
 	}
-	if (mInputMan)
+	if (mInputMan != NULL)
+	{
 		delete mInputMan;
+		mInputMan = NULL;
+	}
 
 	//ogre structs
-	if (mSceneManager)
+	if (mSceneManager != NULL)
 	{
 		delete mCamera;
+		mCamera = NULL;
 		mSceneManager->clearScene();
 		mSceneManager->destroyAllCameras();
 	}
-	if (mRenderWindow)
+	if (mRenderWindow != NULL)
 	{
 		delete mRenderWindow;
+		mRenderWindow = NULL;
 	}
-	if (mRoot)
+	if (mRoot != NULL)
 	{
 		mRoot->destroySceneManager(mSceneManager);
 	}
@@ -62,8 +66,9 @@ Engine::~Engine()
 Level *Engine::createLevel(Ogre::String name)
 {
 	//single level only for now
-	if (mLevel == NULL)
-		mLevel = new Level(name,mSceneManager);
+	if (mLevel != NULL)
+		delete mLevel;
+	mLevel = new Level(name, mSceneManager);
 
 	return mLevel;
 }
@@ -72,7 +77,8 @@ void Engine::deleteSelection()
 {
 	if (!hasSelection())
 		return;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	for (std::list<AgentId>::iterator it = mSelection.begin();
+			it != mSelection.end(); ++it)
 		mLevel->deleteAgent(*it);
 }
 
@@ -98,10 +104,15 @@ void Engine::init(	Ogre::String plugins,
 	mRenderWindow = mRoot->initialise(false);
 
 	Ogre::NameValuePairList opts;
-	opts["resolution"] = Ogre::StringConverter::toString(width) + "x" + Ogre::StringConverter::toString(height);
+	opts["resolution"] = Ogre::StringConverter::toString(width) + "x"
+			+ Ogre::StringConverter::toString(height);
 	opts["fullscreen"] = "false";
 	opts["vsync"] = "false";
-	mRenderWindow = mRoot->createRenderWindow(windowTitle, width, height, false, &opts);
+	mRenderWindow = mRoot->createRenderWindow(	windowTitle,
+												width,
+												height,
+												false,
+												&opts);
 
 	//borrowed to
 	//http://www.ogre3d.org/tikiwiki/MadMarx+Tutorial+10&structure=Tutorials
@@ -130,7 +141,11 @@ void Engine::embeddedInit(	Ogre::String plugins,
 	viewConfig["parentWindowHandle"] = windowHandle.c_str();
 	mWindowHandle = windowHandle;
 
-	mRenderWindow = mRoot->createRenderWindow("Steel embedded window", width, height, false, &viewConfig);
+	mRenderWindow = mRoot->createRenderWindow(	"Steel embedded window",
+												width,
+												height,
+												false,
+												&viewConfig);
 
 	postWindowingSetup(width, height);
 
@@ -164,16 +179,19 @@ bool Engine::preWindowingSetup(	Ogre::String &plugins,
 		{
 			typeName = i->first;
 			archName = i->second;
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(	archName,
+																			typeName,
+																			secName);
 		}
 	}
 
 	// setup a renderer
 	Ogre::RenderSystemList renderers = mRoot->getAvailableRenderers();
-	assert( !renderers.empty() ); // we need at least one renderer to do anything useful
+	assert( !renderers.empty());
+	// we need at least one renderer to do anything useful
 
 	Ogre::RenderSystem *renderSystem = renderers[0];
-	assert( renderSystem );
+	assert( renderSystem);
 
 	mRoot->setRenderSystem(renderSystem);
 
@@ -200,7 +218,8 @@ bool Engine::postWindowingSetup(int width, int height)
 	mViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
 
 	// Alter the camera aspect ratio to match the viewport
-	mCamera->cam()->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
+	mCamera->cam()->setAspectRatio(Ogre::Real(mViewport->getActualWidth())
+			/ Ogre::Real(mViewport->getActualHeight()));
 
 	//	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
 	//	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",
@@ -239,7 +258,7 @@ void Engine::resizeWindow(int width, int height)
 
 bool Engine::mainLoop(bool singleLoop)
 {
-    //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
+	//see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
 	mMustAbortMainLoop = false;
 	while (!mMustAbortMainLoop)
 	{
@@ -283,36 +302,37 @@ bool Engine::processInputs(void)
 
 	//process keyboard
 	float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
-	for (list<OIS::KeyCode>::iterator it = mInputMan->keysPressed().begin(); it != mInputMan->keysPressed().end(); ++it)
+	for (list<OIS::KeyCode>::iterator it = mInputMan->keysPressed().begin();
+			it != mInputMan->keysPressed().end(); ++it)
 	{
 		switch (*it)
 		{
-			case OIS::KC_W:
-				dz -= speed;
-				break;
-			case OIS::KC_A:
-				dx -= speed;
-				break;
-			case OIS::KC_S:
-				dz += speed;
-				break;
-			case OIS::KC_D:
-				dx += speed;
-				break;
-			case OIS::KC_SPACE:
-				dy += speed;
-				break;
-			case OIS::KC_LSHIFT:
-				dy -= speed;
-				break;
-			case OIS::KC_ESCAPE:
-				mInputMan->resetAllData();
-				if (mIsGrabbingInputs)
-					releaseInputs();
-				return false;
-				break;
-			default:
-				break;
+		case OIS::KC_W:
+			dz -= speed;
+			break;
+		case OIS::KC_A:
+			dx -= speed;
+			break;
+		case OIS::KC_S:
+			dz += speed;
+			break;
+		case OIS::KC_D:
+			dx += speed;
+			break;
+		case OIS::KC_SPACE:
+			dy += speed;
+			break;
+		case OIS::KC_LSHIFT:
+			dy -= speed;
+			break;
+		case OIS::KC_ESCAPE:
+			mInputMan->resetAllData();
+			if (mIsGrabbingInputs)
+				releaseInputs();
+			return false;
+			break;
+		default:
+			break;
 		}
 	}
 	mCamera->translate(dx, dy, dz);
@@ -348,7 +368,8 @@ void Engine::rotateSelection(Ogre::Vector3 rotation)
 {
 	//TODO:make selection child of a node on which the rotation is applied
 	Agent *agent;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	for (std::list<AgentId>::iterator it = mSelection.begin();
+			it != mSelection.end(); ++it)
 	{
 		agent = mLevel->getAgent(*it);
 		if (agent == NULL)
@@ -363,10 +384,11 @@ Ogre::Vector3 Engine::selectionPosition()
 		return Ogre::Vector3(.0f, .0f, .0f);
 	Ogre::Vector3 pos = Ogre::Vector3::ZERO;
 	Agent *agent;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	for (std::list<AgentId>::iterator it = mSelection.begin();
+			it != mSelection.end(); ++it)
 	{
 		agent = mLevel->getAgent(*it);
-		if (agent== NULL)
+		if (agent == NULL)
 			continue;
 		pos += agent->ogreModel()->position();
 	}
@@ -378,9 +400,10 @@ void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 	Debug::log("Engine::setSelectedAgents(): ");
 	//unselect last selection if any
 	Agent *agent;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	for (std::list<AgentId>::iterator it = mSelection.begin();
+			it != mSelection.end(); ++it)
 	{
-		agent= mLevel->getAgent(*it);
+		agent = mLevel->getAgent(*it);
 		if (agent == NULL)
 			continue;
 		agent->ogreModel()->setSelected(false);
@@ -388,11 +411,12 @@ void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 	mSelection.clear();
 
 	//process actual selections
-	for (std::list<AgentId>::iterator it = selection.begin(); it != selection.end(); ++it)
+	for (std::list<AgentId>::iterator it = selection.begin();
+			it != selection.end(); ++it)
 	{
-		agent= mLevel->getAgent(*it);
+		agent = mLevel->getAgent(*it);
 		Debug::log(*it)(", ");
-		if (agent== NULL)
+		if (agent == NULL)
 			continue;
 		mSelection.push_back(agent->id());
 		agent->ogreModel()->setSelected(selected);
@@ -404,10 +428,11 @@ void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 void Engine::setSelectionPosition(Ogre::Vector3 pos)
 {
 	Agent *agent;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	for (std::list<AgentId>::iterator it = mSelection.begin();
+			it != mSelection.end(); ++it)
 	{
-		agent= mLevel->getAgent(*it);
-		if (agent== NULL)
+		agent = mLevel->getAgent(*it);
+		if (agent == NULL)
 			continue;
 		agent->ogreModel()->setPosition(pos);
 	}
@@ -415,17 +440,21 @@ void Engine::setSelectionPosition(Ogre::Vector3 pos)
 
 void Engine::shutdown(void)
 {
-	if (mLevel)
-		mLevel->unload();
+	if (mLevel != NULL)
+	{
+		delete mLevel;
+		mLevel = NULL;
+	}
 }
 
 void Engine::translateSelection(Ogre::Vector3 t)
 {
 	Agent *agent;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	for (std::list<AgentId>::iterator it = mSelection.begin();
+			it != mSelection.end(); ++it)
 	{
-		agent= mLevel->getAgent(*it);
-		if (agent== NULL)
+		agent = mLevel->getAgent(*it);
+		if (agent == NULL)
 			continue;
 		agent->ogreModel()->translate(t);
 	}
