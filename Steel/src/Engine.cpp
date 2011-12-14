@@ -21,11 +21,10 @@ using namespace std;
 namespace Steel
 {
 
-Ogre::String sRootdir = "./";
-
 Engine::Engine() :
-		mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL), mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
+		mRootDir(""), mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL), mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
 {
+	mRootDir=File::getCurrentDirectory();
 	mSelection = std::list<AgentId>();
 }
 
@@ -68,7 +67,7 @@ Level *Engine::createLevel(Ogre::String name)
 	//single level only for now
 	if (mLevel != NULL)
 		delete mLevel;
-	mLevel = new Level(name, mSceneManager);
+	mLevel = new Level(mRootDir.subdir("levels"), name, mSceneManager);
 
 	return mLevel;
 }
@@ -393,6 +392,17 @@ Ogre::Vector3 Engine::selectionPosition()
 		pos += agent->ogreModel()->position();
 	}
 	return pos / Ogre::Real(mSelection.size());
+}
+
+void Engine::setRootDir(Ogre::String rootdir)
+{
+	setRootDir(File(rootdir));
+}
+
+void Engine::setRootDir(File rootdir)
+{
+	Debug::log("Steel::Engine: setting application root dir to ")(rootdir.fullPath()).endl();
+	mRootDir = rootdir;
 }
 
 void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)

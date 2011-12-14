@@ -13,6 +13,7 @@
 #include "steeltypes.h"
 #include "OgreModelManager.h"
 #include "Agent.h"
+#include "tools/File.h"
 
 namespace Steel
 {
@@ -24,7 +25,7 @@ private:
 	Level(Level &level);
 	Level &operator=(const Level &level);
 public:
-	Level(Ogre::String name, Ogre::SceneManager *sceneManager);
+	Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager);
 	virtual ~Level();
 
 	/**
@@ -48,11 +49,11 @@ public:
 									std::list<ModelId> &selection);
 
 	/**
-	 * returns the name of the save file for this level.
+	 * returns the name of the json file that contains this level's properies.
 	 */
-	Ogre::String getFilePath();
+	File getSavefilePath();
 
-	bool isOver(void);
+	bool isOver();
 
 	/**
 	 * loads a level serialization string from a file and restore the state it represents.
@@ -81,9 +82,9 @@ public:
 	void serialize(Ogre::String &s);
 
 	//getters
-	inline static Ogre::String path(void)
+	inline File path()
 	{
-		return sPath;
+		return mPath;
 	}
 	inline OgreModelManager *ogreModelMan()
 	{
@@ -93,18 +94,9 @@ public:
 	 * Return the level's model manager for the given type.
 	 */
 	ModelManager *modelManager(ModelType modelType);
-
-	//setters
-	inline static void setPath(Ogre::String _path)
-	{
-		sPath = _path;
-	}
-	;
 protected:
-	//static
-	///path to levels folder
-	static Ogre::String sPath;
-	//end of static
+	///level folder
+	File mPath;
 
 	Ogre::String mName;
 	/**

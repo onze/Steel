@@ -21,6 +21,7 @@
 #include "Camera.h"
 #include "Level.h"
 #include "RayCaster.h"
+#include "tools/File.h"
 
 namespace Steel
 {
@@ -106,9 +107,9 @@ public:
 	{
 		return mRenderWindow;
 	}
-	inline Ogre::String rootdir(void)
+	inline File rootDir(void)
 	{
-		return sRootdir;
+		return mRootDir;
 	}
 	inline std::list<AgentId> selection()
 	{
@@ -120,17 +121,19 @@ public:
 	}
 
 	//setters
-	void setRootdir(Ogre::String rootdir)
-	{
-		sRootdir = rootdir;
-		Level::setPath(rootdir + "/levels/");
-	}
+	/**
+	 * sets application main directory.
+	 */
+	void setRootDir(File rootdir);
+	/**
+	 * sets application main directory.
+	 */
+	void setRootDir(Ogre::String rootdir);
 	void setSelectionPosition(Ogre::Vector3 pos);
 private:
 	// <static>
-	static Ogre::String sApplicationPath;
 	// </static>
-	Ogre::String sRootdir;
+	File mRootDir;
 	bool preWindowingSetup(	Ogre::String &plugins,
 							int width,
 							int height,

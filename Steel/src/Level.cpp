@@ -25,11 +25,10 @@
 namespace Steel
 {
 
-Ogre::String Level::sPath = "levels/";
-
-Level::Level(Ogre::String name, Ogre::SceneManager *sceneManager) :
-		mName(name), mSceneManager(sceneManager), mResGroupAux(0)
+Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager) :
+		mPath(path.subdir(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0)
 {
+	Debug::log("Level::Level(path=")(mPath)(")").endl();
 	addAuxiliaryResourceName(mName);
 	mLevelRoot =
 			mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode",
@@ -58,15 +57,11 @@ Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
 	Debug::log("Level::addAuxiliaryResourceName(): ")(baseName).endl();
 	Ogre::String name = baseName + "__aux_name_#__"
 			+ Ogre::StringConverter::toString(mResGroupAux++);
-	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path()
-																				+ mName
-																				+ "/materials",
+	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	mPath.subdir("materials"),
 																		"FileSystem",
 																		name,
 																		false);
-	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	Level::path()
-																				+ mName
-																				+ "/meshes",
+	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	mPath.subdir("meshes"),
 																		"FileSystem",
 																		name,
 																		false);
@@ -84,16 +79,19 @@ void Level::deleteAgent(AgentId id)
 	mAgents.erase(it);
 }
 
-Ogre::String Level::getFilePath()
+File Level::getSavefilePath()
 {
-	//TODO: make this interoperable
-	return sPath + "/" + Ogre::String(mName) + "/" + Ogre::String(mName)
-			+ ".lvl";
+	return mPath.subfile(mName + ".lvl");
 }
 
 void Level::load()
 {
-
+	Debug::log("Level::load()").endl();
+	File file=getSavefilePath();
+	if (file.exists())
+		Debug::log("file \"")(file.fullPath())("\" exists.").endl();
+	else
+		Debug::log("file \"")(file.fullPath())("\" does not exists.").endl();
 }
 
 ModelManager *Level::modelManager(ModelType modelType)
@@ -184,7 +182,7 @@ void Level::save()
 {
 	Debug::log("Level::save():").endl();
 
-	Ogre::String s, filename = getFilePath();
+	Ogre::String s, filename = getSavefilePath();
 	serialize(s);
 
 	std::ofstream outfile(	filename.c_str(),
