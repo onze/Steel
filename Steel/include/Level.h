@@ -51,14 +51,15 @@ public:
 	/**
 	 * returns the name of the json file that contains this level's properies.
 	 */
-	File getSavefilePath();
+	File getSavefile();
 
 	bool isOver();
 
 	/**
 	 * loads a level serialization string from a file and restore the state it represents.
+	 * Return true is the loading went successfully, false otherwise.
 	 */
-	void load();
+	bool load();
 
 	/**
 	 * creates a new instance of Agent.
@@ -74,8 +75,9 @@ public:
 
 	/**
 	 * save a seralization string into a file that can be loaded and read back with a call to load.
+	 * Return true if the saving went successfully.
 	 */
-	void save();
+	bool save();
 	/**
 	 * collects level's agents' properties and put them in a string.
 	 */

@@ -34,7 +34,7 @@ public:
 	Engine();
 	virtual ~Engine();
 
-	inline void abortMainLoop(void)
+	inline void abortMainLoop()
 	{
 		mMustAbortMainLoop = true;
 	}
@@ -51,7 +51,7 @@ public:
 						int height,
 						Ogre::String defaultLog = Ogre::String("ogre_log.log"),
 						Ogre::LogListener *logListener = NULL);
-	void grabInputs(void);
+	void grabInputs();
 	inline bool hasSelection()
 	{
 		return !mSelection.empty();
@@ -74,10 +74,10 @@ public:
 	 * see http://www.ogre3d.org/tikiwiki/Raycasting+to+the+polygon+level
 	 */
 	void pickAgents(std::list<ModelId> &selection, int x, int y);
-	void redraw(void);
+	void redraw();
 	void setSelectedAgents(std::list<AgentId> selection, bool selected);
-	void shutdown(void);
-	void releaseInputs(void);
+	void shutdown();
+	void releaseInputs();
 	/**
 	 * called to resize the window.
 	 */
@@ -91,23 +91,23 @@ public:
 
 	////////////////////////////////////////////////
 	//getters
-	inline Camera *camera(void)
+	inline Camera *camera()
 	{
 		return mCamera;
 	}
-	inline InputManager *inputMan(void)
+	inline InputManager *inputMan()
 	{
 		return mInputMan;
 	}
-	inline bool isGrabbingInputs(void)
+	inline bool isGrabbingInputs()
 	{
 		return mIsGrabbingInputs;
 	}
-	inline Ogre::RenderWindow *renderWindow(void)
+	inline Ogre::RenderWindow *renderWindow()
 	{
 		return mRenderWindow;
 	}
-	inline File rootDir(void)
+	inline File rootDir()
 	{
 		return mRootDir;
 	}
@@ -115,7 +115,7 @@ public:
 	{
 		return mSelection;
 	}
-	inline std::string &windowHandle(void)
+	inline std::string &windowHandle()
 	{
 		return mWindowHandle;
 	}
@@ -143,7 +143,7 @@ private:
 
 	bool postWindowingSetup(int width, int height);
 
-	bool processInputs(void);
+	bool processInputs();
 
 	Ogre::Root *mRoot;
 	Ogre::SceneManager *mSceneManager;

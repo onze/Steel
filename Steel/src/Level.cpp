@@ -10,7 +10,6 @@
 #include <Debug.h>
 #endif
 
-#include <fstream>
 #include <iostream>
 #include <map>
 #include <set>
@@ -79,21 +78,53 @@ void Level::deleteAgent(AgentId id)
 	mAgents.erase(it);
 }
 
-File Level::getSavefilePath()
+File Level::getSavefile()
 {
 	return mPath.subfile(mName + ".lvl");
 }
 
-void Level::load()
+bool Level::load()
 {
 	Debug::log("Level::load()").endl();
-	File file=getSavefilePath();
-	if (file.exists())
-		Debug::log("file \"")(file.fullPath())("\" exists.").endl();
-	else
-		Debug::log("file \"")(file.fullPath())("\" does not exists.").endl();
+	File file = getSavefile();
+	if (!file.exists())
+	{
+		Debug::log("Level::load(): savefile \"")(file.fullPath())("\" does not exists.").endl();
+		return false;
+	}
+
+	File savefile = getSavefile();
+	if (!savefile.open())
+	{
+		Debug::error("Level<")(mPath)(">.save(): could not open file ")(savefile).endl();
+		return false;
+	}
+	Ogre::String s = savefile.read();
+
+	deserialize(s);
+	Debug::log("Level::load() loaded ")(savefile)(" successfully.").endl();
+	return true;
 }
 
+bool Level::save()
+{
+	Debug::log("Level::save():").endl();
+
+	Ogre::String s;
+	serialize(s);
+
+	File savefile = getSavefile();
+	if (!savefile.open())
+	{
+		Debug::error("Level<")(mPath)(">.save(): could not open file ")(savefile).endl();
+		return false;
+	}
+	savefile.write(s);
+	savefile.close();
+
+	Debug::log("Level::save() into ")(savefile).endl();
+	return true;
+}
 ModelManager *Level::modelManager(ModelType modelType)
 {
 	//TODO: replace this by a lookup into a protected map of model managers.
@@ -178,23 +209,9 @@ bool Level::isOver(void)
 	return false;
 }
 
-void Level::save()
-{
-	Debug::log("Level::save():").endl();
-
-	Ogre::String s, filename = getSavefilePath();
-	serialize(s);
-
-	std::ofstream outfile(	filename.c_str(),
-							std::ios::out | std::ofstream::binary);
-	outfile.write(s.c_str(), s.size());
-	outfile.close();
-	Debug::log("Level::save() into ")(filename).endl();
-}
-
 void Level::serialize(Ogre::String &s)
 {
-
+	Debug::log("Level::serialize()").endl();
 	Json::Value root;
 	root["name"] = mName;
 
@@ -253,7 +270,8 @@ void Level::serialize(Ogre::String &s)
 
 void Level::deserialize(Ogre::String &s)
 {
-
+	Debug::log("Level::deserialize()").endl();
+	Debug::log(s).endl();
 }
 
 }

@@ -81,9 +81,9 @@ void Engine::deleteSelection()
 		mLevel->deleteAgent(*it);
 }
 
-void Engine::grabInputs(void)
+void Engine::grabInputs()
 {
-	Debug::log("Engine::grabInputs(void)").endl();
+	Debug::log("Engine::grabInputs()").endl();
 	mInputMan->grab();
 	mIsGrabbingInputs = true;
 }
@@ -294,7 +294,7 @@ void Engine::pickAgents(std::list<ModelId> &selection, int x, int y)
 	mLevel->getAgentsIdsFromSceneNodes(nodes, selection);
 }
 
-bool Engine::processInputs(void)
+bool Engine::processInputs()
 {
 	//update inputs
 	mInputMan->update();
@@ -347,7 +347,7 @@ bool Engine::processInputs(void)
 
 }
 
-void Engine::redraw(void)
+void Engine::redraw()
 {
 	mRoot->_fireFrameStarted();
 	mRoot->_updateAllRenderTargets();
@@ -356,9 +356,9 @@ void Engine::redraw(void)
 	mRoot->_fireFrameEnded();
 }
 
-void Engine::releaseInputs(void)
+void Engine::releaseInputs()
 {
-	cout << "Engine::releaseInputs(void)" << endl;
+	cout << "Engine::releaseInputs()" << endl;
 	mInputMan->release();
 	mIsGrabbingInputs = false;
 }
@@ -448,8 +448,9 @@ void Engine::setSelectionPosition(Ogre::Vector3 pos)
 	}
 }
 
-void Engine::shutdown(void)
+void Engine::shutdown()
 {
+	Debug::log("Engine::shutdown()").endl();
 	if (mLevel != NULL)
 	{
 		delete mLevel;

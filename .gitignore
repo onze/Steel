@@ -3,4 +3,6 @@
 *.directory
 *.so
 *.mk
+#~
 current_commit
+makefile
