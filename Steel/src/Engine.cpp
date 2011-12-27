@@ -411,7 +411,7 @@ void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 		if (agent == NULL)
 			continue;
 		mSelection.push_back(agent->id());
-		agent->ogreModel()->setSelected(selected);
+		agent->setSelected(true);
 	}
 	Debug::log.endl();
 

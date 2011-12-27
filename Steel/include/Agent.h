@@ -75,6 +75,7 @@ public:
 	 */
 	inline OgreModel *ogreModel()
 	{
+
 		return (OgreModel *) model(MT_OGRE);
 	}
 
@@ -86,6 +87,11 @@ public:
 		return modelId(MT_OGRE);
 	}
 
+	/**
+	 * make an agent selected or not.
+	 * being (de)selected can have different effects on the agent's models.
+	 */
+	void setSelected(bool selected);
 private:
 	//static stuff
 	static AgentId sNextId;

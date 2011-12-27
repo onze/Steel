@@ -53,7 +53,7 @@ Agent &Agent::operator=(const Agent &t)
 
 bool Agent::fromJson(Json::Value &value)
 {
-	Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
+//	Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
 	for (ModelType mt_it = (ModelType) ((int) MT_FIRST + 1); mt_it != MT_LAST; mt_it = (ModelType) ((int) mt_it + 1))
 	{
 		Json::Value modelTypeValue = value[modelTypesAsString[mt_it]];
@@ -66,8 +66,8 @@ bool Agent::fromJson(Json::Value &value)
 
 bool Agent::linkToModel(ModelType modelType, ModelId modelId)
 {
-	Debug::log("Agent<")(mId)(">::linkToModel(ModelType ")(modelTypesAsString[modelType]);
-	Debug::log(", ModelId ")(modelId)(")").endl();
+//	Debug::log("Agent<")(mId)(">::linkToModel(ModelType ")(modelTypesAsString[modelType]);
+//	Debug::log(", ModelId ")(modelId)(")").endl();
 	mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
 	return mLevel->modelManager(modelType)->incRef(modelId);
 }
@@ -94,6 +94,13 @@ ModelId Agent::modelId(ModelType modelType)
 {
 	std::map<ModelType, ModelId>::iterator it = mModelIds.find(modelType);
 	return (it == mModelIds.end() ? INVALID_ID : it->second);
+}
+
+void Agent::setSelected(bool selected)
+{
+	OgreModel *om = ogreModel();
+	if (om != NULL)
+		om->setSelected(selected);
 }
 
 }
