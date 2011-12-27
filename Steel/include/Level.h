@@ -38,8 +38,11 @@ public:
 	/**
 	 * read properties in the given string and set them where they should.
 	 */
-	void deserialize(Ogre::String &s);
+	bool deserialize(Ogre::String &s);
 
+	/**
+	 * Returns a pointer to the agent whose id's given, or NULL if there's no such agent.
+	 */
 	Agent *getAgent(AgentId id);
 
 	/**
@@ -55,11 +58,18 @@ public:
 
 	bool isOver();
 
+	bool linkAgentToModel(AgentId aid, ModelType mtype, ModelId mid);
+
 	/**
 	 * loads a level serialization string from a file and restore the state it represents.
 	 * Return true is the loading went successfully, false otherwise.
 	 */
 	bool load();
+
+	/**
+	 * Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
+	 */
+	AgentId newAgent();
 
 	/**
 	 * creates a new instance of Agent.
@@ -68,10 +78,10 @@ public:
 	 * rot: rotation of the node
 	 * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
 	 */
-	AgentId newAgent(	Ogre::String name,
-						Ogre::Vector3 pos = Ogre::Vector3::ZERO,
-						Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
-						bool involvesNewResources = false);
+	ModelId newOgreModel(	Ogre::String name,
+							Ogre::Vector3 pos = Ogre::Vector3::ZERO,
+							Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
+							bool involvesNewResources = false);
 
 	/**
 	 * save a seralization string into a file that can be loaded and read back with a call to load.

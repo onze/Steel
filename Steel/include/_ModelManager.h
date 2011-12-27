@@ -27,31 +27,50 @@ public:
 	_ModelManager();
 	virtual ~_ModelManager();
 	/**
-	 * Returns a pointer to the model referenced by the given id, if the model is in use. Return NULL otherwise.
-	 * Since model addresses can change without notice, models pointers lifetime is not supposed to be longer
-	 * than the function they're created in.
+	 * Returns a pointer to the model referenced by the given id, if the model is in use. Return NULL
+	 * otherwise. Since model addresses can change without notice, models pointers lifetime is not
+	 * supposed to be longer than the function they're created in.
 	 * ModelIds are meant for this, as seen in Agent.h/cpp.
 	 */
 	virtual M *at(ModelId id);
+
+	/**
+	 * Incremnts the ref count of the given model.
+	 */
+	virtual bool incRef(ModelId id);
+
 	/**
 	 * clears every models from its memory.
 	 */
 	void clear();
+
 	/**
 	 * returns true if the given model is in use.
 	 */
 	bool isValid(ModelId id);
+
 	/**
 	 * decrements the given model, and deletes it if nobody uses it.
 	 */
 	void releaseModel(ModelId modelId);
+
+	/**
+	 * initialize new OgreModel according to data in the json serialization.
+	 */
+	virtual bool fromJson(Json::Value &object)
+	{
+		Debug::error("_ModelManager::fromJson(): NotImplemented by subclass.");
+		return false;
+	}
+
 	/**
 	 * dump all models' json representation into the given object.
 	 */
 	void toJson(Json::Value &object);
 protected:
 	/**
-	 * finds a free id to place the given model at. returns this ModelId.
+	 * Finds a free id to place the given model at. returns this ModelId.
+	 * If allocation was not possible, returns Steel::INVALID_ID.
 	 */
 	ModelId allocateModel();
 	/**

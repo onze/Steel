@@ -35,6 +35,19 @@ M *_ModelManager<M>::at(ModelId id)
 }
 
 template<class M>
+bool _ModelManager<M>::incRef(ModelId id)
+{
+	if (id < 0 || id >= mModels.size())
+	{
+		Debug::warning("void _ModelManager<")(modelTypesAsString[mModels[id].modelType()]);
+		Debug::warning(">::incRef(): modelId ")(id)("\" does not exist.").endl();
+		return false;
+	}
+	mModels[id].incRef();
+	return true;
+}
+
+template<class M>
 void _ModelManager<M>::clear()
 {
 	mModels.clear();
@@ -55,7 +68,7 @@ ModelId _ModelManager<M>::allocateModel()
 		id = (ModelId) mModels.size();
 		mModels.push_back(M());
 	}
-	mModels[id].incRef();
+//	mModels[id].incRef();
 	return id;
 }
 

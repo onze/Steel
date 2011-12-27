@@ -11,6 +11,7 @@
 #include <json/json.h>
 
 #include "Debug.h"
+#include "steeltypes.h"
 
 namespace Steel
 {
@@ -45,6 +46,7 @@ public:
 	{
 		return mRefCount;
 	}
+	virtual ModelType modelType()=0;
 protected:
 	/**
 	 * called by decRef() when the ref count gets below 0.

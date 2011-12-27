@@ -11,7 +11,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <OgreString.h>
+#include <OGRE/OgreString.h>
 
 #include "Debug.h"
 
@@ -45,14 +45,10 @@ public:
 	Ogre::String read();
 
 	/**
-	 * write the given string into the file.
+	 * write the given string into the file, replacing what's already in.
 	 */
 	File &write(Ogre::String s);
 
-	/**
-	 * close the file if it was open.
-	 */
-	void close();
 	/**
 	 * return the application's current path.
 	 */
@@ -74,9 +70,10 @@ public:
 	bool isFile();
 
 	/**
-	 * return true is the file has been open already.
+	 * return true is the file exists, and is readable and writable.
 	 */
-	bool isOpen();
+	bool isValid();
+
 	/**
 	 * Return the path pointed to by this file.
 	 */
@@ -99,11 +96,6 @@ public:
 	{
 		return fullPath();
 	}
-
-	/**
-	 * open the file if possibleand return true if it there was no error.
-	 */
-	bool open();
 protected:
 	/**
 	 * standardized path to the file.
@@ -119,19 +111,6 @@ protected:
 	 * extension of the file. Empty string if the file is a directory.
 	 */
 	Ogre::String mExtension;
-
-	/**
-	 * stream used for IOs with the file.
-	 */
-	std::fstream *mFileStream;
-	/**
-	 * File copies share the same stream.
-	 */
-	int *mFileStreamRefCount;
-
-	/**
-	 *
-	 */
 };
 
 } /* namespace Steel */

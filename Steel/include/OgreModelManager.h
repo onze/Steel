@@ -31,7 +31,7 @@ public:
 	/**
 	 * initialize new OgreModel according to data in the json serialization.
 	 */
-	void loadModels(Json::Value models);
+	bool fromJson(Json::Value &models);
 	/**
 	 * initialize a new OgreModel and returns its identifier.
 	 */

@@ -32,6 +32,7 @@ public:
 	OgreModel &operator=(const OgreModel &m);
 	virtual ~OgreModel();
 
+	virtual ModelType modelType();
 	Ogre::Vector3 position();
 	Ogre::Quaternion rotation();
 	void rotate(Ogre::Vector3 &rotation);

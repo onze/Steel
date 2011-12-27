@@ -19,7 +19,7 @@ namespace Steel
 AgentId Agent::sNextId = 0;
 
 Agent::Agent(Level *level) :
-	mId(Agent::getNextId()), mLevel(level)
+		mId(Agent::getNextId()), mLevel(level)
 {
 	mModelIds = std::map<ModelType, ModelId>();
 }
@@ -31,7 +31,7 @@ Agent::~Agent()
 }
 
 Agent::Agent(const Agent &t) :
-	mId(t.mId), mLevel(t.mLevel), mModelIds(t.mModelIds)
+		mId(t.mId), mLevel(t.mLevel), mModelIds(t.mModelIds)
 {
 	for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
 	{
@@ -51,17 +51,30 @@ Agent &Agent::operator=(const Agent &t)
 	return *this;
 }
 
-void Agent::addModel(ModelType modelType, ModelId modelId)
+bool Agent::fromJson(Json::Value &value)
 {
-	Debug::log("Agent::addModel(ModelType ")(modelType)(", ModelId ")(modelId)(")").endl();
+	Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
+	for (ModelType mt_it = (ModelType) ((int) MT_FIRST + 1); mt_it != MT_LAST; mt_it = (ModelType) ((int) mt_it + 1))
+	{
+		Json::Value modelTypeValue = value[modelTypesAsString[mt_it]];
+		assert(!modelTypeValue.isNull());
+		ModelId modelId = (ModelId) Ogre::StringConverter::parseLong(modelTypeValue.asString());
+		linkToModel(mt_it, modelId);
+	}
+	return true;
+}
+
+bool Agent::linkToModel(ModelType modelType, ModelId modelId)
+{
+	Debug::log("Agent<")(mId)(">::linkToModel(ModelType ")(modelTypesAsString[modelType]);
+	Debug::log(", ModelId ")(modelId)(")").endl();
 	mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
-	//cannot inref here if the model is newly created because its refcount is still 0 and then says it is free.
-//	mLevel->modelManager(modelType)->at(modelId)->incRef();
+	return mLevel->modelManager(modelType)->incRef(modelId);
 }
 
 Model *Agent::model(ModelType modelType)
 {
-	ModelId id=modelId(modelType);
+	ModelId id = modelId(modelType);
 
 	if (id == INVALID_ID)
 		return NULL;

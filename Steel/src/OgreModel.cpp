@@ -27,6 +27,11 @@ void OgreModel::init(	Ogre::String meshName,
 	mSceneNode->attachObject(mEntity);
 }
 
+ModelType OgreModel::modelType()
+{
+	return MT_OGRE;
+}
+
 OgreModel::OgreModel(const OgreModel &m)
 {
 //	Debug::log("OgreModel::OgreModel(const OgreModel &m)").endl();

@@ -29,9 +29,7 @@ Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager) :
 {
 	Debug::log("Level::Level(path=")(mPath)(")").endl();
 	addAuxiliaryResourceName(mName);
-	mLevelRoot =
-			mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode",
-																	Ogre::Vector3::ZERO);
+	mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
 	mAgents = std::map<AgentId, Agent *>();
 	mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
 }
@@ -40,8 +38,7 @@ Level::~Level()
 {
 	Debug::log("Level::~Level()").endl();
 	mOgreModelMan->clear();
-	Ogre::ResourceGroupManager *rgm =
-			Ogre::ResourceGroupManager::getSingletonPtr();
+	Ogre::ResourceGroupManager *rgm = Ogre::ResourceGroupManager::getSingletonPtr();
 	Ogre::String name;
 	for (unsigned int i = 0; i < mResGroupAux; ++i)
 	{
@@ -54,8 +51,7 @@ Level::~Level()
 Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
 {
 	Debug::log("Level::addAuxiliaryResourceName(): ")(baseName).endl();
-	Ogre::String name = baseName + "__aux_name_#__"
-			+ Ogre::StringConverter::toString(mResGroupAux++);
+	Ogre::String name = baseName + "__aux_name_#__" + Ogre::StringConverter::toString(mResGroupAux++);
 	Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	mPath.subdir("materials"),
 																		"FileSystem",
 																		name,
@@ -78,6 +74,26 @@ void Level::deleteAgent(AgentId id)
 	mAgents.erase(it);
 }
 
+bool Level::linkAgentToModel(AgentId aid, ModelType mtype, ModelId mid)
+{
+	Agent *agent = getAgent(aid);
+	if (agent == NULL)
+	{
+		Debug::error("Steel::Level::linkAgentToOgreModel(): aid ")(aid)(" does not exist.").endl();
+		return false;
+	}
+
+	ModelManager *mm = modelManager(mtype);
+	if (mm == NULL)
+	{
+		Debug::error("Steel::Level::linkAgentToOgreModel(): mtype ")(mtype)(" aka \"");
+		Debug::error(modelTypesAsString[mtype])("\" does not exist.").endl();
+		return false;
+	}
+	//all clear
+	return agent->linkToModel(mtype, mid);
+}
+
 File Level::getSavefile()
 {
 	return mPath.subfile(mName + ".lvl");
@@ -86,22 +102,17 @@ File Level::getSavefile()
 bool Level::load()
 {
 	Debug::log("Level::load()").endl();
-	File file = getSavefile();
-	if (!file.exists())
-	{
-		Debug::log("Level::load(): savefile \"")(file.fullPath())("\" does not exists.").endl();
-		return false;
-	}
 
 	File savefile = getSavefile();
-	if (!savefile.open())
+	if (!savefile.exists())
 	{
-		Debug::error("Level<")(mPath)(">.save(): could not open file ")(savefile).endl();
+		Debug::error("Level<")(mPath)(">.save(): file does not exists: ")(savefile).endl();
 		return false;
 	}
 	Ogre::String s = savefile.read();
 
-	deserialize(s);
+	if (!deserialize(s))
+		return false;
 	Debug::log("Level::load() loaded ")(savefile)(" successfully.").endl();
 	return true;
 }
@@ -114,13 +125,7 @@ bool Level::save()
 	serialize(s);
 
 	File savefile = getSavefile();
-	if (!savefile.open())
-	{
-		Debug::error("Level<")(mPath)(">.save(): could not open file ")(savefile).endl();
-		return false;
-	}
 	savefile.write(s);
-	savefile.close();
 
 	Debug::log("Level::save() into ")(savefile).endl();
 	return true;
@@ -131,34 +136,37 @@ ModelManager *Level::modelManager(ModelType modelType)
 	ModelManager *mm = NULL;
 	switch (modelType)
 	{
-	case MT_OGRE:
-		mm = mOgreModelMan;
-		break;
-	default:
-		break;
+		case MT_OGRE:
+			mm = mOgreModelMan;
+			break;
+		default:
+			break;
 	}
 	return mm;
 }
 
-AgentId Level::newAgent(Ogre::String meshName,
-						Ogre::Vector3 pos,
-						Ogre::Quaternion rot,
-						bool involvesNewResources)
+AgentId Level::newAgent()
 {
-	Debug::log("Level::newAgent(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot);
+
+	Agent *t = new Agent(this);
+	//	Debug::log(" with id:")(t->id()).endl();
+	mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
+	return t->id();
+}
+
+ModelId Level::newOgreModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot, bool involvesNewResources)
+{
+	Debug::log("Level::newOgreModel(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot).endl();
 
 #ifdef DEBUG
 	assert(mSceneManager);
 	assert(mLevelRoot);
 #endif
 
-	Agent *t = new Agent(this);
-	Debug::log(" with id:")(t->id()).endl();
 	if (involvesNewResources)
 		addAuxiliaryResourceName(mName);
-	t->addModel(MT_OGRE, mOgreModelMan->newModel(meshName, pos, rot));
-	mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
-	return t->id();
+	ModelId mid = mOgreModelMan->newModel(meshName, pos, rot);
+	return mid;
 }
 
 Agent *Level::getAgent(AgentId id)
@@ -169,16 +177,14 @@ Agent *Level::getAgent(AgentId id)
 	return it->second;
 }
 
-void Level::getAgentsIdsFromSceneNodes(	std::list<Ogre::SceneNode *> &nodes,
-										std::list<ModelId> &selection)
+void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
 {
 	Debug::log("Level::getAgentsIdsFromSceneNodes()").endl();
 	//retrieving models
 	ModelId id;
 	//	Debug::log("adding ids:");
 	std::list<ModelId> models = std::list<ModelId>();
-	for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin();
-			it != nodes.end(); ++it)
+	for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
 		id = Ogre::any_cast<ModelId>((*it)->getUserAny());
 		if (!mOgreModelMan->isValid(id))
@@ -191,13 +197,11 @@ void Level::getAgentsIdsFromSceneNodes(	std::list<Ogre::SceneNode *> &nodes,
 	//retrieving agents
 	Agent *t;
 	ModelId modelId;
-	for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin();
-			it_agents != mAgents.end(); ++it_agents)
+	for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
 	{
 		t = (*it_agents).second;
 		modelId = t->ogreModelId();
-		for (std::list<ModelId>::iterator it_models = models.begin();
-				it_models != models.end(); ++it_models)
+		for (std::list<ModelId>::iterator it_models = models.begin(); it_models != models.end(); ++it_models)
 			if (mOgreModelMan->isValid(modelId) && modelId == (*it_models))
 				selection.push_back(t->id());
 	}
@@ -216,21 +220,19 @@ void Level::serialize(Ogre::String &s)
 	root["name"] = mName;
 
 	// serialize agents
-	Debug::log("saving agents...").endl();
+	Debug::log("serializing agents...").endl();
 	Json::Value agents;
 
-	for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin();
-			it_agents != mAgents.end(); ++it_agents)
+	for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
 	{
-		AgentId agentId = (*it_agents).first;
+		AgentId aid = (*it_agents).first;
 		Agent *agent = (*it_agents).second;
-		Debug::log("agent #")(agentId).endl();
+		Debug::log("agent #")(aid)(" with ")(agent->modelsIds().size())(" modelTypes registered.").endl();
 
-		//get agent's model ids for each type
+		// get agent's model ids for each type
 		std::map<ModelType, ModelId> agentModelIds = agent->modelsIds();
-		//add the agent's model ids to its json representation
-		for (std::map<ModelType, ModelId>::iterator it_models =
-				agentModelIds.begin(); it_models != agentModelIds.end();
+		// add the agent's model ids to its json representation
+		for (std::map<ModelType, ModelId>::iterator it_models = agentModelIds.begin(); it_models != agentModelIds.end();
 				++it_models)
 		{
 			ModelType modelType = (*it_models).first;
@@ -241,7 +243,7 @@ void Level::serialize(Ogre::String &s)
 				continue;
 			}
 			ModelId modelId = (*it_models).second;
-			agents[Ogre::StringConverter::toString(agentId)][modelTypesAsString[modelType]] =
+			agents[Ogre::StringConverter::toString(aid)][modelTypesAsString[modelType]] =
 					Json::Value(Ogre::StringConverter::toString(modelId));
 		}
 	}
@@ -250,8 +252,8 @@ void Level::serialize(Ogre::String &s)
 	// serialize models
 	Debug::log("saving model...").endl();
 	Json::Value models;
-	for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1);
-			modelType != MT_LAST; modelType = (ModelType) ((int) modelType + 1))
+	for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1); modelType != MT_LAST;
+			modelType = (ModelType) ((int) modelType + 1))
 	{
 		Debug::log("processing type ")(modelTypesAsString[modelType]).endl();
 		ModelManager *mm = modelManager(modelType);
@@ -268,10 +270,64 @@ void Level::serialize(Ogre::String &s)
 	Debug::log(s).endl();
 }
 
-void Level::deserialize(Ogre::String &s)
+bool Level::deserialize(Ogre::String &s)
 {
 	Debug::log("Level::deserialize()").endl();
 	Debug::log(s).endl();
+	Json::Reader reader;
+	Json::Value root;
+	bool parsingOk = reader.parse(s, root, false);
+	if (!parsingOk)
+	{
+		Debug::error("Level::deserialize(): could not parse this:").endl();
+		Debug::error(s).endl();
+		Debug::error("error is:").endl()(reader.getFormattedErrorMessages()).endl();
+		return false;
+	}
+	Json::Value value;
+	// get level info
+	value = root["name"];
+	assert(!value.isNull());
+	assert(mName==value.asString());
+
+	Debug::log("instanciate ALL the models ! \\o/").endl();
+	Json::Value dict = root["models"];
+	assert(!dict.isNull());
+
+	for (ModelType i = (ModelType) ((int) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((int) i + 1))
+	{
+		Ogre::String type = modelTypesAsString[i];
+		Json::Value value = dict[type];
+		if (value.isNull())
+		{
+			Debug::log("no models for type ")(type).endl();
+			continue;
+		}
+		ModelManager *mm = modelManager(i);
+		if (mm == NULL)
+		{
+			Debug::warning("no modelManager for type ")(type).endl();
+			continue;
+		}
+		mm->fromJson(value);
+	}
+	Debug::log("done").endl();
+
+	Debug::log("now instanciate ALL the agents ! \\o/").endl();
+	dict = root["agents"];
+	assert(!dict.isNull());
+
+	for (Json::ValueIterator it = dict.begin(); it != dict.end(); ++it)
+	{
+		//TODO: remap ids to lowest range
+		AgentId aid = newAgent();
+		assert(aid!=INVALID_ID);
+		Agent *agent = getAgent(aid);
+		agent->fromJson(*it);
+	}
+	Debug::log("done").endl();
+	Debug::log("deserialization done").endl();
+	return true;
 }
 
 }

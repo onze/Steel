@@ -11,6 +11,8 @@
 #include <limits.h>
 #include <exception>
 
+#include <json/json.h>
+
 #include <OGRE/OgreString.h>
 
 #include "steeltypes.h"
@@ -42,16 +44,24 @@ public:
 	{
 		return mId;
 	}
-	void addModel(ModelType modelType, ModelId modelId);
+
+	/**
+	 * setup new Agent according to data in the json serialization.
+	 */
+	bool fromJson(Json::Value &models);
+
+	bool linkToModel(ModelType modelType, ModelId modelId);
 
 	/**
 	 * returns an address to the model of the given type, if any. returns NULL otherwise.
 	 */
 	Model *model(ModelType modelType);
+
 	/**
 	 * return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
 	 */
 	ModelId modelId(ModelType modelType);
+
 	/**
 	 * return all ids of all contained model types.
 	 */
@@ -59,6 +69,7 @@ public:
 	{
 		return mModelIds;
 	}
+
 	/**
 	 * shortcut to Agent::model(MT_OGRE).
 	 */
@@ -66,6 +77,7 @@ public:
 	{
 		return (OgreModel *) model(MT_OGRE);
 	}
+
 	/**
 	 * shortcut to Agent::modelId(MT_OGRE).
 	 */
@@ -77,6 +89,7 @@ public:
 private:
 	//static stuff
 	static AgentId sNextId;
+
 	static inline AgentId getNextId()
 	{
 		if (sNextId == ULONG_MAX)
