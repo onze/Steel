@@ -24,8 +24,8 @@
 namespace Steel
 {
 
-Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager) :
-		mPath(path.subdir(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0)
+Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera) :
+		mPath(path.subdir(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera)
 {
 	Debug::log("Level::Level(path=")(mPath)(")").endl();
 	addAuxiliaryResourceName(mName);
@@ -219,6 +219,8 @@ void Level::serialize(Ogre::String &s)
 	Json::Value root;
 	root["name"] = mName;
 
+	root["camera"] = mCamera->toJson();
+
 	// serialize agents
 	Debug::log("serializing agents...").endl();
 	Json::Value agents;
@@ -285,10 +287,14 @@ bool Level::deserialize(Ogre::String &s)
 		return false;
 	}
 	Json::Value value;
+
 	// get level info
 	value = root["name"];
 	assert(!value.isNull());
 	assert(mName==value.asString());
+
+	//camera
+	mCamera->fromJson(root["camera"]);
 
 	Debug::log("instanciate ALL the models ! \\o/").endl();
 	Json::Value dict = root["models"];

@@ -13,6 +13,7 @@
 #include "steeltypes.h"
 #include "OgreModelManager.h"
 #include "Agent.h"
+#include "Camera.h"
 #include "tools/File.h"
 
 namespace Steel
@@ -25,7 +26,7 @@ private:
 	Level(Level &level);
 	Level &operator=(const Level &level);
 public:
-	Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager);
+	Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera);
 	virtual ~Level();
 
 	/**
@@ -130,6 +131,8 @@ protected:
 	OgreModelManager *mOgreModelMan;
 	///
 	unsigned int mResGroupAux;
+
+	Camera *mCamera;
 };
 
 }

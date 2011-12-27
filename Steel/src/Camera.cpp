@@ -16,6 +16,7 @@ using namespace std;
 #include <OGRE/OgreEntity.h>
 
 #include "Camera.h"
+#include "Debug.h"
 
 namespace Steel
 {
@@ -48,6 +49,55 @@ void Camera::lookTowards(float x, float y, float roll, float factor)
 
 	mCameraNode->pitch(Ogre::Degree(x), Ogre::SceneNode::TS_LOCAL);
 	mCameraNode->yaw(Ogre::Degree(y), Ogre::SceneNode::TS_WORLD);
+}
+
+bool Camera::fromJson(Json::Value &root)
+{
+	if(root.isNull())
+	{
+		Debug::warning("in Camera::fromJson(): root is null !").endl();
+		return false;
+	}
+
+	bool success = true;
+	Json::Value value;
+
+	value = root["position"];
+	Ogre::Vector3 pos;
+	if (value.isNull())
+	{
+		success = false;
+		Debug::warning("in Camera::fromJson(): missing field 'position'.").endl();
+	}
+	else
+	{
+		pos = Ogre::StringConverter::parseVector3(value.asString());
+
+	}
+	mCameraNode->setPosition(pos);
+
+	value = root["rotation"];
+	Ogre::Quaternion rot;
+	if (value.isNull())
+	{
+		success = false;
+		Debug::warning("in Camera::fromJson(): missing field 'rotation'.").endl();
+	}
+	else
+	{
+		rot = Ogre::StringConverter::parseQuaternion(value.asString());
+
+	}
+	mCameraNode->setOrientation(rot);
+	return success;
+}
+
+Json::Value Camera::toJson()
+{
+	Json::Value value;
+	value["position"] = Ogre::StringConverter::toString(mCameraNode->getPosition());
+	value["rotation"] = Ogre::StringConverter::toString(mCameraNode->getOrientation());
+	return value;
 }
 
 void Camera::translate(float dx, float dy, float dz)
