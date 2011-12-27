@@ -45,7 +45,11 @@ public:
 		{
 			return mLog->getName();
 		}
-
+		void setColors(Ogre::String pre = "", Ogre::String post = "")
+		{
+			mPre = pre;
+			mPost = post;
+		}
 		DebugObject &log(Ogre::String const &msg)
 		{
 			return (*this)(msg);
@@ -103,14 +107,16 @@ public:
 
 		DebugObject &endl()
 		{
-			mLog->logMessage(mMsg);
+			mLog->logMessage(mPre + mMsg + mPost);
 			mMsg.clear();
 			return *this;
 		}
 	protected:
 		Ogre::Log *mLog;
 		Ogre::String mMsg;
-	};//end of class DebugObject
+		Ogre::String mPre;
+		Ogre::String mPost;
+	}; //end of class DebugObject
 
 public:
 	///default log in direct access
@@ -134,7 +140,9 @@ public:
 
 		log = DebugObject(defaultLog);
 		warning = DebugObject(olm->createLog("steel_warnings.log", false, true, false));
+		warning.setColors("\033[1;33m", "\033[1;m");
 		error = DebugObject(olm->createLog("steel_errors.log", false, true, false));
+		warning.setColors("\033[1;31m", "\033[1;m");
 	}
 };
 
