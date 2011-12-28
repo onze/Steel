@@ -72,6 +72,19 @@ Level *Engine::createLevel(Ogre::String name)
 	return mLevel;
 }
 
+void Engine::clearSelection()
+{
+	Agent *agent;
+	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+	{
+		agent = mLevel->getAgent(*it);
+		if (agent == NULL)
+			continue;
+		agent->setSelected(false);
+	}
+	mSelection.clear();
+}
+
 void Engine::deleteSelection()
 {
 	if (!hasSelection())
@@ -393,16 +406,9 @@ void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 {
 	Debug::log("Engine::setSelectedAgents(): ");
 	//unselect last selection if any
+	if(hasSelection())
+		clearSelection();
 	Agent *agent;
-	for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
-	{
-		agent = mLevel->getAgent(*it);
-		if (agent == NULL)
-			continue;
-		agent->ogreModel()->setSelected(false);
-	}
-	mSelection.clear();
-
 	//process actual selections
 	for (std::list<AgentId>::iterator it = selection.begin(); it != selection.end(); ++it)
 	{

@@ -215,43 +215,25 @@ bool Level::isOver(void)
 
 void Level::serialize(Ogre::String &s)
 {
-	Debug::log("Level::serialize()").endl();
+	Debug::log("Level::serialise()").endl();
 	Json::Value root;
 	root["name"] = mName;
 
 	root["camera"] = mCamera->toJson();
 
-	// serialize agents
-	Debug::log("serializing agents...").endl();
+	// serialise agents
+	Debug::log("serialising agents...").endl();
 	Json::Value agents;
 
 	for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
 	{
 		AgentId aid = (*it_agents).first;
 		Agent *agent = (*it_agents).second;
-		Debug::log("agent #")(aid)(" with ")(agent->modelsIds().size())(" modelTypes registered.").endl();
-
-		// get agent's model ids for each type
-		std::map<ModelType, ModelId> agentModelIds = agent->modelsIds();
-		// add the agent's model ids to its json representation
-		for (std::map<ModelType, ModelId>::iterator it_models = agentModelIds.begin(); it_models != agentModelIds.end();
-				++it_models)
-		{
-			ModelType modelType = (*it_models).first;
-			Debug::log("model type:")(modelTypesAsString[modelType]).endl();
-			if ((unsigned) modelType >= modelTypesAsString.size())
-			{
-				Debug::error("ERROR in Level.save(): unknown ModelType")(modelType).endl();
-				continue;
-			}
-			ModelId modelId = (*it_models).second;
-			agents[Ogre::StringConverter::toString(aid)][modelTypesAsString[modelType]] =
-					Json::Value(Ogre::StringConverter::toString(modelId));
-		}
+		agents[Ogre::StringConverter::toString(aid)]=agent->toJson();
 	}
 	root["agents"] = agents;
 
-	// serialize models
+	// serialise models
 	Debug::log("saving model...").endl();
 	Json::Value models;
 	for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1); modelType != MT_LAST;

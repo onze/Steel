@@ -92,6 +92,8 @@ public:
 	 * being (de)selected can have different effects on the agent's models.
 	 */
 	void setSelected(bool selected);
+
+	Json::Value toJson();
 private:
 	//static stuff
 	static AgentId sNextId;

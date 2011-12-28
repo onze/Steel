@@ -40,6 +40,7 @@ public:
 	}
 	;
 	Level *createLevel(Ogre::String name);
+	void clearSelection();
 	void deleteSelection();
 	/**
 	 * init from an app that already has created the engine's rendering window.

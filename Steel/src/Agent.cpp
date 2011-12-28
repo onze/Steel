@@ -7,6 +7,8 @@
 
 #include <exception>
 
+#include <json/json.h>
+
 #include "Debug.h"
 #include "Agent.h"
 #include "_ModelManager.h"
@@ -101,6 +103,21 @@ void Agent::setSelected(bool selected)
 	OgreModel *om = ogreModel();
 	if (om != NULL)
 		om->setSelected(selected);
+}
+
+Json::Value Agent::toJson()
+{
+//	Debug::log("Agent<")(mId)("> with ")(mModelIds.size())(" modelTypes:").endl();
+	Json::Value root;
+	// add the agent's model ids to its json representation
+	for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
+	{
+		ModelType mt = (*it).first;
+//		Debug::log("model type:")(modelTypesAsString[mt]).endl();
+		ModelId mid = (*it).second;
+		root[modelTypesAsString[mt]] = Json::Value(Ogre::StringConverter::toString(mid));
+	}
+	return root;
 }
 
 }
