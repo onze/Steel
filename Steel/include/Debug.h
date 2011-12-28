@@ -142,7 +142,7 @@ public:
 		warning = DebugObject(olm->createLog("steel_warnings.log", false, true, false));
 		warning.setColors("\033[1;33m", "\033[1;m");
 		error = DebugObject(olm->createLog("steel_errors.log", false, true, false));
-		warning.setColors("\033[1;31m", "\033[1;m");
+		error.setColors("\033[1;31m", "\033[1;m");
 	}
 };
 
