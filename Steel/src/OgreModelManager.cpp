@@ -21,8 +21,7 @@ OgreModelManager::OgreModelManager() :
 
 }
 
-OgreModelManager::OgreModelManager(	Ogre::SceneManager *sceneManager,
-									Ogre::SceneNode *levelRoot) :
+OgreModelManager::OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot) :
 		_ModelManager<OgreModel>(), mSceneManager(sceneManager), mLevelRoot(levelRoot)
 {
 
@@ -45,21 +44,17 @@ bool OgreModelManager::fromJson(Json::Value &models)
 		//get value for init
 		Ogre::String meshName = value["entityMeshName"].asString();
 
-		Ogre::Vector3 pos =
-				Ogre::StringConverter::parseVector3(value["position"].asString());
-		Ogre::Quaternion rot =
-				Ogre::StringConverter::parseQuaternion(value["rotation"].asString());
+		Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(value["position"].asString());
+		Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(value["rotation"].asString());
 		ModelId id = newModel(meshName, pos, rot);
 		//get values for load
 		//incRef(id);
-		mModels[id].fromJson(value);
+		mModels[id].fromJson(value, mLevelRoot, mSceneManager);
 	}
 	return true;
 }
 
-ModelId OgreModelManager::newModel(	Ogre::String meshName,
-									Ogre::Vector3 pos,
-									Ogre::Quaternion rot)
+ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
 {
 	ModelId id = allocateModel();
 	mModels[id].init(meshName, pos, rot, mLevelRoot, mSceneManager);

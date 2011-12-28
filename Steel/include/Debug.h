@@ -50,30 +50,30 @@ public:
 			mPre = pre;
 			mPost = post;
 		}
-		DebugObject &log(Ogre::String const &msg)
-		{
-			return (*this)(msg);
-		}
-
-		DebugObject &log(const char * msg)
-		{
-			return (*this)(msg);
-		}
-
-		DebugObject &log(Ogre::Vector3 const &msg)
-		{
-			return (*this)(msg);
-		}
-
-		DebugObject &log(Ogre::Quaternion const &msg)
-		{
-			return (*this)(msg);
-		}
-
-		DebugObject &log(long unsigned int msg)
-		{
-			return (*this)(msg);
-		}
+//		DebugObject &log(Ogre::String const &msg)
+//		{
+//			return (*this)(msg);
+//		}
+//
+//		DebugObject &log(const char * msg)
+//		{
+//			return (*this)(msg);
+//		}
+//
+//		DebugObject &log(Ogre::Vector3 const &msg)
+//		{
+//			return (*this)(msg);
+//		}
+//
+//		DebugObject &log(Ogre::Quaternion const &msg)
+//		{
+//			return (*this)(msg);
+//		}
+//
+//		DebugObject &log(long unsigned int msg)
+//		{
+//			return (*this)(msg);
+//		}
 
 		/**
 		 * equivalent to myDebugObject.log(Ogre::String msg)
@@ -135,13 +135,21 @@ public:
 	{
 		Ogre::LogManager *olm = new Ogre::LogManager();
 		Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, true, false);
+
+		log = DebugObject(defaultLog);
 		if (logListener)
 			defaultLog->addListener(logListener);
 
-		log = DebugObject(defaultLog);
-		warning = DebugObject(olm->createLog("steel_warnings.log", false, true, false));
+		Ogre::Log *wlog = olm->createLog("steel_warnings.log", false, true, false);
+		if (logListener)
+			wlog->addListener(logListener);
+		warning = DebugObject(wlog);
 		warning.setColors("\033[1;33m", "\033[1;m");
-		error = DebugObject(olm->createLog("steel_errors.log", false, true, false));
+
+		Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);
+		if (logListener)
+			elog->addListener(logListener);
+		error = DebugObject(elog);
 		error.setColors("\033[1;31m", "\033[1;m");
 	}
 };

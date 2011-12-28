@@ -40,12 +40,21 @@ public:
 	void setPosition(Ogre::Vector3 pos);
 	void setSelected(bool selected);
 	void translate(Ogre::Vector3 t);
-	///serialize itself into the given Json object
-	virtual void toJson(Json::Value &object);
+
 	///deserialize itself from the given Json object
-	virtual void fromJson(Json::Value &object);
+	virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot=NULL, Ogre::SceneManager *sceneManager=NULL);
+
+	///serialize itself into the given Json object
+	virtual void toJson(Json::Value &node);
 
 protected:
+	///made private to forbid its use. The deserialisation method to use needs more params.
+	virtual bool fromJson(Json::Value &node)
+	{
+		node.isNull();
+		return false;
+	}
+	;
 	virtual void cleanup();
 	Ogre::SceneNode *mSceneNode;
 	Ogre::Entity *mEntity;

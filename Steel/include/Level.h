@@ -49,8 +49,7 @@ public:
 	/**
 	 * fills the ModelId list with ids of Things that own nodes in the the given list.
 	 */
-	void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes,
-									std::list<ModelId> &selection);
+	void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
 
 	/**
 	 * returns the name of the json file that contains this level's properies.
@@ -79,9 +78,8 @@ public:
 	 * rot: rotation of the node
 	 * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
 	 */
-	ModelId newOgreModel(	Ogre::String name,
-							Ogre::Vector3 pos = Ogre::Vector3::ZERO,
-							Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
+	ModelId newOgreModel(Ogre::String name, Ogre::Vector3 pos = Ogre::Vector3::ZERO, Ogre::Quaternion rot =
+									Ogre::Quaternion::IDENTITY,
 							bool involvesNewResources = false);
 
 	/**
@@ -103,10 +101,18 @@ public:
 	{
 		return mOgreModelMan;
 	}
-	/**
-	 * Return the level's model manager for the given type.
-	 */
+	inline Ogre::SceneNode *levelRoot()
+	{
+		return mLevelRoot;
+	}
+
+	///Return the level's model manager for the given type.
 	ModelManager *modelManager(ModelType modelType);
+
+	inline Ogre::SceneManager *sceneManager()
+	{
+		return mSceneManager;
+	}
 protected:
 	///level folder
 	File mPath;

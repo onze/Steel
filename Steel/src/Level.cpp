@@ -265,7 +265,7 @@ bool Level::deserialize(Ogre::String &s)
 	{
 		Debug::error("Level::deserialize(): could not parse this:").endl();
 		Debug::error(s).endl();
-		Debug::error("error is:").endl()(reader.getFormattedErrorMessages()).endl();
+		Debug::error(reader.getFormattedErrorMessages()).endl();
 		return false;
 	}
 	Json::Value value;

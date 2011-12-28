@@ -39,8 +39,8 @@ public:
 	}
 	///serialize itself into the given Json object
 	virtual void toJson(Json::Value &object)=0;
-	///deserialize itself from the given Json object
-	virtual void fromJson(Json::Value &object)=0;
+	///deserialize itself from the given Json object. return true is successful.
+	virtual bool fromJson(Json::Value &object)=0;
 	//getters
 	inline unsigned long refCount()
 	{

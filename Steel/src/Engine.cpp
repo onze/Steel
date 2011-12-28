@@ -191,7 +191,7 @@ bool Engine::preWindowingSetup(	Ogre::String &plugins,
 	// we need at least one renderer to do anything useful
 
 	Ogre::RenderSystem *renderSystem = renderers[0];
-	assert( renderSystem);
+	assert(renderSystem);
 
 	mRoot->setRenderSystem(renderSystem);
 
@@ -406,7 +406,7 @@ void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
 {
 	Debug::log("Engine::setSelectedAgents(): ");
 	//unselect last selection if any
-	if(hasSelection())
+	if (hasSelection())
 		clearSelection();
 	Agent *agent;
 	//process actual selections

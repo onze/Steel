@@ -12,7 +12,7 @@ namespace Steel
 {
 
 OgreModel::OgreModel() :
-		Model()
+		Model(), mSceneNode(NULL), mEntity(NULL)
 {
 
 }
@@ -55,9 +55,20 @@ OgreModel::~OgreModel()
 
 void OgreModel::cleanup()
 {
-	Debug::log("OgreModel::cleanup()").endl();
-	mSceneNode->removeAndDestroyAllChildren();
-	mSceneNode->detachAllObjects();
+//	Debug::log("OgreModel::cleanup()").endl();
+	if (mSceneNode != NULL)
+	{
+		mSceneNode->removeAndDestroyAllChildren();
+		mSceneNode->detachAllObjects();
+		mSceneNode->getParent()->removeChild(mSceneNode);
+		delete mSceneNode;
+		mSceneNode = NULL;
+	}
+	if (mEntity != NULL)
+	{
+		delete mEntity;
+		mEntity = NULL;
+	}
 }
 
 Ogre::Vector3 OgreModel::position()
@@ -67,15 +78,9 @@ Ogre::Vector3 OgreModel::position()
 
 void OgreModel::rotate(Ogre::Vector3 &rotation)
 {
-	mSceneNode->rotate(	Ogre::Vector3::UNIT_X,
-						Ogre::Degree(rotation.x),
-						Ogre::Node::TS_WORLD);
-	mSceneNode->rotate(	Ogre::Vector3::UNIT_Y,
-						Ogre::Degree(rotation.y),
-						Ogre::Node::TS_WORLD);
-	mSceneNode->rotate(	Ogre::Vector3::UNIT_Z,
-						Ogre::Degree(rotation.z),
-						Ogre::Node::TS_WORLD);
+	mSceneNode->rotate(Ogre::Vector3::UNIT_X, Ogre::Degree(rotation.x), Ogre::Node::TS_WORLD);
+	mSceneNode->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(rotation.y), Ogre::Node::TS_WORLD);
+	mSceneNode->rotate(Ogre::Vector3::UNIT_Z, Ogre::Degree(rotation.z), Ogre::Node::TS_WORLD);
 }
 
 Ogre::Quaternion OgreModel::rotation()
@@ -107,27 +112,83 @@ void OgreModel::translate(Ogre::Vector3 t)
 	mSceneNode->translate(t);
 }
 
-void OgreModel::toJson(Json::Value &object)
+void OgreModel::toJson(Json::Value &node)
 {
-	if(mSceneNode==NULL)
+	if (mSceneNode == NULL)
 	{
 		Debug::error("OgreModel::toJson() called while mSceneNode is NULL !");
-		Debug::log("OgreModel::toJson() called while mSceneNode is NULL !");
 		return;
 	}
-	//TODO: use abreviated keys for release
-	object["position"] =
-			Json::Value(Ogre::StringConverter::toString(mSceneNode->getPosition()));
-	object["rotation"] =
-			Json::Value(Ogre::StringConverter::toString(mSceneNode->getOrientation()));
-	object["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
+	//TODO: use abbreviated keys for release
+	node["position"] = Json::Value(Ogre::StringConverter::toString(mSceneNode->getPosition()));
+	node["rotation"] = Json::Value(Ogre::StringConverter::toString(mSceneNode->getOrientation()));
+	node["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
 }
 
-void OgreModel::fromJson(Json::Value &object)
+bool OgreModel::fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager)
 {
-	mSceneNode->setPosition(Ogre::StringConverter::parseVector3(object["position"].asString()));
-	mSceneNode->setOrientation(Ogre::StringConverter::parseQuaternion(object["rotation"].asString()));
-	object["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
+	// data to gather
+	Ogre::String meshName;
+	Ogre::Vector3 pos;
+	Ogre::Quaternion rot;
+
+	Json::Value value;
+	bool allWasFine = true;
+
+	// gather it
+	value = node["position"];
+	if (value.isNull() && !(allWasFine = false))
+		Debug::error("in OgreModel::fromJson(): invalid field 'position' (skipped).").endl();
+	else
+		pos = Ogre::StringConverter::parseVector3(value.asString());
+
+	value = node["rotation"];
+	if (value.isNull() && !(allWasFine = false))
+		Debug::error("in OgreModel::fromJson(): invalid field 'rotation' (skipped).").endl();
+	else
+		rot = Ogre::StringConverter::parseQuaternion(value.asString());
+
+	value = node["entityMeshName"];
+	if (value.isNull() && !(allWasFine = false))
+		Debug::error("in OgreModel::fromJson(): invalid field 'entityMeshName' (skipped).").endl();
+	else
+		meshName = Ogre::String(value.asString());
+
+	if (!allWasFine)
+	{
+		Debug::error("json was:").endl()(node.toStyledString()).endl();
+		Debug::error("deserialisation aborted.").endl();
+		return false;
+	}
+
+	// now whether we have minor changes (and we apply them directly), or major ones (cleanup, then init).
+	// lets start with major ones
+	if (mEntity == NULL || meshName != mEntity->getMesh()->getName())
+	{
+		// make sure we've been called with all arguments, because they're all needed now
+		if (levelRoot == NULL || sceneManager == NULL)
+		{
+			Debug::error("in OgreModel::fromJson(): a new mesh is required, but sceneManager or levelRoot are NULL.");
+			Debug::error(" Aborting.").endl();
+			return false;
+		}
+		// make sure the new meshName is valid
+		if (meshName.length()==0 || !Ogre::ResourceGroupManager::getSingletonPtr()->resourceExistsInAnyGroup(meshName))
+		{
+			Debug::error("in OgreModel::fromJson(): new mesh name is not valid:")(meshName).endl();
+			return false;
+		}
+		Ogre::Any any = mSceneNode->getUserAny();
+		cleanup();
+		init(meshName, pos, rot, levelRoot, sceneManager);
+		setNodeAny(any);
+	}
+	else
+	{
+		mSceneNode->setPosition(pos);
+		mSceneNode->setOrientation(rot);
+	}
+	return true;
 }
 
 }
