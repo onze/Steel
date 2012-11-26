@@ -10,9 +10,9 @@
 
 #include <json/json.h>
 
-#include <OGRE/OgreCamera.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
+#include <OgreCamera.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
 
 namespace Steel
 {

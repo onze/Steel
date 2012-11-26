@@ -12,7 +12,8 @@
 namespace Steel
 {
 
-BTSelector::BTSelector(BTNode *parent):BTNode(parent)
+BTSelector::BTSelector(BTNode *parent) :
+		BTNode(parent)
 {
 }
 
@@ -20,37 +21,36 @@ BTSelector::~BTSelector()
 {
 }
 
-
 void BTSelector::onStartRunning()
 {
-	std::cout<<"BTSelector::onStartRunning()"<<std::endl;
-	it=mChildren.begin();
-	mState=RUNNING;
+	std::cout << "BTSelector::onStartRunning()" << std::endl;
+	it = mChildren.begin();
+	mState = RUNNING;
 }
 
 void BTSelector::onStopRunning()
 {
-	std::cout<<"BTSelector::onStopRunning()"<<std::endl;
-	mState=READY;
+	std::cout << "BTSelector::onStopRunning()" << std::endl;
+	mState = READY;
 }
 
 BTNode::BTState BTSelector::run()
 {
-	if(mState==READY)
+	if (mState == READY)
 		onStartRunning();
-	std::cout<<"BTSelector::run()"<<std::endl;
+	std::cout << "BTSelector::run()" << std::endl;
 
 	BTState state;
-	while(it!=mChildren.end())
+	while (it != mChildren.end())
 	{
-		state=(*it)->run();
-		switch(state)
+		state = (*it)->run();
+		switch (state)
 		{
 			case RUNNING:
 				return RUNNING;
 			case READY:
 			case SUCCESS:
-				mState=READY;
+				mState = READY;
 				return SUCCESS;
 			case FAILURE:
 				++it;
@@ -61,8 +61,8 @@ BTNode::BTState BTSelector::run()
 				break;
 		}
 	}
-	if(it==mChildren.end())
-		mState=FAILURE;
+	if (it == mChildren.end())
+		mState = FAILURE;
 	onStopRunning();
 	return mState;
 }

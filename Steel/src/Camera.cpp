@@ -10,10 +10,10 @@ using namespace std;
 #include <assert.h>
 #endif
 
-#include <OGRE/OgreMath.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreEntity.h>
+#include <OgreMath.h>
+#include <OgreQuaternion.h>
+#include <OgreVector3.h>
+#include <OgreEntity.h>
 
 #include "Camera.h"
 #include "Debug.h"

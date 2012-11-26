@@ -11,7 +11,7 @@
 #include <limits.h>
 #include <vector>
 
-#include <OGRE/OgreString.h>
+#include <OgreString.h>
 
 namespace Steel
 {
@@ -25,9 +25,10 @@ const unsigned long INVALID_ID = ULONG_MAX;
 enum ModelType
 {
 	//MT_FIRST should stay first
-	MT_FIRST=-1,
+	MT_FIRST = -1,
 	//put next ones here
 	MT_OGRE,
+	MT_BT,
 	//MT_LAST should stay last (to enable looping).
 	MT_LAST
 };

@@ -7,7 +7,7 @@
 #include <exception>
 #include <iostream>
 
-#include <OGRE/OgreEntity.h>
+#include <OgreEntity.h>
 
 #include "Debug.h"
 #include "OgreModelManager.h"

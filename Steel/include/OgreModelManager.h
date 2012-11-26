@@ -12,8 +12,8 @@
 
 #include <json/json.h>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include "steeltypes.h"
 #include "_ModelManager.h"
@@ -21,7 +21,9 @@
 
 namespace Steel
 {
-
+/**
+ * instances of this class handle ogre related stuff.
+ */
 class OgreModelManager: public _ModelManager<OgreModel>
 {
 public:

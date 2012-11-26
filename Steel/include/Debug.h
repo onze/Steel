@@ -10,46 +10,46 @@
 
 #include <iostream>
 
-#include <OGRE/OgreLog.h>
-#include <OGRE/OgreLogManager.h>
-#include <OGRE/OgreString.h>
-#include <OGRE/OgreStringConverter.h>
+#include <OgreLog.h>
+#include <OgreLogManager.h>
+#include <OgreString.h>
+#include <OgreStringConverter.h>
 
 namespace Steel
 {
 
-class Debug
-{
-public:
-	Debug();
-	virtual ~Debug();
-public:
-	class DebugObject
-	{
-	public:
-		DebugObject()
-		{
-			mLog = NULL;
-			mMsg = "";
-		}
-		DebugObject(Ogre::Log *log)
-		{
-			mLog = log;
-		}
-		DebugObject(const DebugObject &o)
-		{
-			mLog = o.mLog;
-			mMsg = o.mMsg;
-		}
-		Ogre::String getFileName()
-		{
-			return mLog->getName();
-		}
-		void setColors(Ogre::String pre = "", Ogre::String post = "")
-		{
-			mPre = pre;
-			mPost = post;
-		}
+    class Debug
+    {
+        public:
+            Debug();
+            virtual ~Debug();
+        public:
+            class DebugObject
+            {
+                public:
+                    DebugObject()
+                    {
+                        mLog = NULL;
+                        mMsg = "";
+                    }
+                    DebugObject(Ogre::Log *log)
+                    {
+                        mLog = log;
+                    }
+                    DebugObject(const DebugObject &o)
+                    {
+                        mLog = o.mLog;
+                        mMsg = o.mMsg;
+                    }
+                    Ogre::String getFileName()
+                    {
+                        return mLog->getName();
+                    }
+                    void setColors(Ogre::String pre = "", Ogre::String post = "")
+                    {
+                        mPre = pre;
+                        mPost = post;
+                    }
 //		DebugObject &log(Ogre::String const &msg)
 //		{
 //			return (*this)(msg);
@@ -75,85 +75,88 @@ public:
 //			return (*this)(msg);
 //		}
 
-		/**
-		 * equivalent to myDebugObject.log(Ogre::String msg)
-		 */
+                    /**
+                     * equivalent to myDebugObject.log(Ogre::String msg)
+                     */
 
-		DebugObject &operator()(Ogre::String const &msg)
-		{
-			mMsg.append(msg);
-			return *this;
-		}
+                    DebugObject &operator()(Ogre::String const &msg)
+                    {
+                        mMsg.append(msg);
+                        return *this;
+                    }
 
-		DebugObject &operator()(const char * msg)
-		{
-			return (*this)(Ogre::String(msg));
-		}
+                    DebugObject &operator()(const char * msg)
+                    {
+                        return (*this)(Ogre::String(msg));
+                    }
 
-		DebugObject &operator()(Ogre::Vector3 msg)
-		{
-			return (*this)(Ogre::StringConverter::toString(msg));
-		}
+                    DebugObject &operator()(Ogre::Vector3 msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
 
-		DebugObject &operator()(Ogre::Quaternion msg)
-		{
-			return (*this)(Ogre::StringConverter::toString(msg));
-		}
+                    DebugObject &operator()(Ogre::Quaternion msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
 
-		DebugObject &operator()(long unsigned int msg)
-		{
-			return (*this)(Ogre::StringConverter::toString(msg));
-		}
+                    DebugObject &operator()(long unsigned int msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
 
-		DebugObject &endl()
-		{
-			mLog->logMessage(mPre + mMsg + mPost);
-			mMsg.clear();
-			return *this;
-		}
-	protected:
-		Ogre::Log *mLog;
-		Ogre::String mMsg;
-		Ogre::String mPre;
-		Ogre::String mPost;
-	}; //end of class DebugObject
+                    DebugObject &endl()
+                    {
+                        mLog->logMessage(mPre + mMsg + mPost);
+                        mMsg.clear();
+                        return *this;
+                    }
+                protected:
+                    Ogre::Log *mLog;
+                    Ogre::String mMsg;
+                    Ogre::String mPre;
+                    Ogre::String mPost;
+            }; //end of class DebugObject
 
-public:
-	///default log in direct access
-	static DebugObject log;
+        public:
+            ///default log in direct access
+            static DebugObject log;
 
-	///warning  log in direct access
-	static DebugObject warning;
+            ///warning  log in direct access
+            static DebugObject warning;
 
-	///error log in direct access
-	static DebugObject error;
+            ///error log in direct access
+            static DebugObject error;
 
-	/**
-	 * Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
-	 */
-	static void init(Ogre::String defaultLogName, Ogre::LogListener *logListener)
-	{
-		Ogre::LogManager *olm = new Ogre::LogManager();
-		Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, true, false);
+            /**
+             * Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
+             */
+            static void init(Ogre::String defaultLogName, Ogre::LogListener *logListener)
+            {
+                Ogre::LogManager *olm = new Ogre::LogManager();
+                Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, true, false);
 
-		log = DebugObject(defaultLog);
-		if (logListener)
-			defaultLog->addListener(logListener);
+                log = DebugObject(defaultLog);
+                if (logListener)
+                    defaultLog->addListener(logListener);
 
-		Ogre::Log *wlog = olm->createLog("steel_warnings.log", false, true, false);
-		if (logListener)
-			wlog->addListener(logListener);
-		warning = DebugObject(wlog);
-		warning.setColors("\033[1;33m", "\033[1;m");
+                Ogre::Log *wlog = olm->createLog("steel_warnings.log", false, true, false);
+                if (logListener)
+                    wlog->addListener(logListener);
+                warning = DebugObject(wlog);
+                //yellow 
+                warning.setColors("\033[1;33m", "\033[1;m");
 
-		Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);
-		if (logListener)
-			elog->addListener(logListener);
-		error = DebugObject(elog);
-		error.setColors("\033[1;31m", "\033[1;m");
-	}
-};
+                Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);
+                if (logListener)
+                    elog->addListener(logListener);
+                error = DebugObject(elog);
+                //red
+                error.setColors("\033[1;31m", "\033[1;m");
+            }
+    };
 
 }
 
 #endif /* DEBUG_H_ */
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 
 #include "Debug.h"
 #include "RayCaster.h"
