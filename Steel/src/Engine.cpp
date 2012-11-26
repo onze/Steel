@@ -22,7 +22,9 @@ namespace Steel
 {
 
     Engine::Engine() :
-        mRootDir(""), mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL), mCamera(NULL), mInputMan(NULL), mIsGrabbingInputs(false), mMustAbortMainLoop(false), mLevel(NULL), mRayCaster(NULL)
+        mRootDir(""), mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL),
+        mCamera(NULL), mInputMan(), mMustAbortMainLoop(false),
+        mLevel(NULL), mRayCaster(NULL),mEditMode(false)
     {
         mRootDir = File::getCurrentDirectory();
         mSelection = std::list<AgentId>();
@@ -36,11 +38,6 @@ namespace Steel
         {
             delete mLevel;
             mLevel = NULL;
-        }
-        if (mInputMan != NULL)
-        {
-            delete mInputMan;
-            mInputMan = NULL;
         }
 
         //ogre structs
@@ -93,19 +90,12 @@ namespace Steel
             mLevel->deleteAgent(*it);
     }
 
-    void Engine::grabInputs()
-    {
-        Debug::log("Engine::grabInputs()").endl();
-        mInputMan->grab();
-        mIsGrabbingInputs = true;
-    }
-
-    void Engine::init(	Ogre::String plugins,
-                        bool fullScreen,
-                        int width,
-                        int height,
-                        Ogre::String windowTitle,
-                        Ogre::LogListener *logListener)
+    void Engine::init(Ogre::String plugins,
+                      bool fullScreen,
+                      unsigned int width,
+                      unsigned int height,
+                      Ogre::String windowTitle,
+                      Ogre::LogListener *logListener)
     {
         std::cout << "Engine::init()" << std::endl;
         preWindowingSetup(plugins, width, height);
@@ -127,15 +117,16 @@ namespace Steel
         mWindowHandle = Ogre::StringConverter::toString(windowHandle);
 
         postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
-        grabInputs();
+        mInputMan.grabMouse();
+//         mInputMan.grabKeyboard();
     }
 
-    void Engine::embeddedInit(	Ogre::String plugins,
-                                std::string windowHandle,
-                                int width,
-                                int height,
-                                Ogre::String defaultLog,
-                                Ogre::LogListener *logListener)
+    void Engine::embeddedInit(Ogre::String plugins,
+                              std::string windowHandle,
+                              unsigned int width,
+                              unsigned int height,
+                              Ogre::String defaultLog,
+                              Ogre::LogListener *logListener)
     {
 
         preWindowingSetup(plugins, width, height, defaultLog, logListener);
@@ -152,11 +143,11 @@ namespace Steel
         postWindowingSetup(width, height);
 
     }
-    bool Engine::preWindowingSetup(	Ogre::String &plugins,
-                                    int width,
-                                    int height,
-                                    Ogre::String defaultLog,
-                                    Ogre::LogListener *logListener)
+    bool Engine::preWindowingSetup(Ogre::String &plugins,
+                                   unsigned int width,
+                                   unsigned int height,
+                                   Ogre::String defaultLog,
+                                   Ogre::LogListener *logListener)
     {
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         Debug::init(defaultLog, logListener);
@@ -198,9 +189,9 @@ namespace Steel
         return true;
     }
 
-    bool Engine::postWindowingSetup(int width, int height)
+    bool Engine::postWindowingSetup(unsigned int width, unsigned int height)
     {
-        std::cout << "Engine::postWindowingSetup()" << std::endl;
+        Debug::log("Engine::postWindowingSetup()").endl();
         // Set default mipmap level (NB some APIs ignore this)
         Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
         // initialise all resource groups
@@ -218,11 +209,12 @@ namespace Steel
         mViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
 
         // Alter the camera aspect ratio to match the viewport
-        mCamera->cam()->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
+        Ogre::Real aspectRatio=Ogre::Real(mViewport->getActualWidth())
+                               / Ogre::Real(mViewport->getActualHeight());
+        mCamera->cam()->setAspectRatio(aspectRatio);
 
         //	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
-        //	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",
-        //																						Ogre::Vector3(0, 0, 0));
+        //	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
         //	headNode->attachObject(ogreHead);
 
         // Set ambient light
@@ -232,12 +224,35 @@ namespace Steel
         Ogre::Light* l = mSceneManager->createLight("MainLight");
         l->setPosition(20, 80, 50);
 
-        mRoot->clearEventTimes();
-        mInputMan = new InputManager(this);
-
         mRayCaster = new RayCaster(mSceneManager);
 
+        mRoot->clearEventTimes();
+
+        mInputMan.init(this,&mUI);
+
+        // makes sure the window is usable (for instance for gui init) once out of init.
+        mRenderWindow->update();
+
+        mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow);
         return true;
+    }
+    
+    void Engine::shutdown()
+    {
+        if(!mMustAbortMainLoop)
+        {
+            mMustAbortMainLoop=true;
+            return;
+        }
+        Debug::log("Engine::shutdown()").endl();
+        if (mLevel != NULL)
+        {
+            delete mLevel;
+            mLevel = NULL;
+        }
+        mUI.shutdown();
+        mInputMan.shutdown();
+        Rocket::Core::Shutdown();
     }
 
     void Engine::resizeWindow(int width, int height)
@@ -259,16 +274,20 @@ namespace Steel
     {
         //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
         mMustAbortMainLoop = false;
+
         while (!mMustAbortMainLoop)
         {
             mRoot->_fireFrameStarted();
+
+            // escape is a builting show stopper
             if (!processInputs())
                 return false;
 
             mRoot->_updateAllRenderTargets();
             mRenderWindow->update();
             mRoot->_fireFrameRenderingQueued();
-            mRoot->_fireFrameEnded();
+            if(!mRoot->_fireFrameEnded())
+                break;
 
             if (singleLoop)
                 break;
@@ -296,12 +315,14 @@ namespace Steel
 
     bool Engine::processInputs()
     {
+        if(mMustAbortMainLoop)
+            return false;
         //update inputs
-        mInputMan->update();
+        mInputMan.update();
 
         //process keyboard
         float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
-        for (list<OIS::KeyCode>::iterator it = mInputMan->keysPressed().begin(); it != mInputMan->keysPressed().end(); ++it)
+        for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
             switch (*it)
             {
@@ -324,9 +345,7 @@ namespace Steel
                     dy -= speed;
                     break;
                 case OIS::KC_ESCAPE:
-                    mInputMan->resetAllData();
-                    if (mIsGrabbingInputs)
-                        releaseInputs();
+                    mInputMan.releaseAll();
                     return false;
                     break;
                 default:
@@ -336,12 +355,12 @@ namespace Steel
         mCamera->translate(dx, dy, dz);
 
         //process mouse
-        if (mInputMan->hasMouseMoved())
+        if (mInputMan.hasMouseMoved())
         {
-            Ogre::Vector2 move = mInputMan->mouseMove();
+            Ogre::Vector2 move = mInputMan.mouseMove();
             mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
         }
-        mInputMan->resetFrameBasedData();
+        mInputMan.resetFrameBasedData();
         return true;
 
     }
@@ -353,13 +372,6 @@ namespace Steel
         mRenderWindow->update();
         mRoot->_fireFrameRenderingQueued();
         mRoot->_fireFrameEnded();
-    }
-
-    void Engine::releaseInputs()
-    {
-        cout << "Engine::releaseInputs()" << endl;
-        mInputMan->release();
-        mIsGrabbingInputs = false;
     }
 
     void Engine::rotateSelection(Ogre::Vector3 rotation)
@@ -435,14 +447,16 @@ namespace Steel
         }
     }
 
-    void Engine::shutdown()
+    void Engine::startEditMode()
     {
-        Debug::log("Engine::shutdown()").endl();
-        if (mLevel != NULL)
-        {
-            delete mLevel;
-            mLevel = NULL;
-        }
+        mEditMode=true;
+        mUI.startEditMode();
+    }
+
+    void Engine::stopEditMode()
+    {
+        mEditMode=false;
+        mUI.stopEditMode();
     }
 
     void Engine::translateSelection(Ogre::Vector3 t)

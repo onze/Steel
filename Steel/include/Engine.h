@@ -18,10 +18,12 @@
 #include <OgreRenderWindow.h>
 #include <OgreString.h>
 
+#include "InputManager.h"
 #include "Camera.h"
 #include "Level.h"
 #include "RayCaster.h"
 #include "tools/File.h"
+#include "UI/UI.h"
 
 namespace Steel
 {
@@ -46,14 +48,13 @@ namespace Steel
              * init from an app that already has created the engine's rendering window.
              * Does not grab any input (this can be done with a call to grabInputs).
              */
-            void embeddedInit(	Ogre::String plugins,
-                                std::string windowHandle,
-                                int width,
-                                int height,
-                                Ogre::String defaultLog = Ogre::String("ogre_log.log"),
-                                Ogre::LogListener *logListener = NULL);
+            void embeddedInit(Ogre::String plugins,
+                              std::string windowHandle,
+                              unsigned int width,
+                              unsigned int height,
+                              Ogre::String defaultLog = Ogre::String("ogre_log.log"),
+                              Ogre::LogListener *logListener = NULL);
 
-            void grabInputs();
             inline bool hasSelection()
             {
                 return !mSelection.empty();
@@ -63,12 +64,12 @@ namespace Steel
              * game-side/standalone init.
              * Automaticaly grabs mouse/keyboard inputs.
              */
-            void init(	Ogre::String plugins,
-                        bool fullScreen = false,
-                        int width = 800,
-                        int height = 600,
-                        Ogre::String windowTitle = Ogre::String("Steel Window"),
-                        Ogre::LogListener *logListener = NULL);
+            void init(Ogre::String plugins,
+                      bool fullScreen = false,
+                      unsigned int width = 800,
+                      unsigned int height = 600,
+                      Ogre::String windowTitle = Ogre::String("Steel Window"),
+                      Ogre::LogListener *logListener = NULL);
 
             bool mainLoop(bool singleLoop = false);
 
@@ -82,7 +83,9 @@ namespace Steel
             void redraw();
             void setSelectedAgents(std::list<AgentId> selection, bool selected);
             void shutdown();
-            void releaseInputs();
+
+            void startEditMode();
+            void stopEditMode();
 
             /**
              * called to resize the window.
@@ -107,11 +110,7 @@ namespace Steel
             }
             inline InputManager *inputMan()
             {
-                return mInputMan;
-            }
-            inline bool isGrabbingInputs()
-            {
-                return mIsGrabbingInputs;
+                return &mInputMan;
             }
             inline Ogre::RenderWindow *renderWindow()
             {
@@ -129,6 +128,10 @@ namespace Steel
             {
                 return mWindowHandle;
             }
+//             inline UI *ui()
+//             {
+//                 return &mUI;
+//             }
 
             //setters
 
@@ -149,15 +152,15 @@ namespace Steel
             /**
              * sets up: logging
              */
-            bool preWindowingSetup(	Ogre::String &plugins,
-                                    int width,
-                                    int height,
-                                    Ogre::String defaultLog =
-                                        Ogre::String("steel_default_log.log"),
-                                    Ogre::LogListener *logListener = NULL);
+            bool preWindowingSetup(Ogre::String &plugins,
+                                   unsigned int width,
+                                   unsigned int height,
+                                   Ogre::String defaultLog =Ogre::String("steel_default_log.log"),
+                                   Ogre::LogListener *logListener = NULL);
 
-            bool postWindowingSetup(int width, int height);
+            bool postWindowingSetup(unsigned int width, unsigned int height);
 
+            ///high level input processing
             bool processInputs();
 
             Ogre::Root *mRoot;
@@ -166,9 +169,8 @@ namespace Steel
             Ogre::Viewport *mViewport;
             Camera *mCamera;
 
-            InputManager *mInputMan;
+            InputManager mInputMan;
             std::string mWindowHandle;
-            bool mIsGrabbingInputs;
             bool mMustAbortMainLoop;
 
             /**
@@ -180,8 +182,11 @@ namespace Steel
              * object that handles all this raycasting thingies.
              */
             RayCaster *mRayCaster;
+            UI mUI;
 
             std::list<AgentId> mSelection;
+
+            bool mEditMode;
     };
 
 }
@@ -189,3 +194,4 @@ namespace Steel
 #include "InputManager.h"
 #endif /* ENGINE_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

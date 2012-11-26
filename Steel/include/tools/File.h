@@ -23,9 +23,8 @@ namespace Steel
  */
 class File
 {
-private:
-    File();
 public:
+    File();
     File ( Ogre::String fullpath );
     /**
      * Copy constructor.

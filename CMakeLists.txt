@@ -22,11 +22,13 @@ include_directories(
   /usr/include/ois
   /media/a0/cpp/libs/ogre/OgreMain/include
   /media/a0/cpp/libs/ogre/include
+  /media/a0/cpp/libs/librocket_generic-source-1.2.1/libRocket/Include
 )
 
 link_directories(
     /media/a0/cpp/libs/ogre/lib
     /usr/lib/x86_64-linux-gnu/
+    /media/a0/cpp/libs/librocket_generic-source-1.2.1/libRocket/Build
 )
 
 add_library(steel SHARED ${source_files})
@@ -35,4 +37,7 @@ target_link_libraries(
     steel
     OgreMain
     OIS
+    RocketCore
+    RocketDebugger
+    RocketControls
 )
