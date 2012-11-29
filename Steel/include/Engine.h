@@ -72,7 +72,14 @@ namespace Steel
                       Ogre::LogListener *logListener = NULL);
 
             bool mainLoop(bool singleLoop = false);
-
+            
+            //implements the OIS keyListener and mouseListener, as this allows the inputManager to pass them on as they arrive.
+            bool keyPressed(const OIS::KeyEvent& evt);
+            bool keyReleased(const OIS::KeyEvent& evt);
+            bool mouseMoved(const OIS::MouseEvent& evt);
+            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+            
             /**
              * Takes window coordinates and lists under the given list all Agent's that collide with a ray going from the camera
              * center to the given coordinates.

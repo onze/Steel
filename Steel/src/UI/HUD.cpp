@@ -2,7 +2,7 @@
 
 namespace Steel
 {
-    HUD::HUD():UIPanel("hud","ui/hud/default/hud.rml")
+    HUD::HUD():UIPanel("hud","ui/current/hud/hud.rml")
     {
 
     }

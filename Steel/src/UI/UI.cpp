@@ -13,7 +13,7 @@ namespace Steel
     UI::UI():Rocket::Core::SystemInterface(),Ogre::RenderQueueListener(),
         mWidth(0),mHeight(0),mInputMan(NULL),
         mRocketRenderInterface(NULL),mMainContext(NULL),
-        mEditor(),mHUD()
+        mEditor(),mHUD(),mUIDataDir(),mEditMode(false)
     {
         mTimer=Ogre::Timer();
         buildKeyMaps();
@@ -30,6 +30,7 @@ namespace Steel
         mWidth=other.mWidth;
         mHeight=other.mHeight;
         mKeyIdentifiers=other.mKeyIdentifiers;
+        mEditMode=other.mEditMode;
     }
 
     UI::~UI()
@@ -49,20 +50,27 @@ namespace Steel
         mWidth=other.mWidth;
         mHeight=other.mHeight;
         mKeyIdentifiers=other.mKeyIdentifiers;
+        mEditMode=other.mEditMode;
         return *this;
     }
 
     void UI::shutdown()
     {
+        stopEditMode();
         if(mInputMan!=NULL)
             mInputMan=NULL;
         if(mMainContext!=NULL)
         {
+            mMainContext->UnloadAllMouseCursors();
+            mMainContext->UnloadAllDocuments();
             mMainContext->RemoveReference();
             mMainContext=NULL;
         }
+        mEditor.shutdown();
+        mHUD.shutdown();
         if(mRocketRenderInterface!=NULL)
             delete mRocketRenderInterface;
+        Rocket::Core::Shutdown();
     }
 
     float UI::GetElapsedTime()
@@ -106,6 +114,8 @@ namespace Steel
         mInputMan=inputMan;
         mWindow=window;
 
+        mEditMode=false;
+
         //rocket init
         mRocketRenderInterface=new RenderInterfaceOgre3D(width,height);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
@@ -114,21 +124,18 @@ namespace Steel
         Rocket::Core::Initialise();
 
         Rocket::Controls::Initialise();
-        Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("fonts/tahoma.ttf").fullPath().c_str());
+        Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("current/fonts/tahoma.ttf").fullPath().c_str());
 
         mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWidth, mHeight));
-        Rocket::Debugger::Initialise(mMainContext);
-
-
-
         Ogre::ResourceGroupManager::getSingleton().createResourceGroup("Rocket");
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "Rocket");
+        Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
+
         Rocket::Debugger::Initialise(mMainContext);
         Rocket::Debugger::SetVisible(true);
 
         //UI init
         mEditor.init(mWidth, mHeight);
-        Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("cursor.rml").fullPath().c_str());
         if (cursor)
             cursor->RemoveReference();
 //         mHUD.init(mWidth, mHeight);
@@ -140,12 +147,14 @@ namespace Steel
     {
 //         mHUD.hide();
         mEditor.show();
+        mEditMode=true;
     }
 
     void UI::stopEditMode()
     {
         mEditor.hide();
 //         mHUD.show();
+        mEditMode=false;
     }
 
     // Called from Ogre before a queue group is rendered.
@@ -156,8 +165,12 @@ namespace Steel
         if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
         {
             mMainContext->Update();
+            if(mEditMode)
+                mEditor.context()->Update();
             configureRenderSystem();
             mMainContext->Render();
+            if(mEditMode)
+                mEditor.context()->Render();
         }
     }
 
@@ -242,7 +255,8 @@ namespace Steel
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
         mMainContext->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
-        mEditor.context()->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
+        if(mEditMode)
+            mEditor.context()->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
         /*TODO: investigate this (comes from the ogre+rocket code tuto)
         if (e.text >= 32)
             context->ProcessTextInput((Rocket::Core::word) e.text);
@@ -256,7 +270,8 @@ namespace Steel
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
         mMainContext->ProcessKeyUp(keyIdentifier ,getKeyModifierState());
-        mEditor.context()->ProcessKeyUp(keyIdentifier ,getKeyModifierState());
+        if(mEditMode)
+            mEditor.context()->ProcessKeyUp(keyIdentifier ,getKeyModifierState());
         return true;
     }
 
@@ -264,11 +279,13 @@ namespace Steel
     {
         int key_modifier_state = getKeyModifierState();
         mMainContext->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
-        mEditor.context()->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
+        if(mEditMode)
+            mEditor.context()->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
         if (evt.state.Z.rel != 0)
         {
             mMainContext->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
-            mEditor.context()->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
+            if(mEditMode)
+                mEditor.context()->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
         }
         return true;
     }
@@ -277,7 +294,8 @@ namespace Steel
     {
 //         Debug::log("mousePressed at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
         mMainContext->ProcessMouseButtonDown((int) id, getKeyModifierState());
-        mEditor.context()->ProcessMouseButtonDown((int) id, getKeyModifierState());
+        if(mEditMode)
+            mEditor.context()->ProcessMouseButtonDown((int) id, getKeyModifierState());
         return true;
     }
 
@@ -285,7 +303,8 @@ namespace Steel
     {
 //         Debug::log("mouseReleased at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
         mMainContext->ProcessMouseButtonUp((int) id, getKeyModifierState());
-        mEditor.context()->ProcessMouseButtonUp((int) id, getKeyModifierState());
+        if(mEditMode)
+            mEditor.context()->ProcessMouseButtonUp((int) id, getKeyModifierState());
         return true;
     }
     void UI::buildKeyMaps()

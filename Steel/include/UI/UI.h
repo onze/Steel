@@ -30,7 +30,7 @@ namespace Steel
 
             void init(unsigned int width,
                       unsigned int height,
-                      File UIDataDir, 
+                      File UIDataDir,
                       InputManager *inputMan,
                       Ogre::SceneManager *sceneManager,
                       Ogre::RenderWindow *window);
@@ -55,15 +55,21 @@ namespace Steel
             ///maps OIS key codes to Rocket's
             void buildKeyMaps();
             int getKeyModifierState();
-            
+
             //implements the OIS keyListener and mouseListener, as this allows the inputManager to pass them on as they arrive.
             bool keyPressed(const OIS::KeyEvent& evt);
             bool keyReleased(const OIS::KeyEvent& evt);
             bool mouseMoved(const OIS::MouseEvent& evt);
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            
+
             void shutdown();
+
+            ////getters
+            Editor &editor()
+            {
+                return mEditor;
+            }
         protected:
             /// not owned references
             InputManager *mInputMan;
@@ -82,6 +88,8 @@ namespace Steel
             ///hud panel
             HUD mHUD;
             File mUIDataDir;
+            /// state flag
+            bool mEditMode;
     };
 }
 

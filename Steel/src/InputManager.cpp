@@ -48,7 +48,7 @@ namespace Steel
         mEngine=engine;
         mUI=ui;
 
-        Debug::log("InputManager::grab()").endl();
+        Debug::log("InputManager::init()").endl();
         OIS::ParamList params;
 
         size_t windowHnd = 0;
@@ -135,6 +135,8 @@ namespace Steel
 //	cout << "InputManager::keyPressed()" << endl;
         mKeysPressed.push_back(evt.key);
         mKeysPressed.unique();
+        
+        mEngine->keyPressed(evt);
         mUI->keyPressed(evt);
         return true;
     }
@@ -143,6 +145,8 @@ namespace Steel
     {
 //	cout << "InputManager::keyReleased()" << endl;
         mKeysPressed.remove_if(equals(evt.key));
+        
+        mEngine->keyReleased(evt);
         mUI->keyReleased(evt);
         return true;
     }
@@ -156,6 +160,7 @@ namespace Steel
         mMouseMove += Ogre::Vector2(ms.X.rel, ms.Y.rel);
         mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
         
+        mEngine->mouseMoved(evt);
         mUI->mouseMoved(evt);
         return true;
     }
@@ -165,6 +170,7 @@ namespace Steel
         OIS::MouseState ms = evt.state;
         mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
         
+        mEngine->mousePressed(evt,id);
         mUI->mousePressed(evt,id);
         return true;
     }
@@ -173,6 +179,8 @@ namespace Steel
     {
         OIS::MouseState ms = evt.state;
         mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
+        
+        mEngine->mouseReleased(evt,id);
         mUI->mouseReleased(evt,id);
         return true;
     }
@@ -194,8 +202,6 @@ namespace Steel
 
     void InputManager::windowResized(Ogre::RenderWindow* rw)
     {
-        Debug::log("InputManager::windowResized():").endl();
-
         unsigned int width, height, depth;
         int left, top;
         rw->getMetrics(width, height, depth, left, top);

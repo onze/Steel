@@ -14,6 +14,7 @@
 #include <OgreLogManager.h>
 #include <OgreString.h>
 #include <OgreStringConverter.h>
+#include <Rocket/Core/String.h>
 
 namespace Steel
 {
@@ -83,6 +84,11 @@ namespace Steel
                     {
                         mMsg.append(msg);
                         return *this;
+                    }
+                    
+                    DebugObject &operator()(Rocket::Core::String const &msg)
+                    {
+                        return (*this)(Ogre::String(msg.CString()));
                     }
 
                     DebugObject &operator()(const char * msg)

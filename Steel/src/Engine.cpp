@@ -118,7 +118,7 @@ namespace Steel
 
         postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
         mInputMan.grabMouse();
-//         mInputMan.grabKeyboard();
+        mInputMan.grabKeyboard();
     }
 
     void Engine::embeddedInit(Ogre::String plugins,
@@ -236,7 +236,7 @@ namespace Steel
         mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow);
         return true;
     }
-    
+
     void Engine::shutdown()
     {
         if(!mMustAbortMainLoop)
@@ -312,6 +312,46 @@ namespace Steel
         //retrieve Agent's that own them
         mLevel->getAgentsIdsFromSceneNodes(nodes, selection);
     }
+
+    bool Engine::keyPressed(const OIS::KeyEvent& evt)
+    {
+
+    }
+
+    bool Engine::keyReleased(const OIS::KeyEvent& evt)
+    {
+        switch(evt.key)
+        {
+            case OIS::KC_E:
+                if(mEditMode)
+                    stopEditMode();
+                else
+                    startEditMode();
+                break;
+            case OIS::KC_R:
+                if(mEditMode)
+                    mUI.editor().reloadContent();
+                break;
+            default:
+                break;
+        }
+    }
+
+    bool Engine::mouseMoved(const OIS::MouseEvent& evt)
+    {
+
+    }
+
+    bool Engine::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    {
+
+    }
+
+    bool Engine::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    {
+
+    }
+
 
     bool Engine::processInputs()
     {
@@ -449,12 +489,14 @@ namespace Steel
 
     void Engine::startEditMode()
     {
+        Debug::log("Engine::startEditMode()").endl();
         mEditMode=true;
         mUI.startEditMode();
     }
 
     void Engine::stopEditMode()
     {
+        Debug::log("Engine::stopEditMode()").endl();
         mEditMode=false;
         mUI.stopEditMode();
     }
