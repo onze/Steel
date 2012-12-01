@@ -14,7 +14,7 @@ ProjectRootRelative=./
 
 [MakeBuilder]
 Default Make Environment Profile=Debug
-Number Of Jobs=7
+Number Of Jobs=8
 
 [Project]
 VersionControlSupport=kdevgit
