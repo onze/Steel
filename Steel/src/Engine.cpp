@@ -15,6 +15,7 @@
 #include "Engine.h"
 #include "OgreModelManager.h"
 #include "Debug.h"
+#include "tools/File.h"
 
 using namespace std;
 
@@ -143,11 +144,11 @@ namespace Steel
         postWindowingSetup(width, height);
 
     }
-    bool Engine::preWindowingSetup(Ogre::String &plugins,
-                                   unsigned int width,
-                                   unsigned int height,
-                                   Ogre::String defaultLog,
-                                   Ogre::LogListener *logListener)
+    int Engine::preWindowingSetup(Ogre::String &plugins,
+                                  unsigned int width,
+                                  unsigned int height,
+                                  Ogre::String defaultLog,
+                                  Ogre::LogListener *logListener)
     {
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         Debug::init(defaultLog, logListener);
@@ -186,12 +187,19 @@ namespace Steel
 
         mRoot->setRenderSystem(renderSystem);
 
-        return true;
+        return 0;
     }
 
-    bool Engine::postWindowingSetup(unsigned int width, unsigned int height)
+    int Engine::postWindowingSetup(unsigned int width, unsigned int height)
     {
         Debug::log("Engine::postWindowingSetup()").endl();
+        int init_code=File::init();
+        if(init_code!=0)
+        {
+            Debug::error("Engine::postWindowingSetup(): error initializing File system.");
+            return init_code;
+        }
+
         // Set default mipmap level (NB some APIs ignore this)
         Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
         // initialise all resource groups
@@ -234,7 +242,7 @@ namespace Steel
         mRenderWindow->update();
 
         mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow);
-        return true;
+        return 0;
     }
 
     void Engine::shutdown()
@@ -253,6 +261,7 @@ namespace Steel
         mUI.shutdown();
         mInputMan.shutdown();
         Rocket::Core::Shutdown();
+        File::shutdown();
     }
 
     void Engine::resizeWindow(int width, int height)
@@ -274,7 +283,9 @@ namespace Steel
     {
         //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
         mMustAbortMainLoop = false;
-
+        
+        
+        Ogre::Timer timer;
         while (!mMustAbortMainLoop)
         {
             mRoot->_fireFrameStarted();
@@ -282,6 +293,9 @@ namespace Steel
             // escape is a builting show stopper
             if (!processInputs())
                 return false;
+            
+            // update file watching
+            File::dispatchToFiles();
 
             mRoot->_updateAllRenderTargets();
             mRenderWindow->update();
@@ -315,7 +329,7 @@ namespace Steel
 
     bool Engine::keyPressed(const OIS::KeyEvent& evt)
     {
-
+        return true;
     }
 
     bool Engine::keyReleased(const OIS::KeyEvent& evt)
@@ -335,23 +349,23 @@ namespace Steel
             default:
                 break;
         }
+        return true;
     }
 
     bool Engine::mouseMoved(const OIS::MouseEvent& evt)
     {
-
+        return true;
     }
 
     bool Engine::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
-
+        return true;
     }
 
     bool Engine::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
-
+        return true;
     }
-
 
     bool Engine::processInputs()
     {

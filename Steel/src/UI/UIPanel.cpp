@@ -8,23 +8,13 @@ namespace Steel
 {
     UIPanel::UIPanel():
         Rocket::Core::EventListener(),
-        mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),
-#ifdef DEBUG
-        mAutoReload(true)
-#else
-        mAutoReload(false)
-#endif
+        mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),mAutoReload(false)
     {
     }
 
     UIPanel::UIPanel(Ogre::String contextName,File mDocumentFile):
         Rocket::Core::EventListener(),
-        mContext(NULL),mContextName(contextName),mDocumentFile(mDocumentFile),mDocument(NULL),
-#ifdef DEBUG
-        mAutoReload(true)
-#else
-        mAutoReload(false)
-#endif
+        mContext(NULL),mContextName(contextName),mDocumentFile(mDocumentFile),mDocument(NULL),mAutoReload(false)
     {
     }
 
@@ -67,9 +57,27 @@ namespace Steel
         }
     }
 
-    void UIPanel::onFileChangeEvent(File &file)
+    void UIPanel::onFileChangeEvent(File *file)
     {
-        Debug::log("UIPanel::onFileChangeEvent(")(file.fullPath())(")").endl();
+        reloadContent();
+    }
+    
+    void UIPanel::reloadContent()
+    {
+        if(mContext==NULL)
+        {
+            Debug::log("UIPanel::reloadContent(): no main document to reload. Skipping operation.");
+            return;
+        }
+        // save state
+        bool shown=mDocument->IsVisible();
+        Rocket::Core::Vector2i dims=mContext->GetDimensions();
+        
+        shutdown();
+        // load state
+        init(dims.x,dims.y);
+        if(shown)
+            show();
     }
 
     void UIPanel::shutdown()
@@ -109,6 +117,11 @@ namespace Steel
         }
         onHide();
         mDocument->Hide();
+    }
+
+    bool UIPanel::isVisible()
+    {
+        return mDocument->IsVisible();
     }
 
     void UIPanel::ProcessEvent(Rocket::Core::Event& event)

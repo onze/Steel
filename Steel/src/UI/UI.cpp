@@ -11,9 +11,9 @@
 namespace Steel
 {
     UI::UI():Rocket::Core::SystemInterface(),Ogre::RenderQueueListener(),
-        mWidth(0),mHeight(0),mInputMan(NULL),
+    mInputMan(NULL),mWindow(NULL),mWidth(0),mHeight(0),
         mRocketRenderInterface(NULL),mMainContext(NULL),
-        mEditor(),mHUD(),mUIDataDir(),mEditMode(false)
+        mKeyIdentifiers(KeyIdentifierMap()),mEditor(),mHUD(),mUIDataDir(),mEditMode(false)
     {
         mTimer=Ogre::Timer();
         buildKeyMaps();

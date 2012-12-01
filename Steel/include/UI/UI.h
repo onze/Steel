@@ -71,22 +71,26 @@ namespace Steel
                 return mEditor;
             }
         protected:
-            /// not owned references
+            // not owned
             InputManager *mInputMan;
             Ogre::RenderWindow *mWindow;
 
-            /// owned references
-            unsigned int mWidth,mHeight;
+            // owned
+            unsigned int mWidth;
+            unsigned int mHeight;
+            
+            /// used to know how long has passed since Engin startup (libRocket has to know)
             Ogre::Timer mTimer;
             RenderInterfaceOgre3D *mRocketRenderInterface;
             Rocket::Core::Context* mMainContext;
-            /// maps OIS key codes to rocket ones for input injection into Rocket UI
             typedef std::map< OIS::KeyCode, Rocket::Core::Input::KeyIdentifier > KeyIdentifierMap;
+            /// maps OIS key codes to rocket ones for input injection into Rocket UI
             KeyIdentifierMap mKeyIdentifiers;
             ///editor panel
             Editor mEditor;
             ///hud panel
             HUD mHUD;
+            ///root dir for UI data
             File mUIDataDir;
             /// state flag
             bool mEditMode;

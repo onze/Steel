@@ -10,6 +10,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <mutex>
+#include <vector>
+#include <thread>
 
 #include <OgreString.h>
 
@@ -25,6 +28,18 @@ namespace Steel
     class File
     {
         public:
+            /// initialise the File subsystem. Return 0 if success, error code otherwise.
+            static int init();
+            
+            /// stops the File subsystem
+            static void shutdown();
+            
+            /// batch call to file change listeners.
+            static void dispatchToFiles();
+            
+            /// return the application's current path.
+            static File getCurrentDirectory();
+
             File();
             File ( const char *fullpath );
             File ( Ogre::String fullpath );
@@ -40,34 +55,29 @@ namespace Steel
             virtual ~File();
             File &operator= ( const File &f );
 
-            /**
-             * records an event listener. It will be notified when the file changes.
-             */
+            
+            /// register an event listener. It will be notified of file events.
             void addFileListener(FileEventListener *listener);
 
-            /**
-             * return the file content.
-             */
+            /// unregister an event listener. It won't be notified of files events anymore.
+            void removeFileListener(FileEventListener *listener);
+            
+            /// call listeners' callback methods
+            void dispatchToListeners();
+
+            /// return the file content.
             Ogre::String read();
 
-            /**
-             * write the given string into the file, replacing what's already in.
-             */
+            /// write the given string into the file, replacing what's already in.
             File &write ( Ogre::String s );
+            
+            /// returns the file (file/directory) name
+            Ogre::String fileName();
 
-            /**
-             * return the application's current path.
-             */
-            static File getCurrentDirectory();
-
-            /**
-             * return true is the file exists.
-             */
+            /// return true is the file exists.
             bool exists();
 
-            /**
-             * return true if the path points to a directory;
-             */
+            /// return true if the path points to a directory;
             bool isDir();
 
             /**
@@ -104,7 +114,43 @@ namespace Steel
             {
                 return fullPath();
             }
+
+            /**
+             * change the path the file instance is poiting to. If the file has change listeners,
+             * it will popup events about its new path.
+             */
+            void setPath(Ogre::String path);
+
+            /**
+             * creates the directory mPath is poiting to. If mPath points to a file,
+             * this file's folder (and possible ancestors) is created.
+             * Return a File instance pointing to the newl path.
+             * Does not crash if the path could not be created, so please check.
+             */
+            File mkdir();
+            
         protected:
+            /// fd of the file getting files event notifications from the kernel
+            static int sInotifyFD;
+
+            /// for modification of static data
+            static std::mutex sStaticLock;
+
+            /// inotify watch tokens
+            static std::vector<int> sWatches;
+
+            /// instances associated with tokens in sWatches
+            static std::vector<File *> sFiles;
+            
+            /// files that have changed since init/last call to notifyListeners (FIFO)
+            static std::list<File *> sNotificationList;
+            
+            /// threads that gets blocked by the blocking event pooling inotify function
+//             static std::thread sNotifier;
+            
+            /// inotify callback method. Disatches event to File instances.
+            static void poolAndNotify();
+
             /**
              * standardized path to the file.
              */
@@ -124,6 +170,16 @@ namespace Steel
              * set of all current listeners;
              */
             std::set<FileEventListener *> mListeners;
+
+            /// tells inotify to monitor this file
+            void startWatching();
+
+            /// tells inotify to stop monitoring this file
+            void stopWatching();
+
+            /// personal watch descriptor
+            int mWD;
+
     };
 }
 #endif

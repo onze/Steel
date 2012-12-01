@@ -27,13 +27,17 @@ namespace Steel
             virtual void onShow(){};
             /// to be overloaded by subclasses that want to stop listening to their document events
             virtual void onHide(){};
+            /// true when the panel('s main document) is visible
+            bool isVisible();
             
             inline Rocket::Core::Context *context(){return mContext;}
             /// Process the incoming events from mContext.
             virtual void ProcessEvent(Rocket::Core::Event& event);
             
-            /// Gets notified when the main document file is modified
-            void onFileChangeEvent(File &file);
+            /// Gets notified when the main document file is modified.
+            virtual void onFileChangeEvent(File *file);
+            /// reload Rocket files and update context content.
+            void reloadContent();
             
         protected:
             ///not owned

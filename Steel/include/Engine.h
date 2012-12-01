@@ -72,14 +72,15 @@ namespace Steel
                       Ogre::LogListener *logListener = NULL);
 
             bool mainLoop(bool singleLoop = false);
-            
-            //implements the OIS keyListener and mouseListener, as this allows the inputManager to pass them on as they arrive.
+
+            // implements the OIS keyListener and mouseListener interfaces, 
+            // as this allows the inputManager to seamlessly pass events as they arrive.
             bool keyPressed(const OIS::KeyEvent& evt);
             bool keyReleased(const OIS::KeyEvent& evt);
             bool mouseMoved(const OIS::MouseEvent& evt);
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            
+
             /**
              * Takes window coordinates and lists under the given list all Agent's that collide with a ray going from the camera
              * center to the given coordinates.
@@ -156,18 +157,24 @@ namespace Steel
 
         private:
             File mRootDir;
-            /**
-             * sets up: logging
+            /** 
+             * set up stuff that does not depend on standalone/embedded status, 
+             * nor on having the windowing system ready;
+             * Returns 0 if successfull, returns an error code otherwise.
              */
-            bool preWindowingSetup(Ogre::String &plugins,
+            int preWindowingSetup(Ogre::String &plugins,
                                    unsigned int width,
                                    unsigned int height,
                                    Ogre::String defaultLog =Ogre::String("steel_default_log.log"),
                                    Ogre::LogListener *logListener = NULL);
+            /**
+             * set up stuff that does not depend on standalone/embedded status, 
+             * but that depend on having the windowing system ready;
+             * Returns 0 if successfull, returns an error code otherwise.
+             */
+            int postWindowingSetup(unsigned int width, unsigned int height);
 
-            bool postWindowingSetup(unsigned int width, unsigned int height);
-
-            ///high level input processing
+            /// high level input processing
             bool processInputs();
 
             Ogre::Root *mRoot;

@@ -8,7 +8,6 @@ namespace Steel
     class Editor:public UIPanel
     {
         private:
-            Editor(Ogre::String) {};
         public:
             Editor();
             Editor(const Editor& other);
@@ -20,8 +19,8 @@ namespace Steel
             /// called right before the underlying document gets hidden
             virtual void onHide();
             
+            /// Rocket events
             void ProcessEvent(Rocket::Core::Event& event);
-            void reloadContent();
     };
 }
 #endif // EDITOR_H

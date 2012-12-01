@@ -13,21 +13,35 @@
 #include <errno.h>
 #include <assert.h>
 #include <iostream>
+#include <sys/inotify.h>
+#include <sys/ioctl.h>
 
 #include "tools/File.h"
 #include "Debug.h"
 
 namespace Steel
 {
+    // the syscall read is hidden by File::read in Steel::File's scope :p
+    auto SYSCALL_ALIAS_read=read;
+
+    // init static values
+    int File::sInotifyFD=-1;
+    std::mutex File::sStaticLock;
+    std::vector<int> File::sWatches;
+    std::vector<File *> File::sFiles;
+    std::list<File *> File::sNotificationList;
+    //std::thread File::sNotifier(File::poolAndNotify);
+
 
     File::File() :
         mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>())
     {
     }
 
-    File::File(const char *fullpath ) :
+    File::File(const char *fullpath) :
         mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>())
     {
+        Ogre::StringUtil::splitFullFilename ( Ogre::String(fullpath), mBaseName, mExtension, mPath );
     }
 
     File::File ( Ogre::String fullPath ) :
@@ -48,15 +62,121 @@ namespace Steel
 
     File &File::operator= ( File const &f )
     {
+        mPath = f.mPath;
         mBaseName = f.mBaseName;
         mExtension = f.mExtension;
-        mPath = f.mPath;
         return *this;
+    }
+
+    int File::init()
+    {
+        if(sInotifyFD>=0)
+            return 0;
+        sInotifyFD=inotify_init();
+        if(sInotifyFD<0)
+            return sInotifyFD;
+        std::thread t(File::poolAndNotify);
+        t.detach();
+        return 0;
+    }
+
+    void File::shutdown()
+    {
+        //TODO: stop static thread ?
+    }
+
+    void File::poolAndNotify()
+    {
+        //http://stackoverflow.com/questions/5211993/using-read-with-inotify
+        while(true)
+        {
+            unsigned int avail;
+            ioctl(sInotifyFD, FIONREAD,&avail);
+
+            char buffer[avail];
+            SYSCALL_ALIAS_read(sInotifyFD,buffer,avail);
+
+            int offset=0;
+            int pos;
+            File *file;
+            while(offset<(int)avail)
+            {
+                struct inotify_event *event=(inotify_event *)(buffer+offset);
+                sStaticLock.lock();
+                pos=std::distance(sWatches.begin(),std::find(sWatches.begin(),sWatches.end(),event->wd));
+                if(pos==(int)sWatches.size())
+                {
+                    Debug::warning("File::poolAndNotify(): found no File watching ")(event->name)(". Ignoring notification.").endl();
+                    continue;
+                }
+                file=sFiles.at(pos);
+                // TODO: use file md5 to make sure it actually changed
+                if(file->fileName()==event->name && (event->mask & IN_MODIFY))
+                {
+                    sNotificationList.push_back(file);
+                }
+                sStaticLock.unlock();
+//                 Debug::log("File::poolAndNotify(): wd: ")(event->wd)(" file: ")(event->name)("(")(file->fullPath())("), mask: ")(event->mask).endl();
+
+                offset+=sizeof(inotify_event)+event->len;
+            }
+        }
+    }
+
+    void File::dispatchToFiles()
+    {
+        while (!sNotificationList.empty())
+        {
+            sStaticLock.lock();
+            auto file=sNotificationList.front();
+            sNotificationList.pop_front();
+            sStaticLock.unlock();
+            file->dispatchToListeners();
+        }
+    }
+
+    void File::dispatchToListeners()
+    {
+        for(auto it=mListeners.begin(); it!=mListeners.end(); ++it)
+            (*it)->onFileChangeEvent(this);
     }
 
     void File::addFileListener(FileEventListener *listener)
     {
         mListeners.insert(listener);
+        if(mListeners.size()==1)
+            startWatching();
+    }
+
+    void File::removeFileListener(FileEventListener *listener)
+    {
+        mListeners.erase(listener);
+        if(mListeners.size()==0)
+            stopWatching();
+    }
+
+    void File::startWatching()
+    {
+        sStaticLock.lock();
+        //IN_MODIFY | IN_CREATE | IN_DELETE
+        mWD=inotify_add_watch(sInotifyFD, mPath.c_str(), IN_MODIFY);
+        sWatches.push_back(mWD);
+        sFiles.push_back(this);
+        sStaticLock.unlock();
+    }
+
+    void File::stopWatching()
+    {
+        sStaticLock.lock();
+        inotify_rm_watch(sInotifyFD, mWD);
+        std::vector<File *>::iterator pos=std::find(sFiles.begin(),sFiles.end(),this);
+        if(pos!=sFiles.end())
+        {
+            int index=std::distance(sFiles.begin(), pos);
+            sWatches.erase(sWatches.begin()+index);
+            sFiles.erase(sFiles.begin()+index);
+        }
+        sStaticLock.unlock();
     }
 
     File File::getCurrentDirectory()
@@ -64,7 +184,7 @@ namespace Steel
         char _cwd[1024];
         if ( getcwd ( _cwd, sizeof ( _cwd ) ) == 0 )
         {
-            std::cout << "File::getCurrentDirectory(): getcwd() error:" << errno<<std::endl;
+            Debug::error("File::getCurrentDirectory(): getcwd() error:" )(errno).endl();
             assert ( false );
         }
         Ogre::String s ( _cwd );
@@ -78,16 +198,22 @@ namespace Steel
         return ifile;
     }
 
-    Ogre::String File::fullPath()
+    Ogre::String File::fileName()
     {
-        Ogre::String s = mPath + mBaseName;
+        Ogre::String s = mBaseName;
         if ( mExtension.size() > 0 )
             s.append ( "." + mExtension );
         return s;
     }
 
+    Ogre::String File::fullPath()
+    {
+        return mPath + fileName();
+    }
+
     bool File::isDir()
     {
+#ifdef __unix
         //http://stackoverflow.com/questions/1036625/differentiate-between-a-unix-directory-and-file-in-c
 //	Debug::log("File<")(fullPath())(">::isDir()").endl();
         int status;
@@ -102,6 +228,10 @@ namespace Steel
         }
 
         return S_ISDIR ( st_buf.st_mode );
+#else
+#warning bool File::isDir() is not implemented for your platform.
+        throw std::runtime_exception("bool File::isDir() is not implemented for your platform.");
+#endif
     }
 
     bool File::isValid()
@@ -160,6 +290,15 @@ namespace Steel
     File File::subfile ( Ogre::String filename )
     {
         return File ( fullPath() + "/" + filename );
+    }
+
+    void File::setPath(Ogre::String path)
+    {
+        if(!mListeners.empty())
+            stopWatching();
+        mPath=path;
+        if(!mListeners.empty())
+            startWatching();
     }
 } /* namespace Steel */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
