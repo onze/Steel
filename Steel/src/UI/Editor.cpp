@@ -1,6 +1,7 @@
 
 #include "UI/Editor.h"
 #include "Debug.h"
+#include <tools/StringUtils.h>
 #include <Rocket/Core/Factory.h>
 
 namespace Steel
@@ -27,6 +28,12 @@ namespace Steel
         return *this;
     }
 
+    void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI * ui)
+    {
+        UIPanel::init(width,height);
+        
+    }
+
     void Editor::onShow()
     {
         mDocument->AddEventListener("click",this);
@@ -41,8 +48,23 @@ namespace Steel
     {
         if(!isVisible())
             return;
-        Rocket::Core::String msg=evt.GetTargetElement()->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"no iop");
-        Debug::log("Editor::ProcessEvent()")(msg)(" ")(evt.GetType()).endl();
+        Rocket::Core::String msg=evt.GetTargetElement()->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"");
+        std::vector<Ogre::String> command=StringUtils::split(std::string(msg.CString()),std::string("."));
+//         Debug::log("Editor::ProcessEvent()")(msg)(":")(evt.GetType()).endl();
+        if(command[0]=="engine")
+        {
+            command.erase(command.begin());
+            processEngineCommands(command);
+        }
+    }
+    
+    void Editor::processEngineCommands(std::vector<Ogre::String> command)
+    {
+        
+        if(command[0]=="new_level")
+        {
+//             mDocument->GetElementById("")
+        }
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

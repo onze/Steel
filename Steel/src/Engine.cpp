@@ -16,6 +16,7 @@
 #include "OgreModelManager.h"
 #include "Debug.h"
 #include "tools/File.h"
+#include "tests/utests.h"
 
 using namespace std;
 
@@ -241,7 +242,15 @@ namespace Steel
         // makes sure the window is usable (for instance for gui init) once out of init.
         mRenderWindow->update();
 
-        mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow);
+        mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow,this);
+        
+        // unit testing
+        if(true)
+        {
+            Debug::log("Starting unit tests...").endl();
+            start_tests();
+            Debug::log("unit tests done.").endl();
+        }
         return 0;
     }
 

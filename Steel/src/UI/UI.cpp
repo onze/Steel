@@ -11,7 +11,7 @@
 namespace Steel
 {
     UI::UI():Rocket::Core::SystemInterface(),Ogre::RenderQueueListener(),
-    mInputMan(NULL),mWindow(NULL),mWidth(0),mHeight(0),
+        mInputMan(NULL),mWindow(NULL),mWidth(0),mHeight(0),
         mRocketRenderInterface(NULL),mMainContext(NULL),
         mKeyIdentifiers(KeyIdentifierMap()),mEditor(),mHUD(),mUIDataDir(),mEditMode(false)
     {
@@ -105,7 +105,8 @@ namespace Steel
                   File UIDataDir,
                   InputManager *inputMan,
                   Ogre::SceneManager *sceneManager,
-                  Ogre::RenderWindow *window)
+                  Ogre::RenderWindow *window,
+                  Engine *engine)
     {
         Debug::log("UI::init()").endl();
         mWidth=width;
@@ -129,15 +130,15 @@ namespace Steel
         mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWidth, mHeight));
         Ogre::ResourceGroupManager::getSingleton().createResourceGroup("Rocket");
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "Rocket");
-        Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
+//         Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
 
         Rocket::Debugger::Initialise(mMainContext);
         Rocket::Debugger::SetVisible(true);
 
         //UI init
-        mEditor.init(mWidth, mHeight);
-        if (cursor)
-            cursor->RemoveReference();
+        mEditor.init(mWidth, mHeight, engine, this);
+//         if (cursor)
+//             cursor->RemoveReference();
 //         mHUD.init(mWidth, mHeight);
 
         sceneManager->addRenderQueueListener(this);
@@ -257,12 +258,18 @@ namespace Steel
         mMainContext->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
         if(mEditMode)
             mEditor.context()->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
-        /*TODO: investigate this (comes from the ogre+rocket code tuto)
-        if (e.text >= 32)
-            context->ProcessTextInput((Rocket::Core::word) e.text);
-        else if (key_identifier == Rocket::Core::Input::KI_RETURN)
-            context->ProcessTextInput((Rocket::Core::word) '\n');
-        */
+        if (evt.text >= 32)
+        {
+            mMainContext->ProcessTextInput((Rocket::Core::word) evt.text);
+            if(mEditMode)
+                mEditor.context()->ProcessTextInput((Rocket::Core::word) evt.text);
+        }
+        else if (keyIdentifier == Rocket::Core::Input::KI_RETURN)
+        {
+            mMainContext->ProcessTextInput((Rocket::Core::word) '\n');
+            if(mEditMode)
+                mEditor.context()->ProcessTextInput((Rocket::Core::word) '\n');
+        }
         return true;
     }
 
@@ -504,3 +511,4 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

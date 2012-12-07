@@ -297,8 +297,8 @@ namespace Steel
         for (ModelType i = (ModelType) ((int) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((int) i + 1))
         {
             Ogre::String type = modelTypesAsString[i];
-            Json::Value value = dict[type];
-            if (value.isNull())
+            Json::Value models = dict[type];
+            if (models.isNull())
             {
                 Debug::log(logName()+".deserialize(): no models for type ")(type).endl();
                 continue;
@@ -309,7 +309,7 @@ namespace Steel
                 Debug::warning(logName()+".deserialize(): no modelManager for type ")(type).endl();
                 continue;
             }
-            mm->fromJson(value);
+            mm->fromJson(models);
         }
         Debug::log(logName()+".deserialize(): done").endl();
 

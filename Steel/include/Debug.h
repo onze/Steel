@@ -90,6 +90,15 @@ namespace Steel
                     {
                         return (*this)(Ogre::String(msg.CString()));
                     }
+                    
+                    DebugObject &operator()(std::vector<Ogre::String> const &vec)
+                    {
+                        Ogre::String dst="[";
+                        for(auto it=vec.begin();it!=vec.end();++it)
+                            dst.append((*it)+", ");
+                        dst.append("]");
+                        return (*this)(dst);
+                    }
 
                     DebugObject &operator()(const char * msg)
                     {

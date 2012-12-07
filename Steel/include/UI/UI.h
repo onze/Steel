@@ -15,6 +15,7 @@
 namespace Steel
 {
     class InputManager;
+    class Engine;
     /**
      * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
      * Ogre's window is created by the engine, but its events are grabbed in here too.
@@ -33,7 +34,9 @@ namespace Steel
                       File UIDataDir,
                       InputManager *inputMan,
                       Ogre::SceneManager *sceneManager,
-                      Ogre::RenderWindow *window);
+                      Ogre::RenderWindow *window,
+                      Engine *engine
+                     );
 
             /// Gets the number of seconds elapsed since the start of the application.
             virtual float GetElapsedTime();

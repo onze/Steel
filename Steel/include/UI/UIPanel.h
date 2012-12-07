@@ -17,7 +17,7 @@ namespace Steel
             virtual ~UIPanel();
             virtual UIPanel& operator=(const UIPanel& other);
 
-            virtual void init(unsigned int mWidth, unsigned int mHeight);
+            virtual void init(unsigned int width, unsigned int height);
             virtual void shutdown();
             /// show the underlying document
             virtual void show();
