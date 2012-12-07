@@ -7,6 +7,7 @@
 
 #include "_ModelManager.h"
 #include "Debug.h"
+#include "Model.h"
 
 namespace Steel
 {

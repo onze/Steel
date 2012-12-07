@@ -19,6 +19,9 @@
 #include <Ogre.h>
 
 #include "Level.h"
+#include "Camera.h"
+#include "Agent.h"
+#include "OgreModelManager.h"
 #include "Model.h"
 
 namespace Steel

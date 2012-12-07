@@ -12,14 +12,14 @@
 
 #include "steeltypes.h"
 //#include "BTModelManager.h"
-#include "OgreModelManager.h"
-#include "Agent.h"
-#include "Camera.h"
 #include "tools/File.h"
 
 namespace Steel
 {
-
+    class Agent;
+    class Camera;
+    class ModelManager;
+    class OgreModelManager;
     class Level
     {
         private:

@@ -1,8 +1,11 @@
 
+#include <Rocket/Core/Factory.h>
+#include <Rocket/Controls/ElementFormControlInput.h>
+
 #include "UI/Editor.h"
 #include "Debug.h"
 #include <tools/StringUtils.h>
-#include <Rocket/Core/Factory.h>
+// #include <Level.h>
 
 namespace Steel
 {
@@ -31,7 +34,7 @@ namespace Steel
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI * ui)
     {
         UIPanel::init(width,height);
-        
+
     }
 
     void Editor::onShow()
@@ -50,20 +53,36 @@ namespace Steel
             return;
         Rocket::Core::String msg=evt.GetTargetElement()->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"");
         std::vector<Ogre::String> command=StringUtils::split(std::string(msg.CString()),std::string("."));
-//         Debug::log("Editor::ProcessEvent()")(msg)(":")(evt.GetType()).endl();
+        Debug::log(command).endl();
         if(command[0]=="engine")
         {
             command.erase(command.begin());
-            processEngineCommands(command);
+            processEngineCommands(command,&evt);
+        }
+        else
+        {
+            Debug::log("Editor::ProcessEvent() event value:")(msg)(", event type:")(evt.GetType()).endl();
         }
     }
-    
-    void Editor::processEngineCommands(std::vector<Ogre::String> command)
+
+    void Editor::processEngineCommands(std::vector<Ogre::String> command, Rocket::Core::Event *evt)
     {
-        
+
         if(command[0]=="new_level")
         {
-//             mDocument->GetElementById("")
+            auto intro="Editor::processEngineCommands() new level: ";
+            auto inputField=(Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("new_level_name");
+            Ogre::String levelName=inputField->GetValue().CString();
+
+            if(levelName.length()==0)
+            {
+                Debug::warning(intro)("level has no name ! aborted.").endl();
+                return;
+            }
+            Debug::log(intro)(levelName).endl();
+//             Level *mLevel = mEngine->createLevel(levelName);
+//             mLevel->load();
+
         }
     }
 }

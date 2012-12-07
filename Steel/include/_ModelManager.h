@@ -13,6 +13,7 @@
 #include <vector>
 #include <list>
 
+#include "Debug.h"
 #include "steeltypes.h"
 #include "ModelManager.h"
 

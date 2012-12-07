@@ -18,18 +18,17 @@
 #include <OgreRenderWindow.h>
 #include <OgreString.h>
 
+#include "steeltypes.h"
 #include "InputManager.h"
-#include "Camera.h"
-#include "Level.h"
-#include "RayCaster.h"
 #include "tools/File.h"
 #include "UI/UI.h"
 
 namespace Steel
 {
-
-    class InputManager;
-
+    class Camera;
+    class Level;
+    class RayCaster;
+    
     class Engine
     {
         public:
@@ -202,10 +201,8 @@ namespace Steel
 
             bool mEditMode;
     };
-
 }
 
-#include "InputManager.h"
 #endif /* ENGINE_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

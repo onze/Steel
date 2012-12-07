@@ -13,8 +13,12 @@
 #include <OgreResourceGroupManager.h>
 
 #include "Engine.h"
+#include "Camera.h"
+#include "Level.h"
+#include "Agent.h"
 #include "OgreModelManager.h"
 #include "Debug.h"
+#include "RayCaster.h"
 #include "tools/File.h"
 #include "tests/utests.h"
 

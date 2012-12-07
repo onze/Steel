@@ -7,6 +7,7 @@
 #include <UI/RenderInterfaceOgre3D.h>
 #include "Debug.h"
 #include "InputManager.h"
+#include "UI/RenderInterfaceOgre3D.h"
 
 namespace Steel
 {

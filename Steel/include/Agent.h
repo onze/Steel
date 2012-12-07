@@ -12,17 +12,16 @@
 #include <exception>
 
 #include <json/json.h>
-
 #include <OgreString.h>
 
 #include "steeltypes.h"
-#include "Model.h"
-#include "OgreModel.h"
 
 namespace Steel
 {
 
     class Level;
+    class Model;
+    class OgreModel;
 
     /**
      * Agent is the base class of Steel objects.

@@ -25,8 +25,8 @@ namespace Steel
 
             /// Rocket events
             void ProcessEvent(Rocket::Core::Event& event);
-            /// turns commands from the ui into call to the engine
-            void processEngineCommands(std::vector<Ogre::String> command);
+            /// turns commands from the ui into call to the engine.evt
+            void processEngineCommands(std::vector<Ogre::String> command,Rocket::Core::Event *evt=NULL);
     protected:
         //not owned
         Engine *mEngine;

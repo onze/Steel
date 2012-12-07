@@ -9,13 +9,13 @@
 
 #include "UI/Editor.h"
 #include "UI/HUD.h"
-#include "UI/RenderInterfaceOgre3D.h"
 #include <tools/File.h>
 
 namespace Steel
 {
-    class InputManager;
     class Engine;
+    class InputManager;
+    class RenderInterfaceOgre3D;
     /**
      * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
      * Ogre's window is created by the engine, but its events are grabbed in here too.

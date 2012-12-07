@@ -21,7 +21,7 @@ typedef unsigned long ModelId;
 
 const unsigned long INVALID_ID = ULONG_MAX;
 
-//those two need to stay in synch, and the usable enum values need to stay contiguous starting at 0.
+// ModelType and modelTypesAsString need to stay in synch, and the usable enum values need to stay contiguous starting at 0.
 enum ModelType
 {
 	//MT_FIRST should stay first
