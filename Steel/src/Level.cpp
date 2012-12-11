@@ -23,6 +23,7 @@
 #include "Agent.h"
 #include "OgreModelManager.h"
 #include "Model.h"
+#include "tools/OgreUtils.h"
 
 namespace Steel
 {
@@ -31,6 +32,8 @@ namespace Steel
         mPath(path.subdir(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera)
     {
         Debug::log(logName()+"()").endl();
+        if(!mPath.exists())
+            mPath.mkdir();
         addAuxiliaryResourceName(mName);
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
@@ -51,6 +54,7 @@ namespace Steel
             rgm->destroyResourceGroup(name);
         }
         delete mOgreModelMan;
+        OgreUtils::destroySceneNode(mLevelRoot);
     }
 
     Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
@@ -117,7 +121,7 @@ namespace Steel
         if (!savefile.exists())
         {
             Debug::warning(logName()+".load(): file does not exists: ");
-            Debug::warning(savefile)(". Loading cancelled.").endl();
+            Debug::warning(savefile)(" -> Loading cancelled.").endl();
             return false;
         }
         Ogre::String s = savefile.read();

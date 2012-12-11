@@ -27,6 +27,7 @@ namespace Steel
             Level(Level &level);
             Level &operator=(const Level &level);
         public:
+            ///@param[in] path: parent dir where the level saves itself
             Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera);
             virtual ~Level();
 
