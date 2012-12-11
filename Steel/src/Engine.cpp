@@ -70,7 +70,7 @@ namespace Steel
         //single level only
         if (mLevel != NULL)
             delete mLevel;
-        mLevel = new Level(mRootDir.subdir("levels"), levelName, mSceneManager, mCamera);
+        mLevel = new Level(mRootDir.subdir("data").subdir("levels"), levelName, mSceneManager, mCamera);
 
         return mLevel;
     }
@@ -247,7 +247,7 @@ namespace Steel
         mRenderWindow->update();
 
         mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow,this);
-        
+
         // unit testing
         if(true)
         {
@@ -296,8 +296,8 @@ namespace Steel
     {
         //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
         mMustAbortMainLoop = false;
-        
-        
+
+
         Ogre::Timer timer;
         while (!mMustAbortMainLoop)
         {
@@ -306,7 +306,7 @@ namespace Steel
             // escape is a builting show stopper
             if (!processInputs())
                 return false;
-            
+
             // update file watching
             File::dispatchToFiles();
 
@@ -350,15 +350,22 @@ namespace Steel
         switch(evt.key)
         {
             case OIS::KC_E:
-                if(mEditMode)
-                    stopEditMode();
-                else
-                    startEditMode();
+                if(mInputMan.isKeyDown(OIS::KC_LCONTROL))
+                {
+                    if(mEditMode)
+                        stopEditMode();
+                    else
+                        startEditMode();
+                }
                 break;
             case OIS::KC_R:
                 if(mEditMode)
                     mUI.editor().reloadContent();
                 break;
+            case OIS::KC_S:
+                if(mInputMan.isKeyDown(OIS::KC_LCONTROL))
+                    if(mEditMode && mLevel!=NULL)
+                        mLevel->save();
             default:
                 break;
         }
