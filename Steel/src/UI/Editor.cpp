@@ -4,12 +4,14 @@
 
 #include "UI/Editor.h"
 #include "Debug.h"
-#include <tools/StringUtils.h>
-// #include <Level.h>
+#include "tools/StringUtils.h"
+#include "Level.h"
+#include "Engine.h"
 
 namespace Steel
 {
-    Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml")
+    Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
+        mEngine(NULL),mUI(NULL)
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -18,12 +20,13 @@ namespace Steel
 
     Editor::Editor(const Editor& other)
     {
-
+        throw std::runtime_error("Editor::Editor(const Editor& other): Not Implemented");
     }
 
     Editor::~Editor()
     {
-
+        mEngine=NULL;
+        mUI=NULL;
     }
 
     Editor& Editor::operator=(const Editor& other)
@@ -34,7 +37,15 @@ namespace Steel
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI * ui)
     {
         UIPanel::init(width,height);
-
+        mEngine=engine;
+        mUI=ui;
+        auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("new_level_name");
+        if(elem!=NULL)
+        {
+            elem->SetValue("MyLevel");
+            // does not work for some reason
+//             elem->AddEventListener("submit",this);
+        }
     }
 
     void Editor::onShow()
@@ -53,7 +64,6 @@ namespace Steel
             return;
         Rocket::Core::String msg=evt.GetTargetElement()->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"");
         std::vector<Ogre::String> command=StringUtils::split(std::string(msg.CString()),std::string("."));
-        Debug::log(command).endl();
         if(command[0]=="engine")
         {
             command.erase(command.begin());
@@ -80,8 +90,8 @@ namespace Steel
                 return;
             }
             Debug::log(intro)(levelName).endl();
-//             Level *mLevel = mEngine->createLevel(levelName);
-//             mLevel->load();
+            Level *mLevel = mEngine->createLevel(levelName);
+            mLevel->load();
 
         }
     }

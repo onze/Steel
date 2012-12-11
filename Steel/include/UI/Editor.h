@@ -30,6 +30,7 @@ namespace Steel
     protected:
         //not owned
         Engine *mEngine;
+        UI *mUI;
     };
 }
 #endif // EDITOR_H
