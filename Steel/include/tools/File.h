@@ -106,6 +106,11 @@ namespace Steel
              * Note that the subfile might not exist.
              */
             File subfile ( Ogre::String filename );
+            
+            /**
+             * the file/dir containing this file instance.
+             */
+            File parentDir();
 
             /**
              * convert the File instance to a string of the path it's pointing to.
@@ -124,10 +129,9 @@ namespace Steel
             /**
              * creates the directory mPath is poiting to. If mPath points to a file,
              * this file's folder (and possible ancestors) is created.
-             * Return a File instance pointing to the newl path.
              * Does not crash if the path could not be created, so please check.
              */
-            File mkdir();
+            void mkdir();
             
         protected:
             /// fd of the file getting files event notifications from the kernel

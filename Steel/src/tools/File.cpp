@@ -19,10 +19,17 @@
 #include "tools/File.h"
 #include "Debug.h"
 
+
 namespace Steel
 {
     // the syscall read is hidden by File::read in Steel::File's scope :p
     auto SYSCALL_ALIAS_read=read;
+
+#if defined(_WIN32)
+    auto SYSCALL_ALIAS_mkdir=_mkdir;
+#else
+    auto SYSCALL_ALIAS_mkdir=mkdir;
+#endif
 
     // init static values
     int File::sInotifyFD=-1;
@@ -83,6 +90,24 @@ namespace Steel
     void File::shutdown()
     {
         //TODO: stop static thread ?
+    }
+
+    File File::parentDir()
+    {
+        return File(mPath);
+    }
+
+    void File::mkdir()
+    {
+        Ogre::String path=fullPath();
+        if(isFile())
+            path=parentDir().fullPath();
+// http://stackoverflow.com/a/10356780
+#if defined(_WIN32)
+        SYSCALL_ALIAS_mkdir(path.c_str());
+#else
+        SYSCALL_ALIAS_mkdir(path.c_str(), 0777); // notice that 777 is different than 0777
+#endif
     }
 
     void File::poolAndNotify()
@@ -223,6 +248,7 @@ namespace Steel
 
         if ( status != 0 )
         {
+            return false;
             Debug::error ( "File<" ) ( fullPath() ) ( ">::isDir():" );
             Debug::error ( " can't status the file. errno:" ) ( errno ).endl();
         }
@@ -242,6 +268,7 @@ namespace Steel
 
     bool File::isFile()
     {
+#ifdef __unix
         //http://stackoverflow.com/questions/1036625/differentiate-between-a-unix-directory-and-file-in-c
 //	Debug::log("File<")(fullPath())(">::isFile()").endl();
         int status;
@@ -251,11 +278,16 @@ namespace Steel
 
         if ( status != 0 )
         {
+            return false;
             Debug::error ( "File<" ) ( fullPath() ) ( ">::isDir():" );
             Debug::error ( " can't status the file. errno:" ) ( errno ).endl();
         }
 
         return S_ISREG ( st_buf.st_mode );
+#else
+#warning bool File::isFile() is not implemented for your platform.
+        throw std::runtime_exception("bool File::isFile() is not implemented for your platform.");
+#endif
     }
 
     Ogre::String File::read()
