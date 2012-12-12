@@ -197,7 +197,7 @@ namespace Steel
 
     int Engine::postWindowingSetup(unsigned int width, unsigned int height)
     {
-        Debug::log("Engine::postWindowingSetup()").endl();
+        Debug::log("Engine::postWindowingSetup()").endl().indent();
         int init_code=File::init();
         if(init_code!=0)
         {
@@ -247,7 +247,7 @@ namespace Steel
         mRenderWindow->update();
 
         mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow,this);
-
+        Debug::log.unIndent();
         // unit testing
         if(true)
         {

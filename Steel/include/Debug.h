@@ -28,19 +28,30 @@ namespace Steel
             class DebugObject
             {
                 public:
+                    static Ogre::String sIndentString;
                     DebugObject()
                     {
                         mLog = NULL;
                         mMsg = "";
+                        mIndents=0;
                     }
                     DebugObject(Ogre::Log *log)
                     {
                         mLog = log;
+                        mIndents=0;
                     }
                     DebugObject(const DebugObject &o)
                     {
                         mLog = o.mLog;
                         mMsg = o.mMsg;
+                        mIndents = o.mIndents;
+                    }
+                    DebugObject &operator=(const DebugObject &o)
+                    {
+                        mLog = o.mLog;
+                        mMsg = o.mMsg;
+                        mIndents = o.mIndents;
+                        return *this;
                     }
                     Ogre::String getFileName()
                     {
@@ -85,16 +96,16 @@ namespace Steel
                         mMsg.append(msg);
                         return *this;
                     }
-                    
+
                     DebugObject &operator()(Rocket::Core::String const &msg)
                     {
                         return (*this)(Ogre::String(msg.CString()));
                     }
-                    
+
                     DebugObject &operator()(std::vector<Ogre::String> const &vec)
                     {
                         Ogre::String dst="[";
-                        for(auto it=vec.begin();it!=vec.end();++it)
+                        for(auto it=vec.begin(); it!=vec.end(); ++it)
                             dst.append((*it)+", ");
                         dst.append("]");
                         return (*this)(dst);
@@ -124,6 +135,32 @@ namespace Steel
                     {
                         mLog->logMessage(mPre + mMsg + mPost);
                         mMsg.clear();
+                        for(int i=0; i<mIndents; ++i)
+                            mMsg.append(DebugObject::sIndentString);
+                        return *this;
+                    }
+
+                    DebugObject &indent()
+                    {
+                        mIndents+=1;
+                        if(mMsg=="")
+                            for(int i=0; i<mIndents; ++i)
+                                mMsg.append(DebugObject::sIndentString);
+                        return *this;
+                    }
+
+                    DebugObject &unIndent()
+                    {
+                        mIndents=mIndents>0?mIndents-1:0;
+                        if(mIndents>0 && mMsg=="")
+                            for(int i=0; i<mIndents; ++i)
+                                mMsg.append(DebugObject::sIndentString);
+                        return *this;
+                    }
+
+                    DebugObject &resetIndent()
+                    {
+                        mIndents=0;
                         return *this;
                     }
                 protected:
@@ -131,6 +168,7 @@ namespace Steel
                     Ogre::String mMsg;
                     Ogre::String mPre;
                     Ogre::String mPost;
+                    int mIndents;
             }; //end of class DebugObject
 
         public:
@@ -159,7 +197,7 @@ namespace Steel
                 if (logListener)
                     wlog->addListener(logListener);
                 warning = DebugObject(wlog);
-                //yellow 
+                //yellow
                 warning.setColors("\033[1;33m", "\033[1;m");
 
                 Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);

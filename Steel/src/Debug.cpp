@@ -15,6 +15,7 @@ namespace Steel
 Debug::DebugObject Debug::log;
 Debug::DebugObject Debug::warning;
 Debug::DebugObject Debug::error;
+Ogre::String Debug::DebugObject::sIndentString=Ogre::String("    ");
 
 Debug::Debug()
 {

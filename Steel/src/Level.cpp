@@ -125,7 +125,6 @@ namespace Steel
             return false;
         }
         Ogre::String s = savefile.read();
-
         if (!deserialize(s))
         {
             Debug::warning(logName()+".load(): error deserializing saved file.");
@@ -137,9 +136,9 @@ namespace Steel
 
     bool Level::save()
     {
-        Debug::log(logName()+"save():").endl();
+        Debug::log(logName()+".save():").endl();
 
-        Ogre::String s;
+        Ogre::String s="";
         serialize(s);
 
         File savefile = getSavefile();
@@ -250,16 +249,20 @@ namespace Steel
             Agent *agent = (*it_agents).second;
             agents[Ogre::StringConverter::toString(aid)] = agent->toJson();
         }
+
         root["agents"] = agents;
 
         // serialise models
         Debug::log(logName()+".serialize(): serializing models...").endl();
         Json::Value models;
+
         for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1); modelType != MT_LAST;
                 modelType = (ModelType) ((int) modelType + 1))
         {
-            Debug::log(logName()+".serialize(): processing type ")(modelTypesAsString[modelType]).endl();
+            Debug::log(modelType).endl();
             ModelManager *mm = modelManager(modelType);
+            Debug::log((long)mm)("   ")(modelTypesAsString).endl();
+            Debug::log(logName()+".serialize(): processing type ")(modelTypesAsString[modelType]).endl();
             if (mm == NULL)
             {
                 Debug::log(logName()+".serialize(): no modelManager of type ")(modelTypesAsString[modelType]).endl();
@@ -267,22 +270,23 @@ namespace Steel
             }
             mm->toJson(models[modelTypesAsString[modelType]]);
         }
-        root["models"] = models;
+        Debug::log("over").endl();
 
+        root["models"] = models;
         s = root.toStyledString();
         Debug::log(s).endl();
     }
 
     bool Level::deserialize(Ogre::String &s)
     {
-        Debug::log(logName()+".deserialize()").endl();
+        Debug::log(logName()+".deserialize():").endl().indent();
         Debug::log(s).endl();
         Json::Reader reader;
         Json::Value root;
         bool parsingOk = reader.parse(s, root, false);
         if (!parsingOk)
         {
-            Debug::error(logName()+".deserialize(): could not parse this:").endl();
+            Debug::error("could not parse this:").endl();
             Debug::error(s).endl();
             Debug::error(reader.getFormattedErrorMessages()).endl();
             return false;
@@ -292,12 +296,13 @@ namespace Steel
         // get level info
         value = root["name"];
         assert(!value.isNull());
+        // we load the right level
         assert(mName==value.asString());
 
         //camera
         mCamera->fromJson(root["camera"]);
 
-        Debug::log(logName()+".deserialize(): instanciate ALL the models ! \\o/").endl();
+        Debug::log("instanciate ALL the models ! \\o/").endl();
         Json::Value dict = root["models"];
         assert(!dict.isNull());
 
@@ -307,22 +312,21 @@ namespace Steel
             Json::Value models = dict[type];
             if (models.isNull())
             {
-                Debug::log(logName()+".deserialize(): no models for type ")(type).endl();
+                Debug::log("no models for type ")(type).endl();
                 continue;
             }
             ModelManager *mm = modelManager(i);
             if (mm == NULL)
             {
-                Debug::warning(logName()+".deserialize(): no modelManager for type ")(type).endl();
+                Debug::warning("no modelManager for type ")(type).endl();
                 continue;
             }
             mm->fromJson(models);
         }
-        Debug::log(logName()+".deserialize(): done").endl();
+        Debug::log("models done").endl();
 
-        Debug::log(logName()+".deserialize(): now instanciate ALL the agents ! \\o/").endl();
+        Debug::log("now instanciate ALL the agents ! \\o/").endl();
         dict = root["agents"];
-        assert(!dict.isNull());
 
         for (Json::ValueIterator it = dict.begin(); it != dict.end(); ++it)
         {
@@ -332,7 +336,8 @@ namespace Steel
             Agent *agent = getAgent(aid);
             agent->fromJson(*it);
         }
-        Debug::log(logName()+".deserialize(): done").endl();
+        Debug::log("agents done").endl();
+        Debug::log(logName()+".deserialize(): done").unIndent().endl();
         return true;
     }
 
