@@ -28,7 +28,7 @@ namespace Steel
     class Camera;
     class Level;
     class RayCaster;
-    
+
     class Engine
     {
         public:
@@ -72,7 +72,7 @@ namespace Steel
 
             bool mainLoop(bool singleLoop = false);
 
-            // implements the OIS keyListener and mouseListener interfaces, 
+            // implements the OIS keyListener and mouseListener interfaces,
             // as this allows the inputManager to seamlessly pass events as they arrive.
             bool keyPressed(const OIS::KeyEvent& evt);
             bool keyReleased(const OIS::KeyEvent& evt);
@@ -135,6 +135,10 @@ namespace Steel
             {
                 return mWindowHandle;
             }
+            inline Level *level()
+            {
+                return mLevel;
+            }
 //             inline UI *ui()
 //             {
 //                 return &mUI;
@@ -156,18 +160,18 @@ namespace Steel
 
         private:
             File mRootDir;
-            /** 
-             * set up stuff that does not depend on standalone/embedded status, 
+            /**
+             * set up stuff that does not depend on standalone/embedded status,
              * nor on having the windowing system ready;
              * Returns 0 if successfull, returns an error code otherwise.
              */
             int preWindowingSetup(Ogre::String &plugins,
-                                   unsigned int width,
-                                   unsigned int height,
-                                   Ogre::String defaultLog =Ogre::String("steel_default_log.log"),
-                                   Ogre::LogListener *logListener = NULL);
+                                  unsigned int width,
+                                  unsigned int height,
+                                  Ogre::String defaultLog =Ogre::String("steel_default_log.log"),
+                                  Ogre::LogListener *logListener = NULL);
             /**
-             * set up stuff that does not depend on standalone/embedded status, 
+             * set up stuff that does not depend on standalone/embedded status,
              * but that depend on having the windowing system ready;
              * Returns 0 if successfull, returns an error code otherwise.
              */
