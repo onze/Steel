@@ -300,9 +300,10 @@ namespace Steel
         std::ios::pos_type fileLength = s.tellg();
         s.seekg ( 0, std::ios::beg );
 
-        char *fileData = new char[fileLength];
+        char *fileData = new char[fileLength+(std::ios::pos_type)1];
 
         s.read ( fileData, ( int ) fileLength );
+        fileData[fileLength]='\0';
         return Ogre::String ( fileData );
     }
 
