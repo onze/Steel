@@ -1,17 +1,19 @@
 
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Controls/ElementFormControlInput.h>
+#include <Rocket/Debugger.h>
 
 #include "UI/Editor.h"
 #include "Debug.h"
 #include "tools/StringUtils.h"
 #include "Level.h"
 #include "Engine.h"
+#include "UI/FileSystemDataSource.h"
 
 namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
-        mEngine(NULL),mUI(NULL)
+        mEngine(NULL),mUI(NULL),mFSResources(NULL)
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -27,30 +29,46 @@ namespace Steel
     {
         mEngine=NULL;
         mUI=NULL;
+        mFSResources=NULL;
     }
 
     Editor& Editor::operator=(const Editor& other)
     {
+        throw std::runtime_error("Editor::operator=(const Editor& other): Not Implemented");
         return *this;
     }
 
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI * ui)
     {
+        mFSResources=new FileSystemDataSource("resources",engine->rootDir().subdir("data"));
         UIPanel::init(width,height);
         mEngine=engine;
         mUI=ui;
-        auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("new_level_name");
+        auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("level_name");
         if(elem!=NULL)
         {
             elem->SetValue("MyLevel");
             // does not work for some reason
 //             elem->AddEventListener("submit",this);
         }
+        //debug
+        elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("editor_menu_tab_edit");
+        if(elem!=NULL)
+            elem->Click();
+    }
+
+    void Editor::onFileChangeEvent(File *file)
+    {
+        UIPanel::onFileChangeEvent(file);
+        Rocket::Debugger::SetContext(mContext);
+        Rocket::Debugger::SetVisible(true);
     }
 
     void Editor::onShow()
     {
         mDocument->AddEventListener("click",this);
+        Rocket::Debugger::SetContext(mContext);
+        Rocket::Debugger::SetVisible(true);
     }
 
     void Editor::onHide()
@@ -77,8 +95,20 @@ namespace Steel
 
     void Editor::processEngineCommands(std::vector<Ogre::String> command, Rocket::Core::Event *evt)
     {
+        if(command.size()==0)
+            return;
+        if(command[0]=="level")
+        {
+            command.erase(command.begin());
+            processLevelCommands(command,evt);
+        }
+    }
 
-        if(command[0]=="new_level")
+    void Editor::processLevelCommands(std::vector<Ogre::String> command, Rocket::Core::Event *evt)
+    {
+        if(command.size()==0)
+            return;
+        if(command[0]=="load")
         {
             auto intro="Editor::processEngineCommands() new level: ";
             auto inputField=(Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("new_level_name");
@@ -92,8 +122,20 @@ namespace Steel
             Debug::log(intro)(levelName).endl();
             Level *mLevel = mEngine->createLevel(levelName);
             mLevel->load();
-
         }
+        else if(command[0]=="save")
+        {
+            Level *level=mEngine->level();
+            if(level==NULL)
+                return;
+            level->save();
+        }
+        else if(command[0]=="delete")
+        {
+            Debug::error("to be implemented: level deletion").endl();
+        }
+        else
+            Debug::log("Editor::processLevelCommands(): unknown command: ")(command).endl();
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

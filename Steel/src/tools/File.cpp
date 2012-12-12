@@ -15,10 +15,11 @@
 #include <iostream>
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
+#include <ftw.h>
 
 #include "tools/File.h"
 #include "Debug.h"
-
+#include "Poco/DirectoryIterator.h"
 
 namespace Steel
 {
@@ -73,6 +74,11 @@ namespace Steel
         mBaseName = f.mBaseName;
         mExtension = f.mExtension;
         return *this;
+    }
+
+    bool File::operator!= ( File const &o )
+    {
+        return fullPath()!=o.fullPath();
     }
 
     int File::init()
@@ -223,7 +229,7 @@ namespace Steel
         return ifile;
     }
 
-    Ogre::String File::fileName()
+    Ogre::String File::fileName() const
     {
         Ogre::String s = mBaseName;
         if ( mExtension.size() > 0 )
@@ -231,7 +237,7 @@ namespace Steel
         return s;
     }
 
-    Ogre::String File::fullPath()
+    Ogre::String File::fullPath() const
     {
         return mPath + fileName();
     }
@@ -288,6 +294,30 @@ namespace Steel
 #warning bool File::isFile() is not implemented for your platform.
         throw std::runtime_exception("bool File::isFile() is not implemented for your platform.");
 #endif
+    }
+
+    std::list<File> File::ls(File::NodeType filter)
+    {
+        std::list<File> nodes;
+        if(!(exists() && isDir()))
+            return nodes;
+
+        std::vector<std::string> files;
+        Poco::File(fullPath()).list(files);;
+        for(auto it=files.begin(); it!=files.end(); ++it)
+        {
+            File file=*it;
+            if(file.nodeType()&filter)
+                nodes.push_back(file);
+        }
+        return nodes;
+    }
+
+    File::NodeType File::nodeType()
+    {
+        if(isDir())return File::DIR;
+        if(isFile())return File::FILE;
+        return File::ANY;
     }
 
     Ogre::String File::read()

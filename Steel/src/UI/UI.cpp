@@ -133,9 +133,9 @@ namespace Steel
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "Rocket");
 //         Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
 
-        Rocket::Debugger::Initialise(mMainContext);
         Rocket::Debugger::SetVisible(true);
-
+        Rocket::Debugger::Initialise(mMainContext);
+        
         //UI init
         mEditor.init(mWidth, mHeight, engine, this);
 //         if (cursor)

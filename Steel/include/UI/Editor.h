@@ -1,11 +1,15 @@
 #ifndef EDITOR_H
 #define EDITOR_H
+
 #include <vector>
+
 #include <OgreString.h>
+
 #include "UI/UIPanel.h"
 
 namespace Steel
 {
+    class FileSystemDataSource;
     class Engine;
     class UI;
     class Editor:public UIPanel
@@ -25,12 +29,21 @@ namespace Steel
 
             /// Rocket events
             void ProcessEvent(Rocket::Core::Event& event);
-            /// turns commands from the ui into call to the engine.evt
+            /// submethod processing ui commands concerning the engine
             void processEngineCommands(std::vector<Ogre::String> command,Rocket::Core::Event *evt=NULL);
-    protected:
-        //not owned
-        Engine *mEngine;
-        UI *mUI;
+            /// submethod processing ui commands concerning levels
+            void processLevelCommands(std::vector<Ogre::String> command, Rocket::Core::Event *evt);
+            
+            // used to reattach the debugger on reload
+            virtual void onFileChangeEvent(File *file);
+            
+        protected:
+            //not owned
+            Engine *mEngine;
+            UI *mUI;
+            //owned
+            /// resources available (for levels, etc)
+            FileSystemDataSource *mFSResources;
     };
 }
 #endif // EDITOR_H

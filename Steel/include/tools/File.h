@@ -30,15 +30,22 @@ namespace Steel
         public:
             /// initialise the File subsystem. Return 0 if success, error code otherwise.
             static int init();
-            
+
             /// stops the File subsystem
             static void shutdown();
-            
+
             /// batch call to file change listeners.
             static void dispatchToFiles();
-            
+
             /// return the application's current path.
             static File getCurrentDirectory();
+
+            enum NodeType
+            {
+                FILE=1<<0,
+                DIR=1<<1,
+                ANY=~0
+            };
 
             File();
             File ( const char *fullpath );
@@ -54,14 +61,15 @@ namespace Steel
             File ( File const &f );
             virtual ~File();
             File &operator= ( const File &f );
+            bool operator!= ( const File &f );
 
-            
+
             /// register an event listener. It will be notified of file events.
             void addFileListener(FileEventListener *listener);
 
             /// unregister an event listener. It won't be notified of files events anymore.
             void removeFileListener(FileEventListener *listener);
-            
+
             /// call listeners' callback methods
             void dispatchToListeners();
 
@@ -70,9 +78,9 @@ namespace Steel
 
             /// write the given string into the file, replacing what's already in.
             File &write ( Ogre::String s );
-            
+
             /// returns the file (file/directory) name
-            Ogre::String fileName();
+            Ogre::String fileName() const;
 
             /// return true is the file exists.
             bool exists();
@@ -93,7 +101,7 @@ namespace Steel
             /**
              * Return the path pointed to by this file.
              */
-            Ogre::String fullPath();
+            Ogre::String fullPath() const;
 
             /**
              * return a file pointing at a subdirectory which name is given.
@@ -106,7 +114,7 @@ namespace Steel
              * Note that the subfile might not exist.
              */
             File subfile ( Ogre::String filename );
-            
+
             /**
              * the file/dir containing this file instance.
              */
@@ -115,7 +123,7 @@ namespace Steel
             /**
              * convert the File instance to a string of the path it's pointing to.
              */
-            operator Ogre::String()
+            operator Ogre::String() const
             {
                 return fullPath();
             }
@@ -133,6 +141,19 @@ namespace Steel
              */
             void mkdir();
             
+            /**
+             * list the current directory and return a list of files. 
+             * Only instances pointing to an existing directory return a non-empty list.
+             * NodeType filter indicates whether to return folders, files, or both (default).
+             */
+            std::list<File> ls(NodeType filter=ANY);
+            
+            /**
+             * Returns the type of the node as a NodeType compatible value.
+             * Returns File::ANY if the File instance points neither to a file nor to a dir.
+             */
+            NodeType nodeType();
+
         protected:
             /// fd of the file getting files event notifications from the kernel
             static int sInotifyFD;
@@ -145,13 +166,13 @@ namespace Steel
 
             /// instances associated with tokens in sWatches
             static std::vector<File *> sFiles;
-            
+
             /// files that have changed since init/last call to notifyListeners (FIFO)
             static std::list<File *> sNotificationList;
-            
+
             /// threads that gets blocked by the blocking event pooling inotify function
 //             static std::thread sNotifier;
-            
+
             /// inotify callback method. Disatches event to File instances.
             static void poolAndNotify();
 
