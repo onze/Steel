@@ -62,30 +62,6 @@ namespace Steel
                         mPre = pre;
                         mPost = post;
                     }
-//		DebugObject &log(Ogre::String const &msg)
-//		{
-//			return (*this)(msg);
-//		}
-//
-//		DebugObject &log(const char * msg)
-//		{
-//			return (*this)(msg);
-//		}
-//
-//		DebugObject &log(Ogre::Vector3 const &msg)
-//		{
-//			return (*this)(msg);
-//		}
-//
-//		DebugObject &log(Ogre::Quaternion const &msg)
-//		{
-//			return (*this)(msg);
-//		}
-//
-//		DebugObject &log(long unsigned int msg)
-//		{
-//			return (*this)(msg);
-//		}
 
                     /**
                      * equivalent to myDebugObject.log(Ogre::String msg)
@@ -102,13 +78,32 @@ namespace Steel
                         return (*this)(Ogre::String(msg.CString()));
                     }
 
-                    DebugObject &operator()(std::vector<Ogre::String> const &vec)
+                    template<class T>
+                    DebugObject &operator()(std::vector<T> const &container)
                     {
-                        Ogre::String dst="[";
-                        for(auto it=vec.begin(); it!=vec.end(); ++it)
-                            dst.append((*it)+", ");
-                        dst.append("]");
-                        return (*this)(dst);
+                        this->operator()("vec[");
+                        for(auto it=container.begin(); it!=container.end(); ++it)
+                        {
+                            this->operator()(*it);
+                            if(((T)(*it))!=((T)container.back()))
+                                this->operator()(", ");
+                        }
+                        this->operator()("]");
+                        return *this;
+                    }
+
+                    template<class T>
+                    DebugObject &operator()(std::list<T> const &container)
+                    {
+                        this->operator()("list[");
+                        for(auto it=container.begin(); it!=container.end(); ++it)
+                        {
+                            this->operator()(*it);
+                            if(((T)(*it))!=((T)container.back()))
+                                this->operator()(", ");
+                        }
+                        this->operator()("]");
+                        return *this;
                     }
 
                     DebugObject &operator()(const char * msg)
@@ -116,17 +111,17 @@ namespace Steel
                         return (*this)(Ogre::String(msg));
                     }
 
-                    DebugObject &operator()(Ogre::Vector3 msg)
+                    DebugObject &operator()(const Ogre::Vector3 msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
 
-                    DebugObject &operator()(Ogre::Quaternion msg)
+                    DebugObject &operator()(const Ogre::Quaternion msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
 
-                    DebugObject &operator()(long unsigned int msg)
+                    DebugObject &operator()(const long unsigned int msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
@@ -213,3 +208,4 @@ namespace Steel
 
 #endif /* DEBUG_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
