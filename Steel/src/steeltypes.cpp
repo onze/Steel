@@ -14,7 +14,7 @@ namespace Steel
 
     std::vector<Ogre::String> modelTypesAsString = std::vector<Ogre::String> (
                 modelTypesAsString__data,
-                modelTypesAsString__data+sizeof(Ogre::String)/sizeof(Ogre::String)
+                modelTypesAsString__data+sizeof(modelTypesAsString__data)/sizeof(Ogre::String)
             );
 
 }
