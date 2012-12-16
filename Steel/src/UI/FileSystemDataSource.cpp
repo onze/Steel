@@ -100,25 +100,33 @@ namespace Steel
         // raw_data==[ext,filename,fullpath,#num_children]
         if (raw_data.size() == 4)
         {
+            bool isDir=raw_data[0]=="$dir";
+            bool hasKids=raw_data[3] != "0";
+
             //TODO: escape double quotes in path
-            formatted_data += "<resourceitem path=\""+raw_data[2]+"\">";
-            
-            if (raw_data[3] != "0")
+            formatted_data += "<resourceitem";
+
+            if(!isDir)
+                formatted_data+=" ondragdrop=\""+raw_data[2]+"\" style=\"drag:clone;\"";
+
+            formatted_data += ">";
+
+            if (isDir && hasKids)
                 formatted_data += "<datagridexpand/>";
             else
                 formatted_data += "<spacer/>";
-                
-            if(raw_data[0]=="$dir")
+
+            if(isDir)
                 formatted_data+="<directory_inode/>";
             else
                 formatted_data+="<regular_inode/>";
-                
+
             formatted_data += "<spacer/>";
             formatted_data+=raw_data[1];
         }
         else
         {
-            formatted_data += "<resourceitem path=\""+raw_data[2]+"\">";
+            formatted_data += "<resourceitem onclick=\""+raw_data[2]+"\">";
             formatted_data+="??";
         }
         formatted_data += "</resourceitem>";

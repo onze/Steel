@@ -73,6 +73,7 @@ namespace Steel
     void Editor::onShow()
     {
         mDocument->AddEventListener("click",this);
+        mDocument->AddEventListener("dragdrop",this);
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
         mFSResources->refresh();
@@ -85,13 +86,25 @@ namespace Steel
     void Editor::onHide()
     {
         mDocument->RemoveEventListener("click",this);
+        mDocument->RemoveEventListener("dragdrop",this);
     }
 
     void Editor::ProcessEvent(Rocket::Core::Event& evt)
     {
         if(!isVisible())
             return;
-        Rocket::Core::String msg=evt.GetTargetElement()->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"");
+        
+        Rocket::Core::Element *elem;
+        
+        if(evt=="dragdrop")
+            elem = static_cast< Rocket::Core::Element* >(evt.GetParameter< void* >("drag_element", NULL));
+        else
+            elem=evt.GetTargetElement();
+        
+        if(elem==NULL)
+            return;
+        
+        Rocket::Core::String msg=elem->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"");
         std::vector<Ogre::String> command=StringUtils::split(std::string(msg.CString()),std::string("."));
         if(command[0]=="engine")
         {
@@ -100,7 +113,7 @@ namespace Steel
         }
         else
         {
-            Debug::log("Editor::ProcessEvent() event value:")(msg)(", event type:")(evt.GetType()).endl();
+            Debug::log("Editor::ProcessEvent() event type:")(evt.GetType())(" msg:")(msg)(" command:")(command).endl();
         }
     }
 

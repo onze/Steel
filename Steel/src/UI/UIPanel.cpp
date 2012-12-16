@@ -6,6 +6,7 @@
 
 namespace Steel
 {
+
     UIPanel::UIPanel():
         Rocket::Core::EventListener(),
         mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),mAutoReload(false)
@@ -61,7 +62,7 @@ namespace Steel
     {
         reloadContent();
     }
-    
+
     void UIPanel::reloadContent()
     {
         if(mContext==NULL)
@@ -72,7 +73,7 @@ namespace Steel
         // save state
         bool shown=mDocument->IsVisible();
         Rocket::Core::Vector2i dims=mContext->GetDimensions();
-        
+
         shutdown();
         // load state
         init(dims.x,dims.y);
