@@ -40,7 +40,7 @@ namespace Steel
     }
 
     template<class T>
-    T StringUtils::_join(T const &joiner,std::vector<T> const &vec,int start,int end)
+    T StringUtils::_join(std::vector<T> const &vec,T const &joiner,int start,int end)
     {
         T res;
         if(vec.size()==0)
@@ -66,9 +66,9 @@ namespace Steel
         return res;
     }
 
-    Ogre::String StringUtils::join(Ogre::String const &joiner,std::vector<Ogre::String> const &vec,int start,int end)
+    Ogre::String StringUtils::join(std::vector<Ogre::String> const &vec,Ogre::String const &joiner,int start,int end)
     {
-        return StringUtils::_join(joiner,vec,start,end);
+        return StringUtils::_join(vec,joiner,start,end);
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
