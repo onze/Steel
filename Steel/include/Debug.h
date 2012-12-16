@@ -14,6 +14,7 @@
 #include <OgreLogManager.h>
 #include <OgreString.h>
 #include <OgreStringConverter.h>
+#include <OgreResourceManager.h>
 #include <Rocket/Core/String.h>
 
 namespace Steel
@@ -24,7 +25,6 @@ namespace Steel
         public:
             Debug();
             virtual ~Debug();
-        public:
             class DebugObject
             {
                 public:
@@ -78,15 +78,50 @@ namespace Steel
                         return (*this)(Ogre::String(msg.CString()));
                     }
 
+                    DebugObject &operator()(Ogre::StringVectorPtr const vec)
+                    {
+                        if(vec.isNull())
+                            return (*this)(*vec);
+                        else
+                            return (*this)("NULL ptr !");
+                    }
+
+                    DebugObject &operator()(Ogre::StringVector const &vec)
+                    {
+                        return (*this)(vec);
+                    }
+                    
+                    DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list)
+                    {
+                        this->operator()("list[");
+                        for(auto it=list.begin(); it!=list.end(); ++it)
+                        {
+                            this->operator()((*it)->archive->getName())(", ");
+                        }
+                        this->operator()("]");
+                        return *this;
+                    }
+                    
+                    DebugObject &operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list)
+                    {
+                        this->operator()("list[");
+                        for(auto it=list.begin(); it!=list.end(); ++it)
+                        {
+                            this->operator()((*it).resourceName)(", ");
+                        }
+                        this->operator()("]");
+                        return *this;
+                    }
+
                     template<class T>
                     DebugObject &operator()(std::vector<T> const &container)
                     {
                         this->operator()("vec[");
                         for(auto it=container.begin(); it!=container.end(); ++it)
                         {
-                            this->operator()(*it);
-                            if(((T)(*it))!=((T)container.back()))
-                                this->operator()(", ");
+                            this->operator()(*it)(", ");
+//                             if(((T)(*it))!=((T)container.back()))
+//                                 this->operator()(", ");
                         }
                         this->operator()("]");
                         return *this;
@@ -98,9 +133,9 @@ namespace Steel
                         this->operator()("list[");
                         for(auto it=container.begin(); it!=container.end(); ++it)
                         {
-                            this->operator()(*it);
-                            if(((T)(*it))!=((T)container.back()))
-                                this->operator()(", ");
+                            this->operator()(*it)(", ");
+//                             if(((T)(*it))!=((T)container.back()))
+//                                 this->operator()(", ");
                         }
                         this->operator()("]");
                         return *this;
@@ -166,7 +201,6 @@ namespace Steel
                     int mIndents;
             }; //end of class DebugObject
 
-        public:
             ///default log in direct access
             static DebugObject log;
 
@@ -176,6 +210,9 @@ namespace Steel
             ///error log in direct access
             static DebugObject error;
 
+            ///false as long as Debug::init has not been called.
+            static bool isInit;
+            
             /**
              * Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
              */
@@ -201,6 +238,7 @@ namespace Steel
                 error = DebugObject(elog);
                 //red
                 error.setColors("\033[1;31m", "\033[1;m");
+                Debug::isInit=true;
             }
     };
 
