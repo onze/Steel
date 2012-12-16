@@ -29,7 +29,7 @@ namespace Steel
 {
 
     Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera) :
-        mPath(path.subdir(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera)
+        mPath(path.subfile(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera)
     {
         Debug::log(logName()+"()").endl();
         if(!mPath.exists())
@@ -61,15 +61,10 @@ namespace Steel
     {
         Debug::log(logName()+".addAuxiliaryResourceName(): ")(baseName).endl();
         Ogre::String name = baseName + "__aux_name_#__" + Ogre::StringConverter::toString(mResGroupAux++);
-        Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	mPath.subdir("materials"),
-                "FileSystem",
-                name,
-                false);
-        Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	mPath.subdir("meshes"),
-                "FileSystem",
-                name,
-                false);
-        Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(name);
+        auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
+        resGroupMan->addResourceLocation(mPath.subfile("materials"),"FileSystem",name,false);
+        resGroupMan->addResourceLocation(mPath.subfile("meshes"),"FileSystem",name,false);
+        resGroupMan->initialiseResourceGroup(name);
         return name;
     }
 

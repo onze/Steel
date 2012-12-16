@@ -44,6 +44,7 @@ namespace Steel
             //owned
             /// resources available (for levels, etc)
             FileSystemDataSource *mFSResources;
+            File mDataDir;
     };
 }
 #endif // EDITOR_H

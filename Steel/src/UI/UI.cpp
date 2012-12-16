@@ -112,37 +112,54 @@ namespace Steel
         Debug::log("UI::init()").endl();
         mWidth=width;
         mHeight=height;
-        mUIDataDir=UIDataDir,
+        mUIDataDir=UIDataDir.subfile("current"),
         mInputMan=inputMan;
         mWindow=window;
 
         mEditMode=false;
 
+        auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
         //rocket init
-        mRocketRenderInterface=new RenderInterfaceOgre3D(width,height);
+//         Debug::log("ok").endl();
+        if(!resGroupMan->resourceGroupExists("UI"))
+            resGroupMan->createResourceGroup("UI");
+        resGroupMan->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
+        mRocketRenderInterface=new RenderInterfaceOgre3D(width,height,engine);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
 
         Rocket::Core::SetSystemInterface(this);
         Rocket::Core::Initialise();
 
         Rocket::Controls::Initialise();
-        Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("current/fonts/tahoma.ttf").fullPath().c_str());
+        Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("fonts").subfile("tahoma.ttf").fullPath().c_str());
 
         mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWidth, mHeight));
-        Ogre::ResourceGroupManager::getSingleton().createResourceGroup("Rocket");
-        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "Rocket");
 //         Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
 
         Rocket::Debugger::SetVisible(true);
         Rocket::Debugger::Initialise(mMainContext);
-        
+
         //UI init
         mEditor.init(mWidth, mHeight, engine, this);
 //         if (cursor)
 //             cursor->RemoveReference();
 //         mHUD.init(mWidth, mHeight);
 
+        resGroupMan->initialiseResourceGroup("UI");
+        resGroupMan->loadResourceGroup("UI");
         sceneManager->addRenderQueueListener(this);
+
+        Debug::log("== Resources locations ==").indent().endl();
+        auto resGroupNames=resGroupMan->getResourceGroups();
+        for(auto it=resGroupNames.begin(); it!=resGroupNames.end(); ++it)
+        {
+            Debug::log(*it)(":").endl();
+            Debug::log("\tlocations:");
+            Debug::log(Ogre::ResourceGroupManager::getSingleton().getResourceLocationList(*it)).endl();
+            Debug::log("\tfiles:");
+            Debug::log(Ogre::ResourceGroupManager::getSingleton().getResourceDeclarationList(*it)).endl();
+        }
+        Debug::log.unIndent().endl();
     }
 
     void UI::startEditMode()

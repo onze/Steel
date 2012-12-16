@@ -39,11 +39,11 @@
 
 namespace Steel
 {
-
+    class Engine;
     class RenderInterfaceOgre3D : public Rocket::Core::RenderInterface
     {
         public:
-            RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height);
+            RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height,Engine *engine);
             virtual ~RenderInterfaceOgre3D();
 
             /// Called by Rocket when it wants to render geometry that it does not wish to optimise.
@@ -75,7 +75,10 @@ namespace Steel
             float GetVerticalTexelOffset();
 
         private:
+            /// not owned
+            Engine *mEngine;
             Ogre::RenderSystem* render_system;
+            /// owned
 
             Ogre::LayerBlendModeEx colour_blend_mode;
             Ogre::LayerBlendModeEx alpha_blend_mode;

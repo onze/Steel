@@ -28,6 +28,8 @@
 
 #include <Ogre.h>
 #include "UI/RenderInterfaceOgre3D.h"
+#include <Debug.h>
+#include "Engine.h"
 
 namespace Steel
 {
@@ -57,7 +59,7 @@ namespace Steel
         RocketOgre3DTexture* texture;
     };
 
-    RenderInterfaceOgre3D::RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height)
+    RenderInterfaceOgre3D::RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height,Engine *engine):mEngine(engine)
     {
         render_system = Ogre::Root::getSingleton().getRenderSystem();
 
@@ -86,13 +88,19 @@ namespace Steel
     }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
-    void RenderInterfaceOgre3D::RenderGeometry(Rocket::Core::Vertex* ROCKET_UNUSED(vertices), int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices), Rocket::Core::TextureHandle ROCKET_UNUSED(texture), const Rocket::Core::Vector2f& ROCKET_UNUSED(translation))
+    void RenderInterfaceOgre3D::RenderGeometry(Rocket::Core::Vertex* ROCKET_UNUSED(vertices),
+            int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices),
+            Rocket::Core::TextureHandle ROCKET_UNUSED(texture), const Rocket::Core::Vector2f& ROCKET_UNUSED(translation))
     {
         // We've chosen to not support non-compiled geometry in the Ogre3D renderer.
     }
 
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.
-    Rocket::Core::CompiledGeometryHandle RenderInterfaceOgre3D::CompileGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture)
+    Rocket::Core::CompiledGeometryHandle RenderInterfaceOgre3D::CompileGeometry(Rocket::Core::Vertex* vertices,
+            int num_vertices,
+            int* indices,
+            int num_indices,
+            Rocket::Core::TextureHandle texture)
     {
         RocketOgre3DCompiledGeometry* geometry = new RocketOgre3DCompiledGeometry();
 //     geometry->texture = texture == NULL ? NULL : (RocketOgre3DTexture*) texture;
@@ -141,7 +149,9 @@ namespace Steel
 
 
         // Create the index buffer.
-        Ogre::HardwareIndexBufferSharedPtr index_buffer = Ogre::HardwareBufferManager::getSingleton().createIndexBuffer(Ogre::HardwareIndexBuffer::IT_32BIT, num_indices, Ogre::HardwareBuffer::HBU_STATIC_WRITE_ONLY);
+        Ogre::HardwareIndexBufferSharedPtr index_buffer = Ogre::HardwareBufferManager::getSingleton().createIndexBuffer(Ogre::HardwareIndexBuffer::IT_32BIT,
+                num_indices,
+                Ogre::HardwareBuffer::HBU_STATIC_WRITE_ONLY);
         geometry->render_operation.indexData->indexBuffer = index_buffer;
         geometry->render_operation.useIndexes = true;
 
@@ -212,16 +222,17 @@ namespace Steel
     }
 
 // Called by Rocket when a texture is required by the library.
-    bool RenderInterfaceOgre3D::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
+    bool RenderInterfaceOgre3D::LoadTexture(Rocket::Core::TextureHandle& texture_handle,
+                                            Rocket::Core::Vector2i& texture_dimensions,
+                                            const Rocket::Core::String& source)
     {
+        Ogre::String fullPath(mEngine->rootDir().subfile(source.CString()).fullPath());
+//         Debug::log("RenderInterfaceOgre3D::LoadTexture():")(source)(" -> ")(fullPath).endl();
         Ogre::TextureManager* texture_manager = Ogre::TextureManager::getSingletonPtr();
-        Ogre::TexturePtr ogre_texture = texture_manager->getByName(Ogre::String(source.CString()));
+        Ogre::TexturePtr ogre_texture = texture_manager->getByName(fullPath);
         if (ogre_texture.isNull())
         {
-            ogre_texture = texture_manager->load(Ogre::String(source.CString()),
-                                                 "Rocket",
-                                                 Ogre::TEX_TYPE_2D,
-                                                 0);
+            ogre_texture = texture_manager->load(fullPath,"UI",Ogre::TEX_TYPE_2D,0);
         }
 
         if (ogre_texture.isNull())
@@ -245,7 +256,7 @@ namespace Steel
         Ogre::DataStreamPtr odsp(new Ogre::MemoryDataStream((void*) source, source_dimensions.x * source_dimensions.y * sizeof(unsigned int)));
         Ogre::TexturePtr ogre_texture = Ogre::TextureManager::getSingleton().loadRawData(
                                             Rocket::Core::String(16, "%d", texture_id++).CString(),
-                                            "Rocket",
+                                            "UI",
                                             odsp,
                                             source_dimensions.x,
                                             source_dimensions.y,

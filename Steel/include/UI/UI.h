@@ -73,6 +73,11 @@ namespace Steel
             {
                 return mEditor;
             }
+            
+            File dataDir()
+            {
+                return mUIDataDir;
+            }
         protected:
             // not owned
             InputManager *mInputMan;

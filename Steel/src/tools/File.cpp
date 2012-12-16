@@ -46,10 +46,17 @@ namespace Steel
     {
     }
 
-    File::File(const char *fullpath) :
+    File::File(const char *fullpath):
         mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>())
     {
         Ogre::StringUtil::splitFullFilename ( Ogre::String(fullpath), mBaseName, mExtension, mPath );
+        // #ifdef __unix
+        //         if(mPath.at(0)!="/")
+        //             mPath=File::getCurrentDirectory()+mPath;
+        // #else
+        // #warning bool File::File(const char *fullpath) is not implemented for your platform.
+        //         throw std::runtime_exception("File::File(const char *fullpath) is not implemented for your platform.");
+        // #endif
     }
 
     File::File ( Ogre::String fullPath ) :
@@ -57,6 +64,13 @@ namespace Steel
     {
         //mPath will end with a slash
         Ogre::StringUtil::splitFullFilename ( fullPath, mBaseName, mExtension, mPath );
+        // #ifdef __unix
+        //         if(mPath.at(0)!="/")
+        //             mPath=File::getCurrentDirectory()+mPath;
+        // #else
+        // #warning bool File::File(const char *fullpath) is not implemented for your platform.
+        //         throw std::runtime_exception("File::File(const char *fullpath) is not implemented for your platform.");
+        // #endif
     }
 
     File::File ( File const &f ) :
@@ -91,6 +105,16 @@ namespace Steel
         std::thread t(File::poolAndNotify);
         t.detach();
         return 0;
+    }
+
+    Ogre::String File::extension()
+    {
+        return mExtension;
+    }
+
+    Ogre::String File::path()
+    {
+        return mPath;
     }
 
     void File::shutdown()
@@ -153,6 +177,11 @@ namespace Steel
             }
         }
     }
+
+    /*Ogre::String File::relpath(File comp)
+    {
+        return "";
+    }*/
 
     void File::dispatchToFiles()
     {
@@ -219,7 +248,6 @@ namespace Steel
             assert ( false );
         }
         Ogre::String s ( _cwd );
-//	std::cout<<"File::getCurrentDir(): "<<s<<std::endl;
         return File ( s );
     }
 
@@ -296,21 +324,24 @@ namespace Steel
 #endif
     }
 
-    std::list<File> File::ls(File::NodeType filter)
+    std::vector<File> File::ls(File::NodeType filter)
     {
-        std::list<File> nodes;
         if(!(exists() && isDir()))
-            return nodes;
+            return std::vector<File>(0);
 
         std::vector<std::string> files;
         Poco::File(fullPath()).list(files);;
+        std::list<File> nodes;
         for(auto it=files.begin(); it!=files.end(); ++it)
         {
-            File file=*it;
+            File file=subfile(*it);
             if(file.nodeType()&filter)
                 nodes.push_back(file);
         }
-        return nodes;
+        std::vector<File> vecnodes;
+        for(auto it=nodes.begin(); it!=nodes.end(); ++it)
+            vecnodes.push_back(*it);
+        return vecnodes;
     }
 
     File::NodeType File::nodeType()
@@ -345,14 +376,13 @@ namespace Steel
         return *this;
     }
 
-    File File::subdir ( Ogre::String dirname )
+    File File::subfile ( Ogre::String const filename ) const
     {
-        return File ( fullPath() + "/" + dirname );
-    }
-
-    File File::subfile ( Ogre::String filename )
-    {
+        #ifdef __unix
         return File ( fullPath() + "/" + filename );
+        #else
+        return File ( fullPath() + "\\" + filename );
+        #endif
     }
 
     void File::setPath(Ogre::String path)

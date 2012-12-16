@@ -2,6 +2,7 @@
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Controls/ElementFormControlInput.h>
 #include <Rocket/Debugger.h>
+#include <Rocket/Core/Element.h>
 
 #include "UI/Editor.h"
 #include "Debug.h"
@@ -13,7 +14,7 @@
 namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
-        mEngine(NULL),mUI(NULL),mFSResources(NULL)
+        mEngine(NULL),mUI(NULL),mFSResources(NULL),mDataDir()
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -40,7 +41,16 @@ namespace Steel
 
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI * ui)
     {
-        mFSResources=new FileSystemDataSource("resources",engine->rootDir().subdir("data"));
+        mDataDir=ui->dataDir().subfile("editor").fullPath();
+        Debug::log("Editor::init()").endl();
+        auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
+        // true is for recursive search. Add to this resources.cfg
+        resGroupMan->addResourceLocation(mDataDir.fullPath(), "FileSystem", "UI",true);
+        //resGroupMan->addResourceLocation(mDataDir.subfile("images").fullPath(), "FileSystem", "UI",true);
+        //resGroupMan->declareResource("inode-directory.png","Texture","UI");
+
+        mFSResources=new FileSystemDataSource("resources",engine->rootDir().subfile("data").subfile("resources"));
+
         UIPanel::init(width,height);
         mEngine=engine;
         mUI=ui;
@@ -51,10 +61,6 @@ namespace Steel
             // does not work for some reason
 //             elem->AddEventListener("submit",this);
         }
-        //debug
-        elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("editor_menu_tab_edit");
-        if(elem!=NULL)
-            elem->Click();
     }
 
     void Editor::onFileChangeEvent(File *file)
@@ -69,6 +75,11 @@ namespace Steel
         mDocument->AddEventListener("click",this);
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
+        mFSResources->refresh();
+        //debug
+        auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("editor_menu_tab_edit");
+        if(elem!=NULL)
+            elem->Click();
     }
 
     void Editor::onHide()

@@ -79,7 +79,7 @@ namespace Steel
             /// write the given string into the file, replacing what's already in.
             File &write ( Ogre::String s );
 
-            /// returns the file (file/directory) name
+            /// returns the file (file (extension included)/directory) name
             Ogre::String fileName() const;
 
             /// return true is the file exists.
@@ -104,16 +104,10 @@ namespace Steel
             Ogre::String fullPath() const;
 
             /**
-             * return a file pointing at a subdirectory which name is given.
-             * Note that the subdirectory might not exist.
-             */
-            File subdir ( Ogre::String dirname );
-
-            /**
              * return a file pointing at a subfile which name is given.
              * Note that the subfile might not exist.
              */
-            File subfile ( Ogre::String filename );
+            File subfile ( Ogre::String const filename ) const;
 
             /**
              * the file/dir containing this file instance.
@@ -146,13 +140,26 @@ namespace Steel
              * Only instances pointing to an existing directory return a non-empty list.
              * NodeType filter indicates whether to return folders, files, or both (default).
              */
-            std::list<File> ls(NodeType filter=ANY);
+            std::vector<File> ls(NodeType filter=ANY);
             
             /**
              * Returns the type of the node as a NodeType compatible value.
              * Returns File::ANY if the File instance points neither to a file nor to a dir.
              */
             NodeType nodeType();
+            
+            /// returns the file path (!! excludes its name).
+            Ogre::String path();
+            
+            /// returns the file extension.
+            Ogre::String extension();
+            
+            /*
+            Not trivial to implement. There is no definite way to differencite between a directory and a file.
+            /// returns the path relative to the given File
+            Ogre::String relpath(File comp);
+            */
+            
 
         protected:
             /// fd of the file getting files event notifications from the kernel

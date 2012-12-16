@@ -11,21 +11,22 @@
 
 namespace Steel
 {
+    Debug::DebugObject Debug::log;
+    Debug::DebugObject Debug::warning;
+    Debug::DebugObject Debug::error;
+    bool Debug::isInit=false;
+    Ogre::String Debug::DebugObject::sIndentString=Ogre::String("    ");
 
-Debug::DebugObject Debug::log;
-Debug::DebugObject Debug::warning;
-Debug::DebugObject Debug::error;
-Ogre::String Debug::DebugObject::sIndentString=Ogre::String("    ");
+    Debug::Debug()
+    {
+        // TODO Auto-generated constructor stub
 
-Debug::Debug()
-{
-	// TODO Auto-generated constructor stub
+    }
+
+    Debug::~Debug()
+    {
+        // TODO Auto-generated destructor stub
+    }
 
 }
-
-Debug::~Debug()
-{
-	// TODO Auto-generated destructor stub
-}
-
-}
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

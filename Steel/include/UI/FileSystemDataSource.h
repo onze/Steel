@@ -2,8 +2,10 @@
 #define STEEL_FILESYSTEMDATASOURCE_H
 
 #include <Rocket/Controls/DataSource.h>
+#include <Rocket/Controls/DataFormatter.h>
 #include <OgrePrerequisites.h>
 #include <tools/File.h>
+#include <vector>
 
 namespace Steel
 {
@@ -12,7 +14,7 @@ namespace Steel
      * it reads a file system and "write" to the grid a hierarchy of resources.
      * see http://librocket.com/wiki/documentation/tutorials/Datagrid
      */
-    class FileSystemDataSource:public Rocket::Controls::DataSource
+    class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Controls::DataFormatter
     {
         private:
             FileSystemDataSource() {};
@@ -45,9 +47,22 @@ namespace Steel
              * how many rows are currently in that
              */
             virtual int GetNumRows(const Rocket::Core::String& table);
+
+            void refresh()
+            {
+                NotifyRowChange("$root");
+            }
+
+            // Formats the raw results of a data source request into RML.
+            // @param[out] formatted_data The formatted RML.
+            // @param[in] raw_data A list of the raw data fields.
+            virtual void FormatData(Rocket::Core::String& formatted_data,const Rocket::Core::StringList& raw_data);
         protected:
             Ogre::String mDatasourceName;
             File mRootDir;
+//             /// files in the subtree
+//             std::vector<File> mSubFiles;
+            File mCurrentDir;
     };
 
 }

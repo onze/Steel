@@ -70,7 +70,7 @@ namespace Steel
         //single level only
         if (mLevel != NULL)
             delete mLevel;
-        mLevel = new Level(mRootDir.subdir("data").subdir("levels"), levelName, mSceneManager, mCamera);
+        mLevel = new Level(mRootDir.subfile("data").subfile("levels"), levelName, mSceneManager, mCamera);
 
         return mLevel;
     }
@@ -158,6 +158,7 @@ namespace Steel
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         Debug::init(defaultLog, logListener);
         Debug::log("Debug setup.").endl();
+        Debug::log("cwd: ")(mRootDir).endl();
         mRoot = new Ogre::Root(plugins, "");
 
         // setup resources
@@ -246,7 +247,7 @@ namespace Steel
         // makes sure the window is usable (for instance for gui init) once out of init.
         mRenderWindow->update();
 
-        mUI.init(width,height,mRootDir.subdir("data/ui"),&mInputMan,mSceneManager,mRenderWindow,this);
+        mUI.init(width,height,mRootDir.subfile("data/ui"),&mInputMan,mSceneManager,mRenderWindow,this);
         Debug::log.unIndent();
         // unit testing
         if(true)
@@ -484,7 +485,11 @@ namespace Steel
 
     void Engine::setRootDir(File rootdir)
     {
-        Debug::log("Steel::Engine: setting application root dir to ")(rootdir.fullPath()).endl();
+        std::string s="Steel::Engine: setting application root dir to ";
+        if(Debug::isInit)
+            Debug::log(s)(rootdir.fullPath()).endl();
+        else
+            std::cout<<(s+rootdir.fullPath())<<std::endl;
         mRootDir = rootdir;
     }
 
