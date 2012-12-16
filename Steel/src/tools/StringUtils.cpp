@@ -1,11 +1,13 @@
 #include "tools/StringUtils.h"
+#include <Debug.h>
 #include <Rocket/Core/String.h>
 
 namespace Steel
 {
-    std::vector<Ogre::String> StringUtils::_split(std::string src,std::string sep)
+    template<class T>
+    std::vector<T> StringUtils::split(T const &src,T const &sep)
     {
-        std::vector<Ogre::String> ret;
+        std::vector<T> ret;
         std::size_t last=0,next=0;
         int i=0;
         while(1)
@@ -13,7 +15,7 @@ namespace Steel
             if(++i>10)
                 break;
             next=src.find(sep,next);
-            ret.push_back(Ogre::String(src.substr(last,next-last)));
+            ret.push_back(T(src.substr(last,next-last)));
 
             if(next==src.npos)
                 break;
@@ -22,14 +24,53 @@ namespace Steel
         return ret;
     }
 
-    std::vector<Ogre::String> StringUtils::split(Ogre::String src,Ogre::String sep)
+    std::vector<Ogre::String> StringUtils::split(Ogre::String src,Rocket::Core::String sep)
     {
-        return StringUtils::_split(std::string(src.c_str()),std::string(sep.c_str()));
+        return StringUtils::split(src,Ogre::String(sep.CString()));
     }
 
-    std::vector<Ogre::String> StringUtils::split(Rocket::Core::String src,Rocket::Core::String sep)
+    std::vector<Ogre::String> StringUtils::split(Rocket::Core::String src,Ogre::String sep)
     {
-        return StringUtils::_split(std::string(src.CString()),std::string(sep.CString()));
+        return StringUtils::split(Ogre::String(src.CString()),sep);
+    }
+
+    std::vector<Ogre::String> StringUtils::split(const char src[],const char sep[])
+    {
+        return StringUtils::split(Ogre::String(src),Ogre::String(sep));
+    }
+
+    template<class T>
+    T StringUtils::_join(T const &joiner,std::vector<T> const &vec,int start,int end)
+    {
+        T res;
+        if(vec.size()==0)
+            return res;
+
+        while(start<0)start+=vec.size();
+        if(end==INT_MIN)
+            end=vec.size();
+        while(end<0)end+=vec.size();
+
+        if(start>=end)
+            return res;
+
+        Debug::log("range ")(start)(" ")(end).endl();
+
+        for(auto i=start; i<end; ++i)
+        {
+            if(res.length()>0)
+                res.append(joiner);
+            res.append(vec.at(i));
+            Debug::log("i: ")(i)(" res:")(res).endl();
+        }
+        return res;
+    }
+
+    Ogre::String StringUtils::join(Ogre::String const &joiner,std::vector<Ogre::String> const &vec,int start,int end)
+    {
+        return StringUtils::_join(joiner,vec,start,end);
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
+
