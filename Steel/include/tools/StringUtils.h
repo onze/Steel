@@ -24,7 +24,7 @@ namespace Steel
             template<class T>
             static std::vector<T> split(T const &src,T const &sep);
 
-            /// join a vector of strings with the given joiner string. See generic header for details. Specialized for mixed types.
+            /// join a vector of strings with the given joiner string. See generic header for details. Specialized for mixed&old types.
             static Ogre::String join(std::vector<Ogre::String> const &vec,Ogre::String const &joiner="",int start=0,int end=INT_MIN);
             
             /// join a Rocket::Core::StringList with the given joiner string. See generic header for details. Specialized for mixed types.
@@ -36,7 +36,7 @@ namespace Steel
              * Generic version.
              */
             template<class T>
-            static T join(std::vector<T> const &vec,T const &joiner,int start,int end);
+            static T join(std::vector<T> const &vec,T const &joiner="",int start=0,int end=INT_MIN);
     };
 }
 #endif // STRINGUTILS_H

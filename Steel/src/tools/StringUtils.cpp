@@ -42,6 +42,7 @@ namespace Steel
     template<class T>
     T StringUtils::join(std::vector<T> const &vec,T const &joiner,int start,int end)
     {
+        bool verbose=false;
         T res;
         if(vec.size()==0)
             return res;
@@ -54,21 +55,23 @@ namespace Steel
         if(start>=end)
             return res;
 
-//         Debug::log("range ")(start)(" ")(end).endl();
+        if(verbose)Debug::log("range ")(start)(" ")(end).endl();
 
         for(auto i=start; i<end; ++i)
         {
             if(res.length()>0)
                 res.append(joiner);
             res.append(vec.at(i));
-//             Debug::log("i: ")(i)(" res:")(res).endl();
+            if(verbose)Debug::log("i: ")(i)(" res:")(res).endl();
         }
         return res;
     }
 
     Ogre::String StringUtils::join(std::vector<Ogre::String> const &vec,Ogre::String const &joiner,int start,int end)
     {
-        return StringUtils::join(vec,joiner,start,end);
+        // force use of the templated version to avoid infinite loop
+        // this overload is still usefull though, because many types convert to Ogre::String (especially cont char *)
+        return StringUtils::join<Ogre::String>(vec,joiner,start,end);
     }
 
     Rocket::Core::String StringUtils::join(Rocket::Core::StringList const &vec,Rocket::Core::String const &joiner,int start,int end)
