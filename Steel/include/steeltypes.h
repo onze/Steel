@@ -19,7 +19,7 @@ namespace Steel
     typedef unsigned long AgentId;
     typedef unsigned long ModelId;
 
-    const unsigned long INVALID_ID = ULONG_MAX;
+    const ModelId INVALID_ID = ULONG_MAX;
 
 // ModelType and modelTypesAsString need to stay in sync, and the usable enum values need to stay contiguous starting at 0.
     enum ModelType
