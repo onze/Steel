@@ -40,7 +40,7 @@ namespace Steel
     }
 
     template<class T>
-    T StringUtils::_join(std::vector<T> const &vec,T const &joiner,int start,int end)
+    T StringUtils::join(std::vector<T> const &vec,T const &joiner,int start,int end)
     {
         T res;
         if(vec.size()==0)
@@ -54,21 +54,26 @@ namespace Steel
         if(start>=end)
             return res;
 
-        Debug::log("range ")(start)(" ")(end).endl();
+//         Debug::log("range ")(start)(" ")(end).endl();
 
         for(auto i=start; i<end; ++i)
         {
             if(res.length()>0)
                 res.append(joiner);
             res.append(vec.at(i));
-            Debug::log("i: ")(i)(" res:")(res).endl();
+//             Debug::log("i: ")(i)(" res:")(res).endl();
         }
         return res;
     }
 
     Ogre::String StringUtils::join(std::vector<Ogre::String> const &vec,Ogre::String const &joiner,int start,int end)
     {
-        return StringUtils::_join(vec,joiner,start,end);
+        return StringUtils::join(vec,joiner,start,end);
+    }
+
+    Rocket::Core::String StringUtils::join(Rocket::Core::StringList const &vec,Rocket::Core::String const &joiner,int start,int end)
+    {
+        return StringUtils::join(std::vector<Rocket::Core::String>(vec),joiner,start,end);
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

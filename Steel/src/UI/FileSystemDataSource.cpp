@@ -1,5 +1,6 @@
 #include "UI/FileSystemDataSource.h"
 #include <Debug.h>
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -102,12 +103,16 @@ namespace Steel
         {
             bool isDir=raw_data[0]=="$dir";
             bool hasKids=raw_data[3] != "0";
+            Rocket::Core::String filename=raw_data.at(1);
+            Rocket::Core::String path=raw_data[2];
 
             //TODO: escape double quotes in path
-            formatted_data += "<resourceitem";
+            formatted_data += "<resourceitem id=\"";
+            formatted_data += mDatasourceName.c_str();
+            formatted_data += "\"";
 
             if(!isDir)
-                formatted_data+=" ondragdrop=\""+raw_data[2]+"\" style=\"drag:clone;\"";
+                formatted_data+=" ondragdrop=\""+path+"\" style=\"drag:clone;\"";
 
             formatted_data += ">";
 
@@ -122,11 +127,11 @@ namespace Steel
                 formatted_data+="<regular_inode/>";
 
             formatted_data += "<spacer/>";
-            formatted_data+=raw_data[1];
+            formatted_data+=filename;
         }
         else
         {
-            formatted_data += "<resourceitem onclick=\""+raw_data[2]+"\">";
+            formatted_data += "<resourceitem onclick=\""+StringUtils::join(raw_data,",")+"\">";
             formatted_data+="??";
         }
         formatted_data += "</resourceitem>";

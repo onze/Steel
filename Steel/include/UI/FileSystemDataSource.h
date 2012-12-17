@@ -53,9 +53,11 @@ namespace Steel
                 NotifyRowChange("$root");
             }
 
-            // Formats the raw results of a data source request into RML.
-            // @param[out] formatted_data The formatted RML.
-            // @param[in] raw_data A list of the raw data fields.
+            /** Formats the raw results of a data source request into RML.
+             *  Output resourceitems have their attribute "id" set to mDatasourceName.
+             * @param[out] formatted_data The formatted RML.
+             * @param[in] raw_data A list of the raw data fields.
+             */
             virtual void FormatData(Rocket::Core::String& formatted_data,const Rocket::Core::StringList& raw_data);
         protected:
             Ogre::String mDatasourceName;

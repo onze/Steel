@@ -46,10 +46,10 @@ namespace Steel
         assert(dst[2]=="d");
         assert(dst.size()==3);
         
-        assert(src==StringUtils::join(sep0,StringUtils::split(src,sep0)));
-        assert("a.b"==StringUtils::join(".",StringUtils::split("a.b;c",";"),0,-1));
-        assert(""==StringUtils::join(".",StringUtils::split("a;b;c","."),0,-1));
-        assert("a;b;c"==StringUtils::join(";",StringUtils::split("a;b;c",";")));
+        assert(src==StringUtils::join(StringUtils::split(src,sep0),sep0));
+        assert("a.b"==StringUtils::join(StringUtils::split("a.b;c",";"),".",0,-1));
+        assert(""==StringUtils::join(StringUtils::split("a;b;c","."),".",0,-1));
+        assert("a;b;c"==StringUtils::join(StringUtils::split("a;b;c",";"),";"));
 
         Debug::log("tests_StringUtils(): passed").endl();
     }
