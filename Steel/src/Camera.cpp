@@ -105,5 +105,19 @@ namespace Steel
         mCameraNode->translate(mCameraNode->getOrientation() * (Ogre::Vector3(dx, dy, dz)));
     }
 
+    Ogre::Vector3 Camera::dropTargetPosition(Ogre::Vector3 delta)
+    {
+        //TODO: test with different delta values
+        delta=Ogre::Vector3(.0, -1., -10.);
+        Ogre::Vector3 pos = mCameraNode->getPosition();
+        pos += mCameraNode->getOrientation() * delta;
+        return pos;
+    }
+
+    Ogre::Quaternion Camera::dropTargetRotation()
+    {
+        return mCameraNode->getOrientation();
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
