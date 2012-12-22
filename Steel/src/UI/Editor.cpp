@@ -50,7 +50,7 @@ namespace Steel
         //resGroupMan->addResourceLocation(mDataDir.subfile("images").fullPath(), "FileSystem", "UI",true);
         //resGroupMan->declareResource("inode-directory.png","Texture","UI");
 
-        mFSResources=new FileSystemDataSource("resources",engine->rootDir().subfile("data").subfile("resources"));
+        mFSResources=new FileSystemDataSource("models",engine->rootDir().subfile("data").subfile("models"));
 
         UIPanel::init(width,height);
         mEngine=engine;

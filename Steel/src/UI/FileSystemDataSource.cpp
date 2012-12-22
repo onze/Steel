@@ -70,9 +70,9 @@ namespace Steel
             else if(colName==Rocket::Controls::DataSource::CHILD_SOURCE)
             {
                 if(subfile.isDir())
-                    cell="resources."+subfile.fullPath();
+                    cell=mDatasourceName+"."+subfile.fullPath();
                 else
-                    cell="resources.$leaf";
+                    cell=mDatasourceName+".$leaf";
             }
 //             Debug::log(colName)(" : ")(cell).endl();
 //                 if(!cell.empty())
