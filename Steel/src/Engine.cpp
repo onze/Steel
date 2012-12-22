@@ -123,8 +123,6 @@ namespace Steel
         mWindowHandle = Ogre::StringConverter::toString(windowHandle);
 
         postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
-        mInputMan.grabMouse();
-        mInputMan.grabKeyboard();
     }
 
     void Engine::embeddedInit(Ogre::String plugins,
@@ -179,9 +177,11 @@ namespace Steel
             {
                 typeName = i->first;
                 archName = i->second;
-                Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
+                Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName,true);
             }
         }
+
+        Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Steel");
 
         // setup a renderer
         Ogre::RenderSystemList renderers = mRoot->getAvailableRenderers();
@@ -256,6 +256,7 @@ namespace Steel
             start_tests();
             Debug::log("unit tests done.").endl();
         }
+        mInputMan.grabInput(true);
         return 0;
     }
 
@@ -348,27 +349,41 @@ namespace Steel
 
     bool Engine::keyReleased(const OIS::KeyEvent& evt)
     {
-        switch(evt.key)
+
+        if(mEditMode)
         {
-            case OIS::KC_E:
-                if(mInputMan.isKeyDown(OIS::KC_LCONTROL))
-                {
-                    if(mEditMode)
-                        stopEditMode();
-                    else
-                        startEditMode();
-                }
-                break;
-            case OIS::KC_R:
-                if(mEditMode)
+            //EDITOR MODE
+            switch(evt.key)
+            {
+                case OIS::KC_GRAVE:
+                    stopEditMode();
+                    break;
+                case OIS::KC_R:
                     mUI.editor().reloadContent();
-                break;
-            case OIS::KC_S:
-                if(mInputMan.isKeyDown(OIS::KC_LCONTROL))
-                    if(mEditMode && mLevel!=NULL)
-                        mLevel->save();
-            default:
-                break;
+                    break;
+                case OIS::KC_S:
+                    if(mInputMan.isKeyDown(OIS::KC_LCONTROL))
+                        if(mLevel!=NULL)
+                            mLevel->save();
+                default:
+//                     Debug::log("Engine::keyReleased: ")(evt.key).endl();
+                    break;
+            }
+        }
+        else
+        {
+            //GAMING MODE
+            switch(evt.key)
+            {
+                case OIS::KC_GRAVE:
+                    startEditMode();
+                    break;
+                case OIS::KC_R:
+                case OIS::KC_S:
+                default:
+//                     Debug::log("Engine::keyReleased: ")(evt.key).endl();
+                    break;
+            }
         }
         return true;
     }
@@ -420,7 +435,6 @@ namespace Steel
                     dy -= speed;
                     break;
                 case OIS::KC_ESCAPE:
-                    mInputMan.releaseAll();
                     return false;
                     break;
                 default:
@@ -531,6 +545,7 @@ namespace Steel
         Debug::log("Engine::startEditMode()").endl();
         mEditMode=true;
         mUI.startEditMode();
+        mInputMan.grabInput(false);
     }
 
     void Engine::stopEditMode()
@@ -538,6 +553,7 @@ namespace Steel
         Debug::log("Engine::stopEditMode()").endl();
         mEditMode=false;
         mUI.stopEditMode();
+        mInputMan.grabInput(true);
     }
 
     void Engine::translateSelection(Ogre::Vector3 t)

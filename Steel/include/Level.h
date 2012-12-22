@@ -80,8 +80,9 @@ namespace Steel
              * rot: rotation of the node
              * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
              */
-            ModelId newOgreModel(Ogre::String name, Ogre::Vector3 pos = Ogre::Vector3::ZERO, Ogre::Quaternion rot =
-                                     Ogre::Quaternion::IDENTITY,
+            ModelId newOgreModel(Ogre::String name,
+                                 Ogre::Vector3 pos = Ogre::Vector3::ZERO,
+                                 Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
                                  bool involvesNewResources = false);
 
             /**
@@ -120,9 +121,9 @@ namespace Steel
             {
                 return mSceneManager;
             }
-            
+
         protected:
-            
+
             ///name used in debug output
             Ogre::String logName();
 

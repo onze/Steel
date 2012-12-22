@@ -46,8 +46,8 @@ namespace Steel
              */
             Json::Value toJson();
             
-            /// returns the position of the drop target in front of the camera, at a delta distance.
-            Ogre::Vector3 dropTargetPosition(Ogre::Vector3 delta);
+            /// returns the position of the drop target in front of the camera.
+            Ogre::Vector3 dropTargetPosition();
 
             /// returns the rotation of the drop target in front of the camera.
             Ogre::Quaternion dropTargetRotation();

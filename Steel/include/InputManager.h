@@ -38,15 +38,8 @@ namespace Steel
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 
-            void grabMouse();
-            void grabKeyboard();
-            void releaseMouse();
-            void releaseKeyboard();
-            void releaseAll()
-            {
-                releaseMouse();
-                releaseKeyboard();
-            };
+            void grabInput(bool exclusive=true);
+            void releaseInput();
 
             void update();
             void close();
@@ -90,13 +83,30 @@ namespace Steel
                 return mKeyboard;
             };
 
-        protected:
+    protected:
+        
+        void _grabInput(bool exclusive=true);
+        void _releaseInput();
+            OIS::ParamList getOISparams(bool exclusive);
+            
             //not owned
             Engine *mEngine;
             UI *mUI;
 
             //owned
+            /// create mMouse and mKeyboard according to parameters.
             OIS::InputManager* mOISInputManager;
+            ///true if the input is grabbed
+            bool mIsInputGrabbed;
+            ///true if the current grab is exclusive
+            bool mIsGrabExclusive;
+            
+            ///true as long as a requested delayed grab has not been processed
+            bool mDelayedInputGrabRequested;
+            ///true as long as a requested delayed release has not been processed
+            bool mDelayedInputReleaseRequested;
+            bool mDelayedRequestIsExclusive;
+            
             OIS::Mouse* mMouse;
             OIS::Keyboard* mKeyboard;
 

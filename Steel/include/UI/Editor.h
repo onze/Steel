@@ -5,6 +5,7 @@
 
 #include <OgreString.h>
 
+#include "steeltypes.h"
 #include "UI/UIPanel.h"
 
 namespace Steel
@@ -27,16 +28,21 @@ namespace Steel
             /// called right before the underlying document gets hidden
             virtual void onHide();
 
-            /// Rocket events
+            /// make a command out of a Rocket event
             void ProcessEvent(Rocket::Core::Event& event);
+            ///general command processing method. dispatches the work to other process*Commands
+            void processCommand(Ogre::String command);
             /// submethod processing ui commands concerning the engine
-            void processEngineCommands(std::vector<Ogre::String> command,Rocket::Core::Event *evt=NULL);
+            void processEngineCommand(std::vector<Ogre::String> command);
             /// submethod processing ui commands concerning levels
-            void processLevelCommands(std::vector<Ogre::String> command, Rocket::Core::Event *evt);
-            
-            // used to reattach the debugger on reload
+            void processLevelCommand(std::vector<Ogre::String> command);
+
+            /// used to reattach the debugger on reload
             virtual void onFileChangeEvent(File *file);
             
+            /// create an OgreModel from a mesh file
+            Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
+
         protected:
             //not owned
             Engine *mEngine;
