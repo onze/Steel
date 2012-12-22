@@ -162,7 +162,6 @@ namespace Steel
         assert(mOISInputManager!=NULL);
         assert(mKeyboard!=NULL);
         assert(mMouse!=NULL);
-//         Debug::log("InputManager::_grabInput() done").endl();
     }
 
     void InputManager::releaseInput()
@@ -174,13 +173,11 @@ namespace Steel
     {
         if(mMouse!=NULL)
         {
-//             Debug::log("InputManager::releaseMouse()").endl();
             mOISInputManager->destroyInputObject(mMouse);
             mMouse=NULL;
         }
         if(mKeyboard!=NULL)
         {
-//             Debug::log("InputManager::releaseKeyboard()").endl();
             mOISInputManager->destroyInputObject(mKeyboard);
             mKeyboard=NULL;
         }
@@ -195,7 +192,6 @@ namespace Steel
 
     bool InputManager::keyPressed(const OIS::KeyEvent& evt)
     {
-//	cout << "InputManager::keyPressed()" << endl;
         mKeysPressed.push_back(evt.key);
         mKeysPressed.unique();
 
