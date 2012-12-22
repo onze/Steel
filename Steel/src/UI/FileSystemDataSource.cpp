@@ -90,7 +90,8 @@ namespace Steel
         else if (table=="$leaf")
             n=0;
         else
-            n=File(table.CString()).ls(File::ANY).size();
+            // ignore hidden files
+            n=File(table.CString()).ls(File::DIR|File::FILE,false).size();
 //         Debug::log.endl()("cwd/table:")(table)(" -> ")(n)(" rows").endl();
         return n;
     }

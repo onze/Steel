@@ -324,7 +324,7 @@ namespace Steel
 #endif
     }
 
-    std::vector<File> File::ls(File::NodeType filter)
+    std::vector<File> File::ls(File::NodeType filter, bool include_hidden)
     {
         if(!(exists() && isDir()))
             return std::vector<File>(0);
@@ -335,8 +335,13 @@ namespace Steel
         for(auto it=files.begin(); it!=files.end(); ++it)
         {
             File file=subfile(*it);
-            if(file.nodeType()&filter)
+            NodeType nodeType=file.nodeType();
+            if(nodeType&filter)
+            {
+                if(!include_hidden && (nodeType&HIDDEN))
+                    continue;
                 nodes.push_back(file);
+            }
         }
         std::vector<File> vecnodes;
         for(auto it=nodes.begin(); it!=nodes.end(); ++it)
@@ -346,9 +351,16 @@ namespace Steel
 
     File::NodeType File::nodeType()
     {
-        if(isDir())return File::DIR;
-        if(isFile())return File::FILE;
-        return File::ANY;
+        NodeType type=static_cast<NodeType>(0);
+        if(exists())
+        {
+            if(isDir())type=type|File::DIR;
+            if(isFile())type=type|File::FILE;
+            if(fileName().at(0)=='.')type=type|File::HIDDEN;
+        }
+        else
+            return File::ANY;
+        return type;
     }
 
     Ogre::String File::read()
@@ -378,11 +390,11 @@ namespace Steel
 
     File File::subfile ( Ogre::String const filename ) const
     {
-        #ifdef __unix
+#ifdef __unix
         return File ( fullPath() + "/" + filename );
-        #else
+#else
         return File ( fullPath() + "\\" + filename );
-        #endif
+#endif
     }
 
     void File::setPath(Ogre::String path)

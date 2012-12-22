@@ -42,8 +42,11 @@ namespace Steel
 
             enum NodeType
             {
-                FILE=1<<0,
-                DIR=1<<1,
+                FILE=1<<1,
+                DIR=1<<2,
+                /// filename starts with a dot.
+                HIDDEN=1<<3,
+                /// unlikely, unless the file does not exist.
                 ANY=~0
             };
 
@@ -79,7 +82,7 @@ namespace Steel
             /// write the given string into the file, replacing what's already in.
             File &write ( Ogre::String s );
 
-            /// returns the file (file (extension included)/directory) name
+            /// returns the file name (extension is part of the name)
             Ogre::String fileName() const;
 
             /// return true is the file exists.
@@ -134,32 +137,32 @@ namespace Steel
              * Does not crash if the path could not be created, so please check.
              */
             void mkdir();
-            
+
             /**
-             * list the current directory and return a list of files. 
+             * list the current directory and return a list of files.
              * Only instances pointing to an existing directory return a non-empty list.
              * NodeType filter indicates whether to return folders, files, or both (default).
              */
-            std::vector<File> ls(NodeType filter=ANY);
-            
+            std::vector<File> ls(NodeType filter=ANY,bool include_hidden=false);
+
             /**
              * Returns the type of the node as a NodeType compatible value.
              * Returns File::ANY if the File instance points neither to a file nor to a dir.
              */
             NodeType nodeType();
-            
+
             /// returns the file path (!! excludes its name).
             Ogre::String path();
-            
+
             /// returns the file extension.
             Ogre::String extension();
-            
+
             /*
             Not trivial to implement. There is no definite way to differencite between a directory and a file.
             /// returns the path relative to the given File
             Ogre::String relpath(File comp);
             */
-            
+
 
         protected:
             /// fd of the file getting files event notifications from the kernel
@@ -213,6 +216,21 @@ namespace Steel
             int mWD;
 
     };
+    /// type safe enum bitwise OR operator
+    inline File::NodeType operator|(File::NodeType a, File::NodeType b)
+    {
+        return static_cast<File::NodeType>(static_cast<int>(a) | static_cast<int>(b));
+    }
+    /// type safe enum bitwise AND operator
+    inline File::NodeType operator&(File::NodeType a, File::NodeType b)
+    {
+        return static_cast<File::NodeType>(static_cast<int>(a) & static_cast<int>(b));
+    }
+    /// type safe enum bitwise NOT operator
+    inline File::NodeType operator~(File::NodeType a)
+    {
+        return static_cast<File::NodeType>(~static_cast<int>(a));
+    }
 }
 #endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
