@@ -7,6 +7,7 @@
 #include <UI/RenderInterfaceOgre3D.h>
 #include "Debug.h"
 #include "InputManager.h"
+#include <tools/OgreUtils.h>
 #include "UI/RenderInterfaceOgre3D.h"
 
 namespace Steel
@@ -121,8 +122,8 @@ namespace Steel
         auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
         //rocket init
 //         Debug::log("ok").endl();
-        if(!resGroupMan->resourceGroupExists("UI"))
-            resGroupMan->createResourceGroup("UI");
+//         if(!resGroupMan->resourceGroupExists("UI"))
+//             resGroupMan->createResourceGroup("UI");
         resGroupMan->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
         mRocketRenderInterface=new RenderInterfaceOgre3D(width,height,engine);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
@@ -149,17 +150,7 @@ namespace Steel
         resGroupMan->loadResourceGroup("UI");
         sceneManager->addRenderQueueListener(this);
 
-        Debug::log("== Resources locations ==").indent().endl();
-        auto resGroupNames=resGroupMan->getResourceGroups();
-        for(auto it=resGroupNames.begin(); it!=resGroupNames.end(); ++it)
-        {
-            Debug::log(*it)(":").endl();
-            Debug::log("\tlocations:");
-            Debug::log(Ogre::ResourceGroupManager::getSingleton().getResourceLocationList(*it)).endl();
-            Debug::log("\tfiles:");
-            Debug::log(Ogre::ResourceGroupManager::getSingleton().getResourceDeclarationList(*it)).endl();
-        }
-        Debug::log.unIndent().endl();
+        OgreUtils::resourceGroupsInfos();
     }
 
     void UI::startEditMode()

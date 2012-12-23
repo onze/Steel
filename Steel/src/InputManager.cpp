@@ -215,9 +215,9 @@ namespace Steel
         mHasMouseMoved = true;
 
         OIS::MouseState ms = evt.state;
-
         mMouseMove += Ogre::Vector2(ms.X.rel, ms.Y.rel);
         mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
+//         Debug::log(mMouseMove).endl();
 
         mEngine->mouseMoved(evt);
         mUI->mouseMoved(evt);

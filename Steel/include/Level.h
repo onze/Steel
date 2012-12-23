@@ -49,9 +49,9 @@ namespace Steel
             Agent *getAgent(AgentId id);
 
             /**
-             * fills the ModelId list with ids of Things that own nodes in the the given list.
+             * fills the list of AgentId with agents that own nodes in the the given list.
              */
-            void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection);
+            void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<AgentId> &selection);
 
             /**
              * returns the name of the json file that contains this level's properies.

@@ -7,13 +7,13 @@ namespace Steel
 
     FileSystemDataSource::FileSystemDataSource(Ogre::String datasourceName,File rootDir)
         :Rocket::Controls::DataSource(datasourceName.c_str()),Rocket::Controls::DataFormatter(datasourceName.c_str()),
-         mDatasourceName(datasourceName),mRootDir(rootDir),mCurrentDir("")
+         mDatasourceName(datasourceName),mRootDir(rootDir)
     {
     }
 
     FileSystemDataSource::FileSystemDataSource(const FileSystemDataSource& o)
         :Rocket::Controls::DataSource(o),Rocket::Controls::DataFormatter(o.mDatasourceName.c_str()),
-         mDatasourceName(o.mDatasourceName),mRootDir(o.mRootDir),mCurrentDir("")
+         mDatasourceName(o.mDatasourceName),mRootDir(o.mRootDir)
     {
     }
 
@@ -26,7 +26,6 @@ namespace Steel
     {
         mDatasourceName=o.mDatasourceName;
         mRootDir=o.mRootDir;
-        mCurrentDir=o.mCurrentDir;
         return *this;
     }
 
@@ -61,11 +60,11 @@ namespace Steel
             }
             else if(colName=="filename")
             {
-                cell=subfile.fileName();
+                cell=subfile.fileBaseName();
             }
             else if(colName=="fullpath")
             {
-                cell=mRootDir.subfile(mCurrentDir.fileName()).subfile(subfile.fileName()).path();
+                cell=subfile.fullPath();
             }
             else if(colName==Rocket::Controls::DataSource::CHILD_SOURCE)
             {
@@ -104,8 +103,8 @@ namespace Steel
         {
             bool isDir=raw_data[0]=="$dir";
             bool hasKids=raw_data[3] != "0";
-            Rocket::Core::String filename=raw_data.at(1);
-            Rocket::Core::String path=raw_data[2];
+            Rocket::Core::String filename=raw_data[1];
+            Rocket::Core::String fullpath=raw_data[2];
 
             //TODO: escape double quotes in path
             formatted_data += "<resourceitem id=\"";
@@ -113,7 +112,15 @@ namespace Steel
             formatted_data += "\"";
 
             if(!isDir)
-                formatted_data+=" ondragdrop=\""+path+"\" style=\"drag:clone;\"";
+            {
+                formatted_data+=" ondragdrop=\"";
+                formatted_data+=fullpath;
+                formatted_data+="\" style=\"drag:clone;\"";
+                
+                formatted_data+=" onclick=\"";
+                formatted_data+=fullpath;
+                formatted_data+="\" ";
+            }
 
             formatted_data += ">";
 
@@ -132,7 +139,7 @@ namespace Steel
         }
         else
         {
-            formatted_data += "<resourceitem onclick=\""+StringUtils::join(raw_data,",")+"\">";
+            formatted_data += "<resourceitem>";
             formatted_data+="??";
         }
         formatted_data += "</resourceitem>";

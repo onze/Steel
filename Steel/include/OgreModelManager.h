@@ -30,10 +30,12 @@ public:
 	OgreModelManager();
 	OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
 	virtual ~OgreModelManager();
+        
 	/**
-	 * initialize new OgreModel according to data in the json serialization.
+	 * initialize new OgreModels according to data in the json serialization.
 	 */
-	bool fromJson(Json::Value &models);
+        std::vector<ModelId> fromJson(Json::Value &models);
+        
 	/**
 	 * initialize a new OgreModel and returns its identifier.
 	 */

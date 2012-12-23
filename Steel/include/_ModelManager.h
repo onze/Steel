@@ -58,10 +58,10 @@ public:
 	/**
 	 * initialize new Model according to data in the json serialization.
 	 */
-	virtual bool fromJson(Json::Value &object)
+        virtual std::vector<ModelId> fromJson(Json::Value &object)
 	{
 		Debug::error("_ModelManager::fromJson(): NotImplemented by subclass (should be tho).");
-		return false;
+                return std::vector<ModelId>();
 	}
 
 	/**

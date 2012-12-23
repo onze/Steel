@@ -13,6 +13,10 @@ namespace Steel
      * This class operates as a data source for a ui librocket grid element:
      * it reads a file system and "write" to the grid a hierarchy of resources.
      * see http://librocket.com/wiki/documentation/tutorials/Datagrid
+     * 
+     * Each produced item is whether a file or a folder with the following properties:
+     * - it emits a click event when clicked, with click value "<mDataSourceName>.<item full path>"
+     * - it emits a dragdrop event when dropped, with dragdrop value "<mDataSourceName>.<item full path>"
      */
     class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Controls::DataFormatter
     {
@@ -62,9 +66,6 @@ namespace Steel
         protected:
             Ogre::String mDatasourceName;
             File mRootDir;
-//             /// files in the subtree
-//             std::vector<File> mSubFiles;
-            File mCurrentDir;
     };
 
 }

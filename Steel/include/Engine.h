@@ -81,7 +81,7 @@ namespace Steel
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 
             /**
-             * Takes window coordinates and lists under the given list all Agent's that collide with a ray going from the camera
+             * Takes window coordinates and lists into the given list all Agents whose OgreModel collides with a ray going from the camera
              * center to the given coordinates.
              * see http://www.ogre3d.org/tikiwiki/Raycasting+to+the+polygon+level
              */

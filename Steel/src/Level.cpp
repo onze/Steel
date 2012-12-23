@@ -70,7 +70,7 @@ namespace Steel
 
     void Level::deleteAgent(AgentId id)
     {
-        Debug::log(logName()+".deleteThing() id: ")(id).endl();
+        Debug::log(logName()+".deleteAgent() id: ")(id).endl();
         std::map<AgentId, Agent *>::iterator it = mAgents.find(id);
         if (it == mAgents.end())
             return;
@@ -90,7 +90,7 @@ namespace Steel
         ModelManager *mm = modelManager(mtype);
         if (mm == NULL)
         {
-            Debug::error(logName()+".linkAgentToOgreModel(): mtype ")(mtype)(" aka \"");
+            Debug::error(logName()+".linkAgentToOgreModel(): mtype ")((long int)mtype)(" aka \"");
             Debug::error(modelTypesAsString[mtype])("\" does not exist.").endl();
             return false;
         }

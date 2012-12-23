@@ -180,6 +180,10 @@ namespace Steel
                 Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName,true);
             }
         }
+        File dir=mRootDir.subfile("data");
+        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(dir.fullPath(), "FileSystem", "Steel",true);
+        dir=dir.subfile("resources");
+        Ogre::ResourceGroupManager::getSingleton ().addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem","Steel",true);
 
         Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Steel");
 
@@ -208,6 +212,7 @@ namespace Steel
 
         // Set default mipmap level (NB some APIs ignore this)
         Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
+//         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mRootDir.subfile("data").subfile("resources").subfile("meshes"),"FileSystem", "Steel",true);
         // initialise all resource groups
         Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
@@ -216,7 +221,8 @@ namespace Steel
         // Create the camera
         mCamera = new Camera(mSceneManager);
 
-        mCamera->cam()->setNearClipDistance(5);
+        mCamera->cam()->setNearClipDistance(.5);
+        mCamera->cam()->setFarClipDistance(500);
 
         // Create one viewport, entire window
         mViewport = mRenderWindow->addViewport(mCamera->cam());
@@ -299,6 +305,9 @@ namespace Steel
         //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
         mMustAbortMainLoop = false;
 
+        //debug
+        mUI.editor().processCommand("engine.level.load.MyLevel");
+//         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
         Ogre::Timer timer;
         while (!mMustAbortMainLoop)
@@ -411,29 +420,48 @@ namespace Steel
         mInputMan.update();
 
         //process keyboard
-        float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
+        float dx = .0f, dy = .0f, dz = .0f, speed = .05f;
         for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
+            if(mEditMode)
+            {
+                // ONLY IN edit mode
+                switch (*it)
+                {
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                // ONLY NOT IN edit mode
+                switch (*it)
+                {
+                    case OIS::KC_W:
+                        dz -= speed;
+                        break;
+                    case OIS::KC_A:
+                        dx -= speed;
+                        break;
+                    case OIS::KC_S:
+                        dz += speed;
+                        break;
+                    case OIS::KC_D:
+                        dx += speed;
+                        break;
+                    case OIS::KC_SPACE:
+                        dy += speed;
+                        break;
+                    case OIS::KC_LSHIFT:
+                        dy -= speed;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            // ALL THE TIME
             switch (*it)
             {
-                case OIS::KC_W:
-                    dz -= speed;
-                    break;
-                case OIS::KC_A:
-                    dx -= speed;
-                    break;
-                case OIS::KC_S:
-                    dz += speed;
-                    break;
-                case OIS::KC_D:
-                    dx += speed;
-                    break;
-                case OIS::KC_SPACE:
-                    dy += speed;
-                    break;
-                case OIS::KC_LSHIFT:
-                    dy -= speed;
-                    break;
                 case OIS::KC_ESCAPE:
                     return false;
                     break;
@@ -447,8 +475,10 @@ namespace Steel
         if (mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
-            mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
+            if(!mEditMode)
+                mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
         }
+//         Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
         mInputMan.resetFrameBasedData();
         return true;
 

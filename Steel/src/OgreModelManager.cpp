@@ -11,6 +11,7 @@
 
 #include "Debug.h"
 #include "OgreModelManager.h"
+#include "tools/OgreUtils.h"
 
 namespace Steel
 {
@@ -32,10 +33,10 @@ namespace Steel
         // TODO Auto-generated destructor stub
     }
 
-    bool OgreModelManager::fromJson(Json::Value &models)
+    std::vector<ModelId> OgreModelManager::fromJson(Json::Value &models)
     {
-        Debug::log("OgreModelManager::fromJson()").endl();
-        Debug::log(Ogre::String(models.toStyledString())).endl();
+        Debug::log("OgreModelManager::fromJson()")(models).endl();
+        std::vector<ModelId> ids;
         for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
         {
             //TODO: implement id remapping, so that we stay in a low id range
@@ -43,6 +44,10 @@ namespace Steel
             Json::Value value = *it;
             //get value for init
             Ogre::String meshName = value["entityMeshName"].asString();
+            Ogre::ResourceGroupManager::getSingleton ().declareResource(meshName, "FileSystem", "Steel");
+            Ogre::ResourceGroupManager::getSingleton ().initialiseResourceGroup("Steel");
+            
+            OgreUtils::resourceGroupsInfos();
 
             Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(value["position"].asString());
             Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(value["rotation"].asString());
@@ -51,10 +56,15 @@ namespace Steel
             //incRef(id);
             int loadingOk=mModels[id].fromJson(value, mLevelRoot, mSceneManager);
             //TODO discard, quarantine, repair ?
-            if(!loadingOk)
-                ;
+            if(loadingOk)
+                ids.push_back(id);
+            else
+            {
+                releaseModel(id);
+                ids.push_back(INVALID_ID);
+            }
         }
-        return true;
+        return ids;
     }
 
     ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)

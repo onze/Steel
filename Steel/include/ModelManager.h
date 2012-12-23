@@ -10,6 +10,7 @@
 
 #include "steeltypes.h"
 #include <json/json.h>
+#include <vector>
 
 namespace Steel
 {
@@ -28,7 +29,7 @@ namespace Steel
             virtual Model *at(ModelId id)=0;
             virtual bool incRef(ModelId id)=0;
             virtual void releaseModel(ModelId modelId)=0;
-            virtual bool fromJson(Json::Value &object)=0;
+            virtual std::vector<ModelId> fromJson(Json::Value &object)=0;
             virtual void toJson(Json::Value &object)=0;
     };
 

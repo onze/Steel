@@ -28,6 +28,12 @@ namespace Steel
             /// called right before the underlying document gets hidden
             virtual void onHide();
 
+            /**
+             * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel: position),
+             * and loads it.
+             */
+            void loadModelFromFile(File &file);
+            
             /// make a command out of a Rocket event
             void ProcessEvent(Rocket::Core::Event& event);
             ///general command processing method. dispatches the work to other process*Commands
@@ -48,9 +54,10 @@ namespace Steel
             Engine *mEngine;
             UI *mUI;
             //owned
-            /// resources available (for levels, etc)
-            FileSystemDataSource *mFSResources;
+            /// models available (for levels, etc)
+            FileSystemDataSource *mFSModels;
             File mDataDir;
+        private:
     };
 }
 #endif // EDITOR_H

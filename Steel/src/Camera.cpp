@@ -48,7 +48,7 @@ namespace Steel
         y *= factor;
 
         mCameraNode->pitch(Ogre::Degree(x), Ogre::SceneNode::TS_LOCAL);
-        mCameraNode->yaw(Ogre::Degree(y), Ogre::SceneNode::TS_WORLD);
+        mCameraNode->yaw(Ogre::Degree(y), Ogre::SceneNode::TS_LOCAL);
     }
 
     bool Camera::fromJson(Json::Value &root)

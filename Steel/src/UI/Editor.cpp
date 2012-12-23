@@ -1,4 +1,6 @@
 
+#include <json/json.h>
+
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Controls/ElementFormControlInput.h>
 #include <Rocket/Debugger.h>
@@ -11,11 +13,12 @@
 #include "Engine.h"
 #include "UI/FileSystemDataSource.h"
 #include <Camera.h>
+#include <OgreModelManager.h>
 
 namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
-        mEngine(NULL),mUI(NULL),mFSResources(NULL),mDataDir()
+        mEngine(NULL),mUI(NULL),mFSModels(NULL),mDataDir()
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -31,7 +34,7 @@ namespace Steel
     {
         mEngine=NULL;
         mUI=NULL;
-        mFSResources=NULL;
+        mFSModels=NULL;
     }
 
     Editor& Editor::operator=(const Editor& other)
@@ -50,7 +53,7 @@ namespace Steel
         //resGroupMan->addResourceLocation(mDataDir.subfile("images").fullPath(), "FileSystem", "UI",true);
         //resGroupMan->declareResource("inode-directory.png","Texture","UI");
 
-        mFSResources=new FileSystemDataSource("models",engine->rootDir().subfile("data").subfile("models"));
+        mFSModels=new FileSystemDataSource("models",engine->rootDir().subfile("data").subfile("models"));
 
         UIPanel::init(width,height);
         mEngine=engine;
@@ -77,12 +80,12 @@ namespace Steel
         mDocument->AddEventListener("dragdrop",this);
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
-        mFSResources->refresh();
+        mFSModels->refresh();
+        
         //debug
         auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("editor_menu_tab_edit");
         if(elem!=NULL)
             elem->Click();
-//         processCommand("engine.level.instanciate.resource./media/a0/cpp/1210/usmb/install_dir/data/resources/meshes/seaweed_00.mesh");
     }
 
     void Editor::onHide()
@@ -109,9 +112,9 @@ namespace Steel
 
         if(evt=="dragdrop")
         {
-            if(elem->GetId()==mFSResources->GetDataSourceName())
+            if(elem->GetId()==mFSModels->GetDataSourceName())
             {
-                raw_commmand="engine.level.instanciate.resource.";
+                raw_commmand="engine.level.instanciate.model.";
                 raw_commmand+=event_value;
             }
             else
@@ -148,6 +151,7 @@ namespace Steel
 
     void Editor::processCommand(Ogre::String raw_commmand)
     {
+        Debug::log("Editor::processCommand(")(raw_commmand)(")").endl();
         std::vector<Ogre::String> command;
         command=StringUtils::split(std::string(raw_commmand),std::string("."));
         // dispatch the command to the right subprocessing function
@@ -158,7 +162,7 @@ namespace Steel
         }
         else
         {
-            Debug::log("Editor::processCommand(): unknown command: ")(command).endl();
+            Debug::warning("Editor::processCommand(): unknown command: ")(command).endl();
         }
     }
 
@@ -211,36 +215,23 @@ namespace Steel
         }
         else if(command[0]=="instanciate")
         {
-            Ogre::String intro="Editor::processLevelCommand(): ";
-            if(command[1]=="resource")
+            command.erase(command.begin());
+            Ogre::String intro="Editor::processLevelCommand() instanciate: ";
+            if(command[0]=="model")
             {
-                if(command.size()<3)
+                command.erase(command.begin());
+                if(command.size()<1)
                 {
-                    Debug::error(intro+" command conains no file !").endl();
+                    Debug::error(intro+"command contains no file !").endl();
                     return;
                 }
-                File file=File(StringUtils::join(command,".",2));
+                File file=File(StringUtils::join(command,"."));
                 if(!file.exists())
                 {
-                    Debug::error(intro+" no such file ! ")(file).endl();
+                    Debug::error(intro+"no such file ! ")(file).endl();
                     return;
                 }
-                if(file.extension()=="mesh")
-                {
-                    Debug::log("instanciating ")(file)("...").endl();
-
-
-                    Ogre::Vector3 pos=mEngine->camera()->dropTargetPosition();
-                    Ogre::Quaternion rot=mEngine->camera()->dropTargetRotation();
-                    ModelId mid=instanciateFromMeshFile(file,pos,rot);
-                    if(mid==Steel::INVALID_ID)
-                        return;
-                }
-                else
-                {
-                    Debug::log(intro+"instanciation file ext unknown for file ")(file).endl();
-                    return;
-                }
+                loadModelFromFile(file);
             }
             else
             {
@@ -252,6 +243,93 @@ namespace Steel
         {
             Debug::log("Editor::processLevelCommand(): unknown command: ")(command).endl();
         }
+    }
+
+    void Editor::loadModelFromFile(File &file)
+    {
+        Debug::log("Editor::loadModelFromFile(")(file)(")").endl();
+        Ogre::String content=file.read();
+        Debug::log(content).endl();
+
+        Json::Reader reader;
+        Json::Value root;
+        bool parsingOk = reader.parse(content, root, false);
+        if (!parsingOk)
+        {
+            Debug::error("could not parse this:").endl();
+            Debug::error(content).endl();
+            Debug::error(reader.getFormattedErrorMessages()).endl();
+            return;
+        }
+
+        if(root.size()==0)
+        {
+            Debug::error("item has size 0, is it an array ?").endl()(root.toStyledString()).endl();
+            return;
+        }
+
+        Json::Value jsonModel=root[0u];
+        if(jsonModel.isNull())
+        {
+            Debug::error("root[0] is null, is it defined ?").endl()(root.toStyledString()).endl();
+            return;
+        }
+//         Debug::log(root).endl();
+
+        Json::Value jsonAttr=jsonModel["modelType"];
+        if(jsonAttr.isNull())
+        {
+            Debug::error("template is missing a \"modelType\" value.").endl();
+            return;
+        }
+        Ogre::String modelType= jsonAttr.asString();
+
+
+        // fill dynamic values
+        jsonModel.removeMember("modelType");
+        auto names=jsonModel.getMemberNames();
+        Json::Value updatedModel;
+        Ogre::String key,value,new_value;
+        for(auto it=names.begin(); it!=names.end(); ++it)
+        {
+            key=*it;
+            value=jsonModel[key].asString();
+            Debug::log(key)(":")(value);
+            new_value="";
+            if(value.at(0)!='$')
+            {
+                new_value=value;
+            }
+            else if(value=="$dropTargetPosition")
+            {
+                Ogre::Vector3 pos=mEngine->camera()->dropTargetPosition();
+                new_value=Ogre::StringConverter::toString(pos);
+            }
+            else if(value=="$dropTargetRotation")
+            {
+                Ogre::Quaternion rot=mEngine->camera()->dropTargetRotation();
+                new_value=Ogre::StringConverter::toString(rot);
+            }
+            updatedModel[key]=new_value.c_str();
+            Debug::log(" -> ")(updatedModel[key].asString()).endl();
+        }
+        root[0u]=updatedModel;
+        
+        content=root.toStyledString();
+        Debug::log("->").endl()(content).endl();
+        // ask the right manager to load this model
+        if(modelType=="MT_OGRE")
+        {
+            Level *level=mEngine->level();
+            if(level==NULL)
+            {
+                Debug::warning("Editor::loadModelFromFile(): no level to instanciate stuff in.").endl();
+                return;
+            }
+            level->ogreModelMan()->fromJson(root);
+        }
+        else
+            Debug::log("Unknown model type: ")(modelType).endl();
     }
 
     AgentId Editor::instanciateFromMeshFile(File &meshFile,Ogre::Vector3 &pos,Ogre::Quaternion &rot)

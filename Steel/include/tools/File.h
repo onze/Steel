@@ -81,7 +81,10 @@ namespace Steel
 
             /// write the given string into the file, replacing what's already in.
             File &write ( Ogre::String s );
-
+            
+            /// returns the file name (extension is part of the name)
+            Ogre::String fileBaseName() const;
+            
             /// returns the file name (extension is part of the name)
             Ogre::String fileName() const;
 

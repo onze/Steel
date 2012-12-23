@@ -256,7 +256,12 @@ namespace Steel
         std::ifstream ifile ( fullPath().c_str() );
         return ifile;
     }
-
+    
+    Ogre::String File::fileBaseName() const
+    {
+        return mBaseName;
+    }
+    
     Ogre::String File::fileName() const
     {
         Ogre::String s = mBaseName;
