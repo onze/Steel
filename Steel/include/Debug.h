@@ -9,6 +9,7 @@
 #define DEBUG_H_
 
 #include <iostream>
+#include <json/value.h>
 
 #include <OgreLog.h>
 #include <OgreLogManager.h>
@@ -16,6 +17,8 @@
 #include <OgreStringConverter.h>
 #include <OgreResourceManager.h>
 #include <Rocket/Core/String.h>
+
+#include <steeltypes.h>
 
 namespace Steel
 {
@@ -67,9 +70,50 @@ namespace Steel
                      * equivalent to myDebugObject.log(Ogre::String msg)
                      */
 
+                    DebugObject &operator()(const char * msg)
+                    {
+                        return (*this)(Ogre::String(msg));
+                    }
+
+                    DebugObject &operator()(const Ogre::Vector2 msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
+                    DebugObject &operator()(const Ogre::Vector3 msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+
+                    DebugObject &operator()(const Ogre::Quaternion msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
+                    DebugObject &operator()(const int msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
+                    DebugObject &operator()(const long int msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+
+                    DebugObject &operator()(const long unsigned int msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
                     DebugObject &operator()(Ogre::String const &msg)
                     {
                         mMsg.append(msg);
+                        return *this;
+                    }
+
+                    DebugObject &operator()(Json::Value const &msg)
+                    {
+                        mMsg.append(msg.toStyledString());
                         return *this;
                     }
 
@@ -90,7 +134,7 @@ namespace Steel
                     {
                         return (*this)(vec);
                     }
-                    
+
                     DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list)
                     {
                         this->operator()("list[");
@@ -101,7 +145,7 @@ namespace Steel
                         this->operator()("]");
                         return *this;
                     }
-                    
+
                     DebugObject &operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list)
                     {
                         this->operator()("list[");
@@ -139,26 +183,6 @@ namespace Steel
                         }
                         this->operator()("]");
                         return *this;
-                    }
-
-                    DebugObject &operator()(const char * msg)
-                    {
-                        return (*this)(Ogre::String(msg));
-                    }
-
-                    DebugObject &operator()(const Ogre::Vector3 msg)
-                    {
-                        return (*this)(Ogre::StringConverter::toString(msg));
-                    }
-
-                    DebugObject &operator()(const Ogre::Quaternion msg)
-                    {
-                        return (*this)(Ogre::StringConverter::toString(msg));
-                    }
-
-                    DebugObject &operator()(const long unsigned int msg)
-                    {
-                        return (*this)(Ogre::StringConverter::toString(msg));
                     }
 
                     DebugObject &endl()
@@ -212,7 +236,7 @@ namespace Steel
 
             ///false as long as Debug::init has not been called.
             static bool isInit;
-            
+
             /**
              * Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
              */
