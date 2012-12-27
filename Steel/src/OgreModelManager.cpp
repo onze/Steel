@@ -42,12 +42,11 @@ namespace Steel
             //TODO: implement id remapping, so that we stay in a low id range
             //TODO: put fool proof conditions under #ifdef DEBUG
             Json::Value value = *it;
-            //get value for init
+            // get values for init
             Ogre::String meshName = value["entityMeshName"].asString();
+            // TODO: preparse all meshes, batch declare them, do a single group initialization
             Ogre::ResourceGroupManager::getSingleton ().declareResource(meshName, "FileSystem", "Steel");
             Ogre::ResourceGroupManager::getSingleton ().initialiseResourceGroup("Steel");
-            
-            OgreUtils::resourceGroupsInfos();
 
             Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(value["position"].asString());
             Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(value["rotation"].asString());

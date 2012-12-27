@@ -9,6 +9,7 @@
 #include "UI/Editor.h"
 #include "Debug.h"
 #include "tools/StringUtils.h"
+#include <tools/OgreUtils.h>
 #include "Level.h"
 #include "Engine.h"
 #include "UI/FileSystemDataSource.h"
@@ -81,11 +82,11 @@ namespace Steel
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
         mFSModels->refresh();
-        
+
         //debug
-        auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("editor_menu_tab_edit");
-        if(elem!=NULL)
-            elem->Click();
+//         auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("editor_menu_tab_edit");
+//         if(elem!=NULL)
+//             elem->Click();
     }
 
     void Editor::onHide()
@@ -159,6 +160,10 @@ namespace Steel
         {
             command.erase(command.begin());
             processEngineCommand(command);
+        }
+        else if(command[0]=="resourceGroupsInfos")
+        {
+            OgreUtils::resourceGroupsInfos();   
         }
         else
         {
@@ -314,7 +319,7 @@ namespace Steel
             Debug::log(" -> ")(updatedModel[key].asString()).endl();
         }
         root[0u]=updatedModel;
-        
+
         content=root.toStyledString();
         Debug::log("->").endl()(content).endl();
         // ask the right manager to load this model
@@ -326,7 +331,15 @@ namespace Steel
                 Debug::warning("Editor::loadModelFromFile(): no level to instanciate stuff in.").endl();
                 return;
             }
-            level->ogreModelMan()->fromJson(root);
+            auto mids=level->ogreModelMan()->fromJson(root);
+            ModelId mid = mids[0];
+            if(mid==INVALID_ID)
+                return;
+            AgentId aid=level->newAgent();
+            if(aid==INVALID_ID)
+                return;
+            if(!level->linkAgentToModel(aid,MT_OGRE,mid))
+                return;
         }
         else
             Debug::log("Unknown model type: ")(modelType).endl();

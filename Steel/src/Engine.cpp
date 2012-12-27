@@ -306,7 +306,7 @@ namespace Steel
         mMustAbortMainLoop = false;
 
         //debug
-        mUI.editor().processCommand("engine.level.load.MyLevel");
+//         mUI.editor().processCommand("engine.level.load.MyLevel");
 //         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
         Ogre::Timer timer;
@@ -477,8 +477,8 @@ namespace Steel
             Ogre::Vector2 move = mInputMan.mouseMove();
             if(!mEditMode)
                 mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
-        }
 //         Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
+        }
         mInputMan.resetFrameBasedData();
         return true;
 
