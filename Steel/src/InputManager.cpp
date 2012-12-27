@@ -10,6 +10,15 @@
 #include "Engine.h"
 #include <assert.h>
 
+#if defined OIS_WIN32_PLATFORM
+#elif defined OIS_LINUX_PLATFORM
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+
+#endif
+
 using namespace std;
 
 class equals
@@ -34,7 +43,7 @@ namespace Steel
     InputManager::InputManager() :
         mEngine(NULL), mUI(NULL),mOISInputManager(NULL),mIsInputGrabbed(false),mIsGrabExclusive(false),
         mMouse(NULL),mKeyboard(NULL), mKeysPressed(std::list<OIS::KeyCode>()), mHasMouseMoved(false),
-        mMouseMove(Ogre::Vector2::ZERO),mMousePos(Ogre::Vector2(-1.f,-1.f))
+        mMouseMove(Ogre::Vector2::ZERO),mMousePos(Ogre::Vector2(-1.f,-1.f)),mMouseStateStack(std::list<Ogre::Vector2>())
     {
     }
 
@@ -48,12 +57,16 @@ namespace Steel
         mEngine=engine;
         mUI=ui;
         Debug::log("InputManager::init()").endl();
-        Ogre::WindowEventUtilities::addWindowEventListener( mEngine->renderWindow(),this);
+        auto window=mEngine->renderWindow();
+        Ogre::WindowEventUtilities::addWindowEventListener( window,this);
+        mMousePos=Ogre::Vector2(window->getWidth()/2,window->getHeight()/2);
+        mMouseStateStack.clear();
         resetAllData();
     }
 
     void InputManager::shutdown()
     {
+        mMouseStateStack.clear();
         releaseInput();
         Ogre::WindowEventUtilities::removeWindowEventListener(mEngine->renderWindow(),this);
     }
@@ -84,9 +97,9 @@ namespace Steel
 #if defined OIS_WIN32_PLATFORM
             //TODO: test these
             params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_FOREGROUND" )));
-            params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_NONEXCLUSIVE")));
+            params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_EXCLUSIVE")));
             params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_FOREGROUND")));
-            params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_NONEXCLUSIVE")));
+            params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_EXCLUSIVE")));
 #elif defined OIS_LINUX_PLATFORM
             params.insert(std::make_pair(std::string("x11_mouse_grab"), std::string("true")));
             params.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("true")));
@@ -99,9 +112,9 @@ namespace Steel
 #if defined OIS_WIN32_PLATFORM
             //TODO: test these
             params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_FOREGROUND" )));
-            params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_EXCLUSIVE")));
+            params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_NONEXCLUSIVE")));
             params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_FOREGROUND")));
-            params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_EXCLUSIVE")));
+            params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_NONEXCLUSIVE")));
 #elif defined OIS_LINUX_PLATFORM
             params.insert(std::make_pair(std::string("x11_mouse_grab"), std::string("false")));
             params.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("false")));
@@ -145,13 +158,17 @@ namespace Steel
 
         if(mIsGrabExclusive)
         {
+            pushMouseState();
             const OIS::MouseState &ms = mMouse->getMouseState();
             ms.width = mEngine->renderWindow()->getWidth();
             ms.height = mEngine->renderWindow()->getHeight();
             Debug::log("keeping mouse within ")(ms.width)(" and ")(ms.height).endl();
         }
         else
+        {
+            popMouseState();
             Debug::log("keeping mouse free to leave the window.").endl();
+        }
 
         bool bufferedKeys = true;
         mKeyboard = static_cast<OIS::Keyboard*>(mOISInputManager->createInputObject(OIS::OISKeyboard,bufferedKeys));
@@ -244,17 +261,64 @@ namespace Steel
         return true;
     }
 
+    void InputManager::pushMouseState()
+    {
+        if(mMouse==NULL)
+        {
+            Debug::warning("InputManager::pushMouseState(): no mMouse defined, aborting. (try grabbing first).").endl();
+            return;
+        }
+        mMouseStateStack.push_front(mMousePos);
+    }
+
+    void InputManager::popMouseState()
+    {
+        if(mMouseStateStack.size()==0)
+        {
+            Debug::warning("InputManager::popMouseState(): mouse states stack is empty, using (0,0).").endl();
+            auto window=mEngine->renderWindow();
+            mMouseStateStack.push_front(Ogre::Vector2(window->getWidth()/2,window->getHeight()/2));
+        }
+        Ogre::Vector2 pos=mMouseStateStack.front();
+        mMouseStateStack.pop_front();
+        setMousePosition(pos);
+    }
+
+    void InputManager::setMousePosition(Ogre::Vector2 &pos)
+    {
+        if(mMouse==NULL)
+        {
+            Debug::warning("InputManager::setMousePosition(): no mMouse defined, aborting. (try grabbing first).").endl();
+            return;
+        }
+        
+#if defined OIS_WIN32_PLATFORM
+        //TODO: go see SetCursorPos
+#elif defined OIS_LINUX_PLATFORM
+
+        unsigned long windowHandle;
+        mEngine->renderWindow()->getCustomAttribute("WINDOW", &windowHandle);
+
+        Display *display = XOpenDisplay(0);
+        XWarpPointer(display, 0, windowHandle, 0, 0, 0, 0, pos.x, pos.y);
+        XCloseDisplay(display);
+
+        // set internal data to right values (let OIS deal with its internals though.)
+        mMousePos = pos;
+#endif
+    }
+
     void InputManager::update()
     {
         // Pump window messages for nice behaviour
         Ogre::WindowEventUtilities::messagePump();
-        
-        
+
+
         if(mDelayedInputReleaseRequested)
             _releaseInput();
         if(mDelayedInputGrabRequested)
             _grabInput(mDelayedRequestIsExclusive);
-        
+
         if (mOISInputManager == NULL)
             return;
 

@@ -32,19 +32,7 @@ namespace Steel
             void init(Engine *engine, UI *ui);
             void shutdown();
 
-            bool keyPressed(const OIS::KeyEvent& evt);
-            bool keyReleased(const OIS::KeyEvent& evt);
-            bool mouseMoved(const OIS::MouseEvent& evt);
-            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-
             void grabInput(bool exclusive=true);
-            void releaseInput();
-
-            void update();
-            void close();
-            void resetFrameBasedData();
-            void resetAllData();
 
             inline bool isKeyDown(OIS::KeyCode key)
             {
@@ -54,6 +42,18 @@ namespace Steel
             {
                 return mKeyboard==NULL?false:mKeyboard->isModifierDown(mod);
             }
+
+            bool keyPressed(const OIS::KeyEvent& evt);
+            bool keyReleased(const OIS::KeyEvent& evt);
+            bool mouseMoved(const OIS::MouseEvent& evt);
+            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+
+            void releaseInput();
+            void resetFrameBasedData();
+            void resetAllData();
+
+            void update();
 
             /**
              * called by OIS when the window has been resized.
@@ -74,6 +74,10 @@ namespace Steel
             {
                 return mMouseMove;
             };
+            inline Ogre::Vector2 &mousePos()
+            {
+                return mMousePos;
+            };
             inline OIS::Mouse* mouse()
             {
                 return mMouse;
@@ -82,13 +86,19 @@ namespace Steel
             {
                 return mKeyboard;
             };
-
-    protected:
-        
-        void _grabInput(bool exclusive=true);
-        void _releaseInput();
-            OIS::ParamList getOISparams(bool exclusive);
             
+            //setters
+            void setMousePosition(Ogre::Vector2 &pos);
+
+        protected:
+            /// save the state of the mouse for later. (currenlty, only position is saved)
+            void pushMouseState();
+            /// load the last saved state of the mouse. (currenlty, only position is restored)
+            void popMouseState();
+            void _grabInput(bool exclusive=true);
+            void _releaseInput();
+            OIS::ParamList getOISparams(bool exclusive);
+
             //not owned
             Engine *mEngine;
             UI *mUI;
@@ -100,13 +110,13 @@ namespace Steel
             bool mIsInputGrabbed;
             ///true if the current grab is exclusive
             bool mIsGrabExclusive;
-            
+
             ///true as long as a requested delayed grab has not been processed
             bool mDelayedInputGrabRequested;
             ///true as long as a requested delayed release has not been processed
             bool mDelayedInputReleaseRequested;
             bool mDelayedRequestIsExclusive;
-            
+
             OIS::Mouse* mMouse;
             OIS::Keyboard* mKeyboard;
 
@@ -116,6 +126,9 @@ namespace Steel
              * move since last known position, and last known position.
              */
             Ogre::Vector2 mMouseMove,mMousePos;
+
+            /// used by push/popMouseState. Store mouse position only.
+            std::list<Ogre::Vector2> mMouseStateStack;
     };
 
 }
