@@ -507,9 +507,9 @@ namespace Steel
 
     Ogre::Vector3 Engine::selectionPosition()
     {
-        if (!hasSelection())
-            return Ogre::Vector3(.0f, .0f, .0f);
         Ogre::Vector3 pos = Ogre::Vector3::ZERO;
+        if (!hasSelection())
+            return pos;
         Agent *agent;
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
@@ -519,6 +519,22 @@ namespace Steel
             pos += agent->ogreModel()->position();
         }
         return pos / Ogre::Real(mSelection.size());
+    }
+
+    std::vector<Ogre::Quaternion> Engine::selectionRotations()
+    {
+        std::vector<Ogre::Quaternion> rots;
+        if (!hasSelection())
+            return rots;
+        Agent *agent;
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            rots.push_back(agent->ogreModel()->rotation());
+        }
+        return rots;
     }
 
     void Engine::setRootDir(Ogre::String rootdir)
@@ -566,6 +582,20 @@ namespace Steel
             if (agent == NULL)
                 continue;
             agent->ogreModel()->setPosition(pos);
+        }
+    }
+
+    void Engine::setSelectionRotations(std::vector<Ogre::Quaternion> const &rots)
+    {
+        Agent *agent;
+        assert(rots.size()==mSelection.size());
+        int i=0;
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            agent->ogreModel()->setRotation(rots[i++]);
         }
     }
 

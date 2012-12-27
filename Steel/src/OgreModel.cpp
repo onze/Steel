@@ -93,9 +93,14 @@ namespace Steel
         mSceneNode->setUserAny(any);
     }
 
-    void OgreModel::setPosition(Ogre::Vector3 pos)
+    void OgreModel::setPosition(Ogre::Vector3 const &pos)
     {
         mSceneNode->setPosition(pos);
+    }
+    
+    void OgreModel::setRotation(Ogre::Quaternion const &rot)
+    {
+        mSceneNode->setOrientation(rot);
     }
 
     void OgreModel::setSelected(bool selected)

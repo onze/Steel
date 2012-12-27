@@ -131,6 +131,7 @@ namespace Steel
                 {
                     mIsDraggingSelectionCancelled=true;
                     mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
+                    mEngine->setSelectionRotations(mSelectionRotBeforeTransformation);
                 }
                 break;
             default:
@@ -146,6 +147,7 @@ namespace Steel
             mIsDraggingSelectionCancelled=false;
             mIsDraggingSelection=false;
             mSelectionPosBeforeTransformation = mEngine->selectionPosition();
+            mSelectionRotBeforeTransformation = mEngine->selectionRotations();
         }
         return true;
     }
@@ -168,10 +170,11 @@ namespace Steel
             switch (mEditMode)
             {
                 case TRANSLATE:
+                {
+                    Ogre::Vector3 selectionPos = mEngine->selectionPosition();
                     // translating with shift held: along Y axis
                     if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                     {
-                        Ogre::Vector3 selectionPos = mEngine->selectionPosition();
                         // I have not found a faster way to do this:
                         // first I build a plan with the camera orientation as normal (but vertical).
                         Ogre::Vector3 normal = mEngine->camera()->camNode()->getOrientation()* Ogre::Vector3::UNIT_Z;
@@ -207,7 +210,6 @@ namespace Steel
                     }
                     else
                     {
-                        Ogre::Vector3 selectionPos = mEngine->selectionPosition();
                         // normal translation: on the x/z plane
                         Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
                         plane.normalise();
@@ -233,9 +235,14 @@ namespace Steel
                             }
                         }
                     }
-                    break;
+                }
+                break;
                 case ROTATE:
-                    break;
+                {
+                    Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
+                    mEngine->rotateSelection(r);
+                }
+                break;
                 case SCALE:
                     break;
                 default:

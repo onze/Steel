@@ -105,6 +105,11 @@ namespace Steel
              * Returns the mean of all positions of selected things.
              */
             Ogre::Vector3 selectionPosition();
+            
+            /**
+             * Returns rotations of selected things.
+             */
+            std::vector<Ogre::Quaternion> selectionRotations();
 
             void translateSelection(Ogre::Vector3 v);
 
@@ -157,6 +162,7 @@ namespace Steel
             void setRootDir(Ogre::String rootdir);
 
             void setSelectionPosition(Ogre::Vector3 pos);
+            void setSelectionRotations(std::vector<Ogre::Quaternion> const &rots);
 
         private:
             File mRootDir;

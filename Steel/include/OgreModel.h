@@ -37,7 +37,8 @@ namespace Steel
             Ogre::Quaternion rotation();
             void rotate(Ogre::Vector3 &rotation);
             void setNodeAny(Ogre::Any any);
-            void setPosition(Ogre::Vector3 pos);
+            void setPosition(Ogre::Vector3 const &pos);
+            void setRotation(Ogre::Quaternion const &rot);
             void setSelected(bool selected);
             void translate(Ogre::Vector3 t);
 

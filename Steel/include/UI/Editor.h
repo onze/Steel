@@ -67,6 +67,7 @@ namespace Steel
             File mDataDir;
             /// holds the position to put the selection back to, if edition is cancelled
             Ogre::Vector3 mSelectionPosBeforeTransformation;
+            std::vector<Ogre::Quaternion> mSelectionRotBeforeTransformation;
             /// last active tab in the main editor menu (default to 0)
             int mMenuTabIndex;
             /// holds the current way dragging selection will affect it

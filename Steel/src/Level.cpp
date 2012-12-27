@@ -192,7 +192,7 @@ namespace Steel
 
     void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
     {
-        Debug::log(logName()+".getAgentsIdsFromSceneNodes()").endl();
+//         Debug::log(logName()+".getAgentsIdsFromSceneNodes()").endl();
         //retrieving models
         ModelId id;
         //	Debug::log("adding ids:");
