@@ -184,7 +184,7 @@ namespace Steel
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(dir.fullPath(), "FileSystem", "Steel",true);
         dir=dir.subfile("resources");
         Ogre::ResourceGroupManager::getSingleton ().addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem","Steel",true);
-
+        //TODO:add materials anf models ?
         Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Steel");
 
         // setup a renderer
@@ -335,7 +335,6 @@ namespace Steel
 
     void Engine::pickAgents(std::list<ModelId> &selection, int x, int y)
     {
-        std::cout << "Engine::pickAgents()" << endl;
         //get nodes that collide
         std::list<Ogre::SceneNode *> nodes;
         Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
@@ -343,7 +342,7 @@ namespace Steel
         Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
         if (!mRayCaster->fromRay(ray, nodes))
         {
-            Debug::log("Engine::selectAgents(): raycast failed.").endl();
+//             Debug::log("Engine::selectAgents(): raycast failed.").endl();
             return;
         }
 

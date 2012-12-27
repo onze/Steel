@@ -70,11 +70,6 @@ namespace Steel
                      * equivalent to myDebugObject.log(Ogre::String msg)
                      */
 
-                    DebugObject &operator()(const char * msg)
-                    {
-                        return (*this)(Ogre::String(msg));
-                    }
-
                     DebugObject &operator()(const Ogre::Vector2 msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
@@ -95,6 +90,11 @@ namespace Steel
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
                     
+                    DebugObject &operator()(const unsigned int msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
                     DebugObject &operator()(const long int msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
@@ -103,6 +103,16 @@ namespace Steel
                     DebugObject &operator()(const long unsigned int msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
+                    DebugObject &operator()(const float msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg));
+                    }
+                    
+                    DebugObject &operator()(const char * msg)
+                    {
+                        return (*this)(Ogre::String(msg));
                     }
                     
                     DebugObject &operator()(Ogre::String const &msg)

@@ -141,7 +141,7 @@ namespace Steel
         Rocket::Debugger::Initialise(mMainContext);
 
         //UI init
-        mEditor.init(mWidth, mHeight, engine, this);
+        mEditor.init(mWidth, mHeight, engine, this, mInputMan);
 //         if (cursor)
 //             cursor->RemoveReference();
 //         mHUD.init(mWidth, mHeight);
@@ -285,9 +285,10 @@ namespace Steel
     bool UI::keyReleased(const OIS::KeyEvent& evt)
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
-        mMainContext->ProcessKeyUp(keyIdentifier ,getKeyModifierState());
+        int keyModifierState=getKeyModifierState();
+        mMainContext->ProcessKeyUp(keyIdentifier ,keyModifierState);
         if(mEditMode)
-            mEditor.context()->ProcessKeyUp(keyIdentifier ,getKeyModifierState());
+            mEditor.context()->ProcessKeyUp(keyIdentifier ,keyModifierState);
         return true;
     }
 
@@ -296,7 +297,10 @@ namespace Steel
         int key_modifier_state = getKeyModifierState();
         mMainContext->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
         if(mEditMode)
+        {
             mEditor.context()->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
+            mEditor.mouseMoved(evt);
+        }
         if (evt.state.Z.rel != 0)
         {
             mMainContext->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
@@ -311,7 +315,10 @@ namespace Steel
 //         Debug::log("mousePressed at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
         mMainContext->ProcessMouseButtonDown((int) id, getKeyModifierState());
         if(mEditMode)
+        {
             mEditor.context()->ProcessMouseButtonDown((int) id, getKeyModifierState());
+            mEditor.mousePressed(evt,id);
+        }
         return true;
     }
 
@@ -320,7 +327,10 @@ namespace Steel
 //         Debug::log("mouseReleased at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
         mMainContext->ProcessMouseButtonUp((int) id, getKeyModifierState());
         if(mEditMode)
+        {
             mEditor.context()->ProcessMouseButtonUp((int) id, getKeyModifierState());
+            mEditor.mouseReleased(evt,id);
+        }
         return true;
     }
     void UI::buildKeyMaps()

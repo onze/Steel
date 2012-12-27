@@ -8,13 +8,13 @@ namespace Steel
 {
 
     UIPanel::UIPanel():
-        Rocket::Core::EventListener(),
+    Rocket::Core::EventListener(),mWidth(0),mHeight(0),
         mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),mAutoReload(false)
     {
     }
 
     UIPanel::UIPanel(Ogre::String contextName,File mDocumentFile):
-        Rocket::Core::EventListener(),
+    Rocket::Core::EventListener(),mWidth(0),mHeight(0),
         mContext(NULL),mContextName(contextName),mDocumentFile(mDocumentFile),mDocument(NULL),mAutoReload(false)
     {
     }
@@ -50,6 +50,8 @@ namespace Steel
 
     void UIPanel::init(unsigned int width, unsigned int height)
     {
+        mWidth=width;
+        mHeight=height;
         mContext=Rocket::Core::CreateContext(mContextName.c_str(), Rocket::Core::Vector2i(width, height));
         mDocument = mContext->LoadDocument(mDocumentFile.fullPath().c_str());
         if(mAutoReload)
