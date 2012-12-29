@@ -14,6 +14,7 @@ using namespace std;
 #include <OgreQuaternion.h>
 #include <OgreVector3.h>
 #include <OgreEntity.h>
+#include <OgreRoot.h>
 
 #include "Camera.h"
 #include "Debug.h"
@@ -33,6 +34,14 @@ namespace Steel
 
         mCameraNode->setPosition(0.0, 50.0, 200.0);
         mCameraNode->lookAt(Ogre::Vector3::ZERO, Ogre::SceneNode::TS_WORLD);
+
+        mCamera->setNearClipDistance(.1);
+        mCamera->setFarClipDistance(50000);
+        auto rs=((Ogre::Root *)sceneManager->getRootSceneNode())->getRenderSystem();
+        if (0 && rs->getCapabilities()->hasCapability(Ogre::RSC_INFINITE_FAR_PLANE))
+        {
+            mCamera->setFarClipDistance(0);   // enable infinite far clip distance if we can
+        }
     }
 
     Camera::~Camera()
@@ -47,8 +56,8 @@ namespace Steel
         x *= factor;
         y *= factor;
 
-        mCameraNode->pitch(Ogre::Degree(x), Ogre::SceneNode::TS_LOCAL);
         mCameraNode->yaw(Ogre::Degree(y), Ogre::SceneNode::TS_WORLD);
+        mCameraNode->pitch(Ogre::Degree(x), Ogre::SceneNode::TS_LOCAL);
     }
 
     bool Camera::fromJson(Json::Value &root)
