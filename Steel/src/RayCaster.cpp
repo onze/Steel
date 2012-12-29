@@ -43,7 +43,7 @@ Failed to create Ogre::RaySceneQuery instance");
             if (mRaySceneQuery->execute().size() <= 0)
             {
                 // raycast did not hit an objects bounding box
-                Debug::log("query executed but got nothing").endl();
+//                 Debug::log("query executed but got nothing").endl();
                 return false;
             }
         }
