@@ -17,8 +17,9 @@ namespace Steel
 
     RayCaster::RayCaster(Ogre::SceneManager *sceneManager)
     {
+        mSceneManager=sceneManager;
         // create the ray scene query object
-        mRaySceneQuery = sceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
+        mRaySceneQuery = mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
         if (mRaySceneQuery == NULL)
             Ogre::LogManager::getSingleton().logMessage("Raycaster::Raycaster()\
 Failed to create Ogre::RaySceneQuery instance");
@@ -27,7 +28,7 @@ Failed to create Ogre::RaySceneQuery instance");
 
     RayCaster::~RayCaster()
     {
-
+        mSceneManager->destroyQuery(mRaySceneQuery);
     }
 
     bool RayCaster::fromRay(Ogre::Ray &ray, std::list<Ogre::SceneNode *> &nodes)
@@ -49,7 +50,7 @@ Failed to create Ogre::RaySceneQuery instance");
         }
         else
         {
-            Debug::error("Raycaster::raycastFromPoint(): Cannot raycast without RaySceneQuery instance.").endl();
+            Debug::error("Raycaster::fromRay(): Cannot raycast without RaySceneQuery instance.").endl();
             return false;
         }
         // at this point we have raycast to a series of different objects bounding boxes.
