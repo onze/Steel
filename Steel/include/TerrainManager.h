@@ -75,15 +75,21 @@ namespace Steel
             Json::Value toJson();
             float *loadTerrainHeightmapFrom(Ogre::String filepath);
             void saveTerrainHeightmapAs(long int x, long int y, Ogre::Terrain *instance,Ogre::String &heightmapPath);
-
-            void yieldEvent(LoadingState state);
+            
+            /** Raise all terrain vertices in an round shaped area centered at the given position (terraCenter) (world coords) 
+             * and of the given radius, by a decreasing value starting at the given value at the center, and reaching 0
+             * at radius.
+             */
+            void raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius);
 
         protected:
             /// prepares ogre and the terrain, at startup
             void configureTerrainDefaults(Ogre::Light* light);
             void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
             void initBlendMaps(Ogre::Terrain* terrain);
-
+            /// calls event listeners' callback methods.
+            void yieldEvent(LoadingState state);
+            
             // not owned
             Ogre::SceneManager *mSceneManager;
 

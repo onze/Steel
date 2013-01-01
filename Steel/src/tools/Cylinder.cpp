@@ -4,6 +4,7 @@
 #include <OgreManualObject.h>
 #include <OgreSceneManager.h>
 #include <OgreEntity.h>
+#include <OgreMeshManager.h>
 
 using namespace Ogre;
 
@@ -12,13 +13,17 @@ namespace Steel
 
     MeshPtr Cylinder::getMesh(SceneManager *sceneManager, int radius, int height)
     {
+        MeshPtr mesh=MeshPtr(Ogre::MeshManager::getSingletonPtr()->getByName("manualMesh_Cylinder","UI"));
+        if(!mesh.isNull())
+            return mesh;
+
         //// this is an adaptation of
         //// http://www.ogre3d.org/tikiwiki/tiki-index.php?page=ManualSphereMeshes&structure=Cookbook
         // horizonal rings
-        int nRings=3;
-        int nSegments=10;
+        int nRings=6;
+        int nSegments=18;
 
-        ManualObject * manual = sceneManager->createManualObject("manualObject_cylinder");
+        ManualObject *manual = sceneManager->createManualObject("manualObject_cylinder");
         manual->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_LIST);
 
         float fDeltaRingAngle = (Math::PI / nRings);
@@ -56,7 +61,7 @@ namespace Steel
             }; // end for seg
         } // end for ring
         manual->end();
-        MeshPtr mesh = manual->convertToMesh("manualMesh_Cylinder","UI");
+        mesh = manual->convertToMesh("manualMesh_Cylinder","UI");
         mesh->_setBounds( AxisAlignedBox( Vector3(-radius, -radius, -radius), Vector3(radius, radius, radius) ), false );
 
         mesh->_setBoundingSphereRadius(radius);
@@ -68,13 +73,25 @@ namespace Steel
         return mesh;
     }
 
-    SceneNode *Cylinder::getSceneNode(SceneManager *sceneManager,SceneNode *parent, int radius, int height)
+    SceneNode *Cylinder::getSceneNode(SceneManager *sceneManager,SceneNode *parent, Ogre::String name,int radius, int height)
     {
-        MeshPtr mesh=Cylinder::getMesh(sceneManager,radius,height);
-        Entity* entity = sceneManager->createEntity(mesh);
-        SceneNode* node = parent->createChildSceneNode();
+        Ogre::SceneNode *node;
+        try
+        {
+            node=static_cast<Ogre::SceneNode *>(parent->getChild(name));
+        }
+        catch(Ogre::Exception e)
+        {
+            MeshPtr mesh=Cylinder::getMesh(sceneManager,radius,height);
+            Entity* entity;
+            if(sceneManager->hasEntity("cylinderEntity"))
+                entity=sceneManager->getEntity("cylinderEntity");
+            else
+                entity = sceneManager->createEntity("cylinderEntity",mesh);
+            node = parent->createChildSceneNode(name);
 //         sphereEntity->setMaterialName("material_name_goes_here");
-        node->attachObject(entity);
+            node->attachObject(entity);
+        }
         return node;
     }
 }

@@ -30,6 +30,7 @@ namespace Steel
                                          int height);
             static Ogre::SceneNode *getSceneNode(Ogre::SceneManager *sceneManager,
                                                  Ogre::SceneNode *parent,
+                                                 Ogre::String name,
                                                  int radius,
                                                  int height);
     };

@@ -97,6 +97,7 @@ namespace Steel
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
+        mBrush.onShow();
     }
 
     void Editor::onHide()
@@ -108,6 +109,7 @@ namespace Steel
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
         mMenuTabIndex=elem->GetActiveTab();
+        mBrush.onHide();
     }
 
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)

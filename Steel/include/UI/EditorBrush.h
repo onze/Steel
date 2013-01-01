@@ -6,6 +6,8 @@
 #include <OIS.h>
 #include <OgreQuaternion.h>
 #include <OgreVector3.h>
+#include <OgreFrameListener.h>
+
 
 namespace Ogre
 {
@@ -18,7 +20,7 @@ namespace Steel
     class Editor;
     class InputManager;
 
-    class EditorBrush
+    class EditorBrush:public Ogre::FrameListener
     {
             /**
              * This class is meant to instanced once, by the editor. It handles editing
@@ -27,9 +29,8 @@ namespace Steel
              * - translation/rotation/scaling of models
              * - terrain edition
              */
-        protected:
-            enum BrushMode {TRANSLATE, ROTATE, SCALE,TERRAFORM };
         public:
+            enum BrushMode {NONE=0,TRANSLATE, ROTATE, SCALE,TERRAFORM };
             EditorBrush();
             EditorBrush(const EditorBrush& other);
             virtual ~EditorBrush();
@@ -39,16 +40,36 @@ namespace Steel
             void init(Engine *engine,Editor *editor,InputManager *mInputMan);
             void shutdown();
 
+            /// called by Ogre once per frame. Used during terraforming.
+            bool frameRenderingQueued(const Ogre::FrameEvent &evt);
+
             void getBrush(BrushMode mode);
             void dropBrush();
-            
+
             // mouse events called by the editor
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseMoved(const OIS::MouseEvent& evt);
-
+    
+            void onShow();
+            void onHide();
+            
             /// command interface
             void processCommand(std::vector<Ogre::String> command);
+            
+            /// saves the current editing mode
+            void pushMode();
+            
+            ///restore the last saved editing mode
+            void popMode();
+            
+            //getters
+            inline BrushMode mode()
+            {
+                return mMode;
+            }
+            //setters
+            void setMode(BrushMode mode);
 
         protected:
             //not owned
@@ -68,11 +89,13 @@ namespace Steel
             bool mIsDraggingSelection;
             /// set to true when cancelling a selection drag movement.
             bool mIsDraggingSelectionCancelled;
-            
+
             /// disk used as visual terraforming brush
             Ogre::SceneNode *mTerraBrushVisual;
             /// factor by which the terraforming brush is scaled up (down: 1/mTerraScale)
             float mTerraScale;
+            
+            std::vector<BrushMode> mModeStack;
     };
 }
 #endif // EDITORBRUSH_H

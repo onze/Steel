@@ -157,7 +157,7 @@ namespace Steel
     {
         Ogre::Image img;
         img.load(filepath, mTerrainGroup->getResourceGroup());
-//         Debug::log("TerrainManager::loadTerrainHeightmapFrom(): ")(Ogre::PixelUtil::getFormatName(img.getFormat())).endl();
+        Debug::log("TerrainManager::loadTerrainHeightmapFrom(")(filepath)("): format is ")(Ogre::PixelUtil::getFormatName(img.getFormat())).endl();
 
         Ogre::uchar *img_data=img.getData();
         size_t size=img.getWidth()*img.getHeight();
@@ -337,6 +337,7 @@ namespace Steel
 
         // textures
         // we set the number of terrain texture layers to 3
+        defaultimp.layerList.resize(0);
         defaultimp.layerList.resize(3);
         defaultimp.layerList[0].worldSize = 100;
         defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.png");
@@ -437,6 +438,71 @@ namespace Steel
         return result;
     }
 
+    void TerrainManager::raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius)
+    {
+//         Debug::log("TerrainManager::raiseTerrainAt(terraCenter=")(terraCenter)(", value=")(value)(", radius=")(radius)(")").endl();
+        // retrieve a list of all slots involved in the operation. This is done by getting all slots
+        // colliding with the terraforming sphere's bounding box
+        auto diff=Ogre::Vector3::UNIT_SCALE*radius;
+        Ogre::AxisAlignedBox box(terraCenter-diff,terraCenter+diff);
+        Ogre::TerrainGroup::TerrainList terrains;
+        mTerrainGroup->boxIntersects(box,&terrains);
+
+        // now, for each of them, get all vertices in the sphere and move them
+        // for reference, we work as much as possible in world coordinates
+        Ogre::Vector2 terraPos(terraCenter.x,terraCenter.z);
+        for(auto it=terrains.begin(); it!=terrains.end(); ++it)
+        {
+            Ogre::Terrain *terrain=*it;
+            Ogre::uint16 size=terrain->getSize();
+
+            Ogre::Vector3 localTerraCenter3;
+            terrain->getTerrainPosition(terraCenter,&localTerraCenter3);
+
+            // distance between 2 tiles ? (tile\interrain\terrainGroup)
+
+            Ogre::Vector2 localTerraCenter2=Ogre::Vector2(localTerraCenter3.x,localTerraCenter3.y)*size;
+
+            Ogre::Vector3 local_radius3;
+            terrain->getTerrainPosition(Ogre::Vector3(radius*size,.0f,.0f),&local_radius3);
+            Ogre::Real local_radius=local_radius3.x;
+
+
+            //The list of floats wil be interpreted such that the first row in the array equates to the bottom row of vertices
+            float *heights=terrain->getHeightData();
+            int minx=size,maxx=0,minz=size,maxz=0;
+            for(int i=0; i<size*size; ++i)
+            {
+                int x=i%size,z=i/size;
+                Ogre::Vector2 vertexPos=Ogre::Vector2(x,z);
+                auto dist=vertexPos.distance(localTerraCenter2);
+                if(dist<local_radius)
+                {
+                    minx=minx<x?minx:x;
+                    maxx=maxx>x?maxx:x;
+                    minz=minz<z?minz:z;
+                    maxz=maxz>z?maxz:z;
+                    // round shaped distribution
+//                     auto diff=value*std::cos(3.14/2.*dist/local_radius);
+                    // softmax distribution
+                    auto diff=value*(1.f-std::exp(dist)/(1+std::exp(local_radius)));
+                    heights[i]+=diff;
+                }
+            }
+            if(minx<maxx && minz<maxz)
+            {
+                Ogre::Vector3 v0=terrain->convertPosition(Ogre::Terrain::LOCAL_SPACE,
+                                 Ogre::Vector3(minx,.0f,minz),
+                                 Ogre::Terrain::WORLD_SPACE);
+                Ogre::Vector3 v1=terrain->convertPosition(Ogre::Terrain::LOCAL_SPACE,
+                                 Ogre::Vector3(maxx,.0f,maxz),
+                                 Ogre::Terrain::WORLD_SPACE);
+                terrain->dirtyRect(Ogre::Rect(v0.x,v0.z,v1.x,v1.z));
+                terrain->update(true);
+            }
+        }
+    }
+
     TerrainManager::TerrainSlotData::TerrainSlotData():
         slot_x(LONG_MAX),slot_y(LONG_MAX),heightmapPath("default_terrain.png")
     {}
@@ -451,3 +517,4 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

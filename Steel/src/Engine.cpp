@@ -305,6 +305,8 @@ namespace Steel
 
         //debug
 //         mUI.editor().processCommand("engine.level.load.MyLevel");
+        startEditMode();
+        mUI.editor().processCommand("editbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
         Ogre::Timer timer;
