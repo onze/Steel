@@ -7,6 +7,7 @@
 
 #include "steeltypes.h"
 #include "UI/UIPanel.h"
+#include "EditorBrush.h"
 
 namespace Steel
 {
@@ -56,26 +57,19 @@ namespace Steel
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
 
         protected:
-            enum EditMode {TRANSLATE, ROTATE, SCALE };
             //not owned
             Engine *mEngine;
             UI *mUI;
             InputManager *mInputMan;
+            
             //owned
             /// models available (for levels, etc)
             FileSystemDataSource *mFSModels;
             File mDataDir;
-            /// holds the position to put the selection back to, if edition is cancelled
-            Ogre::Vector3 mSelectionPosBeforeTransformation;
-            std::vector<Ogre::Quaternion> mSelectionRotBeforeTransformation;
             /// last active tab in the main editor menu (default to 0)
             int mMenuTabIndex;
-            /// holds the current way dragging selection will affect it
-            EditMode mEditMode;
-            /// set to true when cancelling a selection drag movement.
-            bool mIsDraggingSelectionCancelled;
-            /// true when selection is begin dragged (translated/rotated/scaled)
-            bool mIsDraggingSelection;
+            /// handles mouse props wrt mEditMode
+            EditorBrush mBrush;
         private:
     };
 }

@@ -108,7 +108,7 @@ namespace Steel
 
         std::cout << "creating window, " << std::cout.flush();
         //window setup
-        mRenderWindow = mRoot->initialise(false);
+        mRoot->initialise(false);
 
         Ogre::NameValuePairList opts;
         opts["resolution"] = Ogre::StringConverter::toString(width) + "x" + Ogre::StringConverter::toString(height);
@@ -121,8 +121,8 @@ namespace Steel
         unsigned long windowHandle;
         mRenderWindow->getCustomAttribute("WINDOW", &windowHandle);
         mWindowHandle = Ogre::StringConverter::toString(windowHandle);
-
         postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
+        mInputMan.grabInput(true);
     }
 
     void Engine::embeddedInit(Ogre::String plugins,
@@ -184,6 +184,7 @@ namespace Steel
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(dir.fullPath(), "FileSystem", "Steel",true);
         dir=dir.subfile("resources");
         Ogre::ResourceGroupManager::getSingleton ().addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem","Steel",true);
+        Ogre::ResourceGroupManager::getSingleton ().addResourceLocation(dir.subfile("textures").fullPath(), "FileSystem","Steel",true);
         //TODO:add materials anf models ?
         Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Steel");
 
@@ -210,6 +211,9 @@ namespace Steel
             return init_code;
         }
 
+        Ogre::MaterialManager::getSingleton().setDefaultTextureFiltering(Ogre::TFO_ANISOTROPIC);
+        Ogre::MaterialManager::getSingleton().setDefaultAnisotropy(7);
+
         // Set default mipmap level (NB some APIs ignore this)
         Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
 //         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mRootDir.subfile("data").subfile("resources").subfile("meshes"),"FileSystem", "Steel",true);
@@ -220,9 +224,6 @@ namespace Steel
 
         // Create the camera
         mCamera = new Camera(mSceneManager);
-
-        mCamera->cam()->setNearClipDistance(.5);
-        mCamera->cam()->setFarClipDistance(500);
 
         // Create one viewport, entire window
         mViewport = mRenderWindow->addViewport(mCamera->cam());
@@ -237,12 +238,9 @@ namespace Steel
         //	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
         //	headNode->attachObject(ogreHead);
 
-        // Set ambient light
-        mSceneManager->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
-
         // Create a light
-        Ogre::Light* l = mSceneManager->createLight("MainLight");
-        l->setPosition(20, 80, 50);
+//         Ogre::Light* l = mSceneManager->createLight("MainLight");
+//         l->setPosition(20, 80, 50);
 
         mRayCaster = new RayCaster(mSceneManager);
 
@@ -262,7 +260,6 @@ namespace Steel
             start_tests();
             Debug::log("unit tests done.").endl();
         }
-        mInputMan.grabInput(true);
         return 0;
     }
 
@@ -302,6 +299,7 @@ namespace Steel
 
     bool Engine::mainLoop(bool singleLoop)
     {
+
         //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
         mMustAbortMainLoop = false;
 
@@ -331,23 +329,6 @@ namespace Steel
                 break;
         }
         return true;
-    }
-
-    void Engine::pickAgents(std::list<ModelId> &selection, int x, int y)
-    {
-        //get nodes that collide
-        std::list<Ogre::SceneNode *> nodes;
-        Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
-        Ogre::Real _y = float(y) / float(mRenderWindow->getHeight());
-        Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
-        if (!mRayCaster->fromRay(ray, nodes))
-        {
-//             Debug::log("Engine::selectAgents(): raycast failed.").endl();
-            return;
-        }
-
-        //retrieve Agent's that own them
-        mLevel->getAgentsIdsFromSceneNodes(nodes, selection);
     }
 
     bool Engine::keyPressed(const OIS::KeyEvent& evt)
@@ -411,6 +392,22 @@ namespace Steel
         return true;
     }
 
+    void Engine::pickAgents(std::list<ModelId> &selection, int x, int y)
+    {
+        //get nodes that collide
+        std::list<Ogre::SceneNode *> nodes;
+        Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
+        Ogre::Real _y = float(y) / float(mRenderWindow->getHeight());
+        Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
+        if (!mRayCaster->fromRay(ray, nodes))
+        {
+            return;
+        }
+
+        //retrieve Agent's that own them
+        mLevel->getAgentsIdsFromSceneNodes(nodes, selection);
+    }
+
     bool Engine::processInputs()
     {
         if(mMustAbortMainLoop)
@@ -419,7 +416,7 @@ namespace Steel
         mInputMan.update();
 
         //process keyboard
-        float dx = .0f, dy = .0f, dz = .0f, speed = .05f;
+        float dx = .0f, dy = .0f, dz = .0f, speed = 3.f;
         for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
             if(mEditMode)
@@ -478,6 +475,7 @@ namespace Steel
                 mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
 //         Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
         }
+//         Debug::log("mouse pos: ")(mInputMan.mousePos()).endl();
         mInputMan.resetFrameBasedData();
         return true;
 
@@ -554,7 +552,6 @@ namespace Steel
 
     void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
     {
-        Debug::log("Engine::setSelectedAgents(): ");
         //unselect last selection if any
         if (hasSelection())
             clearSelection();
@@ -563,14 +560,11 @@ namespace Steel
         for (std::list<AgentId>::iterator it = selection.begin(); it != selection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
-            Debug::log(*it)(", ");
             if (agent == NULL)
                 continue;
             mSelection.push_back(agent->id());
             agent->setSelected(true);
         }
-        Debug::log.endl();
-
     }
 
     void Engine::setSelectionPosition(Ogre::Vector3 pos)
@@ -601,7 +595,7 @@ namespace Steel
 
     void Engine::startEditMode()
     {
-        Debug::log("Engine::startEditMode()").endl();
+//         Debug::log("Engine::startEditMode()").endl();
         mEditMode=true;
         mUI.startEditMode();
         mInputMan.grabInput(false);
@@ -609,7 +603,7 @@ namespace Steel
 
     void Engine::stopEditMode()
     {
-        Debug::log("Engine::stopEditMode()").endl();
+//         Debug::log("Engine::stopEditMode()").endl();
         mEditMode=false;
         mUI.stopEditMode();
         mInputMan.grabInput(true);

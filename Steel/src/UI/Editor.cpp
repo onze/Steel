@@ -1,9 +1,9 @@
 
 #include <json/json.h>
 
-#include <Rocket/Core/Factory.h>
 #include <Rocket/Controls/ElementFormControlInput.h>
 #include <Rocket/Controls/ElementTabSet.h>
+#include <Rocket/Core/Event.h>
 #include <Rocket/Debugger.h>
 #include <Rocket/Core/Element.h>
 
@@ -20,13 +20,12 @@
 namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
-        mEngine(NULL),mUI(NULL),mInputMan(NULL),
-        mFSModels(NULL),mDataDir(),mSelectionPosBeforeTransformation(Ogre::Vector3::ZERO),
-        mMenuTabIndex(0),mEditMode(TRANSLATE),mIsDraggingSelectionCancelled(false),mIsDraggingSelection(false)
+        mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSModels(NULL),mDataDir(),
+        mMenuTabIndex(0),mBrush()
     {
+        mMenuTabIndex=1;
 #ifdef DEBUG
         mAutoReload=true;
-        mMenuTabIndex=1;
 #endif
     }
 
@@ -37,9 +36,14 @@ namespace Steel
 
     Editor::~Editor()
     {
+        mBrush.shutdown();
+        
+        delete mFSModels;
+        mFSModels=NULL;
+        
         mEngine=NULL;
         mUI=NULL;
-        mFSModels=NULL;
+        mInputMan=NULL;
     }
 
     Editor& Editor::operator=(const Editor& other)
@@ -70,11 +74,12 @@ namespace Steel
             // does not work for some reason
 //             elem->AddEventListener("submit",this);
         }
-        mIsDraggingSelectionCancelled=mIsDraggingSelection=false;
+        mBrush.init(engine,this,mInputMan);
     }
 
     void Editor::onFileChangeEvent(File *file)
     {
+        Debug::log("Editor::onFileChangeEvent(): ")(file->fullPath()).endl();
         UIPanel::onFileChangeEvent(file);
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
@@ -107,167 +112,48 @@ namespace Steel
 
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
-
-        std::list<ModelId> selection;
-        switch (id)
-        {
-            case OIS::MB_Left:
-                if (mEngine->hasSelection())
-                {
-                    mEngine->clearSelection();
-                }
-                mEngine->pickAgents(selection, evt.state.X.abs, evt.state.Y.abs);
-                mEngine->setSelectedAgents(selection, true);
-                if (mEngine->hasSelection())
-                {
-                    // saved so that we know what to reset properties to
-                    //TODO: save complete serialisations
-                    mSelectionPosBeforeTransformation = mEngine->selectionPosition();
-                }
-                break;
-            case OIS::MB_Right:
-                // cancel current selection dragging (translate, etc)
-                if(mIsDraggingSelection)
-                {
-                    mIsDraggingSelectionCancelled=true;
-                    mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
-                    mEngine->setSelectionRotations(mSelectionRotBeforeTransformation);
-                }
-                break;
-            default:
-                break;
-        }
+        mBrush.mousePressed(evt,id);
         return true;
     }
 
     bool Editor::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
-        if(id==OIS::MB_Left)
-        {
-            mIsDraggingSelectionCancelled=false;
-            mIsDraggingSelection=false;
-            mSelectionPosBeforeTransformation = mEngine->selectionPosition();
-            mSelectionRotBeforeTransformation = mEngine->selectionRotations();
-        }
+        mBrush.mouseReleased(evt,id);
         return true;
     }
 
     bool Editor::mouseMoved(const OIS::MouseEvent& evt)
     {
-        if(!evt.state.buttonDown(OIS::MB_Left))
-            return true;
-        if (mEngine->hasSelection())
-        {
-            if(mIsDraggingSelectionCancelled)
-                return true;
-            mIsDraggingSelection=true;
-            Ogre::Real x = float(evt.state.X.abs);
-            Ogre::Real y = float(evt.state.Y.abs);
-            Ogre::Real _x = x-float(evt.state.X.rel);
-            Ogre::Real _y = y-float(evt.state.Y.rel);
-            Ogre::Real w = float(mWidth);
-            Ogre::Real h = float(mHeight);
-            switch (mEditMode)
-            {
-                case TRANSLATE:
-                {
-                    Ogre::Vector3 selectionPos = mEngine->selectionPosition();
-                    // translating with shift held: along Y axis
-                    if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
-                    {
-                        // I have not found a faster way to do this:
-                        // first I build a plan with the camera orientation as normal (but vertical).
-                        Ogre::Vector3 normal = mEngine->camera()->camNode()->getOrientation()* Ogre::Vector3::UNIT_Z;
-                        normal.y = .0f;
-                        Ogre::Plane plane = Ogre::Plane(normal, Ogre::Vector3::ZERO);
-                        // and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
-                        // ask IT its distance to where I wanted to put it (the selection),
-                        Ogre::Real dist = plane.getDistance(selectionPos);
-                        // and build a new one there. suboptimal =/
-                        plane = Ogre::Plane(normal, dist);
-                        plane.normalise();
-                        // the idea here is to move the selection on a plane perpendicular to the camera view.
-                        // we want a vector of the translation from src to dst, where src is where a ray cast from the camera
-                        // to the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
-                        // passing through the current mouse coordinates.
-                        Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-                        std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-                        if (result.first)
-                        {
-                            Ogre::Vector3 src = ray.getPoint(result.second);
-                            // then we do the same with the new coordinates on the viewport
-                            ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-                            result = ray.intersects(plane);
-                            if (result.first)
-                            {
-                                Ogre::Vector3 dst = ray.getPoint(result.second);
-                                // finally, we translate the selection according to the vector given by substracting two points.
-                                Ogre::Vector3 t = dst - src;
-                                t.y = t.y > 10.f ? .0f : t.y < -10.f ? 0.f : t.y;
-                                mEngine->translateSelection(Ogre::Vector3::UNIT_Y * t);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // normal translation: on the x/z plane
-                        Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
-                        plane.normalise();
-                        // what we want is a vector of translation from the selection's position to a new one.
-                        // first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
-                        // (the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
-                        Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-                        std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-                        if (result.first)
-                        {
-                            Ogre::Vector3 src = ray.getPoint(result.second);
-                            // then we do the same with the new coordinates on the viewport
-                            ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-                            result = ray.intersects(plane);
-                            if (result.first)
-                            {
-                                Ogre::Vector3 dst = ray.getPoint(result.second);
-                                // finally, we translate the selection according to the vector given by substracting two points.
-                                Ogre::Vector3 t = dst - src;
-                                // just making sure we have an horizontal translation (should be useless since plane is horizontal)
-                                t.y = 0.f;
-                                mEngine->translateSelection(t);
-                            }
-                        }
-                    }
-                }
-                break;
-                case ROTATE:
-                {
-                    Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
-                    mEngine->rotateSelection(r);
-                }
-                break;
-                case SCALE:
-                    break;
-                default:
-                    break;
-            } //end of switch (mEditMode)
-        } //end of if (mEngine->hasSelection())
+        mBrush.mouseMoved(evt);
         return true;
     }
 
-    void Editor::ProcessEvent(Rocket::Core::Event& evt)
+    void Editor::ProcessEvent(Rocket::Core::Event &evt)
     {
         // create the command
-        Rocket::Core::Element *elem;
+        Rocket::Core::Element *elem=NULL;
         // in case of drag&drop, elem points to the element being dragged
         if(evt=="dragdrop")
-            elem = static_cast< Rocket::Core::Element* >(evt.GetParameter< void* >("drag_element", NULL));
+        {
+            // ok in stable, not in dev
+            elem= static_cast<Rocket::Core::Element *>(evt.GetParameter< void * >("drag_element", NULL));
+            // ok in dev, but dev has a corrupt stack on exit
+//             Rocket::Core::ElementReference *ref= static_cast<Rocket::Core::ElementReference *>(evt.GetParameter< void * >("drag_element", NULL));
+//             elem=**ref;
+        }
         else
             elem=evt.GetTargetElement();
 
         if(elem==NULL)
             return;
 
-        Ogre::String raw_commmand="";
-        Ogre::String event_value=elem->GetAttribute<Rocket::Core::String>("on"+evt.GetType(),"").CString();
+        auto etype=evt.GetType();
+        Ogre::String event_value=elem->GetAttribute<Rocket::Core::String>("on"+etype,"NoValue").CString();
 
+        if(event_value=="NoValue")
+            return;
+
+        Ogre::String raw_commmand="";
         if(evt=="dragdrop")
         {
             if(elem->GetId()==mFSModels->GetDataSourceName())
@@ -322,15 +208,10 @@ namespace Steel
         {
             OgreUtils::resourceGroupsInfos();
         }
-        else if(command[0]=="editmode")
+        else if(command[0]=="editbrush")
         {
             command.erase(command.begin());
-            if(command[0]=="translate")
-                mEditMode=TRANSLATE;
-            else if(command[0]=="rotate")
-                mEditMode=ROTATE;
-            else if(command[0]=="scale")
-                mEditMode=SCALE;
+            mBrush.processCommand(command);
         }
         else
         {
@@ -368,8 +249,19 @@ namespace Steel
                 return;
             }
             Debug::log(intro)(levelName).endl();
-            Level *mLevel = mEngine->createLevel(levelName);
+            Level *mLevel=mEngine->level();
+            bool backup;
+            if((backup=(mLevel!=NULL)))
+            {
+                // unload all resources that require a level
+                mBrush.shutdown();
+            }
+            mLevel = mEngine->createLevel(levelName);
             mLevel->load();
+            if(backup)
+            {
+                mBrush.init(mEngine,this,mInputMan);
+            }
         }
         else if(command[0]=="save")
         {
@@ -523,7 +415,7 @@ namespace Steel
             return INVALID_ID;
         }
         //      Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-        Steel::ModelId mid = level->newOgreModel(meshFile.fileName(), pos, rot, true);
+        Steel::ModelId mid = level->newOgreModel(meshFile.fileName(), pos, rot);
         AgentId aid=level->newAgent();
         if(!level->linkAgentToModel(aid,MT_OGRE,mid))
         {
@@ -534,5 +426,6 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 
 

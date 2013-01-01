@@ -45,6 +45,7 @@ namespace Steel
             // get values for init
             Ogre::String meshName = value["entityMeshName"].asString();
             // TODO: preparse all meshes, batch declare them, do a single group initialization
+            // TODO: use the level's resourceGroup name
             Ogre::ResourceGroupManager::getSingleton ().declareResource(meshName, "FileSystem", "Steel");
             Ogre::ResourceGroupManager::getSingleton ().initialiseResourceGroup("Steel");
 

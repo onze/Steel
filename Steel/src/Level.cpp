@@ -29,43 +29,34 @@ namespace Steel
 {
 
     Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera) :
-        mPath(path.subfile(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera)
+        TerrainManagerEventListener(),
+        mPath(path.subfile(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera),
+        mTerrainMan()
     {
         Debug::log(logName()+"()").endl();
         if(!mPath.exists())
             mPath.mkdir();
-        addAuxiliaryResourceName(mName);
+        auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
+        resGroupMan->addResourceLocation(mPath.fullPath(),"FileSystem",mName,true);
+        resGroupMan->initialiseResourceGroup(name);
+        
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
         mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
 //	mBTModelMan = new BTModelManager(mPath);
         //mBTModelMan->loadResources();
+        mSceneManager->setAmbientLight(Ogre::ColourValue::White);
+        mTerrainMan.init(mName+".terrainManager",path.subfile(mName),sceneManager);
+
     }
 
     Level::~Level()
     {
         Debug::log(logName()+".~Level()").endl();
         mOgreModelMan->clear();
-        Ogre::ResourceGroupManager *rgm = Ogre::ResourceGroupManager::getSingletonPtr();
-        Ogre::String name;
-        for (unsigned int i = 0; i < mResGroupAux; ++i)
-        {
-            name = mName + "__aux_name_#__" + Ogre::StringConverter::toString(i);
-            rgm->destroyResourceGroup(name);
-        }
         delete mOgreModelMan;
         OgreUtils::destroySceneNode(mLevelRoot);
-    }
-
-    Ogre::String Level::addAuxiliaryResourceName(Ogre::String baseName)
-    {
-        Debug::log(logName()+".addAuxiliaryResourceName(): ")(baseName).endl();
-        Ogre::String name = baseName + "__aux_name_#__" + Ogre::StringConverter::toString(mResGroupAux++);
-        auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
-        resGroupMan->addResourceLocation(mPath.subfile("materials"),"FileSystem",name,false);
-        resGroupMan->addResourceLocation(mPath.subfile("meshes"),"FileSystem",name,false);
-        resGroupMan->initialiseResourceGroup(name);
-        return name;
+        Ogre::ResourceGroupManager::getSingletonPtr()->destroyResourceGroup(mName);
     }
 
     void Level::deleteAgent(AgentId id)
@@ -110,7 +101,7 @@ namespace Steel
 
     bool Level::load()
     {
-        Debug::log(logName()+".load()").endl();
+        Debug::log(logName()+".load()").indent().endl();
 
         File savefile = getSavefile();
         if (!savefile.exists())
@@ -120,12 +111,14 @@ namespace Steel
             return false;
         }
         Ogre::String s = savefile.read();
+        mTerrainMan.addTerrainManagerEventListener(this);
         if (!deserialize(s))
         {
+            mTerrainMan.removeTerrainManagerEventListener(this);
             Debug::warning(logName()+".load(): error deserializing saved file.");
             return false;
         }
-        Debug::log(logName()+".load(): loaded ")(savefile)(" successfully.").endl();
+        Debug::log(logName()+".load(): loaded ")(savefile)(" successfully.").unIndent().endl();
         return true;
     }
 
@@ -167,7 +160,7 @@ namespace Steel
         return t->id();
     }
 
-    ModelId Level::newOgreModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot, bool involvesNewResources)
+    ModelId Level::newOgreModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
     {
         Debug::log(logName()+".newOgreModel(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot).endl();
 
@@ -175,11 +168,14 @@ namespace Steel
         assert(mSceneManager);
         assert(mLevelRoot);
 #endif
-
-        if (involvesNewResources)
-            addAuxiliaryResourceName(mName);
         ModelId mid = mOgreModelMan->newModel(meshName, pos, rot);
         return mid;
+    }
+
+    void Level::onTerrainEvent(TerrainManager::LoadingState state)
+    {
+        if(state==mTerrainMan.READY)
+            mTerrainMan.removeTerrainManagerEventListener(this);
     }
 
     Agent *Level::getAgent(AgentId id)
@@ -228,14 +224,16 @@ namespace Steel
 
     void Level::serialize(Ogre::String &s)
     {
-        Debug::log(logName()+".serialise()").endl();
+        Debug::log(logName()+".serialise()").endl().indent();
         Json::Value root;
         root["name"] = mName;
+        root["ambientLight"] = Json::Value(Ogre::StringConverter::toString(mSceneManager->getAmbientLight()));
 
         root["camera"] = mCamera->toJson();
+        root["terrain"] = mTerrainMan.toJson();
 
         // serialise agents
-        Debug::log(logName()+".serialize(): serialising agents...").endl();
+        Debug::log("processing agents...").endl().indent();
         Json::Value agents;
 
         for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
@@ -246,9 +244,10 @@ namespace Steel
         }
 
         root["agents"] = agents;
+        Debug::log("all agents done.").unIndent().endl();
 
         // serialise models
-        Debug::log(logName()+".serialize(): serializing models...").endl();
+        Debug::log("processing models...").endl();
         Json::Value models;
 
         for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1); modelType != MT_LAST;
@@ -265,9 +264,10 @@ namespace Steel
             }
             mm->toJson(models[modelTypesAsString[modelType]]);
         }
-        Debug::log("over").endl();
-
         root["models"] = models;
+        Debug::log("all models done.").unIndent().endl();
+
+        Debug::log("serialization done").unIndent().endl();
         s = root.toStyledString();
         Debug::log(s).endl();
     }
@@ -293,9 +293,25 @@ namespace Steel
         assert(!value.isNull());
         // we load the right level
         assert(mName==value.asString());
+        
+        Ogre::ColourValue ambient=Ogre::ColourValue::White;
+        value=root["ambientLight"];
+        if(!value.isNull())
+            ambient=Ogre::StringConverter::parseColourValue(value.asString());
+        mSceneManager->setAmbientLight(ambient);
 
         //camera
-        mCamera->fromJson(root["camera"]);
+        if(!mCamera->fromJson(root["camera"]))
+        {
+            Debug::error(logName())(": could not deserialize camera.").endl();
+            return false;
+        }
+
+        if(!mTerrainMan.fromJson(root["terrain"]))
+        {
+            Debug::error(logName())(": could not deserialize terrain.").endl();
+            return false;
+        }
 
         Debug::log("instanciate ALL the models ! \\o/").endl();
         Json::Value dict = root["models"];

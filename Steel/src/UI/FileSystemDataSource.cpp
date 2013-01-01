@@ -116,7 +116,7 @@ namespace Steel
                 formatted_data+=" ondragdrop=\"";
                 formatted_data+=fullpath;
                 formatted_data+="\" style=\"drag:clone;\"";
-                
+
                 formatted_data+=" onclick=\"";
                 formatted_data+=fullpath;
                 formatted_data+="\" ";

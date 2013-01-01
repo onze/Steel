@@ -43,6 +43,16 @@ namespace Steel
             /// reload Rocket files and update context content.
             void reloadContent();
 
+            // getters
+            inline unsigned height()
+            {
+                return mHeight;
+            }
+            inline unsigned width()
+            {
+                return mWidth;
+            }
+
         protected:
             ///not owned
             ///owned

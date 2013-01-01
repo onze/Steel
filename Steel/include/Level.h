@@ -13,6 +13,8 @@
 #include "steeltypes.h"
 //#include "BTModelManager.h"
 #include "tools/File.h"
+#include "TerrainManager.h"
+#include "TerrainManagerEventListener.h"
 
 namespace Steel
 {
@@ -20,7 +22,8 @@ namespace Steel
     class Camera;
     class ModelManager;
     class OgreModelManager;
-    class Level
+
+    class Level:public TerrainManagerEventListener
     {
         private:
             Level();
@@ -30,11 +33,6 @@ namespace Steel
             ///@param[in] path: parent dir where the level saves itself
             Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera);
             virtual ~Level();
-
-            /**
-             * TODO: write this docstring.
-             */
-            Ogre::String addAuxiliaryResourceName(Ogre::String name);
 
             void deleteAgent(AgentId id);
 
@@ -82,9 +80,10 @@ namespace Steel
              */
             ModelId newOgreModel(Ogre::String name,
                                  Ogre::Vector3 pos = Ogre::Vector3::ZERO,
-                                 Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY,
-                                 bool involvesNewResources = false);
+                                 Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
 
+            virtual void onTerrainEvent(TerrainManager::LoadingState state);
+            
             /**
              * loads behavior trees available for this  level.
              */
@@ -113,6 +112,10 @@ namespace Steel
             {
                 return mLevelRoot;
             }
+            inline TerrainManager *terrainManager()
+            {
+                return &mTerrainMan;
+            }
 
             ///Return the level's model manager for the given type.
             ModelManager *modelManager(ModelType modelType);
@@ -123,11 +126,11 @@ namespace Steel
             }
 
         protected:
-
-            ///name used in debug output
+            
+            /// name used in debug output
             Ogre::String logName();
 
-            ///level folder
+            /// level folder (where the level manages its own resources)
             File mPath;
 
             ///level name (i.e. name of the folder its loads its resources from)
@@ -162,6 +165,9 @@ namespace Steel
             unsigned int mResGroupAux;
 
             Camera *mCamera;
+            
+            /// eases terrain manipulation
+            TerrainManager mTerrainMan;
     };
 
 }
