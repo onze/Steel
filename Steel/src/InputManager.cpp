@@ -60,6 +60,8 @@ namespace Steel
         auto window=mEngine->renderWindow();
         Ogre::WindowEventUtilities::addWindowEventListener( window,this);
         mMousePos=Ogre::Vector2(window->getWidth()/2,window->getHeight()/2);
+        
+        setMousePosition(mMousePos);
         mMouseStateStack.clear();
         resetAllData();
     }
@@ -305,6 +307,12 @@ namespace Steel
 
         // set internal data to right values (let OIS deal with its internals though.)
         mMousePos = pos;
+        
+        // fix OIS bug (?) that make mouse coords at (-6,-6) of real coords
+        OIS::MouseState &mutableMouseState = const_cast<OIS::MouseState &>(mMouse->getMouseState());
+        mutableMouseState.X.abs = 6;
+        mutableMouseState.Y.abs = 6;
+        
 #endif
     }
 

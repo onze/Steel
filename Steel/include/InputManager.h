@@ -88,6 +88,7 @@ namespace Steel
             };
             
             //setters
+            /// move the mouse to the given window position
             void setMousePosition(Ogre::Vector2 &pos);
 
         protected:
