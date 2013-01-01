@@ -31,6 +31,7 @@ include_directories(
     /media/a0/cpp/libs/ogre/include
     /media/a0/cpp/libs/ogre/Components/Terrain/include
     /media/a0/cpp/libs/ogre/Components/Paging/include
+    
 #      custom fork
     /media/a0/cpp/libs/libRocket.github.onze/Include
 #     stable version
@@ -40,6 +41,7 @@ include_directories(
 link_directories(
     /media/a0/cpp/libs/ogre/lib
     /usr/lib/x86_64-linux-gnu/
+    
 #      custom fork
     /media/a0/cpp/libs/libRocket.github.onze/Build
 #     stable version
@@ -48,13 +50,19 @@ link_directories(
 
 add_library(steel SHARED ${source_files})
 
+# IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+#     SET(RocketLibSuffix "_d")
+# ELSE(CMAKE_BUILD_TYPE MATCHES "Debug")
+    SET(RocketLibSuffix "")
+# ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+
 target_link_libraries(
     steel
     OgreMain
     OgreTerrain
     OgrePaging
     OIS
-    RocketCore
-    RocketDebugger
-    RocketControls
+    RocketCore${RocketLibSuffix}
+    RocketDebugger${RocketLibSuffix}
+    RocketControls${RocketLibSuffix}
 )
