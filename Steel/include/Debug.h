@@ -197,6 +197,7 @@ namespace Steel
 
                     DebugObject &endl()
                     {
+//                         std::replace(mMsg.begin(),mMsg.end(),"\n","\n\t");
                         mLog->logMessage(mPre + mMsg + mPost);
                         mMsg.clear();
                         for(int i=0; i<mIndents; ++i)
