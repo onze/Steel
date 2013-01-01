@@ -416,7 +416,7 @@ namespace Steel
         mInputMan.update();
 
         //process keyboard
-        float dx = .0f, dy = .0f, dz = .0f, speed = 3.f;
+        float dx = .0f, dy = .0f, dz = .0f, speed = 1.f;
         for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
             if(mEditMode)
@@ -430,6 +430,8 @@ namespace Steel
             }
             else
             {
+                if(mInputMan.isModifierDown(OIS::Keyboard::Ctrl))
+                    speed*=3.f;
                 // ONLY NOT IN edit mode
                 switch (*it)
                 {
