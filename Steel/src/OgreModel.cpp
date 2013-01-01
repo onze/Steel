@@ -90,7 +90,7 @@ namespace Steel
 
     void OgreModel::setNodeAny(Ogre::Any any)
     {
-        mSceneNode->setUserAny(any);
+        mSceneNode->getUserObjectBindings().setUserAny(any);
     }
 
     void OgreModel::setPosition(Ogre::Vector3 const &pos)

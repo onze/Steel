@@ -12,10 +12,18 @@
 
 #include <OgreRay.h>
 #include <OgreVector3.h>
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <OgreQuaternion.h>
 
 #include "steeltypes.h"
+
+namespace Ogre
+{
+    class SceneManager;
+    class SceneNode;
+    class Vector3;
+    class Entity;
+    class RaySceneQuery;
+}
 
 namespace Steel
 {
@@ -45,6 +53,9 @@ namespace Steel
                                     const Ogre::Quaternion &orient,
                                     const Ogre::Vector3 &scale);
         protected:
+            //not owned
+            Ogre::SceneManager *mSceneManager;
+            //owned
             Ogre::RaySceneQuery *mRaySceneQuery;
     };
 
