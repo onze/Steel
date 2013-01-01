@@ -71,6 +71,8 @@ namespace Steel
             
             /// disk used as visual terraforming brush
             Ogre::SceneNode *mTerraBrushVisual;
+            /// factor by which the terraforming brush is scaled up (down: 1/mTerraScale)
+            float mTerraScale;
     };
 }
 #endif // EDITORBRUSH_H

@@ -19,7 +19,7 @@ namespace Steel
         mMode(TRANSLATE),
         mSelectionPosBeforeTransformation(Ogre::Vector3::ZERO),mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
         mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
-        mTerraBrushVisual(NULL)
+        mTerraBrushVisual(NULL),mTerraScale(1.5f)
     {
 #ifdef DEBUG
         mMode=TERRAFORM;
@@ -143,6 +143,13 @@ namespace Steel
             auto level=mEngine->level();
             if(level!=NULL && mTerraBrushVisual!=NULL)
             {
+                // resize
+                if(evt.state.Z.rel>0)
+                    mTerraBrushVisual->setScale(mTerraBrushVisual->getScale()*mTerraScale);
+                else if(evt.state.Z.rel<0)
+                    mTerraBrushVisual->setScale(mTerraBrushVisual->getScale()/mTerraScale);
+                    
+                // move
                 auto ray=mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
                 auto hitTest=level->terrainManager()->intersectRay(ray);
                 if(hitTest.hit)
@@ -155,6 +162,7 @@ namespace Steel
             }
             else
                 Debug::warning("EditorBrush::mouseMoved() no level, really ?").endl();
+            
         }
         if(evt.state.buttonDown(OIS::MB_Left))
         {
