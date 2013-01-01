@@ -39,7 +39,7 @@ namespace Steel
         auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
         resGroupMan->addResourceLocation(mPath.fullPath(),"FileSystem",mName,true);
         resGroupMan->initialiseResourceGroup(name);
-        
+
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
         mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
@@ -195,7 +195,10 @@ namespace Steel
         std::list<ModelId> models = std::list<ModelId>();
         for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
         {
-            id = Ogre::any_cast<ModelId>((*it)->getUserAny());
+            auto any=(*it)->getUserObjectBindings().getUserAny();
+            if(any.isEmpty())
+                continue;
+            id = any.get<ModelId>();
             if (!mOgreModelMan->isValid(id))
                 continue;
             //		Debug::log("scenenode: ")((*it)->getName())("-> model id: ")(id)(", ");
@@ -293,7 +296,7 @@ namespace Steel
         assert(!value.isNull());
         // we load the right level
         assert(mName==value.asString());
-        
+
         Ogre::ColourValue ambient=Ogre::ColourValue::White;
         value=root["ambientLight"];
         if(!value.isNull())
