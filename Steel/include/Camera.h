@@ -55,7 +55,7 @@ namespace Steel
             /**
              * moves the camera according to the given coordinates.
              */
-            void translate(float dx, float dy, float dz);
+            void translate(float dx, float dy, float dz, float speed=1.f);
 
             /**
              * returns a pointer to the internal ogre camera instance.

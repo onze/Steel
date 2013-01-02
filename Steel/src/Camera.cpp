@@ -35,10 +35,10 @@ namespace Steel
         mCameraNode->setPosition(0.0, 50.0, 200.0);
         mCameraNode->lookAt(Ogre::Vector3::ZERO, Ogre::SceneNode::TS_WORLD);
 
-        mCamera->setNearClipDistance(.1);
-        mCamera->setFarClipDistance(50000);
-        auto rs=((Ogre::Root *)sceneManager->getRootSceneNode())->getRenderSystem();
-        if (0 && rs->getCapabilities()->hasCapability(Ogre::RSC_INFINITE_FAR_PLANE))
+        mCamera->setNearClipDistance(.01);
+        mCamera->setFarClipDistance(1000);
+        auto rs=Ogre::Root::getSingletonPtr()->getRenderSystem();
+        if (rs->getCapabilities()->hasCapability(Ogre::RSC_INFINITE_FAR_PLANE))
         {
             mCamera->setFarClipDistance(0);   // enable infinite far clip distance if we can
         }
@@ -109,9 +109,9 @@ namespace Steel
         return value;
     }
 
-    void Camera::translate(float dx, float dy, float dz)
+    void Camera::translate(float dx, float dy, float dz, float speed)
     {
-        mCameraNode->translate(mCameraNode->getOrientation() * (Ogre::Vector3(dx, dy, dz)));
+        mCameraNode->translate(speed*(mCameraNode->getOrientation() * Ogre::Vector3(dx, dy, dz).normalisedCopy()));
     }
 
     Ogre::Vector3 Camera::dropTargetPosition()

@@ -305,7 +305,6 @@ namespace Steel
 
         //debug
 //         mUI.editor().processCommand("engine.level.load.MyLevel");
-        startEditMode();
         mUI.editor().processCommand("editbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
@@ -313,7 +312,7 @@ namespace Steel
         while (!mMustAbortMainLoop)
         {
             mRoot->_fireFrameStarted();
-
+            
             // escape is a builting show stopper
             if (!processInputs())
                 return false;
@@ -433,7 +432,7 @@ namespace Steel
             else
             {
                 if(mInputMan.isModifierDown(OIS::Keyboard::Ctrl))
-                    speed*=3.f;
+                    speed*=2.f;
                 // ONLY NOT IN edit mode
                 switch (*it)
                 {
@@ -469,7 +468,7 @@ namespace Steel
                     break;
             }
         }
-        mCamera->translate(dx, dy, dz);
+        mCamera->translate(dx, dy, dz,speed);
 
         //process mouse
         if (mInputMan.hasMouseMoved())
