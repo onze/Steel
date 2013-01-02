@@ -2,8 +2,10 @@
 #define EDITOR_H
 
 #include <vector>
+
 #include <OIS.h>
 #include <OgreString.h>
+#include <OgreFrameListener.h>
 
 #include "steeltypes.h"
 #include "UI/UIPanel.h"
@@ -15,7 +17,7 @@ namespace Steel
     class Engine;
     class UI;
     class InputManager;
-    class Editor:public UIPanel
+    class Editor:public UIPanel,Ogre::FrameListener
     {
         private:
         public:
@@ -29,7 +31,10 @@ namespace Steel
             virtual void onShow();
             /// called right before the underlying document gets hidden
             virtual void onHide();
-
+            
+            /// called by Ogre once per frame 
+            bool frameRenderingQueued(const Ogre::FrameEvent &evt);
+            
             /**
              * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel: position),
              * and loads it.

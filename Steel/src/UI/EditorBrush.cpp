@@ -24,7 +24,8 @@ namespace Steel
         mMode(TRANSLATE),
         mSelectionPosBeforeTransformation(Ogre::Vector3::ZERO),mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
         mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
-        mTerraBrushVisual(NULL),mTerraScale(1.5f),mModeStack(std::vector<BrushMode>())
+        mTerraBrushVisual(NULL),mTerraScale(1.5f),mModeStack(std::vector<BrushMode>()),
+        mModifiedTerrains(std::set<Ogre::Terrain *>())
     {
     }
 
@@ -133,6 +134,26 @@ namespace Steel
                 }
                 break;
             case TERRAFORM:
+            {
+                //now might be the right time to update blendmaps
+                auto level=mEngine->level();
+                if(level)
+                {
+                    for(auto it=mModifiedTerrains.begin(); it!=mModifiedTerrains.end(); ++it)
+                    {
+                        Ogre::Terrain *terrain=*it;
+                        terrain->update(true);
+                        level->terrainManager()->updateBlendMaps(terrain);
+                        continue;
+                        for(int index=1; index<terrain->getLayerCount(); ++index)
+                            terrain->getLayerBlendMap(index)->dirty();
+                        for(int index=1; index<terrain->getLayerCount(); ++index)
+                            terrain->getLayerBlendMap(index)->update();
+                        terrain->updateDerivedData(true);
+                    }
+                }
+                break;
+            }
             case NONE:
             default:
                 break;
@@ -285,10 +306,12 @@ namespace Steel
                     mTerraBrushVisual->setPosition(hitTest.position);
                     // action !
                     Ogre::Real radius=mTerraBrushVisual->getScale().length()*mTerraBrushVisual->getAttachedObject("cylinderEntity")->getBoundingRadius();
+                    Ogre::TerrainGroup::TerrainList newTids;
                     if(mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Left))
-                        level->terrainManager()->raiseTerrainAt(hitTest.position,radius/3.f,radius);
+                        newTids=level->terrainManager()->raiseTerrainAt(hitTest.position,radius/3.f,radius);
                     else if(mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Right))
-                        level->terrainManager()->raiseTerrainAt(hitTest.position,-radius/3.f,radius);
+                        newTids=level->terrainManager()->raiseTerrainAt(hitTest.position,-radius/3.f,radius);
+                    mModifiedTerrains.insert(newTids.begin(),newTids.end());
                 }
                 else
                     mTerraBrushVisual->setVisible(false);
@@ -362,7 +385,6 @@ namespace Steel
             case TERRAFORM:
                 if(mTerraBrushVisual==NULL)
                 {
-                    Debug::warning("EditorBrush::getBrush() building mTerraBrushVisual").endl();
                     auto level=mEngine->level();
                     if(level!=NULL)
                     {
@@ -376,7 +398,6 @@ namespace Steel
                         mTerraBrushVisual = level->levelRoot()->createChildSceneNode("terraBrushVisual");
                         //         sphereEntity->setMaterialName("material_name_goes_here");
                         mTerraBrushVisual->attachObject(entity);
-//                         mTerraBrushVisual=Cylinder::getSceneNode(level->sceneManager(),level->levelRoot(),"terraBrushVisual",);
                     }
                 }
                 else
@@ -394,6 +415,7 @@ namespace Steel
             case TERRAFORM:
                 if(mTerraBrushVisual!=NULL)
                     mTerraBrushVisual->setVisible(false);
+                mModifiedTerrains.clear();
                 break;
             default:
                 break;

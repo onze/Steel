@@ -12,6 +12,7 @@
 namespace Ogre
 {
     class SceneNode;
+    class Terrain;
 }
 
 namespace Steel
@@ -96,6 +97,7 @@ namespace Steel
             float mTerraScale;
             
             std::vector<BrushMode> mModeStack;
+            std::set<Ogre::Terrain *> mModifiedTerrains;
     };
 }
 #endif // EDITORBRUSH_H

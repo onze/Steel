@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <limits.h>
+#include <float.h>
 
 #include <OgreTerrain.h>
 #include <OgreTerrainGroup.h>
@@ -13,6 +14,7 @@
 
 namespace Steel
 {
+
     TerrainManager::TerrainManager():Ogre::FrameListener(),
         mLoadingState(INIT),mListeners(std::set<TerrainManagerEventListener *>()),
         mTerrainGlobals(NULL),mTerrainGroup(NULL),mTerrainsImported(false),mPath("")
@@ -86,7 +88,10 @@ namespace Steel
         mTerrainsImported=false;
         mLoadingState=INIT;
         mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
-        mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneManager, Ogre::Terrain::ALIGN_X_Z, 513, 12000.0f);
+        mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneManager,
+                        Ogre::Terrain::ALIGN_X_Z,
+                        DEFAULT_TERRAIN_SIZE,
+                        DEFAULT_WORLD_SIZE);
 
         auto rgm=Ogre::ResourceGroupManager::getSingletonPtr();
         rgm->createResourceGroup(resourceGroupName);
@@ -99,6 +104,16 @@ namespace Steel
             buildPath.mkdir();
         mTerrainGroup->setFilenameConvention(buildPath.subfile("terrain").fullPath(), Ogre::String("terrain"));
         mTerrainGroup->setOrigin(Ogre::Vector3::ZERO);
+
+        mSceneManager->createLight("terrainLight");
+
+        // default terrain
+        Ogre::Vector3 lightDir(0.55, -0.3, 0.75);
+        Ogre::ColourValue diffuseColor=Ogre::ColourValue::White;
+        Ogre::ColourValue specularColor(0.4, 0.4, 0.4);
+        std::list<TerrainSlotData> terrainSlots;
+        terrainSlots.push_back(TerrainSlotData(0L,0L));
+        build(lightDir,diffuseColor,specularColor,terrainSlots);
     }
 
     Json::Value TerrainManager::toJson()
@@ -125,9 +140,10 @@ namespace Steel
             terrainValue["heightmapPath"]=heightmapPath;
 
             terrainValue["position"]=Json::Value(Ogre::StringConverter::toString(slot->instance->getPosition()));
+            terrainValue["size"]=Json::Value(Ogre::StringConverter::toString(slot->instance->getSize()));
+            terrainValue["worldSize"]=Json::Value(Ogre::StringConverter::toString(slot->instance->getWorldSize()));
 
-
-//             Ogre::Terrain* terrain = slot->instance;
+            //             Ogre::Terrain* terrain = slot->instance;
             root["terrainSlots"].append(terrainValue);
         }
         return root;
@@ -140,31 +156,72 @@ namespace Steel
         size_t side=instance->getSize();
 
         // put it in the png greyscale format
-        char *heights=new char[side*side];
-        for(size_t i=0; i<side*side; ++i)heights[i]=static_cast<char>(heights_init[i]);
-        Ogre::DataStreamPtr streamPtr(OGRE_NEW Ogre::MemoryDataStream(heights,side*side));
+//             // 8bpp
+//             char *heights=new char[side*side];
+//             for(size_t i=0; i<side*side; ++i)
+//                 heights[i]=static_cast<char>(heights_init[i]<0?0:(heights_init[i]>255?255:heights_init[i]));
+//         Ogre::DataStreamPtr streamPtr(OGRE_NEW Ogre::MemoryDataStream(heights,side*side*sizeof(float)));
+
+//         16bpp
+        short *heights=new short[side*side];
+        float min=TerrainManager::MAX_TERRAIN_HEIGHT,max=TerrainManager::MIN_TERRAIN_HEIGHT;
+        for(size_t i=0; i<side*side; ++i)
+        {
+            heights[i]=static_cast<short>(heights_init[i]);
+            if(heights[i]<min)min=heights[i];
+            if(heights[i]>max)max=heights[i];
+        }
+        Debug::log("min: ")(min)(" max: ")(max).endl();
+
+        Ogre::DataStreamPtr streamPtr(OGRE_NEW Ogre::MemoryDataStream(heights,side*side*sizeof(short)));
 
         // make it an image for easy saving
         Ogre::Image img;
-        img.loadRawData(streamPtr,side,side,1,Ogre::PixelFormat::PF_L8);
+//         img.loadRawData(streamPtr,side,side,1,Ogre::PixelFormat::PF_L8);
+        img.loadRawData(streamPtr,side,side,1,Ogre::PixelFormat::PF_SHORT_L);
         Ogre::String filename="heightmap_"+Ogre::StringConverter::toString(x)+"_"+Ogre::StringConverter::toString(y)+".png";
         heightmapPath=mPath.subfile(filename).fullPath();
         img.save(heightmapPath);
-//         Debug::log("TerrainManager::saveTerrainHeightmapAs(): ")(Ogre::PixelUtil::getFormatName(img.getFormat())).endl();
     }
 
-    float *TerrainManager::loadTerrainHeightmapFrom(Ogre::String filepath)
+    float *TerrainManager::loadTerrainHeightmapFrom(Ogre::String filepath,int size)
     {
+        Debug::log("TerrainManager::loadTerrainHeightmapFrom(")(filepath)("): ");
         Ogre::Image img;
-        img.load(filepath, mTerrainGroup->getResourceGroup());
-        Debug::log("TerrainManager::loadTerrainHeightmapFrom(")(filepath)("): format is ")(Ogre::PixelUtil::getFormatName(img.getFormat())).endl();
-
-        Ogre::uchar *img_data=img.getData();
-        size_t size=img.getWidth()*img.getHeight();
-        float *heights=new float[size];
-        for(size_t i=0; i<size; ++i)
+        short *img_data;
+        int resolution=size*size;
+        bool use_file=File(filepath).exists();
+        if(use_file)
+        {
+            img.load(filepath, mTerrainGroup->getResourceGroup());
+            resolution=img.getWidth()*img.getHeight();
+            Debug::log("format is ")(Ogre::PixelUtil::getFormatName(img.getFormat()));
+            Debug::log(" depth: ")(img.getDepth());
+            Debug::log(" resolution: ")(img.getWidth())("x")(img.getHeight()).endl();
+            img_data=reinterpret_cast<short *>(img.getData());
+        }
+        else
+        {
+            if(filepath=="")
+                Debug::log("file not found, using 0 ").endl();
+            else
+                Debug::warning("file not found, using 0 ").endl();
+            // use floats and std::fill_n
+            //             memset(img_data,0,resolution);
+            img_data=new short[resolution];
+            std::fill(img_data, img_data+resolution, 0);
+        }
+        float *heights=new float[resolution];
+        float min=TerrainManager::MAX_TERRAIN_HEIGHT,max=TerrainManager::MIN_TERRAIN_HEIGHT;
+        for(int i=0; i<resolution; ++i)
+        {
             heights[i]=static_cast<float>(img_data[i]);
-
+            if(heights[i]<min)min=heights[i];
+            if(heights[i]>max)max=heights[i];
+        }
+        Debug::log("min: ")(min)(" max: ")(max).endl();
+        if(!use_file)
+            delete img_data;
         return heights;
     }
 
@@ -173,7 +230,7 @@ namespace Steel
         Ogre::String intro="TerrainManager::fromJSon(): ";
         Json::Value value;
 
-//         Ogre::Vector3 lightDir(.2f, -.5f, .3f);
+        //         Ogre::Vector3 lightDir(.2f, -.5f, .3f);
         Ogre::Vector3 lightDir(0.55, -0.3, 0.75);
         value=root["lightDir"];
         if(value.isNull())
@@ -214,7 +271,16 @@ namespace Steel
                 terrainSlot.slot_x=Ogre::StringConverter::parseLong(terrainSlotValue["slot"]["x"].asString(),terrainSlot.slot_x);
                 terrainSlot.slot_y=Ogre::StringConverter::parseLong(terrainSlotValue["slot"]["y"].asString(),terrainSlot.slot_y);
                 terrainSlot.heightmapPath=terrainSlotValue["heightmapPath"].asString().c_str();
-                terrainSlot.position=Ogre::StringConverter::parseVector3(terrainSlotValue["position"].asString().c_str(),Ogre::Vector3::ZERO);
+                terrainSlot.position=Ogre::StringConverter::parseVector3(terrainSlotValue["position"].asString().c_str());
+
+                terrainSlot.size=Ogre::StringConverter::parseInt(terrainSlotValue["size"].asString().c_str());
+                if(terrainSlot.size==0)
+                    terrainSlot.size=TerrainManager::DEFAULT_TERRAIN_SIZE;
+
+                terrainSlot.worldSize=Ogre::StringConverter::parseReal(terrainSlotValue["worldSize"].asString().c_str());
+                if(terrainSlot.worldSize==.0f)
+                    terrainSlot.worldSize=TerrainManager::DEFAULT_WORLD_SIZE;
+
                 if(terrainSlot.isValid())
                     terrainSlots.push_back(terrainSlot);
                 else
@@ -250,33 +316,18 @@ namespace Steel
         // TODO: encapsulate into a lightManager (need light models ?)
         lightDir.normalise();
         // keep name in sync with destructor/shutdown
-        Ogre::Light* light = mSceneManager->createLight("terrainLight");
+        Ogre::Light* light = mSceneManager->getLight("terrainLight");
         light->setType(Ogre::Light::LT_DIRECTIONAL);
         light->setDirection(lightDir);
         light->setDiffuseColour(diffuseColor);
         light->setSpecularColour(specularColor);
         configureTerrainDefaults(light);
 
-        bool harcoded=false;
-        if(harcoded)
-        {
-            TerrainSlotData tsd;
-            for (long x = 0; x <= 0; ++x)
-            {
-                for (long y = 0; y <= 0; ++y)
-                {
-                    tsd.slot_x=x;
-                    tsd.slot_y=y;
-                    tsd.heightmapPath="default_terrain.png";
-                    defineTerrain(tsd);
-                }
-            }
-        }
+        if(terrainSlots.size()==0)
+            Debug::warning("TerrainManager::build(): terrainSlots has size 0. Level has no terrain !").endl();
         else
-        {
             for(auto it=terrainSlots.begin(); it!=terrainSlots.end(); ++it)
                 defineTerrain(*it);
-        }
 
         // sync load since we want everything in place when we start
         mTerrainGroup->loadAllTerrains(true);
@@ -287,7 +338,7 @@ namespace Steel
             while(ti.hasMoreElements())
             {
                 Ogre::Terrain* t = ti.getNext()->instance;
-                initBlendMaps(t);
+                updateBlendMaps(t);
             }
         }
         mTerrainGroup->freeTemporaryResources();
@@ -305,10 +356,16 @@ namespace Steel
         else
         {
             Ogre::Terrain::ImportData idata;
-            idata.inputFloat=loadTerrainHeightmapFrom(terrainSlotData.heightmapPath);
+            idata.inputFloat=loadTerrainHeightmapFrom(terrainSlotData.heightmapPath,terrainSlotData.size);
             idata.pos=terrainSlotData.position;
+            idata.inputBias=0.f;
+            idata.terrainSize=terrainSlotData.size;
+            idata.worldSize=terrainSlotData.worldSize;
+            // as for now, we only use defaults for those values
             idata.layerDeclaration=mTerrainGroup->getDefaultImportSettings().layerDeclaration;
             idata.layerList=mTerrainGroup->getDefaultImportSettings().layerList;
+            if(mTerrainGroup->getTerrain(x,y)!=NULL)
+                mTerrainGroup->removeTerrain(x,y);
             mTerrainGroup->defineTerrain(x, y, &idata);
             mTerrainsImported = true;
         }
@@ -329,35 +386,38 @@ namespace Steel
 
         // Configure default import settings for if we use imported image
         Ogre::Terrain::ImportData& defaultimp = mTerrainGroup->getDefaultImportSettings();
-        defaultimp.terrainSize = 513;
-        defaultimp.worldSize = 12000.0f;
-        defaultimp.inputScale = 600.f; // due terrain.png is 8 bpp
+        defaultimp.terrainSize = TerrainManager::DEFAULT_TERRAIN_SIZE;
+        // 1 unit == 1 meter
+        defaultimp.worldSize = TerrainManager::DEFAULT_WORLD_SIZE;
+        // due terrain.png is 16 bpp (a float)
+        defaultimp.inputScale = 1.f;
         defaultimp.minBatchSize = 33;
         defaultimp.maxBatchSize = 65;
 
         // textures
+        // TODO load this from serialization (no editing included)
         // we set the number of terrain texture layers to 3
-        defaultimp.layerList.resize(0);
         defaultimp.layerList.resize(3);
-        defaultimp.layerList[0].worldSize = 100;
+        defaultimp.layerList[0].worldSize = 10;
         defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.png");
         defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.png");
-        defaultimp.layerList[1].worldSize = 30;
+        defaultimp.layerList[1].worldSize = 3;
         defaultimp.layerList[1].textureNames.push_back("grass_green-01_diffusespecular.png");
         defaultimp.layerList[1].textureNames.push_back("grass_green-01_normalheight.png");
-        defaultimp.layerList[2].worldSize = 200;
+        defaultimp.layerList[2].worldSize = 20;
         defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_diffusespecular.png");
         defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_normalheight.png");
     }
 
-    void TerrainManager::initBlendMaps(Ogre::Terrain* terrain)
+    void TerrainManager::updateBlendMaps(Ogre::Terrain* terrain)
     {
+        //TODO: load this through serialization (no editing included, but fast reload would be nice)
         Ogre::TerrainLayerBlendMap* blendMap0 = terrain->getLayerBlendMap(1);
         Ogre::TerrainLayerBlendMap* blendMap1 = terrain->getLayerBlendMap(2);
-        Ogre::Real minHeight0 = 70;
-        Ogre::Real fadeDist0 = 40;
-        Ogre::Real minHeight1 = 70;
-        Ogre::Real fadeDist1 = 15;
+        Ogre::Real minHeight0 = 15;
+        Ogre::Real fadeDist0 = 10;
+        Ogre::Real minHeight1 = 15;
+        Ogre::Real fadeDist1 = 0;
         float* pBlend0 = blendMap0->getBlendPointer();
         float* pBlend1 = blendMap1->getBlendPointer();
         for (Ogre::uint16 y = 0; y < terrain->getLayerBlendMapSize(); ++y)
@@ -412,7 +472,7 @@ namespace Steel
                 {
                     mLoadingState=SAVING;
                     yieldEvent(mLoadingState);
-//                     mTerrainGroup->saveAllTerrains(true);
+                    //                     mTerrainGroup->saveAllTerrains(true);
                 }
                 else
                 {
@@ -438,9 +498,10 @@ namespace Steel
         return result;
     }
 
-    void TerrainManager::raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius)
+    Ogre::TerrainGroup::TerrainList TerrainManager::raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius)
     {
-//         Debug::log("TerrainManager::raiseTerrainAt(terraCenter=")(terraCenter)(", value=")(value)(", radius=")(radius)(")").endl();
+        std::set<Ogre::Vector2> tIds;
+        //         Debug::log("TerrainManager::raiseTerrainAt(terraCenter=")(terraCenter)(", value=")(value)(", radius=")(radius)(")").endl();
         // retrieve a list of all slots involved in the operation. This is done by getting all slots
         // colliding with the terraforming sphere's bounding box
         auto diff=Ogre::Vector3::UNIT_SCALE*radius;
@@ -482,11 +543,21 @@ namespace Steel
                     maxx=maxx>x?maxx:x;
                     minz=minz<z?minz:z;
                     maxz=maxz>z?maxz:z;
+                    float diff;
+                    // constant distribution
+                    diff=value;
                     // round shaped distribution
-//                     auto diff=value*std::cos(3.14/2.*dist/local_radius);
+                    //                     diff=value*std::cos(3.14/2.*dist/local_radius);
                     // softmax distribution
-                    auto diff=value*(1.f-std::exp(dist)/(1+std::exp(local_radius)));
+//                     diff=value*(1.f-std::exp(dist)/(1+std::exp(local_radius)));
+                    //                     if(diff>FLT_MAX-heights[i])
+                    //                         diff=FLT_MAX-heights[i];
+                    //                     if(diff>heights[i]-FLT_MIN)
+                    //                         diff=heights[i]-FLT_MIN;
+
                     heights[i]+=diff;
+                    heights[i]=heights[i]<TerrainManager::MIN_TERRAIN_HEIGHT?TerrainManager::MIN_TERRAIN_HEIGHT:heights[i];
+                    heights[i]=heights[i]>TerrainManager::MAX_TERRAIN_HEIGHT?TerrainManager::MAX_TERRAIN_HEIGHT:heights[i];
                 }
             }
             if(minx<maxx && minz<maxz)
@@ -497,14 +568,25 @@ namespace Steel
                 Ogre::Vector3 v1=terrain->convertPosition(Ogre::Terrain::LOCAL_SPACE,
                                  Ogre::Vector3(maxx,.0f,maxz),
                                  Ogre::Terrain::WORLD_SPACE);
-                terrain->dirtyRect(Ogre::Rect(v0.x,v0.z,v1.x,v1.z));
-                terrain->update(true);
+                if(v0.x<v1.x && v0.z<v1.z)
+                    terrain->dirtyRect(Ogre::Rect(v0.x,v0.z,v1.x,v1.z));
+                else
+                    terrain->dirty();
+                terrain->updateGeometry();
             }
         }
+        return terrains;
     }
 
     TerrainManager::TerrainSlotData::TerrainSlotData():
-        slot_x(LONG_MAX),slot_y(LONG_MAX),heightmapPath("default_terrain.png")
+        slot_x(LONG_MAX),slot_y(LONG_MAX),heightmapPath(""),
+        position(Ogre::Vector3::ZERO),
+        size(TerrainManager::DEFAULT_TERRAIN_SIZE),worldSize(TerrainManager::DEFAULT_WORLD_SIZE)
+    {}
+    TerrainManager::TerrainSlotData::TerrainSlotData(long x, long y):
+        slot_x(x),slot_y(y),heightmapPath(""),
+        position(Ogre::Vector3::ZERO),
+        size(TerrainManager::DEFAULT_TERRAIN_SIZE),worldSize(TerrainManager::DEFAULT_WORLD_SIZE)
     {}
     TerrainManager::TerrainSlotData::~TerrainSlotData() {}
     bool TerrainManager::TerrainSlotData::isValid()
@@ -512,7 +594,10 @@ namespace Steel
         bool valid=true;
         valid&=slot_x!=LONG_MAX;
         valid&=slot_y!=LONG_MAX;
-        valid&=File(heightmapPath).exists();
+        valid&=File(heightmapPath).exists() || heightmapPath=="" ;
+        valid&=size>3;
+        // minimal terrain size is 9m**2, just like a student's room.
+        valid&=worldSize>3;
         return valid;
     }
 }

@@ -32,15 +32,27 @@ namespace Steel
             {
                 public:
                     TerrainSlotData();
+                    TerrainSlotData(long x,long y);
                     ~TerrainSlotData();
                     bool isValid();
+
                     long int slot_x;
                     long int slot_y;
                     Ogre::String heightmapPath;
                     Ogre::Vector3 position;
+                    int size;
+                    Ogre::Real worldSize;
             };
 
         public:
+            /// terrain size in vertices (should be 2^n+1)
+            static const int DEFAULT_TERRAIN_SIZE=513;
+            /// terrain size in world units
+            static const int DEFAULT_WORLD_SIZE=500.f;
+            /// max height of the terrain
+            static const int MAX_TERRAIN_HEIGHT=500.f;
+            /// min height of the terrain
+            static const int MIN_TERRAIN_HEIGHT=-500.f;
             enum LoadingState {INIT=0,BUILDING,TEXTURING,SAVING,READY};
 
             TerrainManager();
@@ -57,9 +69,9 @@ namespace Steel
             void addTerrainManagerEventListener(TerrainManagerEventListener *listener);
             void removeTerrainManagerEventListener(TerrainManagerEventListener *listener);
 
-            /// called by Ogre once per frame 
+            /// called by Ogre once per frame
             bool frameRenderingQueued(const Ogre::FrameEvent &evt);
-            
+
             /** return the coordinate at which the given ray intersect the terrain.
              * the pointer of Terrain is always NULL, since this is implementation specific.
              */
@@ -73,23 +85,31 @@ namespace Steel
 
             bool fromJson(Json::Value &value);
             Json::Value toJson();
-            float *loadTerrainHeightmapFrom(Ogre::String filepath);
+            float *loadTerrainHeightmapFrom(Ogre::String filepath,int size);
             void saveTerrainHeightmapAs(long int x, long int y, Ogre::Terrain *instance,Ogre::String &heightmapPath);
-            
-            /** Raise all terrain vertices in an round shaped area centered at the given position (terraCenter) (world coords) 
+
+            /** Raise all terrain vertices in an round shaped area centered at the given position (terraCenter) (world coords)
              * and of the given radius, by a decreasing value starting at the given value at the center, and reaching 0
              * at radius.
+             * Returns slot coordinaes of terrains that were modified in the process.
              */
-            void raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius);
+            Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius);
+
+            // getters
+            inline Ogre::TerrainGroup *terrainGroup()
+            {
+                return mTerrainGroup;
+            }
+            /// recompute blendmaps according to rules
+            void updateBlendMaps(Ogre::Terrain* terrain);
 
         protected:
             /// prepares ogre and the terrain, at startup
             void configureTerrainDefaults(Ogre::Light* light);
             void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
-            void initBlendMaps(Ogre::Terrain* terrain);
             /// calls event listeners' callback methods.
             void yieldEvent(LoadingState state);
-            
+
             // not owned
             Ogre::SceneManager *mSceneManager;
 

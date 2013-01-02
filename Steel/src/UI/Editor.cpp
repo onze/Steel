@@ -19,7 +19,7 @@
 
 namespace Steel
 {
-    Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
+    Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),Ogre::FrameListener(),
         mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSModels(NULL),mDataDir(),
         mMenuTabIndex(0),mBrush()
     {
@@ -76,6 +76,20 @@ namespace Steel
         }
         mBrush.init(engine,this,mInputMan);
     }
+    
+    bool Editor::frameRenderingQueued(const Ogre::FrameEvent &evt)
+    {
+        if(mDocument!=NULL)
+        {
+            Rocket::Core::Element *elem=mDocument->GetElementById("stats_meter");
+            if(elem!=NULL)
+            {
+                Ogre::RenderTarget::FrameStats stats=mEngine->renderWindow()->getStatistics();
+                elem->SetInnerRML(Ogre::StringConverter::toString(stats.avgFPS).c_str());
+            }
+        }
+        return true;
+    }
 
     void Editor::onFileChangeEvent(File *file)
     {
@@ -87,6 +101,7 @@ namespace Steel
 
     void Editor::onShow()
     {
+        Ogre::Root::getSingletonPtr()->addFrameListener(this);
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragdrop",this);
         Rocket::Debugger::SetContext(mContext);
@@ -102,6 +117,7 @@ namespace Steel
 
     void Editor::onHide()
     {
+        Ogre::Root::getSingletonPtr()->removeFrameListener(this);
         mDocument->RemoveEventListener("click",this);
         mDocument->RemoveEventListener("dragdrop",this);
 
@@ -201,6 +217,12 @@ namespace Steel
         std::vector<Ogre::String> command;
         command=StringUtils::split(std::string(raw_commmand),std::string("."));
         // dispatch the command to the right subprocessing function
+        if(command[0]=="editor")
+        {
+            command.erase(command.begin());
+            if(command[0]=="hide")
+                mEngine->stopEditMode();
+        }
         if(command[0]=="engine")
         {
             command.erase(command.begin());
