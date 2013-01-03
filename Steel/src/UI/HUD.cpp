@@ -51,16 +51,8 @@ namespace Steel
                 elem=mDocument->GetElementById("fps");
                 if(elem!=NULL)
                 {
-                    Ogre::String open="<span style=\"display:inline-block;width:10%;\">";
-                    Ogre::String close="</span>";
-                    const Engine::Stats steelStats=mEngine->stats();
                     Ogre::RenderTarget::FrameStats ogreStats=mEngine->renderWindow()->getStatistics();
-                    Ogre::String rml=open+Ogre::StringConverter::toString(static_cast<int>(ogreStats.avgFPS))+" fps"+close;
-                    rml.append("|"+open+" E: "+Ogre::StringConverter::toString(static_cast<int>(steelStats.lastEngineDuration))+close);
-                    rml.append("|"+open+" G: "+Ogre::StringConverter::toString(static_cast<int>(steelStats.lastGraphicFrameDuration))+close);
-                    rml.append("|"+open+" T: "+Ogre::StringConverter::toString(static_cast<int>(1./steelStats.lastFullFrameDuration*1000.))+close);
-                    rml.append(" ms");
-                    elem->SetInnerRML(rml.c_str());
+                    elem->SetInnerRML(Ogre::StringConverter::toString(static_cast<int>(ogreStats.avgFPS)).c_str());
                 }
             }
         }
