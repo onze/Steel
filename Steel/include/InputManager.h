@@ -126,7 +126,7 @@ namespace Steel
             /**
              * move since last known position, last known position.
              */
-            Ogre::Vector2 mMouseMove,mMousePos;
+            Ogre::Vector2 mMouseMove,mMousePos,mLastMouseMove;
 
             /// used by push/popMouseState. Store mouse position only.
             std::list<Ogre::Vector2> mMouseStateStack;
