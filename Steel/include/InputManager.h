@@ -124,7 +124,7 @@ namespace Steel
             std::list<OIS::KeyCode> mKeysPressed;
             bool mHasMouseMoved;
             /**
-             * move since last known position, and last known position.
+             * move since last known position, last known position.
              */
             Ogre::Vector2 mMouseMove,mMousePos;
 

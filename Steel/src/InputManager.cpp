@@ -60,7 +60,7 @@ namespace Steel
         auto window=mEngine->renderWindow();
         Ogre::WindowEventUtilities::addWindowEventListener( window,this);
         mMousePos=Ogre::Vector2(window->getWidth()/2,window->getHeight()/2);
-        
+
         setMousePosition(mMousePos);
         mMouseStateStack.clear();
         resetAllData();
@@ -158,12 +158,12 @@ namespace Steel
         mMouse = static_cast<OIS::Mouse*>(mOISInputManager->createInputObject(OIS::OISMouse,bufferedMouse));
         mMouse->setEventCallback(this);
 
+        const OIS::MouseState &ms = mMouse->getMouseState();
+        ms.width = mEngine->renderWindow()->getWidth();
+        ms.height = mEngine->renderWindow()->getHeight();
         if(mIsGrabExclusive)
         {
             pushMouseState();
-            const OIS::MouseState &ms = mMouse->getMouseState();
-            ms.width = mEngine->renderWindow()->getWidth();
-            ms.height = mEngine->renderWindow()->getHeight();
             Debug::log("keeping mouse within ")(ms.width)(" and ")(ms.height).endl();
         }
         else
@@ -176,6 +176,7 @@ namespace Steel
         mKeyboard = static_cast<OIS::Keyboard*>(mOISInputManager->createInputObject(OIS::OISKeyboard,bufferedKeys));
         mKeyboard->setEventCallback(this);
         mKeysPressed.clear();
+        mMousePos=Ogre::Vector2::ZERO;
         mIsInputGrabbed=true;
         mDelayedInputGrabRequested=false;
         assert(mOISInputManager!=NULL);
@@ -232,11 +233,17 @@ namespace Steel
     bool InputManager::mouseMoved(const OIS::MouseEvent& evt)
     {
         mHasMouseMoved = true;
-
         OIS::MouseState ms = evt.state;
-        mMouseMove += Ogre::Vector2(ms.X.rel, ms.Y.rel);
+
+
         mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
-//         Debug::log(mMouseMove).endl();
+        mMouseMove = Ogre::Vector2(ms.X.rel, ms.Y.rel);
+
+        // OIS bug
+        if(mMouseMove.length()>300.f)
+            mMouseMove=mLastMouseMove;
+//         Debug::log("mMouseMove: ")(mMouseMove)("(")(mMouseMove.length())(")").endl();
+        mLastMouseMove=mMouseMove;
 
         mEngine->mouseMoved(evt);
         mUI->mouseMoved(evt);
@@ -290,10 +297,10 @@ namespace Steel
     {
         if(mMouse==NULL)
         {
-            Debug::warning("InputManager::setMousePosition(): no mMouse defined, aborting. (try grabbing first).").endl();
+//             Debug::warning("InputManager::setMousePosition(): no mMouse defined, aborting. (try grabbing first).").endl();
             return;
         }
-        
+
 #if defined OIS_WIN32_PLATFORM
         //TODO: go see SetCursorPos
 #elif defined OIS_LINUX_PLATFORM
@@ -307,12 +314,12 @@ namespace Steel
 
         // set internal data to right values (let OIS deal with its internals though.)
         mMousePos = pos;
-        
+
         // fix OIS bug (?) that make mouse coords at (-6,-6) of real coords
         OIS::MouseState &mutableMouseState = const_cast<OIS::MouseState &>(mMouse->getMouseState());
         mutableMouseState.X.abs = 6;
         mutableMouseState.Y.abs = 6;
-        
+
 #endif
     }
 
