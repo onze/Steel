@@ -22,8 +22,6 @@ namespace Steel
     UIPanel::UIPanel(const UIPanel& other)
     {
         throw std::runtime_error("UIPanel::UIPanel=(const UIPanel& other) not implemented.");
-        if(mContext!=NULL)
-            ;
 
         if(mDocument!=NULL)
             mDocument->GetContext()->UnloadDocument(mDocument);

@@ -142,9 +142,8 @@ namespace Steel
 
         //UI init
         mEditor.init(mWidth, mHeight, engine, this, mInputMan);
-//         if (cursor)
-//             cursor->RemoveReference();
-//         mHUD.init(mWidth, mHeight);
+        mHUD.init(mWidth, mHeight, engine, this);
+        mHUD.show();
 
         resGroupMan->initialiseResourceGroup("UI");
         resGroupMan->loadResourceGroup("UI");
@@ -155,7 +154,6 @@ namespace Steel
 
     void UI::startEditMode()
     {
-//         mHUD.hide();
         mEditor.show();
         mEditMode=true;
     }
@@ -163,7 +161,6 @@ namespace Steel
     void UI::stopEditMode()
     {
         mEditor.hide();
-//         mHUD.show();
         mEditMode=false;
     }
 
@@ -175,10 +172,14 @@ namespace Steel
         if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
         {
             mMainContext->Update();
+            mHUD.context()->Update();
             if(mEditMode)
                 mEditor.context()->Update();
+            
             configureRenderSystem();
+            
             mMainContext->Render();
+            mHUD.context()->Render();
             if(mEditMode)
                 mEditor.context()->Render();
         }

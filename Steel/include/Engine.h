@@ -32,6 +32,17 @@ namespace Steel
     class Engine
     {
         public:
+            class Stats
+            {
+                public:
+                    /// msec
+                    double lastGraphicFrameDuration;
+                    /// includes eveything except rendering. msec
+                    double lastEngineDuration;
+                    /// msec
+                    double lastFullFrameDuration;
+            };
+
             Engine();
             virtual ~Engine();
 
@@ -105,7 +116,7 @@ namespace Steel
              * Returns the mean of all positions of selected things.
              */
             Ogre::Vector3 selectionPosition();
-            
+
             /**
              * Returns rotations of selected things.
              */
@@ -148,6 +159,11 @@ namespace Steel
 //             {
 //                 return &mUI;
 //             }
+
+            inline const Stats &stats() const
+            {
+                return mStats;
+            }
 
             //setters
 
@@ -210,6 +226,7 @@ namespace Steel
             std::list<AgentId> mSelection;
 
             bool mEditMode;
+            Stats mStats;
     };
 }
 

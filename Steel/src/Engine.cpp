@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <unistd.h>
 
 #include <OgreStringConverter.h>
 #include <OgreEntity.h>
@@ -308,23 +309,40 @@ namespace Steel
         mUI.editor().processCommand("editbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
+        const double ms2us=1000.;
+
         Ogre::Timer timer;
+        long unsigned frameStart,graphicsStart,engineStart;
+        frameStart=graphicsStart=engineStart=timer.getMilliseconds();
+
         while (!mMustAbortMainLoop)
         {
-            mRoot->_fireFrameStarted();
-            
-            // escape is a builting show stopper
+            frameStart= engineStart;
+            mMustAbortMainLoop=!mRoot->_fireFrameStarted();
+
             if (!processInputs())
                 return false;
-
             // update file watching
             File::dispatchToFiles();
 
+            graphicsStart=timer.getMilliseconds();
+            mStats.lastEngineDuration=static_cast<double>(graphicsStart-engineStart);
+
+            // render
             mRoot->_updateAllRenderTargets();
             mRenderWindow->update();
             mRoot->_fireFrameRenderingQueued();
             if(!mRoot->_fireFrameEnded())
                 break;
+
+            engineStart=timer.getMilliseconds();
+            mStats.lastGraphicFrameDuration=static_cast<double>(engineStart-graphicsStart);
+            mStats.lastFullFrameDuration=static_cast<double>(engineStart-frameStart);
+
+            double dt=1000./30.-mStats.lastFullFrameDuration;
+
+            if(dt>0)
+                usleep(static_cast<useconds_t>(dt*ms2us));
 
             if (singleLoop)
                 break;
@@ -417,6 +435,7 @@ namespace Steel
         mInputMan.update();
 
         //process keyboard
+        bool moveCam=false;
         float dx = .0f, dy = .0f, dz = .0f, speed = 1.f;
         for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
@@ -438,21 +457,27 @@ namespace Steel
                 {
                     case OIS::KC_W:
                         dz -= speed;
+                        moveCam=true;
                         break;
                     case OIS::KC_A:
                         dx -= speed;
+                        moveCam=true;
                         break;
                     case OIS::KC_S:
                         dz += speed;
+                        moveCam=true;
                         break;
                     case OIS::KC_D:
                         dx += speed;
+                        moveCam=true;
                         break;
                     case OIS::KC_SPACE:
                         dy += speed;
+                        moveCam=true;
                         break;
                     case OIS::KC_LSHIFT:
                         dy -= speed;
+                        moveCam=true;
                         break;
                     default:
                         break;
@@ -468,17 +493,20 @@ namespace Steel
                     break;
             }
         }
-        mCamera->translate(dx, dy, dz,speed);
+
+        if(moveCam)
+            mCamera->translate(dx, dy, dz,speed);
 
         //process mouse
         if (mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
             if(!mEditMode)
-                mCamera->lookTowards(-float(move.y), -float(move.x), .0f, .1f);
-//         Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
+            {
+                mCamera->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
+//                 Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
+            }
         }
-//         Debug::log("mouse pos: ")(mInputMan.mousePos()).endl();
         mInputMan.resetFrameBasedData();
         return true;
 
