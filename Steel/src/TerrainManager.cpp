@@ -155,29 +155,14 @@ namespace Steel
         float *heights_init=instance->getHeightData();
         size_t side=instance->getSize();
 
-        // put it in the png greyscale format
-//             // 8bpp
-//             char *heights=new char[side*side];
-//             for(size_t i=0; i<side*side; ++i)
-//                 heights[i]=static_cast<char>(heights_init[i]<0?0:(heights_init[i]>255?255:heights_init[i]));
-//         Ogre::DataStreamPtr streamPtr(OGRE_NEW Ogre::MemoryDataStream(heights,side*side*sizeof(float)));
-
-//         16bpp
+        // heightmap is 16bpp greyscale
         short *heights=new short[side*side];
-        float min=TerrainManager::MAX_TERRAIN_HEIGHT,max=TerrainManager::MIN_TERRAIN_HEIGHT;
         for(size_t i=0; i<side*side; ++i)
-        {
             heights[i]=static_cast<short>(heights_init[i]);
-            if(heights[i]<min)min=heights[i];
-            if(heights[i]>max)max=heights[i];
-        }
-        Debug::log("min: ")(min)(" max: ")(max).endl();
-
         Ogre::DataStreamPtr streamPtr(OGRE_NEW Ogre::MemoryDataStream(heights,side*side*sizeof(short)));
 
         // make it an image for easy saving
         Ogre::Image img;
-//         img.loadRawData(streamPtr,side,side,1,Ogre::PixelFormat::PF_L8);
         img.loadRawData(streamPtr,side,side,1,Ogre::PixelFormat::PF_SHORT_L);
         Ogre::String filename="heightmap_"+Ogre::StringConverter::toString(x)+"_"+Ogre::StringConverter::toString(y)+".png";
         heightmapPath=mPath.subfile(filename).fullPath();
@@ -206,20 +191,14 @@ namespace Steel
                 Debug::log("file not found, using 0 ").endl();
             else
                 Debug::warning("file not found, using 0 ").endl();
-            // use floats and std::fill_n
-            //             memset(img_data,0,resolution);
             img_data=new short[resolution];
             std::fill(img_data, img_data+resolution, 0);
         }
+        
         float *heights=new float[resolution];
-        float min=TerrainManager::MAX_TERRAIN_HEIGHT,max=TerrainManager::MIN_TERRAIN_HEIGHT;
         for(int i=0; i<resolution; ++i)
-        {
             heights[i]=static_cast<float>(img_data[i]);
-            if(heights[i]<min)min=heights[i];
-            if(heights[i]>max)max=heights[i];
-        }
-        Debug::log("min: ")(min)(" max: ")(max).endl();
+        
         if(!use_file)
             delete img_data;
         return heights;
@@ -377,7 +356,7 @@ namespace Steel
         // A lower number will mean a more accurate terrain, at the cost of performance (because of more vertices).
         mTerrainGlobals->setMaxPixelError(8);
         // CompositeMapDistance decides how far the Ogre terrain will render the lightmapped terrain
-        mTerrainGlobals->setCompositeMapDistance(3000);
+        mTerrainGlobals->setCompositeMapDistance(500);
 
         // Important to set these so that the terrain knows what to use for derived (non-realtime) data
         mTerrainGlobals->setLightMapDirection(light->getDerivedDirection());

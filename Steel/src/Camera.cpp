@@ -33,10 +33,10 @@ namespace Steel
         mCameraNode->attachObject(mCamera);
 
         mCameraNode->setPosition(0.0, 50.0, 200.0);
-        mCameraNode->lookAt(Ogre::Vector3::ZERO, Ogre::SceneNode::TS_WORLD);
+        mCameraNode->lookAt(Ogre::Vector3::NEGATIVE_UNIT_Z, Ogre::SceneNode::TS_WORLD);
 
         mCamera->setNearClipDistance(.01);
-        mCamera->setFarClipDistance(1000);
+        mCamera->setFarClipDistance(500);
         auto rs=Ogre::Root::getSingletonPtr()->getRenderSystem();
         if (rs->getCapabilities()->hasCapability(Ogre::RSC_INFINITE_FAR_PLANE))
         {
@@ -55,9 +55,9 @@ namespace Steel
     {
         x *= factor;
         y *= factor;
-
-        mCameraNode->yaw(Ogre::Degree(y), Ogre::SceneNode::TS_WORLD);
-        mCameraNode->pitch(Ogre::Degree(x), Ogre::SceneNode::TS_LOCAL);
+        
+        mCameraNode->yaw(Ogre::Degree(x), Ogre::SceneNode::TS_WORLD);
+        mCameraNode->pitch(Ogre::Degree(y), Ogre::SceneNode::TS_LOCAL);
     }
 
     bool Camera::fromJson(Json::Value &root)
@@ -68,37 +68,25 @@ namespace Steel
             return false;
         }
 
-        bool success = true;
         Json::Value value;
 
         value = root["position"];
         Ogre::Vector3 pos;
         if (value.isNull())
-        {
-            success = false;
             Debug::warning("in Camera::fromJson(): missing field 'position'.").endl();
-        }
         else
-        {
             pos = Ogre::StringConverter::parseVector3(value.asString());
-
-        }
         mCameraNode->setPosition(pos);
 
         value = root["rotation"];
         Ogre::Quaternion rot;
         if (value.isNull())
-        {
-            success = false;
             Debug::warning("in Camera::fromJson(): missing field 'rotation'.").endl();
-        }
         else
-        {
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
-
-        }
         mCameraNode->setOrientation(rot);
-        return success;
+        
+        return true;
     }
 
     Json::Value Camera::toJson()
