@@ -69,6 +69,16 @@ namespace Steel
                     /**
                      * equivalent to myDebugObject.log(Ogre::String msg)
                      */
+                    
+                    DebugObject &operator()(const Ogre::Degree msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg.valueDegrees())+"deg");
+                    }
+                    
+                    DebugObject &operator()(const Ogre::Radian msg)
+                    {
+                        return (*this)(Ogre::StringConverter::toString(msg.valueRadians())+"rad");
+                    }
 
                     DebugObject &operator()(const Ogre::Vector2 msg)
                     {
