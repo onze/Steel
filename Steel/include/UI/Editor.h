@@ -68,8 +68,8 @@ namespace Steel
             InputManager *mInputMan;
 
             //owned
-            /// models available (for levels, etc)
-            FileSystemDataSource *mFSModels;
+            /// resources available (for levels, models, BTs, etc)
+            FileSystemDataSource *mFSResources;
             File mDataDir;
             /// last active tab in the main editor menu (default to 0)
             int mMenuTabIndex;

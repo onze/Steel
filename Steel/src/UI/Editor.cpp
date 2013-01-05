@@ -21,10 +21,9 @@
 namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
-        mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSModels(NULL),mDataDir(),
+        mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSResources(NULL),mDataDir(),
         mMenuTabIndex(0),mBrush()
     {
-        mMenuTabIndex=1;
 #ifdef DEBUG
         mAutoReload=true;
 #endif
@@ -39,8 +38,8 @@ namespace Steel
     {
         mBrush.shutdown();
 
-        delete mFSModels;
-        mFSModels=NULL;
+        delete mFSResources;
+        mFSResources=NULL;
 
         mEngine=NULL;
         mUI=NULL;
@@ -63,7 +62,7 @@ namespace Steel
         //resGroupMan->addResourceLocation(mDataDir.subfile("images").fullPath(), "FileSystem", "UI",true);
         //resGroupMan->declareResource("inode-directory.png","Texture","UI");
 
-        mFSModels=new FileSystemDataSource("models",engine->rootDir().subfile("data").subfile("models"));
+        mFSResources=new FileSystemDataSource("resources",engine->rootDir().subfile("data").subfile("models"));
         UIPanel::init(width,height);
         mEngine=engine;
         mUI=ui;
@@ -99,7 +98,7 @@ namespace Steel
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
 
-        mFSModels->refresh();
+        mFSResources->refresh();
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragdrop",this);
         mDocument->AddEventListener("change",this);
@@ -210,7 +209,7 @@ namespace Steel
         Ogre::String raw_commmand="";
         if(evt=="dragdrop")
         {
-            if(elem->GetId()==mFSModels->GetDataSourceName())
+            if(elem->GetId()==mFSResources->GetDataSourceName())
             {
                 raw_commmand="engine.level.instanciate.model.";
                 raw_commmand+=event_value;

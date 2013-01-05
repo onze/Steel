@@ -181,22 +181,22 @@ namespace Steel
                 Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName,true);
             }
         }
+        auto orm=Ogre::ResourceGroupManager::getSingletonPtr();
         File dir=mRootDir.subfile("data");
-        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(dir.fullPath(), "FileSystem", "Steel",true);
-        dir=dir.subfile("resources");
-        Ogre::ResourceGroupManager::getSingleton ().addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem","Steel",true);
-        Ogre::ResourceGroupManager::getSingleton ().addResourceLocation(dir.subfile("textures").fullPath(), "FileSystem","Steel",true);
-        //TODO:add materials anf models ?
-        Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Steel");
+        orm->addResourceLocation(dir.fullPath(), "FileSystem", "Steel",true);
+        orm->addResourceLocation(dir.fullPath(), "FileSystem", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,true);
+        dir=dir.subfile("raw_resources");
+        orm->addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem","Steel",true);
+        orm->addResourceLocation(dir.subfile("textures").fullPath(), "FileSystem","Steel",true);
+        //TODO:add materials and models ?
+        orm->initialiseResourceGroup("Steel");
 
         // setup a renderer
         Ogre::RenderSystemList renderers = mRoot->getAvailableRenderers();
-        assert( !renderers.empty());
+        assert(!renderers.empty());
         // we need at least one renderer to do anything useful
-
         Ogre::RenderSystem *renderSystem = renderers[0];
         assert(renderSystem);
-
         mRoot->setRenderSystem(renderSystem);
 
         return 0;
@@ -306,7 +306,9 @@ namespace Steel
 
         //debug
 //         mUI.editor().processCommand("engine.level.load.MyLevel");
-        mUI.editor().processCommand("editbrush.mode.terraform");
+//         mUI.editor().processCommand("editorbrush.mode.terraform");
+//         mUI.editor().processCommand("engine.level.load.PG01-dev");
+//         mUI.editor().processCommand("editorbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
         const double ms2us=1000.;

@@ -119,12 +119,9 @@ namespace Steel
 
         mEditMode=false;
 
-        auto resGroupMan=Ogre::ResourceGroupManager::getSingletonPtr();
         //rocket init
-//         Debug::log("ok").endl();
-//         if(!resGroupMan->resourceGroupExists("UI"))
-//             resGroupMan->createResourceGroup("UI");
-        resGroupMan->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
+        auto orm=Ogre::ResourceGroupManager::getSingletonPtr();
+        orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
         mRocketRenderInterface=new RenderInterfaceOgre3D(width,height,engine);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
 
@@ -145,8 +142,8 @@ namespace Steel
         mHUD.init(mWidth, mHeight, engine, this);
         mHUD.show();
 
-        resGroupMan->initialiseResourceGroup("UI");
-        resGroupMan->loadResourceGroup("UI");
+        orm->initialiseResourceGroup("UI");
+        orm->loadResourceGroup("UI");
         sceneManager->addRenderQueueListener(this);
 
         OgreUtils::resourceGroupsInfos();
@@ -171,15 +168,15 @@ namespace Steel
     {
         if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
         {
-            mMainContext->Update();
             mHUD.context()->Update();
+            mMainContext->Update();
             if(mEditMode)
                 mEditor.context()->Update();
             
             configureRenderSystem();
             
-            mMainContext->Render();
             mHUD.context()->Render();
+            mMainContext->Render();
             if(mEditMode)
                 mEditor.context()->Render();
         }
@@ -196,7 +193,6 @@ namespace Steel
     void UI::configureRenderSystem()
     {
         Ogre::RenderSystem* render_system = Ogre::Root::getSingleton().getRenderSystem();
-
         // Set up the projection and view matrices.
         Ogre::Matrix4 projection_matrix;
         buildProjectionMatrix(projection_matrix);
