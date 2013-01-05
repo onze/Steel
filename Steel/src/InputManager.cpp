@@ -161,7 +161,7 @@ namespace Steel
         const OIS::MouseState &ms = mMouse->getMouseState();
         ms.width = mEngine->renderWindow()->getWidth();
         ms.height = mEngine->renderWindow()->getHeight();
-        
+
         if(mIsGrabExclusive)
         {
             pushMouseState();
@@ -350,10 +350,13 @@ namespace Steel
         int left, top;
         rw->getMetrics(width, height, depth, left, top);
 
-        const OIS::MouseState &ms = mMouse->getMouseState();
-        ms.width = width;
-        ms.height = height;
-
+        if(mMouse!=NULL)
+        {
+            const OIS::MouseState &ms = mMouse->getMouseState();
+            ms.width = width;
+            ms.height = height;
+        }
+        
         mEngine->resizeWindow(width, height);
     }
 
