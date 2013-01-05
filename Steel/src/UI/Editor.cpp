@@ -3,6 +3,7 @@
 
 #include <Rocket/Controls/ElementFormControlInput.h>
 #include <Rocket/Controls/ElementTabSet.h>
+#include <Rocket/Controls/ElementFormControlSelect.h>
 #include <Rocket/Core/Event.h>
 #include <Rocket/Debugger.h>
 #include <Rocket/Core/Element.h>
@@ -37,10 +38,10 @@ namespace Steel
     Editor::~Editor()
     {
         mBrush.shutdown();
-        
+
         delete mFSModels;
         mFSModels=NULL;
-        
+
         mEngine=NULL;
         mUI=NULL;
         mInputMan=NULL;
@@ -75,6 +76,10 @@ namespace Steel
 //             elem->AddEventListener("submit",this);
         }
         mBrush.init(engine,this,mInputMan);
+        // brush shape
+        auto form=static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById("editor_select_terrabrush_shape"));
+        if(form!=NULL and form->GetNumOptions()>0)
+            form->SetSelection(0);
     }
 
     void Editor::onFileChangeEvent(File *file)
@@ -87,23 +92,30 @@ namespace Steel
 
     void Editor::onShow()
     {
-        mDocument->AddEventListener("click",this);
-        mDocument->AddEventListener("dragdrop",this);
-        Rocket::Debugger::SetContext(mContext);
-        Rocket::Debugger::SetVisible(true);
-        mFSModels->refresh();
-
+        mBrush.onShow();
         // (re)load state
+        // active menu tab
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
-        mBrush.onShow();
+
+        mFSModels->refresh();
+        mDocument->AddEventListener("click",this);
+        mDocument->AddEventListener("dragdrop",this);
+        mDocument->AddEventListener("change",this);
+        mDocument->AddEventListener("submit",this);
+        
+        Rocket::Debugger::SetContext(mContext);
+        Rocket::Debugger::SetVisible(true);
+
     }
 
     void Editor::onHide()
     {
         mDocument->RemoveEventListener("click",this);
         mDocument->RemoveEventListener("dragdrop",this);
+        mDocument->RemoveEventListener("change",this);
+        mDocument->RemoveEventListener("submit",this);
 
         // save state
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
@@ -112,9 +124,30 @@ namespace Steel
         mBrush.onHide();
     }
 
+    bool Editor::hitTest(int x,int y, Rocket::Core::String childId)
+    {
+        Rocket::Core::Element *elem=mDocument;
+        if(elem!=NULL)
+        {
+            if((elem=elem->GetElementById(childId))!=NULL)
+            {
+                const Rocket::Core::Vector2f &tl=elem->GetAbsoluteOffset(Rocket::Core::Box::PADDING);
+                int left=tl.x;
+                int top=tl.y;
+                const Rocket::Core::Vector2f &box=elem->GetBox(Rocket::Core::Box::BORDER).GetSize(Rocket::Core::Box::BORDER);
+                int right=left+box.x;
+                int bottom=top+box.y;
+                if(x>=left && y>=top && x<=right && y<=bottom)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
-        mBrush.mousePressed(evt,id);
+        if(!hitTest(evt.state.X.abs,evt.state.Y.abs,"menu"))
+            mBrush.mousePressed(evt,id);
         return true;
     }
 
@@ -126,7 +159,19 @@ namespace Steel
 
     bool Editor::mouseMoved(const OIS::MouseEvent& evt)
     {
-        mBrush.mouseMoved(evt);
+        if(!hitTest(evt.state.X.abs,evt.state.Y.abs,"menu"))
+        {
+            mBrush.mouseMoved(evt);
+            Rocket::Core::Element *elem;
+            
+            elem=mDocument->GetElementById("editor_terrabrush_intensity");
+            if(elem!=NULL)
+                elem->SetInnerRML(Ogre::StringConverter::toString(mBrush.intensity()).c_str());
+            
+            elem=mDocument->GetElementById("editor_terrabrush_radius");
+            if(elem!=NULL)
+                elem->SetInnerRML(Ogre::StringConverter::toString(mBrush.radius()).c_str());
+        }
         return true;
     }
 
@@ -147,13 +192,20 @@ namespace Steel
             elem=evt.GetTargetElement();
 
         if(elem==NULL)
+        {
+            Debug::log("Editor::ProcessEvent(): no target element for event of type ")(evt.GetType()).endl();
             return;
+        }
 
         auto etype=evt.GetType();
         Ogre::String event_value=elem->GetAttribute<Rocket::Core::String>("on"+etype,"NoValue").CString();
 
         if(event_value=="NoValue")
+        {
+            if(elem->GetId()!="")
+                Debug::log("Editor::ProcessEvent(): no event_value for event of type ")(evt.GetType())(" with elem of id ")(elem->GetId()).endl();
             return;
+        }
 
         Ogre::String raw_commmand="";
         if(evt=="dragdrop")
@@ -185,12 +237,28 @@ namespace Steel
                 raw_commmand+="."+levelName;
             }
         }
+        else if(evt=="change")
+        {
+            raw_commmand=event_value;
+            if(raw_commmand=="editorbrush.terrabrush.distribution")
+            {
+                Rocket::Controls::ElementFormControlSelect *form=static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
+                auto optionId=form->GetSelection();
+                if(optionId>-1)
+                {
+                    raw_commmand+=".";
+                    raw_commmand+=form->GetOption(optionId)->GetValue().CString();
+                }
+                else
+                    return;
+            }
+        }
         else
         {
             Debug::log("Editor::ProcessEvent(): unknown event ot type:")(evt.GetType())(" and value: ")(event_value).endl();
             return;
         }
-//         Debug::log("Editor::ProcessEvent() event type:")(evt.GetType())(" msg:")(msg)(" command:")(command).endl();
+//         Debug::log("Editor::ProcessEvent() event type:")(evt.GetType())(" raw_commmand:")(raw_commmand).endl();
         if (raw_commmand.size())
             processCommand(raw_commmand);
     }
@@ -216,7 +284,7 @@ namespace Steel
         {
             OgreUtils::resourceGroupsInfos();
         }
-        else if(command[0]=="editbrush")
+        else if(command[0]=="editorbrush")
         {
             command.erase(command.begin());
             mBrush.processCommand(command);

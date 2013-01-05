@@ -30,12 +30,16 @@ namespace Steel
             virtual void onShow();
             /// called right before the underlying document gets hidden
             virtual void onHide();
-            
+
             /**
              * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel: position),
              * and loads it.
              */
             void loadModelFromFile(File &file);
+
+            /** returns whether the given screen coordinates collide with the child element with given Id.
+             * If no Id is given, the hit test is made with the main document.**/
+            bool hitTest(int x,int y, Rocket::Core::String childId="body");
 
             /// make a command out of a Rocket event
             void ProcessEvent(Rocket::Core::Event& event);
@@ -62,7 +66,7 @@ namespace Steel
             Engine *mEngine;
             UI *mUI;
             InputManager *mInputMan;
-            
+
             //owned
             /// models available (for levels, etc)
             FileSystemDataSource *mFSModels;

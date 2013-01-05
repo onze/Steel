@@ -142,7 +142,7 @@ namespace Steel
             else
                 _releaseInput();
         }
-        Debug::log("InputManager::_grabInput(exclusive=")(exclusive)(") ");
+//         Debug::log("InputManager::_grabInput(exclusive=")(exclusive)(") ");
 
 
         assert(mOISInputManager==NULL);
@@ -165,12 +165,12 @@ namespace Steel
         if(mIsGrabExclusive)
         {
             pushMouseState();
-            Debug::log("keeping mouse within ")(ms.width)(" and ")(ms.height).endl();
+//             Debug::log("keeping mouse within ")(ms.width)(" and ")(ms.height).endl();
         }
         else
         {
             popMouseState();
-            Debug::log("keeping mouse free to leave the window.").endl();
+//             Debug::log("keeping mouse free to leave the window.").endl();
         }
 
         bool bufferedKeys = true;

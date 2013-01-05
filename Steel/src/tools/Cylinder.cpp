@@ -20,8 +20,8 @@ namespace Steel
         //// this is an adaptation of
         //// http://www.ogre3d.org/tikiwiki/tiki-index.php?page=ManualSphereMeshes&structure=Cookbook
         // horizonal rings
-        int nRings=6;
-        int nSegments=18;
+        int nRings=36;
+        int nSegments=64;
 
         ManualObject *manual = sceneManager->createManualObject("manualObject_cylinder");
         manual->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_LIST);
@@ -31,7 +31,7 @@ namespace Steel
         unsigned short wVerticeIndex = 0 ;
 
         // Generate the group of rings for the sphere
-        for( int ring = 0; ring <= nRings; ring++ )
+        for( int ring = 0; ring <= nRings/2; ring++ )
         {
             float r0 = radius * std::sin(ring * fDeltaRingAngle);
             float y0 = radius * std::cos(ring * fDeltaRingAngle);
@@ -65,11 +65,11 @@ namespace Steel
         mesh->_setBounds( AxisAlignedBox( Vector3(-radius, -radius, -radius), Vector3(radius, radius, radius) ), false );
 
         mesh->_setBoundingSphereRadius(radius);
-        unsigned short src, dest;
-        if (!mesh->suggestTangentVectorBuildParams(VES_TANGENT, src, dest))
-        {
-            mesh->buildTangentVectors(VES_TANGENT, src, dest);
-        }
+//         unsigned short src, dest;
+//         if (!mesh->suggestTangentVectorBuildParams(VES_TANGENT, src, dest))
+//         {
+//             mesh->buildTangentVectors(VES_TANGENT, src, dest);
+//         }
         return mesh;
     }
 

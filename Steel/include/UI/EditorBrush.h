@@ -8,6 +8,8 @@
 #include <OgreVector3.h>
 #include <OgreFrameListener.h>
 
+#include <TerrainManager.h>
+
 
 namespace Ogre
 {
@@ -17,6 +19,7 @@ namespace Ogre
 
 namespace Steel
 {
+
     class Engine;
     class Editor;
     class InputManager;
@@ -71,6 +74,18 @@ namespace Steel
             }
             //setters
             void setMode(BrushMode mode);
+            
+            inline float intensity()
+            {
+                if(mTerraBrushVisual==NULL)return .0f;
+                return mTerraBrushVisual->getScale().y/3.f;
+            }
+            
+            inline float radius()
+            {
+                if(mTerraBrushVisual==NULL)return .0f;
+                return (mTerraBrushVisual->getScale().x+mTerraBrushVisual->getScale().z)/2.f;
+            }
 
         protected:
             //not owned
@@ -81,6 +96,8 @@ namespace Steel
             //owned
             /// holds the current way dragging selection will affect it
             BrushMode mMode;
+            /// true between a mousePressed and its following mouseRelease when the brush is in a continuous mode (->terraforming)
+            bool mContinuousModeActivated;
 
             /// holds the position to put the selection back to, if edition is cancelled
             Ogre::Vector3 mSelectionPosBeforeTransformation;
@@ -95,9 +112,14 @@ namespace Steel
             Ogre::SceneNode *mTerraBrushVisual;
             /// factor by which the terraforming brush is scaled up (down: 1/mTerraScale)
             float mTerraScale;
+            /// terrain height at mousePressed (used in terrascale equalize mode)
+            float mSelectedTerrainHeight;
+            /// current terrabrush shape
+            TerrainManager::RaiseShape mRaiseShape;
             
             std::vector<BrushMode> mModeStack;
             std::set<Ogre::Terrain *> mModifiedTerrains;
+            
     };
 }
 #endif // EDITORBRUSH_H

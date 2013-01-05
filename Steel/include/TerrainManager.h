@@ -88,12 +88,18 @@ namespace Steel
             float *loadTerrainHeightmapFrom(Ogre::String filepath,int size);
             void saveTerrainHeightmapAs(long int x, long int y, Ogre::Terrain *instance,Ogre::String &heightmapPath);
 
+            enum RaiseMode {ABSOLUTE=0,RELATIVE};
+            enum RaiseShape {UNIFORM=0,ROUND,SINH};
             /** Raise all terrain vertices in an round shaped area centered at the given position (terraCenter) (world coords)
              * and of the given radius, by a decreasing value starting at the given value at the center, and reaching 0
              * at radius.
              * Returns slot coordinaes of terrains that were modified in the process.
              */
-            Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius);
+            Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter, 
+                                                           Ogre::Real intensity, 
+                                                           Ogre::Real radius,
+                                                           RaiseMode rmode=ABSOLUTE,
+                                                           RaiseShape rshape=UNIFORM);
 
             // getters
             inline Ogre::TerrainGroup *terrainGroup()

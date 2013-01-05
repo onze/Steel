@@ -194,11 +194,11 @@ namespace Steel
             img_data=new short[resolution];
             std::fill(img_data, img_data+resolution, 0);
         }
-        
+
         float *heights=new float[resolution];
         for(int i=0; i<resolution; ++i)
             heights[i]=static_cast<float>(img_data[i]);
-        
+
         if(!use_file)
             delete img_data;
         return heights;
@@ -477,12 +477,17 @@ namespace Steel
         return result;
     }
 
-    Ogre::TerrainGroup::TerrainList TerrainManager::raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real value, Ogre::Real radius)
+    Ogre::TerrainGroup::TerrainList TerrainManager::raiseTerrainAt(Ogre::Vector3 terraCenter,
+            Ogre::Real intensity,
+            Ogre::Real radius,
+            TerrainManager::RaiseMode rmode,
+            TerrainManager::RaiseShape rshape)
     {
         std::set<Ogre::Vector2> tIds;
-        //         Debug::log("TerrainManager::raiseTerrainAt(terraCenter=")(terraCenter)(", value=")(value)(", radius=")(radius)(")").endl();
+        //         Debug::log("TerrainManager::raiseTerrainAt(terraCenter=")(terraCenter)(", intensity=")(intensity)(", radius=")(radius)(")").endl();
+
         // retrieve a list of all slots involved in the operation. This is done by getting all slots
-        // colliding with the terraforming sphere's bounding box
+        // colliding with the terraforming shape's bounding box
         auto diff=Ogre::Vector3::UNIT_SCALE*radius;
         Ogre::AxisAlignedBox box(terraCenter-diff,terraCenter+diff);
         Ogre::TerrainGroup::TerrainList terrains;
@@ -522,19 +527,33 @@ namespace Steel
                     maxx=maxx>x?maxx:x;
                     minz=minz<z?minz:z;
                     maxz=maxz>z?maxz:z;
-                    float diff;
-                    // constant distribution
-                    diff=value;
-                    // round shaped distribution
-                    //                     diff=value*std::cos(3.14/2.*dist/local_radius);
-                    // softmax distribution
-//                     diff=value*(1.f-std::exp(dist)/(1+std::exp(local_radius)));
-                    //                     if(diff>FLT_MAX-heights[i])
-                    //                         diff=FLT_MAX-heights[i];
-                    //                     if(diff>heights[i]-FLT_MIN)
-                    //                         diff=heights[i]-FLT_MIN;
-
-                    heights[i]+=diff;
+                    float ratio;
+                    switch(rshape)
+                    {
+                        case RaiseShape::ROUND:
+                            // 1 at the center, 0 at max dist
+                            ratio=std::cos(3.14/2.*dist/local_radius);
+                            if(rmode==RELATIVE)
+                                heights[i]+=intensity*ratio;
+                            else if(rmode==ABSOLUTE)
+                                heights[i]+=((terraCenter.y+intensity*ratio)-heights[i])/(25.f-intensity>.9f?25.f-intensity:.9f);
+                            break;
+                        case RaiseShape::SINH:
+                            //ratio=(1.f-std::exp(dist)/(1+std::exp(local_radius)));
+                            ratio=1.f-std::sinh(dist/local_radius);
+                            if(rmode==RELATIVE)
+                                heights[i]+=intensity*ratio;
+                            else if(rmode==ABSOLUTE)
+                                heights[i]+=((terraCenter.y+intensity*ratio)-heights[i])/(25.f-intensity>.9f?25.f-intensity:.9f);
+                            break;
+                        case RaiseShape::UNIFORM:
+                        default:
+                            if(rmode==RELATIVE)
+                                heights[i]+=intensity;
+                            else if(rmode==ABSOLUTE)
+                                heights[i]+=(terraCenter.y-heights[i])/(25.f-intensity>.9f?25.f-intensity:.9f);
+                            break;
+                    }
                     heights[i]=heights[i]<TerrainManager::MIN_TERRAIN_HEIGHT?TerrainManager::MIN_TERRAIN_HEIGHT:heights[i];
                     heights[i]=heights[i]>TerrainManager::MAX_TERRAIN_HEIGHT?TerrainManager::MAX_TERRAIN_HEIGHT:heights[i];
                 }
