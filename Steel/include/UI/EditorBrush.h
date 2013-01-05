@@ -77,14 +77,14 @@ namespace Steel
             
             inline float intensity()
             {
-                if(mTerraBrushVisual==NULL)return .0f;
-                return mTerraBrushVisual->getScale().y/3.f;
+                if(sTerraBrushVisual==NULL)return .0f;
+                return sTerraBrushVisual->getScale().y/3.f;
             }
             
             inline float radius()
             {
-                if(mTerraBrushVisual==NULL)return .0f;
-                return (mTerraBrushVisual->getScale().x+mTerraBrushVisual->getScale().z)/2.f;
+                if(sTerraBrushVisual==NULL)return .0f;
+                return (sTerraBrushVisual->getScale().x+sTerraBrushVisual->getScale().z)/2.f;
             }
 
         protected:
@@ -109,7 +109,7 @@ namespace Steel
             bool mIsDraggingSelectionCancelled;
 
             /// disk used as visual terraforming brush
-            Ogre::SceneNode *mTerraBrushVisual;
+            static Ogre::SceneNode *sTerraBrushVisual;
             /// factor by which the terraforming brush is scaled up (down: 1/mTerraScale)
             float mTerraScale;
             /// terrain height at mousePressed (used in terrascale equalize mode)

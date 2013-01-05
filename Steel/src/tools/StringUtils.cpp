@@ -1,6 +1,6 @@
-#include "tools/StringUtils.h"
-#include <Debug.h>
 #include <Rocket/Core/String.h>
+
+#include "tools/StringUtils.h"
 
 namespace Steel
 {
@@ -37,34 +37,6 @@ namespace Steel
     std::vector<Ogre::String> StringUtils::split(const char src[],const char sep[])
     {
         return StringUtils::split(Ogre::String(src),Ogre::String(sep));
-    }
-
-    template<class T>
-    T StringUtils::join(std::vector<T> const &vec,T const &joiner,int start,int end)
-    {
-        bool verbose=false;
-        T res;
-        if(vec.size()==0)
-            return res;
-
-        while(start<0)start+=vec.size();
-        if(end==INT_MIN)
-            end=vec.size();
-        while(end<0)end+=vec.size();
-
-        if(start>=end)
-            return res;
-
-        if(verbose)Debug::log("range ")(start)(" ")(end).endl();
-
-        for(auto i=start; i<end; ++i)
-        {
-            if(res.length()>0)
-                res.append(joiner);
-            res.append(vec.at(i));
-            if(verbose)Debug::log("i: ")(i)(" res:")(res).endl();
-        }
-        return res;
     }
 
     Ogre::String StringUtils::join(std::vector<Ogre::String> const &vec,Ogre::String const &joiner,int start,int end)

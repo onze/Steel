@@ -11,17 +11,20 @@
 
 #include <Debug.h>
 #include <TerrainManagerEventListener.h>
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
 
     TerrainManager::TerrainManager():Ogre::FrameListener(),
+        mResourceGroupName("TerrainManager-defaultResourceGroup-name"),
         mLoadingState(INIT),mListeners(std::set<TerrainManagerEventListener *>()),
         mTerrainGlobals(NULL),mTerrainGroup(NULL),mTerrainsImported(false),mPath("")
     {
     }
 
     TerrainManager::TerrainManager(const TerrainManager& o):
+        mResourceGroupName(o.mResourceGroupName),
         mLoadingState(o.mLoadingState),mListeners(o.mListeners),
         mTerrainGlobals(o.mTerrainGlobals),mTerrainGroup(o.mTerrainGroup),mTerrainsImported(o.mTerrainsImported),mPath(o.mPath)
     {
@@ -34,6 +37,8 @@ namespace Steel
 
     TerrainManager& TerrainManager::operator=(const TerrainManager& o)
     {
+        //TODO: check this
+        mResourceGroupName=o.mResourceGroupName;
         mLoadingState=o.mLoadingState;
         mListeners=o.mListeners;
         mTerrainGlobals=o.mTerrainGlobals;
@@ -74,16 +79,31 @@ namespace Steel
 
     void TerrainManager::destroy()
     {
-        mSceneManager->destroyLight("terrainLight");
-        OGRE_DELETE mTerrainGroup;
-        OGRE_DELETE mTerrainGlobals;
+        Ogre::Root::getSingletonPtr()->removeFrameListener(this);
+        if(NULL!=mTerrainGroup)
+            OGRE_DELETE mTerrainGroup;
+        mTerrainGroup=NULL;
+        if(NULL!=mTerrainGlobals)
+            OGRE_DELETE mTerrainGlobals;
+        mTerrainGlobals=NULL;
+        if(NULL!=mSceneManager)
+            mSceneManager->destroyLight("terrainLight");
         mSceneManager=NULL;
+        auto rgm=Ogre::ResourceGroupManager::getSingletonPtr();
+        if(rgm->resourceGroupExists(mResourceGroupName))
+        {
+            rgm->unloadResourceGroup(mResourceGroupName);
+            rgm->destroyResourceGroup(mResourceGroupName);
+            mResourceGroupName="unloaded-terrainManager (previously"+mResourceGroupName+")";
+        }
+        // that my good debug value !
     }
 
     void TerrainManager::init(Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager)
     {
         mSceneManager=sceneManager;
         mPath=path;
+        mResourceGroupName=resourceGroupName;
 
         mTerrainsImported=false;
         mLoadingState=INIT;
@@ -108,42 +128,71 @@ namespace Steel
         mSceneManager->createLight("terrainLight");
 
         // default terrain
+        Ogre::ColourValue ambient=Ogre::ColourValue::White;
         Ogre::Vector3 lightDir(0.55, -0.3, 0.75);
         Ogre::ColourValue diffuseColor=Ogre::ColourValue::White;
         Ogre::ColourValue specularColor(0.4, 0.4, 0.4);
         std::list<TerrainSlotData> terrainSlots;
         terrainSlots.push_back(TerrainSlotData(0L,0L));
-        build(lightDir,diffuseColor,specularColor,terrainSlots);
+//         build(ambient,lightDir,diffuseColor,specularColor,terrainSlots);
     }
 
     Json::Value TerrainManager::toJson()
     {
         Json::Value root;
 
-        // general terrain data
+        // general level settings
         Ogre::Light *light=mSceneManager->getLight("terrainLight");
-        root["lightDir"]=Json::Value(Ogre::StringConverter::toString(light->getDirection()));
-        root["diffuseColor"]=Json::Value(Ogre::StringConverter::toString(light->getDiffuseColour()));
-        root["specularColor"]=Json::Value(Ogre::StringConverter::toString(light->getSpecularColour()));
+        root["ambientLight"] = StringUtils::toJson(mSceneManager->getAmbientLight());
+        root["lightDir"]=StringUtils::toJson(light->getDirection());
+        root["diffuseColor"]=StringUtils::toJson(light->getDiffuseColour());
+        root["specularColor"]=StringUtils::toJson(light->getSpecularColour());
+
+        // defaults terrain data
+        Json::Value defaultsValue;
+        Ogre::Terrain::ImportData& defaults = mTerrainGroup->getDefaultImportSettings();
+        defaultsValue["terrainSize"]=StringUtils::toJson(defaults.terrainSize);
+        defaultsValue["worldSize"]=StringUtils::toJson(defaults.worldSize);
+        for(auto it=defaults.layerList.begin(); it!=defaults.layerList.end(); ++it)
+        {
+            Ogre::Terrain::LayerInstance layer=*it;
+            Json::Value layerValue;
+            layerValue["worldSize"]=layer.worldSize;
+            for(auto it_textureNames=layer.textureNames.begin(); it_textureNames!=layer.textureNames.end(); ++it_textureNames)
+                layerValue["textureNames"].append(Json::Value((*it_textureNames).c_str()));
+            defaultsValue["layerList"].append(layerValue);
+        }
+        root["defaultTerrain"]=defaultsValue;
 
         // actual terrains
         Ogre::TerrainGroup::TerrainIterator it = mTerrainGroup->getTerrainIterator();
         while(it.hasMoreElements())
         {
             Ogre::TerrainGroup::TerrainSlot *slot=it.getNext();
+            Ogre::Terrain *terrain=slot->instance;
             Json::Value terrainValue;
-            terrainValue["slot"]["x"]=Json::Value(Ogre::StringConverter::toString(slot->x));
-            terrainValue["slot"]["y"]=Json::Value(Ogre::StringConverter::toString(slot->y));
+            terrainValue["slot"]["x"]=StringUtils::toJson(slot->x);
+            terrainValue["slot"]["y"]=StringUtils::toJson(slot->y);
 
             Ogre::String heightmapPath="";
-            saveTerrainHeightmapAs(slot->x,slot->y,slot->instance,heightmapPath);
+            saveTerrainHeightmapAs(slot->x,slot->y,terrain,heightmapPath);
             terrainValue["heightmapPath"]=heightmapPath;
 
-            terrainValue["position"]=Json::Value(Ogre::StringConverter::toString(slot->instance->getPosition()));
-            terrainValue["size"]=Json::Value(Ogre::StringConverter::toString(slot->instance->getSize()));
-            terrainValue["worldSize"]=Json::Value(Ogre::StringConverter::toString(slot->instance->getWorldSize()));
+            terrainValue["position"]=StringUtils::toJson(terrain->getPosition());
+            terrainValue["size"]=StringUtils::toJson(terrain->getSize());
+            terrainValue["worldSize"]=StringUtils::toJson(terrain->getWorldSize());
 
-            //             Ogre::Terrain* terrain = slot->instance;
+            for(unsigned int layerIndex=0; layerIndex<terrain->getLayerCount(); ++layerIndex)
+            {
+                Json::Value layerValue;
+                layerValue["worldSize"]=terrain->getLayerWorldSize(layerIndex);
+                Ogre::TerrainLayerSamplerList samplers=terrain->getLayerDeclaration().samplers;
+                for(unsigned int samplerIndex=0; samplerIndex<samplers.size(); ++samplerIndex)
+                    layerValue["textureNames"].append(StringUtils::toJson(terrain->getLayerTextureName(layerIndex,samplerIndex)));
+
+                terrainValue["layers"].append(layerValue);
+            }
+
             root["terrainSlots"].append(terrainValue);
         }
         return root;
@@ -210,6 +259,13 @@ namespace Steel
         Json::Value value;
 
         //         Ogre::Vector3 lightDir(.2f, -.5f, .3f);
+
+        Ogre::ColourValue ambient=Ogre::ColourValue::White;
+        value=root["ambientLight"];
+        if(!value.isNull())
+            ambient=Ogre::StringConverter::parseColourValue(value.asString());
+        mSceneManager->setAmbientLight(ambient);
+
         Ogre::Vector3 lightDir(0.55, -0.3, 0.75);
         value=root["lightDir"];
         if(value.isNull())
@@ -231,6 +287,107 @@ namespace Steel
             Debug::warning(intro)("key 'specularColor' is null. Using default.").endl();
         else
             specularColor=Ogre::StringConverter::parseColourValue(value.asString());
+
+        Ogre::Terrain::ImportData defaultImp;
+        defaultImp.terrainSize=TerrainManager::DEFAULT_TERRAIN_SIZE;
+        defaultImp.worldSize=TerrainManager::DEFAULT_WORLD_SIZE;
+        defaultImp.maxBatchSize=65;
+        defaultImp.minBatchSize=33;
+        defaultImp.inputScale=1.f;
+        defaultImp.inputBias=.0f;
+        Json::Value defaultTerrain=root["defaultTerrain"];
+        if(defaultTerrain.isNull())
+            Debug::warning(intro)("key 'defaultTerrain' is null. Using default.").endl();
+        else
+        {
+            value=defaultTerrain["terrainSize"];
+            if(value.isNull())Debug::warning(intro)("key 'defaultTerrain.terrainSize' is null. Using default.").endl();
+            else
+                defaultImp.terrainSize=Ogre::StringConverter::parseInt(value.asString(),-1);
+            if(-1==defaultImp.terrainSize)
+            {
+                Debug::warning(intro)("Could not parse key 'defaultTerrain.terrainSize' (")(value)("). Using default.").endl();
+                defaultImp.terrainSize=TerrainManager::DEFAULT_TERRAIN_SIZE;
+            }
+
+            value=defaultTerrain["worldSize"];
+            if(value.isNull())Debug::warning(intro)("key 'defaultTerrain.worldSize' is null. Using default.").endl();
+            else
+                defaultImp.worldSize=Ogre::StringConverter::parseInt(value.asString(),-1);
+            if(-1==defaultImp.worldSize)
+            {
+                Debug::warning(intro)("Could not parse key 'defaultTerrain.worldSize' (")(value)("). Using default.").endl();
+                defaultImp.worldSize=TerrainManager::DEFAULT_WORLD_SIZE;
+            }
+
+            defaultImp.layerList.clear();
+            Json::Value layersValue=defaultTerrain["layerList"];
+            if(layersValue.isNull())Debug::warning(intro)("key 'defaultTerrain.layerList' is null. Using default.").endl();
+            else if(!layersValue.isConvertibleTo(Json::arrayValue))Debug::warning(intro)("key 'defaultTerrain.layerList' is not an Int (")(value)("). Using default.").endl();
+            else
+            {
+                Json::ValueIterator it_layers = layersValue.begin();
+                for(Json::ArrayIndex layerIndex=0; layersValue.isValidIndex(layerIndex); ++layerIndex)
+                {
+                    Json::Value layerValue=layersValue.get(layerIndex,Json::nullValue);
+
+                    value=layerValue["worldSize"];
+                    Ogre::Real worldSize=0;
+                    if(value.isNull())
+                    {
+                        Debug::warning(intro)("key 'defaultTerrain.layerList[")(layerIndex)("].worldSize' is null. Skipping !").endl();
+                        continue;
+                    }
+                    worldSize=value.asFloat();
+                    if(-1==worldSize)
+                    {
+                        Debug::warning(intro)("could not parse key 'defaultTerrain.layerList[")(layerIndex)("].worldSize' (")(value)("). Skipping !").endl();
+                        continue;
+                    }
+
+                    Json::Value textureNamesValue=layerValue["textureNames"];
+                    std::vector<Ogre::String> textureNames;
+                    if(textureNamesValue.isNull())
+                    {
+                        Debug::warning(intro)("key 'defaultTerrain.layerList[")(layerIndex)("].textureNames' is null. Skipping !").endl();
+                        continue;
+                    }
+                    if(!textureNamesValue.isConvertibleTo(Json::arrayValue))
+                    {
+                        Debug::warning(intro)("key 'defaultTerrain.layerList[")(layerIndex)("].textureNames' is not an Array (")(textureNamesValue)("). Skipping !").endl();
+                        continue;
+                    }
+
+                    Json::ValueIterator it_textureNames = textureNamesValue.begin();
+                    int textureNo=-1;
+                    for (; it_textureNames!= textureNamesValue.end(); ++it_textureNames)
+                    {
+                        textureNames.push_back((*it_textureNames).asString());
+                    }
+                    Ogre::Terrain::LayerInstance instance;
+                    instance.worldSize=worldSize;
+                    instance.textureNames.assign(textureNames.begin(),textureNames.end());
+                    defaultImp.layerList.push_back(instance);
+
+                    // hardcoded
+                    if(0)
+                    {
+                        defaultImp.layerList[0].textureNames.resize(3);
+                        defaultImp.layerList[0].worldSize = 10;
+                        defaultImp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.png");
+                        defaultImp.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.png");
+
+                        defaultImp.layerList[1].worldSize = 3;
+                        defaultImp.layerList[1].textureNames.push_back("grass_green-01_diffusespecular.png");
+                        defaultImp.layerList[1].textureNames.push_back("grass_green-01_normalheight.png");
+
+                        defaultImp.layerList[2].worldSize = 20;
+                        defaultImp.layerList[2].textureNames.push_back("growth_weirdfungus-03_diffusespecular.png");
+                        defaultImp.layerList[2].textureNames.push_back("growth_weirdfungus-03_normalheight.png");
+                    }
+                }
+            }
+        }
 
         // terrains
         std::list<TerrainSlotData> terrainSlots;
@@ -277,13 +434,15 @@ namespace Steel
             Debug::warning("key 'terrainSlots':").endl()(root["terrainSlots"].toStyledString()).endl();
         }
 
-        build(lightDir, diffuseColor,specularColor,terrainSlots);
+        build(ambient,lightDir, diffuseColor,specularColor,defaultImp,terrainSlots);
         return true;
     }
 
-    void TerrainManager::build(Ogre::Vector3 lightDir,
+    void TerrainManager::build(Ogre::ColourValue ambient,
+                               Ogre::Vector3 lightDir,
                                Ogre::ColourValue diffuseColor,
                                Ogre::ColourValue specularColor,
+                               Ogre::Terrain::ImportData defaultImp,
                                std::list<TerrainSlotData> &terrainSlots)
     {
         mTerrainsImported=false;
@@ -295,12 +454,13 @@ namespace Steel
         // TODO: encapsulate into a lightManager (need light models ?)
         lightDir.normalise();
         // keep name in sync with destructor/shutdown
+        mSceneManager->setAmbientLight(ambient);
         Ogre::Light* light = mSceneManager->getLight("terrainLight");
         light->setType(Ogre::Light::LT_DIRECTIONAL);
         light->setDirection(lightDir);
         light->setDiffuseColour(diffuseColor);
         light->setSpecularColour(specularColor);
-        configureTerrainDefaults(light);
+        configureTerrainDefaults(light,defaultImp);
 
         if(terrainSlots.size()==0)
             Debug::warning("TerrainManager::build(): terrainSlots has size 0. Level has no terrain !").endl();
@@ -350,7 +510,7 @@ namespace Steel
         }
     }
 
-    void TerrainManager::configureTerrainDefaults(Ogre::Light *light)
+    void TerrainManager::configureTerrainDefaults(Ogre::Light *light,Ogre::Terrain::ImportData &newDefault)
     {
         // MaxPixelError decides how precise our terrain is going to be.
         // A lower number will mean a more accurate terrain, at the cost of performance (because of more vertices).
@@ -365,27 +525,17 @@ namespace Steel
 
         // Configure default import settings for if we use imported image
         Ogre::Terrain::ImportData& defaultimp = mTerrainGroup->getDefaultImportSettings();
-        defaultimp.terrainSize = TerrainManager::DEFAULT_TERRAIN_SIZE;
+        defaultimp.terrainSize = newDefault.terrainSize;
         // 1 unit == 1 meter
-        defaultimp.worldSize = TerrainManager::DEFAULT_WORLD_SIZE;
+        defaultimp.worldSize = newDefault.worldSize;
         // due terrain.png is 16 bpp (a float)
-        defaultimp.inputScale = 1.f;
-        defaultimp.minBatchSize = 33;
-        defaultimp.maxBatchSize = 65;
+        defaultimp.inputScale = newDefault.inputScale;
+        defaultimp.minBatchSize = newDefault.minBatchSize;
+        defaultimp.maxBatchSize = newDefault.maxBatchSize;
 
         // textures
-        // TODO load this from serialization (no editing included)
-        // we set the number of terrain texture layers to 3
-        defaultimp.layerList.resize(3);
-        defaultimp.layerList[0].worldSize = 10;
-        defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.png");
-        defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.png");
-        defaultimp.layerList[1].worldSize = 3;
-        defaultimp.layerList[1].textureNames.push_back("grass_green-01_diffusespecular.png");
-        defaultimp.layerList[1].textureNames.push_back("grass_green-01_normalheight.png");
-        defaultimp.layerList[2].worldSize = 20;
-        defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_diffusespecular.png");
-        defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_normalheight.png");
+        defaultimp.layerList.clear();
+        defaultimp.layerList.assign(newDefault.layerList.begin(),newDefault.layerList.end());
     }
 
     void TerrainManager::updateBlendMaps(Ogre::Terrain* terrain)
@@ -451,6 +601,7 @@ namespace Steel
                 {
                     mLoadingState=SAVING;
                     yieldEvent(mLoadingState);
+                    // keep fast caching, add invalidate feature
                     //                     mTerrainGroup->saveAllTerrains(true);
                 }
                 else

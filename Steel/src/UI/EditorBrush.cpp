@@ -14,17 +14,20 @@
 #include <Camera.h>
 #include <Level.h>
 #include <tools/Cylinder.h>
+#include <tools/OgreUtils.h>
 #include <OgreManualObject.h>
 #include <OgreMeshManager.h>
 
 namespace Steel
 {
+    Ogre::SceneNode *EditorBrush::sTerraBrushVisual=NULL;
+    
     EditorBrush::EditorBrush():Ogre::FrameListener(),
         mEngine(NULL),mEditor(NULL),
         mMode(TRANSLATE),mContinuousModeActivated(false),
         mSelectionPosBeforeTransformation(Ogre::Vector3::ZERO),mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
         mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
-        mTerraBrushVisual(NULL),mTerraScale(1.1f),mSelectedTerrainHeight(.0f),mRaiseShape(TerrainManager::RaiseShape::UNIFORM),
+        mTerraScale(1.1f),mSelectedTerrainHeight(.0f),mRaiseShape(TerrainManager::RaiseShape::UNIFORM),
         mModeStack(std::vector<BrushMode>()),
         mModifiedTerrains(std::set<Ogre::Terrain *>())
     {
@@ -63,14 +66,6 @@ namespace Steel
     void EditorBrush::shutdown()
     {
         setMode(NONE);
-        if(mTerraBrushVisual!=NULL)
-        {
-            mTerraBrushVisual->removeAllChildren();
-            mTerraBrushVisual->detachAllObjects();
-            mTerraBrushVisual->getParent()->removeChild(mTerraBrushVisual);
-            delete mTerraBrushVisual;
-            mTerraBrushVisual = NULL;
-        }
     }
 
     bool EditorBrush::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
@@ -121,7 +116,7 @@ namespace Steel
                         if(level)
                         {
                             Ogre::Terrain *terrain;
-                            auto pos=level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(mTerraBrushVisual->getPosition(),&terrain);
+                            auto pos=level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(sTerraBrushVisual->getPosition(),&terrain);
                             // keep last valid value
                             if(terrain!=NULL)
                                 mSelectedTerrainHeight=pos;
@@ -199,11 +194,11 @@ namespace Steel
         // resize
         if(mMode==TERRAFORM)
         {
-            if(mTerraBrushVisual==NULL)
+            if(sTerraBrushVisual==NULL)
                 getBrush(TERRAFORM);
-            if(mTerraBrushVisual!=NULL)
+            if(sTerraBrushVisual!=NULL)
             {
-                Ogre::Vector3 scale=mTerraBrushVisual->getScale();
+                Ogre::Vector3 scale=sTerraBrushVisual->getScale();
                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                 {
                     // height
@@ -234,7 +229,7 @@ namespace Steel
                     else if(evt.state.Z.rel<0)
                         scale/=mTerraScale;
                 }
-                mTerraBrushVisual->setScale(scale);
+                sTerraBrushVisual->setScale(scale);
             }
         }
 
@@ -348,18 +343,18 @@ namespace Steel
         //TODO: put this in a proper terraform method
         if(mMode==TERRAFORM)
         {
-            if(mTerraBrushVisual==NULL)
+            if(sTerraBrushVisual==NULL)
                 getBrush(TERRAFORM);
             auto level=mEngine->level();
-            if(level!=NULL && mTerraBrushVisual!=NULL)
+            if(level!=NULL && sTerraBrushVisual!=NULL)
             {
                 // move
                 auto ray=mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
                 auto hitTest=level->terrainManager()->intersectRay(ray);
                 if(hitTest.hit)
                 {
-                    mTerraBrushVisual->setVisible(true);
-                    mTerraBrushVisual->setPosition(hitTest.position);
+                    sTerraBrushVisual->setVisible(true);
+                    sTerraBrushVisual->setPosition(hitTest.position);
                     if(mContinuousModeActivated)
                     {
                         // action !
@@ -380,7 +375,7 @@ namespace Steel
                     }
                 }
                 else
-                    mTerraBrushVisual->setVisible(false);
+                    sTerraBrushVisual->setVisible(false);
             }
             else
                 Debug::warning("EditorBrush::frameRenderingQueued() no level, really ?").endl();
@@ -473,7 +468,7 @@ namespace Steel
         switch(mMode)
         {
             case TERRAFORM:
-                if(mTerraBrushVisual==NULL)
+                if(sTerraBrushVisual==NULL)
                 {
                     auto level=mEngine->level();
                     if(level!=NULL)
@@ -485,7 +480,7 @@ namespace Steel
                             entity=sm->getEntity("cylinderEntity");
                         else
                             entity = sm->createEntity("cylinderEntity",mesh);
-                        mTerraBrushVisual = level->levelRoot()->createChildSceneNode("terraBrushVisual");
+                        sTerraBrushVisual = level->levelRoot()->createChildSceneNode("terraBrushVisual");
 
                         Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().create("terraBrushVisual_material","UI");
                         material->setReceiveShadows(false);
@@ -500,11 +495,11 @@ namespace Steel
                         material->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
                         material->setDepthWriteEnabled(false);
                         entity->setMaterial(material);
-                        mTerraBrushVisual->attachObject(entity);
+                        sTerraBrushVisual->attachObject(entity);
                     }
                 }
                 else
-                    mTerraBrushVisual->setVisible(true);
+                    sTerraBrushVisual->setVisible(true);
                 break;
             default:
                 break;
@@ -516,8 +511,11 @@ namespace Steel
         switch(mMode)
         {
             case TERRAFORM:
-                if(mTerraBrushVisual!=NULL)
-                    mTerraBrushVisual->setVisible(false);
+                if(sTerraBrushVisual!=NULL)
+                {
+                    OgreUtils::destroySceneNode(sTerraBrushVisual);
+                    sTerraBrushVisual = NULL;
+                }
                 mModifiedTerrains.clear();
                 break;
             default:

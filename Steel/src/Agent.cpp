@@ -14,6 +14,7 @@
 #include "_ModelManager.h"
 #include "OgreModelManager.h"
 #include "Level.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -124,7 +125,7 @@ namespace Steel
             ModelType mt = (*it).first;
 //		Debug::log("model type:")(modelTypesAsString[mt]).endl();
             ModelId mid = (*it).second;
-            root[modelTypesAsString[mt]] = Json::Value(Ogre::StringConverter::toString(mid));
+            root[modelTypesAsString[mt]] = StringUtils::toJson(mid);
         }
         return root;
     }

@@ -7,6 +7,7 @@
 
 #include "OgreModel.h"
 #include "Debug.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -125,8 +126,8 @@ namespace Steel
             return;
         }
         //TODO: use abbreviated keys for release
-        node["position"] = Json::Value(Ogre::StringConverter::toString(mSceneNode->getPosition()));
-        node["rotation"] = Json::Value(Ogre::StringConverter::toString(mSceneNode->getOrientation()));
+        node["position"] = StringUtils::toJson(mSceneNode->getPosition());
+        node["rotation"] = StringUtils::toJson(mSceneNode->getOrientation());
         node["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
     }
 

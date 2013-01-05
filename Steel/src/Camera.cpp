@@ -18,6 +18,7 @@ using namespace std;
 
 #include "Camera.h"
 #include "Debug.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -92,8 +93,8 @@ namespace Steel
     Json::Value Camera::toJson()
     {
         Json::Value value;
-        value["position"] = Ogre::StringConverter::toString(mCameraNode->getPosition());
-        value["rotation"] = Ogre::StringConverter::toString(mCameraNode->getOrientation());
+        value["position"] = StringUtils::toJson(mCameraNode->getPosition());
+        value["rotation"] = StringUtils::toJson(mCameraNode->getOrientation());
         return value;
     }
 

@@ -78,9 +78,11 @@ namespace Steel
             Ogre::TerrainGroup::RayResult intersectRay(const Ogre::Ray& ray);
 
             /// generates the terrain
-            void build(Ogre::Vector3 lightDir,
+            void build(Ogre::ColourValue,
+                       Ogre::Vector3 lightDir,
                        Ogre::ColourValue diffuseColor,
                        Ogre::ColourValue specularColor,
+                       Ogre::Terrain::ImportData defaultImp,
                        std::list< Steel::TerrainManager::TerrainSlotData >& terrainSlots);
 
             bool fromJson(Json::Value &value);
@@ -110,8 +112,8 @@ namespace Steel
             void updateBlendMaps(Ogre::Terrain* terrain);
 
         protected:
-            /// prepares ogre and the terrain, at startup
-            void configureTerrainDefaults(Ogre::Light* light);
+            /// sets default terrain settings
+            void configureTerrainDefaults(Ogre::Light* light, Ogre::Terrain::ImportData& newDefault);
             void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
             /// calls event listeners' callback methods.
             void yieldEvent(LoadingState state);
@@ -120,6 +122,7 @@ namespace Steel
             Ogre::SceneManager *mSceneManager;
 
             // owned
+            Ogre::String mResourceGroupName;
             LoadingState mLoadingState;
             std::set<TerrainManagerEventListener *> mListeners;
             Ogre::TerrainGlobalOptions *mTerrainGlobals;

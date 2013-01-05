@@ -24,6 +24,7 @@
 #include "OgreModelManager.h"
 #include "Model.h"
 #include "tools/OgreUtils.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -55,6 +56,8 @@ namespace Steel
         Debug::log(logName()+".~Level()").endl();
         mOgreModelMan->clear();
         delete mOgreModelMan;
+        mTerrainMan.destroy();
+        OgreUtils::destroyAllAttachedMovableObjects(mLevelRoot);
         OgreUtils::destroySceneNode(mLevelRoot);
         Ogre::ResourceGroupManager::getSingletonPtr()->destroyResourceGroup(mName);
     }
@@ -230,8 +233,7 @@ namespace Steel
         Debug::log(logName()+".serialise()").endl().indent();
         Json::Value root;
         root["name"] = mName;
-        root["ambientLight"] = Json::Value(Ogre::StringConverter::toString(mSceneManager->getAmbientLight()));
-
+        
         root["camera"] = mCamera->toJson();
         root["terrain"] = mTerrainMan.toJson();
 
@@ -258,8 +260,6 @@ namespace Steel
         {
             Debug::log(modelType).endl();
             ModelManager *mm = modelManager(modelType);
-            Debug::log((long)mm)("   ")(modelTypesAsString).endl();
-            Debug::log(logName()+".serialize(): processing type ")(modelTypesAsString[modelType]).endl();
             if (mm == NULL)
             {
                 Debug::log(logName()+".serialize(): no modelManager of type ")(modelTypesAsString[modelType]).endl();
@@ -296,12 +296,6 @@ namespace Steel
         assert(!value.isNull());
         // we load the right level
         assert(mName==value.asString());
-
-        Ogre::ColourValue ambient=Ogre::ColourValue::White;
-        value=root["ambientLight"];
-        if(!value.isNull())
-            ambient=Ogre::StringConverter::parseColourValue(value.asString());
-        mSceneManager->setAmbientLight(ambient);
 
         //camera
         if(!mCamera->fromJson(root["camera"]))
