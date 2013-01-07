@@ -164,13 +164,13 @@ namespace Steel
 
         if(mIsGrabExclusive)
         {
-            pushMouseState();
 //             Debug::log("keeping mouse within ")(ms.width)(" and ")(ms.height).endl();
+            pushMouseState();
         }
         else
         {
-            popMouseState();
 //             Debug::log("keeping mouse free to leave the window.").endl();
+            popMouseState();
         }
 
         bool bufferedKeys = true;
@@ -316,11 +316,10 @@ namespace Steel
         // set internal data to right values (let OIS deal with its internals though.)
         mMousePos = pos;
 
-        // fix OIS bug (?) that make mouse coords at (-6,-6) of real coords
+        //TODO: fix OIS bug (?) that make mouse coords at (-6,-6) of real coords
         OIS::MouseState &mutableMouseState = const_cast<OIS::MouseState &>(mMouse->getMouseState());
         mutableMouseState.X.abs = 6;
         mutableMouseState.Y.abs = 6;
-
 #endif
     }
 
@@ -328,7 +327,6 @@ namespace Steel
     {
         // Pump window messages for nice behaviour
         Ogre::WindowEventUtilities::messagePump();
-
 
         if(mDelayedInputReleaseRequested)
             _releaseInput();
@@ -338,9 +336,9 @@ namespace Steel
         if (mOISInputManager == NULL)
             return;
 
-        if(mKeyboard)
+        if(NULL!=mKeyboard)
             mKeyboard->capture();
-        if(mMouse)
+        if(NULL!=mMouse)
             mMouse->capture();
     }
 
@@ -350,13 +348,13 @@ namespace Steel
         int left, top;
         rw->getMetrics(width, height, depth, left, top);
 
-        if(mMouse!=NULL)
+        if(NULL!=mMouse)
         {
             const OIS::MouseState &ms = mMouse->getMouseState();
             ms.width = width;
             ms.height = height;
         }
-        
+
         mEngine->resizeWindow(width, height);
     }
 

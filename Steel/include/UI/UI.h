@@ -10,6 +10,7 @@
 #include "UI/Editor.h"
 #include "UI/HUD.h"
 #include <tools/File.h>
+#include <EngineEventListener.h>
 
 namespace Steel
 {
@@ -20,7 +21,7 @@ namespace Steel
      * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
      * Ogre's window is created by the engine, but its events are grabbed in here too.
      */
-    class UI:public Rocket::Core::SystemInterface,Ogre::RenderQueueListener
+    class UI:public Rocket::Core::SystemInterface,Ogre::RenderQueueListener,EngineEventListener
     {
 
         public:
@@ -33,7 +34,6 @@ namespace Steel
                       unsigned int height,
                       File UIDataDir,
                       InputManager *inputMan,
-                      Ogre::SceneManager *sceneManager,
                       Ogre::RenderWindow *window,
                       Engine *engine
                      );
@@ -65,6 +65,11 @@ namespace Steel
             bool mouseMoved(const OIS::MouseEvent& evt);
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+            
+            /// called when a new level becomes the current level.
+            void onLevelSet(Level *level);
+            /// called right before a level is unset (becomes not current anymore).
+            void onLevelUnset(Level *level);
 
             void shutdown();
 
@@ -82,6 +87,7 @@ namespace Steel
             // not owned
             InputManager *mInputMan;
             Ogre::RenderWindow *mWindow;
+            Engine *mEngine;
 
             // owned
             unsigned int mWidth;

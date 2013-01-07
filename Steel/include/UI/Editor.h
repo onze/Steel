@@ -49,6 +49,8 @@ namespace Steel
             void processEngineCommand(std::vector<Ogre::String> command);
             /// submethod processing ui commands concerning levels
             void processLevelCommand(std::vector<Ogre::String> command);
+            /// submethod processing ui commands concerning options
+            void processOptionCommand(std::vector<Ogre::String> command);
 
             //implements the OIS keyListener and mouseListener, as this allows the UI to pass them on as they arrive.
             bool mouseMoved(const OIS::MouseEvent& evt);
@@ -75,6 +77,8 @@ namespace Steel
             int mMenuTabIndex;
             /// handles mouse props wrt mEditMode
             EditorBrush mBrush;
+            /// If set to true, will print all events with empty "value" attribute for elements whose "id" attribute is set.
+            bool mDebugEvents;
         private:
     };
 }

@@ -28,6 +28,7 @@ namespace Steel
     class Camera;
     class Level;
     class RayCaster;
+    class EngineEventListener;
 
     class Engine
     {
@@ -46,11 +47,19 @@ namespace Steel
             Engine();
             virtual ~Engine();
 
+            /// The given listener will be notified of engine event..
+            void addEngineEventListener(EngineEventListener *listener);
+            /// Remove the given listener from the set of notified listeners.
+            void removeEngineEventListener(EngineEventListener *listener);
+            
             inline void abortMainLoop()
             {
                 mMustAbortMainLoop = true;
             }
+            
+            /// Creates and returns a new level.
             Level *createLevel(Ogre::String name);
+
             void clearSelection();
             void deleteSelection();
 
@@ -64,6 +73,11 @@ namespace Steel
                               unsigned int height,
                               Ogre::String defaultLog = Ogre::String("ogre_log.log"),
                               Ogre::LogListener *logListener = NULL);
+
+            /// warns all EngineListeners that a new level has been set
+            void fireOnLevelSetEvent();
+            /// warns all EngineListeners that a new level has been set
+            void fireOnLevelUnsetEvent();
 
             inline bool hasSelection()
             {
@@ -98,7 +112,23 @@ namespace Steel
              */
             void pickAgents(std::list<ModelId> &selection, int x, int y);
 
+            /// execute a serialized command. Return true if the next command can be processed before the next frame.
+            bool processCommand(std::vector<Ogre::String> command);
+
             void redraw();
+            /// adds a command that will be executed at the beginning of next frame.
+            void registerCommand(std::vector<Ogre::String> command);
+
+            /**
+             * Sets the given level as the new one. Returns the previous level, that still needs to be deleted.
+             * TODO: implement level background unloading ?
+             * Since the current level holds the Ogre::SceneManager on which most of what we want
+             * to display relies, this same everything needs to be shutdown before proceeding, so that
+             * it can be reinstanciated with the new level's sceneManager. Therefore, this method is a bit
+             * expensive, and may make the engine not as responsive until it exits.
+             */
+            Level *setCurrentLevel(Level *newLevel);
+
             void setSelectedAgents(std::list<AgentId> selection, bool selected);
             void shutdown();
 
@@ -126,31 +156,31 @@ namespace Steel
 
             ////////////////////////////////////////////////
             //getters
-
-            inline Camera *camera()
-            {
-                return mCamera;
-            }
             inline InputManager *inputMan()
             {
                 return &mInputMan;
             }
+
             inline Ogre::RenderWindow *renderWindow()
             {
                 return mRenderWindow;
             }
+
             inline File rootDir()
             {
                 return mRootDir;
             }
+
             inline std::list<AgentId> selection()
             {
                 return mSelection;
             }
+
             inline std::string &windowHandle()
             {
                 return mWindowHandle;
             }
+
             inline Level *level()
             {
                 return mLevel;
@@ -180,8 +210,10 @@ namespace Steel
             void setSelectionPosition(Ogre::Vector3 pos);
             void setSelectionRotations(std::vector<Ogre::Quaternion> const &rots);
 
-        private:
-            File mRootDir;
+        protected:
+            /// invoke processCommand on all registered commands
+            void processAllCommands();
+
             /**
              * set up stuff that does not depend on standalone/embedded status,
              * nor on having the windowing system ready;
@@ -202,11 +234,9 @@ namespace Steel
             /// high level input processing
             bool processInputs();
 
+            File mRootDir;
             Ogre::Root *mRoot;
-            Ogre::SceneManager *mSceneManager;
             Ogre::RenderWindow *mRenderWindow;
-            Ogre::Viewport *mViewport;
-            Camera *mCamera;
 
             InputManager mInputMan;
             std::string mWindowHandle;
@@ -223,10 +253,17 @@ namespace Steel
             RayCaster *mRayCaster;
             UI mUI;
 
+            /// agents currenlty selected
             std::list<AgentId> mSelection;
 
             bool mEditMode;
             Stats mStats;
+
+            /// commands that will be executed at the beginning of next frame
+            std::list<std::vector<Ogre::String> > mCommands;
+
+            std::set<EngineEventListener *> mListeners;
+
     };
 }
 

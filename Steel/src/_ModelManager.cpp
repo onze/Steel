@@ -94,7 +94,7 @@ namespace Steel
     template<class M>
     void _ModelManager<M>::toJson(Json::Value &object)
     {
-        Debug::log("_ModelManager(): ")(mModels.size())(" models in stock").endl();
+//         Debug::log("_ModelManager(): ")(mModels.size())(" models in stock").endl();
         for (ModelId id = 0; id < mModels.size(); ++id)
         {
             Model *m = (Model *) &(mModels[id]);

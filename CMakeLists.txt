@@ -31,30 +31,22 @@ include_directories(
     /media/a0/cpp/libs/ogre/include
     /media/a0/cpp/libs/ogre/Components/Terrain/include
     /media/a0/cpp/libs/ogre/Components/Paging/include
-    
-#      custom fork
     /media/a0/cpp/libs/libRocket.github.onze/Include
-#     stable version
-#     /media/a0/cpp/libs/librocket_generic-source-1.2.1/libRocket/Include
 )
 
 link_directories(
     /media/a0/cpp/libs/ogre/lib
     /usr/lib/x86_64-linux-gnu/
-    
-#      custom fork
     /media/a0/cpp/libs/libRocket.github.onze/Build
-#     stable version
-#     /media/a0/cpp/libs/librocket_generic-source-1.2.1/libRocket/Build
 )
 
 add_library(steel SHARED ${source_files})
 
-# IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-#     SET(RocketLibSuffix "_d")
-# ELSE(CMAKE_BUILD_TYPE MATCHES "Debug")
+IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+    SET(RocketLibSuffix "_d")
+ELSE(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(RocketLibSuffix "")
-# ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 
 target_link_libraries(
     steel

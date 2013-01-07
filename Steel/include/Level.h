@@ -9,6 +9,7 @@
 #define LEVEL_H_
 
 #include <map>
+#include <memory>
 
 #include "steeltypes.h"
 //#include "BTModelManager.h"
@@ -18,6 +19,7 @@
 
 namespace Steel
 {
+    class Engine;
     class Agent;
     class Camera;
     class ModelManager;
@@ -30,32 +32,25 @@ namespace Steel
             Level(Level &level);
             Level &operator=(const Level &level);
         public:
+            
             ///@param[in] path: parent dir where the level saves itself
-            Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera);
+            Level(Engine *engine, File path, Ogre::String name);
             virtual ~Level();
 
             void deleteAgent(AgentId id);
 
-            /**
-             * read properties in the given string and set them where they should.
-             */
+            /// Read properties in the given string and set them where they should.
             bool deserialize(Ogre::String &s);
 
-            /**
-             * Returns a pointer to the agent whose id's given, or NULL if there's no such agent.
-             */
-            Agent *getAgent(AgentId id);
+            /// Returns a pointer to the agent whose id's given, or NULL if there's no such agent.
+             Agent *getAgent(AgentId id);
 
-            /**
-             * fills the list of AgentId with agents that own nodes in the the given list.
-             */
+            /// Ffills the list of AgentId with agents that own nodes in the the given list.
             void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<AgentId> &selection);
 
-            /**
-             * returns the name of the json file that contains this level's properies.
-             */
+            /// Returns the name of the json file that contains this level's properies.
             File getSavefile();
-
+            
             bool isOver();
 
             bool linkAgentToModel(AgentId aid, ModelType mtype, ModelId mid);
@@ -66,10 +61,8 @@ namespace Steel
              */
             bool load();
 
-            /**
-             * Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
-             */
-            AgentId newAgent();
+            /// Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
+             AgentId newAgent();
 
             /**
              * creates a new instance of Agent.
@@ -83,10 +76,11 @@ namespace Steel
                                  Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
 
             virtual void onTerrainEvent(TerrainManager::LoadingState state);
-            
-            /**
-             * loads behavior trees available for this  level.
-             */
+
+            /// execute a serialized command
+            void processCommand(std::vector<Ogre::String> command);
+
+            /// Loads behavior trees available for this  level.
 //	void loadBTrees();
 
             /**
@@ -94,82 +88,98 @@ namespace Steel
              * Return true if the saving went successfully.
              */
             bool save();
-            /**
-             * collects level's agents' properties and put them in a string.
-             */
-            void serialize(Ogre::String &s);
+            /// Collects level's agents' properties and put them in a string.
+             void serialize(Ogre::String &s);
 
             //getters
+            inline Ogre::ColourValue backgroundColor()
+            {
+                return mBackgroundColor;
+            }
+
+            /// Player camera. For now there's only one camera per level.
+            inline Camera *camera()
+            {
+                return mCamera;
+            }
+
+            inline Ogre::String name()
+            {
+                return mName;
+            }
+
             inline File path()
             {
                 return mPath;
             }
-            inline OgreModelManager *ogreModelMan()
-            {
-                return mOgreModelMan;
-            }
+
             inline Ogre::SceneNode *levelRoot()
             {
                 return mLevelRoot;
             }
-            inline TerrainManager *terrainManager()
-            {
-                return &mTerrainMan;
-            }
 
             ///Return the level's model manager for the given type.
             ModelManager *modelManager(ModelType modelType);
+
+            inline OgreModelManager *ogreModelMan()
+            {
+                return mOgreModelMan;
+            }
 
             inline Ogre::SceneManager *sceneManager()
             {
                 return mSceneManager;
             }
 
+            inline TerrainManager *terrainManager()
+            {
+                return &mTerrainMan;
+            }
+
+
         protected:
-            
             /// name used in debug output
             Ogre::String logName();
+
+            //not owned
+            Engine *mEngine;
+
+            //owned
+            /// what displays the level camera
+            Ogre::Viewport *mViewport;
 
             /// level folder (where the level manages its own resources)
             File mPath;
 
-            ///level name (i.e. name of the folder its loads its resources from)
+            /// level name (i.e. name of the folder its loads its resources from)
             Ogre::String mName;
 
-            /**
-             * Pointer to steel's global scene manager.
-             */
+            /// default color
+            Ogre::ColourValue mBackgroundColor;
+
+            /// Pointer to steel's global scene manager.
             Ogre::SceneManager *mSceneManager;
 
-            /**
-             * root node of the level. All level-dependant entities are its children.
-             */
+            /// root node of the level. All level-dependant entities are its children.
             Ogre::SceneNode *mLevelRoot;
 
-            /**
-             * agent container.
-             */
+            /// agent container.
             std::map<AgentId, Agent *> mAgents;
 
-            /**
-             * responsible for OgreModel's instances.
-             */
+            /// responsible for OgreModel's instances.
             OgreModelManager *mOgreModelMan;
 
-            /**
-             * behavior tree manager.
-             */
+            /// behavior tree manager.
 //	BTModelManager *mBTModelMan;
 
-            ///
-            unsigned int mResGroupAux;
-
+            /// main camera
             Camera *mCamera;
-            
+
             /// eases terrain manipulation
             TerrainManager mTerrainMan;
+            
+            Ogre::Light *mMainLight;
     };
-
 }
 
 #endif /* LEVEL_H_ */

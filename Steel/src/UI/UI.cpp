@@ -8,11 +8,13 @@
 #include "Debug.h"
 #include "InputManager.h"
 #include <tools/OgreUtils.h>
+#include <Level.h>
+#include <Engine.h>
 #include "UI/RenderInterfaceOgre3D.h"
 
 namespace Steel
 {
-    UI::UI():Rocket::Core::SystemInterface(),Ogre::RenderQueueListener(),
+    UI::UI():Rocket::Core::SystemInterface(),Ogre::RenderQueueListener(),EngineEventListener(),
         mInputMan(NULL),mWindow(NULL),mWidth(0),mHeight(0),
         mRocketRenderInterface(NULL),mMainContext(NULL),
         mKeyIdentifiers(KeyIdentifierMap()),mEditor(),mHUD(),mUIDataDir(),mEditMode(false)
@@ -37,6 +39,7 @@ namespace Steel
 
     UI::~UI()
     {
+        shutdown();
     }
 
     UI& UI::operator=(const UI& other)
@@ -54,25 +57,6 @@ namespace Steel
         mKeyIdentifiers=other.mKeyIdentifiers;
         mEditMode=other.mEditMode;
         return *this;
-    }
-
-    void UI::shutdown()
-    {
-        stopEditMode();
-        if(mInputMan!=NULL)
-            mInputMan=NULL;
-        if(mMainContext!=NULL)
-        {
-            mMainContext->UnloadAllMouseCursors();
-            mMainContext->UnloadAllDocuments();
-            mMainContext->RemoveReference();
-            mMainContext=NULL;
-        }
-        mEditor.shutdown();
-        mHUD.shutdown();
-        if(mRocketRenderInterface!=NULL)
-            delete mRocketRenderInterface;
-        Rocket::Core::Shutdown();
     }
 
     float UI::GetElapsedTime()
@@ -102,28 +86,55 @@ namespace Steel
         return false;
     }
 
+    void UI::shutdown()
+    {
+        stopEditMode();
+        mHUD.shutdown();
+        mEditor.shutdown();
+        if(mMainContext!=NULL)
+        {
+            mMainContext->UnloadAllMouseCursors();
+            mMainContext->UnloadAllDocuments();
+            mMainContext->RemoveReference();
+            mMainContext=NULL;
+        }
+        if(mInputMan!=NULL)
+            mInputMan=NULL;
+        Rocket::Core::Shutdown();
+        if(mRocketRenderInterface!=NULL)
+        {
+            delete mRocketRenderInterface;
+            mRocketRenderInterface=NULL;
+        }
+        mEngine->removeEngineEventListener(this);
+    }
+
     void UI::init(unsigned int width,
                   unsigned int height,
                   File UIDataDir,
                   InputManager *inputMan,
-                  Ogre::SceneManager *sceneManager,
                   Ogre::RenderWindow *window,
                   Engine *engine)
     {
         Debug::log("UI::init()").endl();
         mWidth=width;
         mHeight=height;
-        mUIDataDir=UIDataDir.subfile("current"),
+        mUIDataDir=UIDataDir.subfile("current");
         mInputMan=inputMan;
         mWindow=window;
+        mEngine=engine;
 
         mEditMode=false;
-
+        mEngine->addEngineEventListener(this);
+        
         //rocket init
         auto orm=Ogre::ResourceGroupManager::getSingletonPtr();
         orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
-        mRocketRenderInterface=new RenderInterfaceOgre3D(width,height,engine);
+        bool firstInit=mRocketRenderInterface==NULL;
+
+        mRocketRenderInterface=new RenderInterfaceOgre3D(mWidth,mHeight,mEngine);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
+
 
         Rocket::Core::SetSystemInterface(this);
         Rocket::Core::Initialise();
@@ -134,31 +145,35 @@ namespace Steel
         mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWidth, mHeight));
 //         Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
 
-        Rocket::Debugger::SetVisible(true);
-        Rocket::Debugger::Initialise(mMainContext);
+        if(firstInit)
+            Rocket::Debugger::Initialise(mMainContext);
+        else
+            Rocket::Debugger::SetContext(mMainContext);
+
+        if(!Rocket::Debugger::IsVisible())
+            Rocket::Debugger::SetVisible(true);
 
         //UI init
-        mEditor.init(mWidth, mHeight, engine, this, mInputMan);
-        mHUD.init(mWidth, mHeight, engine, this);
-        mHUD.show();
+        mEditor.init(mWidth, mHeight, mEngine, this, mInputMan);
+        mHUD.init(mWidth, mHeight, mEngine, this);
 
         orm->initialiseResourceGroup("UI");
         orm->loadResourceGroup("UI");
-        sceneManager->addRenderQueueListener(this);
 
         OgreUtils::resourceGroupsInfos();
     }
 
     void UI::startEditMode()
     {
-        mEditor.show();
         mEditMode=true;
+        mHUD.show();
+        mEditor.show();
     }
 
     void UI::stopEditMode()
     {
-        mEditor.hide();
         mEditMode=false;
+        mEditor.hide();
     }
 
     // Called from Ogre before a queue group is rendered.
@@ -172,9 +187,9 @@ namespace Steel
             mMainContext->Update();
             if(mEditMode)
                 mEditor.context()->Update();
-            
+
             configureRenderSystem();
-            
+
             mHUD.context()->Render();
             mMainContext->Render();
             if(mEditMode)
@@ -330,6 +345,19 @@ namespace Steel
         }
         return true;
     }
+    
+    void UI::onLevelUnset(Level *level)
+    {
+        // stop rendering as long as there is no level->scnemanager to render from
+        level->sceneManager()->removeRenderQueueListener(this);
+    }
+    
+    void UI::onLevelSet(Level *level)
+    {
+        level->sceneManager()->addRenderQueueListener(this);
+    }
+    
+    
     void UI::buildKeyMaps()
     {
         mKeyIdentifiers[OIS::KC_UNASSIGNED] = Rocket::Core::Input::KI_UNKNOWN;

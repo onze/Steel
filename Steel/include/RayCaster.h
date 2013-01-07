@@ -15,6 +15,7 @@
 #include <OgreQuaternion.h>
 
 #include "steeltypes.h"
+#include "EngineEventListener.h"
 
 namespace Ogre
 {
@@ -27,16 +28,16 @@ namespace Ogre
 
 namespace Steel
 {
-
+    class Engine;
     /**
      * Instances of this class do raycasting.
      * Make sure an Ogre context is ready before instanciating them though.
      * the code is an adaptation of http://www.ogre3d.org/tikiwiki/Raycasting+to+the+polygon+level to Steel.
      */
-    class RayCaster
+    class RayCaster:public EngineEventListener
     {
         public:
-            RayCaster(Ogre::SceneManager *sceneManager);
+            RayCaster(Engine *engine);
             virtual ~RayCaster();
             /**
              * raycast from a point in to the scene.
@@ -52,6 +53,9 @@ namespace Steel
                                     const Ogre::Vector3 &position,
                                     const Ogre::Quaternion &orient,
                                     const Ogre::Vector3 &scale);
+            
+            virtual void onLevelSet(Level *level);
+            virtual void onLevelUnset(Level *level);
         protected:
             //not owned
             Ogre::SceneManager *mSceneManager;

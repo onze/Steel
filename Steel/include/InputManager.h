@@ -36,11 +36,11 @@ namespace Steel
 
             inline bool isKeyDown(OIS::KeyCode key)
             {
-                return mKeyboard==NULL?false:mKeyboard->isKeyDown(key);
+                return NULL==mKeyboard?false:mKeyboard->isKeyDown(key);
             }
             inline bool isModifierDown(OIS::Keyboard::Modifier mod)
             {
-                return mKeyboard==NULL?false:mKeyboard->isModifierDown(mod);
+                return NULL==mKeyboard?false:mKeyboard->isModifierDown(mod);
             }
 
             bool keyPressed(const OIS::KeyEvent& evt);
@@ -86,7 +86,7 @@ namespace Steel
             {
                 return mKeyboard;
             };
-            
+
             //setters
             /// move the mouse to the given window position
             void setMousePosition(Ogre::Vector2 &pos);

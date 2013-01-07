@@ -18,21 +18,25 @@
 
 #include <Ogre.h>
 
+#include <Engine.h>
 #include "Level.h"
 #include "Camera.h"
 #include "Agent.h"
-#include "OgreModelManager.h"
 #include "Model.h"
+#include "OgreModelManager.h"
 #include "tools/OgreUtils.h"
 #include <tools/StringUtils.h>
 
 namespace Steel
 {
 
-    Level::Level(File path, Ogre::String name, Ogre::SceneManager *sceneManager, Camera *camera) :
+    Level::Level(Engine *engine,File path, Ogre::String name) :
         TerrainManagerEventListener(),
-        mPath(path.subfile(name)), mName(name), mSceneManager(sceneManager), mResGroupAux(0), mCamera(camera),
-        mTerrainMan()
+        mEngine(engine),mViewport(NULL),
+        mPath(path.subfile(name)), mName(name), mBackgroundColor(Ogre::ColourValue::Black),
+        mSceneManager(NULL),mLevelRoot(NULL),
+        mAgents(std::map<AgentId, Agent *>()),mOgreModelMan(NULL),mCamera(NULL),
+        mTerrainMan(),mMainLight(NULL)
     {
         Debug::log(logName()+"()").endl();
         if(!mPath.exists())
@@ -41,25 +45,53 @@ namespace Steel
         resGroupMan->addResourceLocation(mPath.fullPath(),"FileSystem",mName,true);
         resGroupMan->initialiseResourceGroup(name);
 
-        mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("LevelNode", Ogre::Vector3::ZERO);
+        mSceneManager = Ogre::Root::getSingletonPtr()->createSceneManager(Ogre::ST_GENERIC,logName()+"_sceneManager");
+        // mTerrainManager search it under this same name in TerrainManager::toJson() and TerrainManager::build()
+        mMainLight = mSceneManager->createLight("levelLight");
+
+        // Create the camera
+        mCamera = new Camera(mSceneManager);
+
+        // reuse viewport if possible, entire window
+        Ogre::RenderWindow *window=mEngine->renderWindow();
+        int zOrder=-1;
+        while(window->hasViewportWithZOrder(++zOrder));
+        mViewport = window->addViewport(mCamera->cam(),zOrder);
+        mViewport->setBackgroundColour(mBackgroundColor);
+
+        // Alter the camera aspect ratio to match the viewport
+        Ogre::Real aspectRatio=Ogre::Real(mViewport->getActualWidth())/Ogre::Real(mViewport->getActualHeight());
+        mCamera->cam()->setAspectRatio(aspectRatio);
+
+        mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
         mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
 //	mBTModelMan = new BTModelManager(mPath);
         //mBTModelMan->loadResources();
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
-        mTerrainMan.init(mName+".terrainManager",path.subfile(mName),sceneManager);
-
+        mTerrainMan.init(mName+".terrainManager",path.subfile(mName),mSceneManager);
     }
 
     Level::~Level()
     {
         Debug::log(logName()+".~Level()").endl();
+        mTerrainMan.shutdown();
         mOgreModelMan->clear();
         delete mOgreModelMan;
-        mTerrainMan.destroy();
-        OgreUtils::destroyAllAttachedMovableObjects(mLevelRoot);
-        OgreUtils::destroySceneNode(mLevelRoot);
+        Ogre::RenderWindow *window=mEngine->renderWindow();
+        if (mSceneManager != NULL)
+        {
+            delete mCamera;
+            mSceneManager->clearScene();
+            mSceneManager->destroyAllCameras();
+            window->removeViewport(mViewport->getZOrder());
+            Ogre::Root::getSingletonPtr()->destroySceneManager(mSceneManager);
+            mViewport=NULL;
+            mCamera = NULL;
+            mSceneManager=NULL;
+        }
         Ogre::ResourceGroupManager::getSingletonPtr()->destroyResourceGroup(mName);
+        mViewport=NULL;
     }
 
     void Level::deleteAgent(AgentId id)
@@ -228,19 +260,34 @@ namespace Steel
         return false;
     }
 
+    void Level::processCommand(std::vector<Ogre::String> command)
+    {
+        if(command[0]=="load")
+            load();
+        else if(command[0]=="save")
+            save();
+        else if(command[0]=="delete")
+            Debug::error("to be implemented: level deletion").endl();
+        else
+        {
+            Debug::log("Editor::processLevelCommand(): unknown command: ")(command).endl();
+        }
+    }
+
     void Level::serialize(Ogre::String &s)
     {
         Debug::log(logName()+".serialise()").endl().indent();
         Json::Value root;
         root["name"] = mName;
-        
+
+        root["backgroundColor"] = StringUtils::toJson(mBackgroundColor);
+
         root["camera"] = mCamera->toJson();
         root["terrain"] = mTerrainMan.toJson();
 
         // serialise agents
         Debug::log("processing agents...").endl().indent();
         Json::Value agents;
-
         for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
         {
             AgentId aid = (*it_agents).first;
@@ -258,7 +305,6 @@ namespace Steel
         for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1); modelType != MT_LAST;
                 modelType = (ModelType) ((int) modelType + 1))
         {
-            Debug::log(modelType).endl();
             ModelManager *mm = modelManager(modelType);
             if (mm == NULL)
             {
@@ -296,6 +342,15 @@ namespace Steel
         assert(!value.isNull());
         // we load the right level
         assert(mName==value.asString());
+
+        value=root["backgroundColor"];
+        if(value.isNull())
+            Debug::warning(logName()+": key \"background\" is null. Using default.").endl();
+        else
+            mBackgroundColor=Ogre::StringConverter::parseColourValue(value.asString(),Ogre::ColourValue::White);
+        if(Ogre::ColourValue::White==mBackgroundColor)
+            Debug::warning(logName()+": could no parse key \"background\". Using default.").endl();
+        mBackgroundColor=Ogre::ColourValue::Black;
 
         //camera
         if(!mCamera->fromJson(root["camera"]))

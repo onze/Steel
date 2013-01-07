@@ -8,13 +8,13 @@ namespace Steel
 {
 
     UIPanel::UIPanel():
-    Rocket::Core::EventListener(),mWidth(0),mHeight(0),
+        Rocket::Core::EventListener(),mWidth(0),mHeight(0),
         mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),mAutoReload(false)
     {
     }
 
     UIPanel::UIPanel(Ogre::String contextName,File mDocumentFile):
-    Rocket::Core::EventListener(),mWidth(0),mHeight(0),
+        Rocket::Core::EventListener(),mWidth(0),mHeight(0),
         mContext(NULL),mContextName(contextName),mDocumentFile(mDocumentFile),mDocument(NULL),mAutoReload(false)
     {
     }
@@ -23,7 +23,7 @@ namespace Steel
     {
         throw std::runtime_error("UIPanel::UIPanel=(const UIPanel& other) not implemented.");
 
-        if(mDocument!=NULL)
+        if(NULL!=mDocument)
             mDocument->GetContext()->UnloadDocument(mDocument);
         if(mDocument!=other.mDocument)
         {
@@ -65,7 +65,7 @@ namespace Steel
 
     void UIPanel::reloadContent()
     {
-        if(mContext==NULL)
+        if(NULL==mContext)
         {
             Debug::log("UIPanel::reloadContent(): no main document to reload. Skipping operation.");
             return;
@@ -83,13 +83,13 @@ namespace Steel
 
     void UIPanel::shutdown()
     {
-        if(mDocument!=NULL)
+        if(NULL!=mDocument)
         {
             mDocument->GetContext()->UnloadDocument(mDocument);
             mDocument->RemoveReference();
             mDocument=NULL;
         }
-        if(mContext!=NULL)
+        if(NULL!=mContext)
         {
             mContext->UnloadAllDocuments();
             mContext->UnloadAllMouseCursors();
@@ -100,22 +100,16 @@ namespace Steel
 
     void UIPanel::show()
     {
-        if (mDocument== NULL)
-        {
-            Debug::warning("UIPanel.show(): can't show an undefined mDocument ! skipping.").endl();
+        if (NULL==mDocument)
             return;
-        }
         onShow();
         mDocument->Show();
     }
 
     void UIPanel::hide()
     {
-        if (mDocument== NULL)
-        {
-            Debug::warning("UIPanel.hide(): can't hide an undefined mDocument ! skipping.").endl();
+        if (NULL==mDocument)
             return;
-        }
         onHide();
         mDocument->Hide();
     }

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <memory>
 
 #include <OgreStringConverter.h>
 #include <OgreEntity.h>
@@ -21,7 +22,9 @@
 #include "Debug.h"
 #include "RayCaster.h"
 #include "tools/File.h"
+#include <tools/StringUtils.h>
 #include "tests/utests.h"
+#include <EngineEventListener.h>
 
 using namespace std;
 
@@ -29,51 +32,58 @@ namespace Steel
 {
 
     Engine::Engine() :
-        mRootDir(""), mSceneManager(NULL), mRenderWindow(NULL), mViewport(NULL),
-        mCamera(NULL), mInputMan(), mMustAbortMainLoop(false),
-        mLevel(NULL), mRayCaster(NULL),mEditMode(false)
+        mRootDir(""), mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(false),
+        mLevel(NULL), mRayCaster(NULL),mSelection(std::list<AgentId>()),mEditMode(false),
+        mCommands(std::list<std::vector<Ogre::String> >())
     {
         mRootDir = File::getCurrentDirectory();
-        mSelection = std::list<AgentId>();
     }
 
     Engine::~Engine()
     {
-        //custom structs
+        shutdown();
+    }
 
-        if (mLevel != NULL)
-        {
-            delete mLevel;
-            mLevel = NULL;
-        }
+    void Engine::addEngineEventListener(EngineEventListener *listener)
+    {
+        mListeners.insert(listener);
+    }
 
-        //ogre structs
-        if (mSceneManager != NULL)
-        {
-            delete mCamera;
-            mCamera = NULL;
-            mSceneManager->clearScene();
-            mSceneManager->destroyAllCameras();
-        }
-        if (mRenderWindow != NULL)
-        {
-            delete mRenderWindow;
-            mRenderWindow = NULL;
-        }
-        if (mRoot != NULL)
-        {
-            mRoot->destroySceneManager(mSceneManager);
-        }
+    void Engine::removeEngineEventListener(EngineEventListener *listener)
+    {
+        auto it=mListeners.find(listener);
+        if(it!=mListeners.end())
+            mListeners.erase(it);
     }
 
     Level *Engine::createLevel(Ogre::String levelName)
     {
-        //single level only
-        if (mLevel != NULL)
-            delete mLevel;
-        mLevel = new Level(mRootDir.subfile("data").subfile("levels"), levelName, mSceneManager, mCamera);
+        //      Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
+        //      Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
+        //      headNode->attachObject(ogreHead);
 
-        return mLevel;
+        // Create a light
+        //         Ogre::Light* l = mSceneManager->createLight("MainLight");
+        //         l->setPosition(20, 80, 50);
+        return new Level(this,mRootDir.subfile("data").subfile("levels"), levelName);;
+    }
+
+    Level *Engine::setCurrentLevel(Level *newLevel)
+    {
+        if(NULL!=mLevel && NULL!=newLevel && mLevel->name()==newLevel->name())
+        {
+            Debug::warning("Engine::setCurrentLevel(): ")(newLevel->name())(" is already set as current.").endl();
+            return mLevel;
+        }
+        if(NULL!=mLevel)
+            fireOnLevelUnsetEvent();
+        
+        Level *previous=mLevel;
+        mLevel=newLevel;
+        
+        if(NULL!=newLevel)
+            fireOnLevelSetEvent();
+        return previous;
     }
 
     void Engine::clearSelection()
@@ -221,38 +231,22 @@ namespace Steel
         // initialise all resource groups
         Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
-        mSceneManager = mRoot->createSceneManager(Ogre::ST_GENERIC);
-
-        // Create the camera
-        mCamera = new Camera(mSceneManager);
-
-        // Create one viewport, entire window
-        mViewport = mRenderWindow->addViewport(mCamera->cam());
-        mViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
-
-        // Alter the camera aspect ratio to match the viewport
-        Ogre::Real aspectRatio=Ogre::Real(mViewport->getActualWidth())
-                               / Ogre::Real(mViewport->getActualHeight());
-        mCamera->cam()->setAspectRatio(aspectRatio);
-
-        //	Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
-        //	Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
-        //	headNode->attachObject(ogreHead);
-
-        // Create a light
-//         Ogre::Light* l = mSceneManager->createLight("MainLight");
-//         l->setPosition(20, 80, 50);
-
-        mRayCaster = new RayCaster(mSceneManager);
-
+        // makes sure the window is usable (for instance for gui init) once out of init.
+        mRenderWindow->update();
         mRoot->clearEventTimes();
+        
+        mRayCaster = new RayCaster(this);
+        mUI.init(mRenderWindow->getWidth(),
+                 mRenderWindow->getHeight(),
+                 mRootDir.subfile("data/ui"),
+                 &mInputMan,
+                 mRenderWindow,
+                 this);
+
+        setCurrentLevel(createLevel("DefaultLevel"));
 
         mInputMan.init(this,&mUI);
 
-        // makes sure the window is usable (for instance for gui init) once out of init.
-        mRenderWindow->update();
-
-        mUI.init(width,height,mRootDir.subfile("data/ui"),&mInputMan,mSceneManager,mRenderWindow,this);
         Debug::log.unIndent();
         // unit testing
         if(true)
@@ -271,31 +265,41 @@ namespace Steel
             mMustAbortMainLoop=true;
             return;
         }
-        Debug::log("Engine::shutdown()").endl();
+        Debug::log("Engine::shutdown()...").endl();
+        mUI.shutdown();
+        mInputMan.shutdown();
         if (mLevel != NULL)
         {
             delete mLevel;
             mLevel = NULL;
         }
-        mUI.shutdown();
-        mInputMan.shutdown();
-        Rocket::Core::Shutdown();
+        if (mRenderWindow != NULL)
+        {
+            delete mRenderWindow;
+            mRenderWindow = NULL;
+        }
         File::shutdown();
+        if(NULL!=mRenderWindow)
+        {
+            Ogre::Root::getSingletonPtr()->destroyRenderTarget(mRenderWindow);
+            mRenderWindow=NULL;
+        }
+        Ogre::Root::getSingletonPtr()->shutdown();
+        Debug::log("Steel: done").endl();
     }
 
-    void Engine::resizeWindow(int width, int height)
+    void Engine::fireOnLevelSetEvent()
     {
+        std::vector<EngineEventListener *>listeners(mListeners.begin(),mListeners.end());
+        for(auto it=listeners.begin(); it!=listeners.end(); ++it)
+            (*it)->onLevelSet(mLevel);
+    }
 
-        if (mRenderWindow)
-        {
-            mRenderWindow->resize(width, height);
-            mRenderWindow->windowMovedOrResized();
-            if (mCamera)
-            {
-                Ogre::Real aspectRatio = Ogre::Real(width) / Ogre::Real(height);
-                mCamera->cam()->setAspectRatio(aspectRatio);
-            }
-        }
+    void Engine::fireOnLevelUnsetEvent()
+    {
+        std::vector<EngineEventListener *>listeners(mListeners.begin(),mListeners.end());
+        for(auto it=listeners.begin(); it!=listeners.end(); ++it)
+            (*it)->onLevelUnset(mLevel);
     }
 
     bool Engine::mainLoop(bool singleLoop)
@@ -304,12 +308,14 @@ namespace Steel
         //see http://altdevblogaday.com/2011/02/23/ginkgos-game-loop/
         mMustAbortMainLoop = false;
 
+
         //debug
 //         mUI.editor().processCommand("engine.level.load.MyLevel");
 //         mUI.editor().processCommand("editorbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.load.PG01-dev");
 //         mUI.editor().processCommand("editorbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
+
 
         const double ms2us=1000.;
 
@@ -319,6 +325,8 @@ namespace Steel
 
         while (!mMustAbortMainLoop)
         {
+            processAllCommands();
+
             frameStart= engineStart;
             mMustAbortMainLoop=!mRoot->_fireFrameStarted();
 
@@ -359,7 +367,6 @@ namespace Steel
 
     bool Engine::keyReleased(const OIS::KeyEvent& evt)
     {
-
         if(mEditMode)
         {
             //EDITOR MODE
@@ -419,7 +426,7 @@ namespace Steel
         std::list<Ogre::SceneNode *> nodes;
         Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
         Ogre::Real _y = float(y) / float(mRenderWindow->getHeight());
-        Ogre::Ray ray = mCamera->cam()->getCameraToViewportRay(_x, _y);
+        Ogre::Ray ray = mLevel->camera()->cam()->getCameraToViewportRay(_x, _y);
         if (!mRayCaster->fromRay(ray, nodes))
         {
             return;
@@ -497,7 +504,7 @@ namespace Steel
         }
 
         if(moveCam)
-            mCamera->translate(dx, dy, dz,speed);
+            mLevel->camera()->translate(dx, dy, dz,speed);
 
         //process mouse
         if (mInputMan.hasMouseMoved())
@@ -505,13 +512,69 @@ namespace Steel
             Ogre::Vector2 move = mInputMan.mouseMove();
             if(!mEditMode)
             {
-                mCamera->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
+                mLevel->camera()->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
 //                 Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
             }
         }
         mInputMan.resetFrameBasedData();
         return true;
 
+    }
+
+    bool Engine::processCommand(std::vector<Ogre::String> command)
+    {
+        if(command[0]=="level")
+        {
+            command.erase(command.begin());
+            mLevel->processCommand(command);
+        }
+        else if(command[0]=="set_level")
+        {
+            if(command.size()>1)
+            {
+                auto newName=StringUtils::join(command,".",1);
+                if(newName!=mLevel->name())
+                {
+                    // params should be valid now
+                    Level *prev=setCurrentLevel(createLevel(newName));
+                    delete prev;
+                    if(mLevel->getSavefile().exists())
+                        mLevel->load();
+                }
+                else
+                {
+                    Debug::warning("Engine::processCommand(): a new level requires a new name. Command was:");
+                    Debug::warning(StringUtils::join(command,".")).endl();
+                }
+            }
+            else
+            {
+                Debug::warning("Engine::processCommand(): invalid command (missing level name ?):");
+                Debug::warning(StringUtils::join(command,".")).endl();
+            }
+        }
+        else
+        {
+            Debug::warning("Engine::processCommand(): unknown command ");
+            Debug::warning(StringUtils::join(command,".")).endl();
+        }
+        return true;
+    }
+
+    void Engine::processAllCommands()
+    {
+        while(!mCommands.empty())
+        {
+            std::vector<Ogre::String> command=mCommands.front();
+            mCommands.pop_front();
+            if(!processCommand(command))
+                break;
+        }
+    }
+
+    void Engine::registerCommand(std::vector<Ogre::String> command)
+    {
+        mCommands.push_back(command);
     }
 
     void Engine::redraw()
@@ -521,6 +584,21 @@ namespace Steel
         mRenderWindow->update();
         mRoot->_fireFrameRenderingQueued();
         mRoot->_fireFrameEnded();
+    }
+
+    void Engine::resizeWindow(int width, int height)
+    {
+
+        if (mRenderWindow)
+        {
+            mRenderWindow->resize(width, height);
+            mRenderWindow->windowMovedOrResized();
+            if (mLevel->camera())
+            {
+                Ogre::Real aspectRatio = Ogre::Real(width) / Ogre::Real(height);
+                mLevel->camera()->cam()->setAspectRatio(aspectRatio);
+            }
+        }
     }
 
     void Engine::rotateSelection(Ogre::Vector3 rotation)

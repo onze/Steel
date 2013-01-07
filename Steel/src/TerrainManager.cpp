@@ -24,15 +24,16 @@ namespace Steel
     }
 
     TerrainManager::TerrainManager(const TerrainManager& o):
-        mResourceGroupName(o.mResourceGroupName),
-        mLoadingState(o.mLoadingState),mListeners(o.mListeners),
-        mTerrainGlobals(o.mTerrainGlobals),mTerrainGroup(o.mTerrainGroup),mTerrainsImported(o.mTerrainsImported),mPath(o.mPath)
+        mResourceGroupName(o.mResourceGroupName),mLoadingState(o.mLoadingState),
+        mListeners(o.mListeners),mTerrainGlobals(o.mTerrainGlobals),
+        mTerrainGroup(o.mTerrainGroup),mTerrainsImported(o.mTerrainsImported),
+        mPath(o.mPath)
     {
     }
 
     TerrainManager::~TerrainManager()
     {
-        destroy();
+        shutdown();
     }
 
     TerrainManager& TerrainManager::operator=(const TerrainManager& o)
@@ -77,26 +78,24 @@ namespace Steel
         }
     }
 
-    void TerrainManager::destroy()
+    void TerrainManager::shutdown()
     {
         Ogre::Root::getSingletonPtr()->removeFrameListener(this);
         if(NULL!=mTerrainGroup)
             OGRE_DELETE mTerrainGroup;
         mTerrainGroup=NULL;
-        if(NULL!=mTerrainGlobals)
-            OGRE_DELETE mTerrainGlobals;
+//         if(NULL!=mTerrainGlobals)
+//             OGRE_DELETE mTerrainGlobals;
         mTerrainGlobals=NULL;
-        if(NULL!=mSceneManager)
-            mSceneManager->destroyLight("terrainLight");
         mSceneManager=NULL;
         auto rgm=Ogre::ResourceGroupManager::getSingletonPtr();
         if(rgm->resourceGroupExists(mResourceGroupName))
         {
             rgm->unloadResourceGroup(mResourceGroupName);
             rgm->destroyResourceGroup(mResourceGroupName);
+            // that's my good debug value !
             mResourceGroupName="unloaded-terrainManager (previously"+mResourceGroupName+")";
         }
-        // that my good debug value !
     }
 
     void TerrainManager::init(Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager)
@@ -107,7 +106,10 @@ namespace Steel
 
         mTerrainsImported=false;
         mLoadingState=INIT;
-        mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
+        
+        mTerrainGlobals = Ogre::TerrainGlobalOptions::getSingletonPtr();
+        if(NULL==mTerrainGlobals)
+            mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
         mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneManager,
                         Ogre::Terrain::ALIGN_X_Z,
                         DEFAULT_TERRAIN_SIZE,
@@ -125,8 +127,6 @@ namespace Steel
         mTerrainGroup->setFilenameConvention(buildPath.subfile("terrain").fullPath(), Ogre::String("terrain"));
         mTerrainGroup->setOrigin(Ogre::Vector3::ZERO);
 
-        mSceneManager->createLight("terrainLight");
-
         // default terrain
         Ogre::ColourValue ambient=Ogre::ColourValue::White;
         Ogre::Vector3 lightDir(0.55, -0.3, 0.75);
@@ -142,7 +142,8 @@ namespace Steel
         Json::Value root;
 
         // general level settings
-        Ogre::Light *light=mSceneManager->getLight("terrainLight");
+        // "levelLight", as defined in Level::Level
+        Ogre::Light *light=mSceneManager->getLight("levelLight");
         root["ambientLight"] = StringUtils::toJson(mSceneManager->getAmbientLight());
         root["lightDir"]=StringUtils::toJson(light->getDirection());
         root["diffuseColor"]=StringUtils::toJson(light->getDiffuseColour());
@@ -455,7 +456,8 @@ namespace Steel
         lightDir.normalise();
         // keep name in sync with destructor/shutdown
         mSceneManager->setAmbientLight(ambient);
-        Ogre::Light* light = mSceneManager->getLight("terrainLight");
+        // "levelLight", as defined in Level::Level
+        Ogre::Light* light = mSceneManager->getLight("levelLight");
         light->setType(Ogre::Light::LT_DIRECTIONAL);
         light->setDirection(lightDir);
         light->setDiffuseColour(diffuseColor);

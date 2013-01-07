@@ -27,10 +27,10 @@ namespace Steel
     {
         mSceneManager = sceneManager;
 
-        mCamera = sceneManager->createCamera("camera");
+        mCamera = sceneManager->createCamera("mainCamera");
         mCamera->setPosition(0.0, 0.0, -.0);
 
-        mCameraNode = sceneManager->getRootSceneNode()->createChildSceneNode("cameraNode");
+        mCameraNode = sceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode");
         mCameraNode->attachObject(mCamera);
 
         mCameraNode->setPosition(0.0, 50.0, 200.0);
@@ -48,7 +48,6 @@ namespace Steel
     Camera::~Camera()
     {
         mCameraNode->detachAllObjects();
-        mSceneManager->destroySceneNode("cameraNode");
         mSceneManager->destroyCamera(mCamera);
     }
 

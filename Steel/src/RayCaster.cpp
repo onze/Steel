@@ -11,24 +11,52 @@
 
 #include "Debug.h"
 #include "RayCaster.h"
+#include <Level.h>
+#include <Engine.h>
 
 namespace Steel
 {
 
-    RayCaster::RayCaster(Ogre::SceneManager *sceneManager)
+    RayCaster::RayCaster(Engine *engine):EngineEventListener(),
+        mSceneManager(NULL),mRaySceneQuery(NULL)
     {
-        mSceneManager=sceneManager;
-        // create the ray scene query object
-        mRaySceneQuery = mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
-        if (mRaySceneQuery == NULL)
-            Ogre::LogManager::getSingleton().logMessage("Raycaster::Raycaster()\
-Failed to create Ogre::RaySceneQuery instance");
-        mRaySceneQuery->setSortByDistance(true);
+        engine->addEngineEventListener(this);
     }
 
     RayCaster::~RayCaster()
     {
+        if(NULL!=mSceneManager && NULL!=mRaySceneQuery)
+            mSceneManager->destroyQuery(mRaySceneQuery);
+        mRaySceneQuery=NULL;
+        mSceneManager=NULL;
+    }
+
+    void RayCaster::onLevelUnset(Level *level)
+    {
+        if(NULL==level)
+            return;
         mSceneManager->destroyQuery(mRaySceneQuery);
+        mRaySceneQuery=NULL;
+        mSceneManager=NULL;
+    }
+
+    void RayCaster::onLevelSet(Level *level)
+    {
+        if(NULL==level)
+        {
+            mSceneManager=NULL;
+            mRaySceneQuery=NULL;
+            return;
+        }
+        mSceneManager=level->sceneManager();
+        if(NULL == mSceneManager)
+            return;
+        // create the ray scene query object
+        mRaySceneQuery = mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
+        if (NULL == mRaySceneQuery)
+            Debug::log("Raycaster::Raycaster(): Failed to create Ogre::RaySceneQuery instance").endl();
+        else
+            mRaySceneQuery->setSortByDistance(true);
     }
 
     bool RayCaster::fromRay(Ogre::Ray &ray, std::list<Ogre::SceneNode *> &nodes)
@@ -99,11 +127,11 @@ Failed to create Ogre::RaySceneQuery instance");
                     {
                         // check for a hit against this triangle
                         std::pair<bool, Ogre::Real> hit = Ogre::Math::intersects(ray,
-                                                                                 vertices[indices[i]],
-                                                                                 vertices[indices[i + 1]],
-                                                                                 vertices[indices[i + 2]],
-                                                                                 true,
-                                                                                 false);
+                                                          vertices[indices[i]],
+                                                          vertices[indices[i + 1]],
+                                                          vertices[indices[i + 2]],
+                                                          true,
+                                                          false);
                         // if it was a hit check if its the closest
                         if (hit.first)
                         {

@@ -64,7 +64,7 @@ namespace Steel
             /// initial setup
             void init(Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager);
             /// clears the terrain and associated structures. (automatically called upon deletion).
-            void destroy();
+            void shutdown();
 
             void addTerrainManagerEventListener(TerrainManagerEventListener *listener);
             void removeTerrainManagerEventListener(TerrainManagerEventListener *listener);

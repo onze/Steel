@@ -250,7 +250,7 @@ namespace Steel
                         {
                             // I have not found a faster way to do this:
                             // first I build a plan with the camera orientation as normal (but vertical).
-                            Ogre::Vector3 normal = mEngine->camera()->camNode()->getOrientation()* Ogre::Vector3::UNIT_Z;
+                            Ogre::Vector3 normal = mEngine->level()->camera()->camNode()->getOrientation()* Ogre::Vector3::UNIT_Z;
                             normal.y = .0f;
                             Ogre::Plane plane = Ogre::Plane(normal, Ogre::Vector3::ZERO);
                             // and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
@@ -263,13 +263,13 @@ namespace Steel
                             // we want a vector of the translation from src to dst, where src is where a ray cast from the camera
                             // to the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
                             // passing through the current mouse coordinates.
-                            Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
+                            Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
                             std::pair<bool, Ogre::Real> result = ray.intersects(plane);
                             if (result.first)
                             {
                                 Ogre::Vector3 src = ray.getPoint(result.second);
                                 // then we do the same with the new coordinates on the viewport
-                                ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
+                                ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
                                 result = ray.intersects(plane);
                                 if (result.first)
                                 {
@@ -289,13 +289,13 @@ namespace Steel
                             // what we want is a vector of translation from the selection's position to a new one.
                             // first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
                             // (the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
-                            Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
+                            Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
                             std::pair<bool, Ogre::Real> result = ray.intersects(plane);
                             if (result.first)
                             {
                                 Ogre::Vector3 src = ray.getPoint(result.second);
                                 // then we do the same with the new coordinates on the viewport
-                                ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
+                                ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
                                 result = ray.intersects(plane);
                                 if (result.first)
                                 {
@@ -349,7 +349,7 @@ namespace Steel
             if(level!=NULL && sTerraBrushVisual!=NULL)
             {
                 // move
-                auto ray=mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
+                auto ray=mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
                 auto hitTest=level->terrainManager()->intersectRay(ray);
                 if(hitTest.hit)
                 {
@@ -436,9 +436,7 @@ namespace Steel
         // now we know we are setting a new mode
         dropBrush();
         if(mMode==TERRAFORM)
-        {
             Ogre::Root::getSingletonPtr()->removeFrameListener(this);
-        }
 
         switch(mode)
         {
