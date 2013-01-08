@@ -65,7 +65,8 @@ namespace Steel
         // Create a light
         //         Ogre::Light* l = mSceneManager->createLight("MainLight");
         //         l->setPosition(20, 80, 50);
-        return new Level(this,mRootDir.subfile("data").subfile("levels"), levelName);;
+        
+        return new Level(this,mRootDir.subfile("data").subfile("levels"), levelName);
     }
 
     Level *Engine::setCurrentLevel(Level *newLevel)
@@ -536,10 +537,11 @@ namespace Steel
                 if(newName!=mLevel->name())
                 {
                     // params should be valid now
-                    Level *prev=setCurrentLevel(createLevel(newName));
+                    Level *level=createLevel(newName);
+                    Level *prev=setCurrentLevel(level);
+                    if(level->getSavefile().exists())
+                        level->load();
                     delete prev;
-                    if(mLevel->getSavefile().exists())
-                        mLevel->load();
                 }
                 else
                 {
