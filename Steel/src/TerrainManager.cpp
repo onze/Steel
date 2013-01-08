@@ -692,8 +692,16 @@ namespace Steel
                                 heights[i]+=((terraCenter.y+intensity*ratio)-heights[i])/(25.f-intensity>.9f?25.f-intensity:.9f);
                             break;
                         case RaiseShape::SINH:
-                            //ratio=(1.f-std::exp(dist)/(1+std::exp(local_radius)));
+                            //
                             ratio=1.f-std::sinh(dist/local_radius);
+                            if(rmode==RELATIVE)
+                                heights[i]+=intensity*ratio;
+                            else if(rmode==ABSOLUTE)
+                                heights[i]+=((terraCenter.y+intensity*ratio)-heights[i])/(25.f-intensity>.9f?25.f-intensity:.9f);
+                            break;
+                        case RaiseShape::TRANGULAR:
+                            // 1 at the center, 0 at max dist
+                            ratio=1.f-dist/local_radius;
                             if(rmode==RELATIVE)
                                 heights[i]+=intensity*ratio;
                             else if(rmode==ABSOLUTE)

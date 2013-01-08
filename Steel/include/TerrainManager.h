@@ -91,7 +91,7 @@ namespace Steel
             void saveTerrainHeightmapAs(long int x, long int y, Ogre::Terrain *instance,Ogre::String &heightmapPath);
 
             enum RaiseMode {ABSOLUTE=0,RELATIVE};
-            enum RaiseShape {UNIFORM=0,ROUND,SINH};
+            enum RaiseShape {UNIFORM=0,ROUND,SINH, TRANGULAR};
             /** Raise all terrain vertices in an round shaped area centered at the given position (terraCenter) (world coords)
              * and of the given radius, by a decreasing value starting at the given value at the center, and reaching 0
              * at radius.

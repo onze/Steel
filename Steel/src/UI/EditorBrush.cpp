@@ -415,6 +415,8 @@ namespace Steel
                     mRaiseShape=TerrainManager::RaiseShape::ROUND;
                 else if(command[0]=="sinh")
                     mRaiseShape=TerrainManager::RaiseShape::SINH;
+                else if(command[0]=="triangular")
+                    mRaiseShape=TerrainManager::RaiseShape::TRANGULAR;
                 else
                 {
                     Debug::warning("EditorBrush::processCommand(): unknown terrabrush distribution").endl();
