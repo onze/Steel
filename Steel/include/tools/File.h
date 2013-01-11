@@ -81,10 +81,10 @@ namespace Steel
 
             /// write the given string into the file, replacing what's already in.
             File &write ( Ogre::String s );
-            
+
             /// returns the file name (extension is part of the name)
             Ogre::String fileBaseName() const;
-            
+
             /// returns the file name (extension is part of the name)
             Ogre::String fileName() const;
 
@@ -182,9 +182,12 @@ namespace Steel
 
             /// files that have changed since init/last call to notifyListeners (FIFO)
             static std::list<File *> sNotificationList;
-
-            /// threads that gets blocked by the blocking event pooling inotify function
-//             static std::thread sNotifier;
+            
+            /// tells inotify to monitor this file
+            void startWatching();
+            
+            /// tells inotify to stop monitoring this file
+            void stopWatching();
 
             /// inotify callback method. Disatches event to File instances.
             static void poolAndNotify();
@@ -208,12 +211,6 @@ namespace Steel
              * set of all current listeners;
              */
             std::set<FileEventListener *> mListeners;
-
-            /// tells inotify to monitor this file
-            void startWatching();
-
-            /// tells inotify to stop monitoring this file
-            void stopWatching();
 
             /// personal watch descriptor
             int mWD;

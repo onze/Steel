@@ -42,12 +42,12 @@ namespace Steel
 
 
     File::File() :
-        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>())
+        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>()),mWD(-1)
     {
     }
 
     File::File(const char *fullpath):
-        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>())
+        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>()),mWD(-1)
     {
         Ogre::StringUtil::splitFullFilename ( Ogre::String(fullpath), mBaseName, mExtension, mPath );
         // #ifdef __unix
@@ -60,7 +60,7 @@ namespace Steel
     }
 
     File::File ( Ogre::String fullPath ) :
-        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>())
+        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>()),mWD(-1)
     {
         //mPath will end with a slash
         Ogre::StringUtil::splitFullFilename ( fullPath, mBaseName, mExtension, mPath );
@@ -74,12 +74,14 @@ namespace Steel
     }
 
     File::File ( File const &f ) :
-        mPath ( f.mPath ), mBaseName ( f.mBaseName ), mExtension ( f.mExtension ),mListeners(std::set<FileEventListener *>())
+        mPath ( f.mPath ), mBaseName ( f.mBaseName ), mExtension ( f.mExtension ),mListeners(std::set<FileEventListener *>()),mWD(-1)
     {
     }
 
     File::~File()
     {
+        if(mWD>-1)
+            stopWatching();
     }
 
     File &File::operator= ( File const &f )
@@ -107,6 +109,11 @@ namespace Steel
         return 0;
     }
 
+    void File::shutdown()
+    {
+        sInotifyFD=-1;
+    }
+
     Ogre::String File::extension()
     {
         return mExtension;
@@ -115,11 +122,6 @@ namespace Steel
     Ogre::String File::path()
     {
         return mPath;
-    }
-
-    void File::shutdown()
-    {
-        //TODO: stop static thread ?
     }
 
     File File::parentDir()
@@ -136,14 +138,14 @@ namespace Steel
 #if defined(_WIN32)
         SYSCALL_ALIAS_mkdir(path.c_str());
 #else
-        SYSCALL_ALIAS_mkdir(path.c_str(), 0777); // notice that 777 is different than 0777
+        SYSCALL_ALIAS_mkdir(path.c_str(), 0777); // notice that 777 is different from 0777
 #endif
     }
 
     void File::poolAndNotify()
     {
         //http://stackoverflow.com/questions/5211993/using-read-with-inotify
-        while(true)
+        while(sInotifyFD>=0)
         {
             unsigned int avail;
             ioctl(sInotifyFD, FIONREAD,&avail);
@@ -162,6 +164,7 @@ namespace Steel
                 if(pos==(int)sWatches.size())
                 {
                     Debug::warning("File::poolAndNotify(): found no File watching ")(event->name)(". Ignoring notification.").endl();
+                    sStaticLock.unlock();
                     continue;
                 }
                 file=sFiles.at(pos);
@@ -171,11 +174,15 @@ namespace Steel
                     sNotificationList.push_back(file);
                 }
                 sStaticLock.unlock();
-//                 Debug::log("File::poolAndNotify(): wd: ")(event->wd)(" file: ")(event->name)("(")(file->fullPath())("), mask: ")(event->mask).endl();
+                Debug::log("File::poolAndNotify(): wd: ")(event->wd)(" file: ")(event->name)("(")(file->fullPath())("), mask: ")(event->mask).endl();
 
                 offset+=sizeof(inotify_event)+event->len;
             }
         }
+        while(sWatches.size()>0)
+            sFiles[0]->stopWatching();
+        sFiles.clear();
+        sWatches.clear();
     }
 
     /*Ogre::String File::relpath(File comp)
@@ -256,12 +263,12 @@ namespace Steel
         std::ifstream ifile ( fullPath().c_str() );
         return ifile;
     }
-    
+
     Ogre::String File::fileBaseName() const
     {
         return mBaseName;
     }
-    
+
     Ogre::String File::fileName() const
     {
         Ogre::String s = mBaseName;
