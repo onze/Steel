@@ -334,7 +334,7 @@ namespace Steel
             if (!processInputs())
                 return false;
             // update file watching
-            File::dispatchToFiles();
+            File::dispatchEvents();
 
             graphicsStart=timer.getMilliseconds();
             mStats.lastEngineDuration=static_cast<double>(graphicsStart-engineStart);

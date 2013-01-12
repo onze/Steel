@@ -248,9 +248,9 @@ namespace Steel
         return true;
     }
     
-    void Editor::onFileChangeEvent(File *file)
+    void Editor::onFileChangeEvent(File file)
     {
-        Debug::log("Editor::onFileChangeEvent(): ")(file->fullPath()).endl();
+        Debug::log("Editor::onFileChangeEvent(): ")(file.fullPath()).endl();
         UIPanel::onFileChangeEvent(file);
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
@@ -273,7 +273,6 @@ namespace Steel
         
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
-        
     }
     
     void Editor::onHide()

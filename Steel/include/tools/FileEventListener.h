@@ -7,7 +7,7 @@ namespace Steel
     class FileEventListener
     {
         public:
-            virtual void onFileChangeEvent(File *file)=0;
+            virtual void onFileChangeEvent(File file)=0;
     };
 }
 

@@ -12,6 +12,9 @@
 #include <fstream>
 #include <mutex>
 #include <vector>
+#include <map>
+#include <string>
+#include <set>
 #include <thread>
 
 #include <OgreString.h>
@@ -21,13 +24,17 @@
 
 namespace Steel
 {
-//TODO: make this windows friendly
+    //TODO: make this windows friendly
     /**
      * This is a helper class to abstract and ease some common filesystem related tasks.
      */
     class File
     {
         public:
+            
+            typedef std::pair<int,uint32_t> FileEvent;
+            typedef std::pair<Ogre::String,std::set<FileEventListener *> >  ListenersEntry;
+        
             /// initialise the File subsystem. Return 0 if success, error code otherwise.
             static int init();
 
@@ -35,10 +42,16 @@ namespace Steel
             static void shutdown();
 
             /// batch call to file change listeners.
-            static void dispatchToFiles();
+            static void dispatchEvents();
 
             /// return the application's current path.
             static File getCurrentDirectory();
+            
+            /// register an event listener. It will be notified of file events.
+            static void addFileListener(File *file, FileEventListener *listener);
+            
+            /// register an event listener. It will be notified of file events.
+            static void removeFileListener(File *file, FileEventListener *listener);
 
             enum NodeType
             {
@@ -66,15 +79,11 @@ namespace Steel
             File &operator= ( const File &f );
             bool operator!= ( const File &f );
 
-
-            /// register an event listener. It will be notified of file events.
+            /// register an event listener. It will be notified of file events. If the file path change, it need to be removed and reset.
             void addFileListener(FileEventListener *listener);
 
             /// unregister an event listener. It won't be notified of files events anymore.
             void removeFileListener(FileEventListener *listener);
-
-            /// call listeners' callback methods
-            void dispatchToListeners();
 
             /// return the file content.
             Ogre::String read();
@@ -168,20 +177,18 @@ namespace Steel
 
 
         protected:
+            
             /// fd of the file getting files event notifications from the kernel
             static int sInotifyFD;
 
             /// for modification of static data
             static std::mutex sStaticLock;
 
-            /// inotify watch tokens
-            static std::vector<int> sWatches;
+            /// paths and listeners associated with tokens in sWatches.
+            static std::map<FileEvent,ListenersEntry> sListeners;
 
-            /// instances associated with tokens in sWatches
-            static std::vector<File *> sFiles;
-
-            /// files that have changed since init/last call to notifyListeners (FIFO)
-            static std::list<File *> sNotificationList;
+            /// wd of files that have changed since init/last call to dispatchToFiles (FIFO)
+            static std::list<FileEvent> sNotificationList;
             
             /// tells inotify to monitor this file
             void startWatching();
@@ -189,7 +196,7 @@ namespace Steel
             /// tells inotify to stop monitoring this file
             void stopWatching();
 
-            /// inotify callback method. Disatches event to File instances.
+            /// inotify callback method. Dispatches event to File instances.
             static void poolAndNotify();
 
             /**
@@ -206,14 +213,6 @@ namespace Steel
              * extension of the file. Empty string if the file is a directory.
              */
             Ogre::String mExtension;
-
-            /**
-             * set of all current listeners;
-             */
-            std::set<FileEventListener *> mListeners;
-
-            /// personal watch descriptor
-            int mWD;
 
     };
     /// type safe enum bitwise OR operator

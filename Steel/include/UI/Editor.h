@@ -58,7 +58,7 @@ namespace Steel
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 
             /// used to reattach the debugger on reload
-            virtual void onFileChangeEvent(File *file);
+            virtual void onFileChangeEvent(File file);
 
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);

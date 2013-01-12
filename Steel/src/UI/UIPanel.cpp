@@ -1,5 +1,8 @@
 
 #include <Rocket/Core.h>
+#include <../Source/Core/StyleSheetFactory.h>
+#include <../Source/Core/XMLNodeHandlerHead.h>
+#include <../Source/Core/DocumentHeader.h>
 
 #include <Debug.h>
 #include "UI/UIPanel.h"
@@ -9,13 +12,15 @@ namespace Steel
 
     UIPanel::UIPanel():
         Rocket::Core::EventListener(),mWidth(0),mHeight(0),
-        mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),mAutoReload(false)
+        mContext(NULL),mContextName(""),mDocumentFile(""),mDocument(NULL),
+        mAutoReload(false),mDependencies(std::set<File *>())
     {
     }
 
     UIPanel::UIPanel(Ogre::String contextName,File mDocumentFile):
         Rocket::Core::EventListener(),mWidth(0),mHeight(0),
-        mContext(NULL),mContextName(contextName),mDocumentFile(mDocumentFile),mDocument(NULL),mAutoReload(false)
+        mContext(NULL),mContextName(contextName),mDocumentFile(mDocumentFile),mDocument(NULL),
+        mAutoReload(false),mDependencies(std::set<File *>())
     {
     }
 
@@ -55,10 +60,31 @@ namespace Steel
         if(mAutoReload)
         {
             mDocumentFile.addFileListener(this);
+            
+            // listen on dependencies changes:
+            // all <link> elements *in the body* with the attribute 'reloadonchange' set to true;
+            
+            Rocket::Core::ElementList links;
+            mDocument->GetElementsByTagName(links,"reloadonchange");
+            for(auto it=links.begin(); it!=links.end(); ++it)
+            {
+                Rocket::Core::Element *elem=*it;
+                Rocket::Core::String value;
+                elem->GetAttribute("path")->GetInto<Rocket::Core::String>(value);
+                File file=mDocumentFile.parentDir().subfile(value.CString());
+                if(!file.exists())
+                    continue;
+                mDependencies.insert(new File(file));
+            }
+            for(auto it=mDependencies.begin(); it!=mDependencies.end(); ++it)
+            {
+                File *f=*it;
+                f->addFileListener(this);
+            }
         }
     }
 
-    void UIPanel::onFileChangeEvent(File *file)
+    void UIPanel::onFileChangeEvent(File file)
     {
         reloadContent();
     }
@@ -73,8 +99,8 @@ namespace Steel
         // save state
         bool shown=mDocument->IsVisible();
         Rocket::Core::Vector2i dims=mContext->GetDimensions();
-
         shutdown();
+        Rocket::Core::StyleSheetFactory::ClearStyleSheetCache();
         // load state
         init(dims.x,dims.y);
         if(shown)
@@ -83,6 +109,12 @@ namespace Steel
 
     void UIPanel::shutdown()
     {
+        for(auto it=mDependencies.begin(); it!=mDependencies.end(); ++it)
+        {
+            (*it)->removeFileListener(this);
+            delete (*it);
+        }
+        mDependencies.clear();
         if(NULL!=mDocument)
         {
             mDocument->GetContext()->UnloadDocument(mDocument);
@@ -125,3 +157,4 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

@@ -35,19 +35,18 @@ namespace Steel
     // init static values
     int File::sInotifyFD=-1;
     std::mutex File::sStaticLock;
-    std::vector<int> File::sWatches;
-    std::vector<File *> File::sFiles;
-    std::list<File *> File::sNotificationList;
+    std::map<File::FileEvent,File::ListenersEntry> File::sListeners;
+    std::list<File::FileEvent> File::sNotificationList;
     //std::thread File::sNotifier(File::poolAndNotify);
 
 
     File::File() :
-        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>()),mWD(-1)
+        mPath ( "" ), mBaseName ( "" ), mExtension ( "" )
     {
     }
 
     File::File(const char *fullpath):
-        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>()),mWD(-1)
+        mPath ( "" ), mBaseName ( "" ), mExtension ( "" )
     {
         Ogre::StringUtil::splitFullFilename ( Ogre::String(fullpath), mBaseName, mExtension, mPath );
         // #ifdef __unix
@@ -60,7 +59,7 @@ namespace Steel
     }
 
     File::File ( Ogre::String fullPath ) :
-        mPath ( "" ), mBaseName ( "" ), mExtension ( "" ), mListeners(std::set<FileEventListener *>()),mWD(-1)
+        mPath ( "" ), mBaseName ( "" ), mExtension ( "" )
     {
         //mPath will end with a slash
         Ogre::StringUtil::splitFullFilename ( fullPath, mBaseName, mExtension, mPath );
@@ -74,14 +73,12 @@ namespace Steel
     }
 
     File::File ( File const &f ) :
-        mPath ( f.mPath ), mBaseName ( f.mBaseName ), mExtension ( f.mExtension ),mListeners(std::set<FileEventListener *>()),mWD(-1)
+        mPath ( f.mPath ), mBaseName ( f.mBaseName ), mExtension ( f.mExtension )
     {
     }
 
     File::~File()
     {
-        if(mWD>-1)
-            stopWatching();
     }
 
     File &File::operator= ( File const &f )
@@ -154,35 +151,35 @@ namespace Steel
             SYSCALL_ALIAS_read(sInotifyFD,buffer,avail);
 
             int offset=0;
-            int pos;
-            File *file;
             while(offset<(int)avail)
             {
-                struct inotify_event *event=(inotify_event *)(buffer+offset);
+                struct inotify_event *iEvent=(inotify_event *)(buffer+offset);
+
+                FileEvent event;
                 sStaticLock.lock();
-                pos=std::distance(sWatches.begin(),std::find(sWatches.begin(),sWatches.end(),event->wd));
-                if(pos==(int)sWatches.size())
+                if(iEvent->mask & IN_MODIFY)
+                    event=FileEvent(iEvent->wd,IN_MODIFY);
+                else
+                    continue;
+
+                auto it=sListeners.find(event);
+                if(it==sListeners.end())
                 {
-                    Debug::warning("File::poolAndNotify(): found no File watching ")(event->name)(". Ignoring notification.").endl();
+                    Debug::warning("File::poolAndNotify(): found no listener for ")(event.first)(". Ignoring notification.").endl();
                     sStaticLock.unlock();
                     continue;
                 }
-                file=sFiles.at(pos);
-                // TODO: use file md5 to make sure it actually changed
-                if(file->fileName()==event->name && (event->mask & IN_MODIFY))
-                {
-                    sNotificationList.push_back(file);
-                }
-                sStaticLock.unlock();
-                Debug::log("File::poolAndNotify(): wd: ")(event->wd)(" file: ")(event->name)("(")(file->fullPath())("), mask: ")(event->mask).endl();
 
-                offset+=sizeof(inotify_event)+event->len;
+                sNotificationList.push_back(event);
+                sStaticLock.unlock();
+//                 Debug::log("File::poolAndNotify(): wd: ")(event.first).endl();
+
+                offset+=sizeof(inotify_event)+iEvent->len;
             }
         }
-        while(sWatches.size()>0)
-            sFiles[0]->stopWatching();
-        sFiles.clear();
-        sWatches.clear();
+        sStaticLock.lock();
+        sListeners.clear();
+        sStaticLock.unlock();
     }
 
     /*Ogre::String File::relpath(File comp)
@@ -190,58 +187,77 @@ namespace Steel
         return "";
     }*/
 
-    void File::dispatchToFiles()
+    void File::dispatchEvents()
     {
         while (!sNotificationList.empty())
         {
             sStaticLock.lock();
-            auto file=sNotificationList.front();
+            //pair wd, filepath
+            FileEvent event=sNotificationList.front();
+
+            // find listeners
+            auto it_event=sListeners.find(event);
+            if(it_event==sListeners.end())
+            {
+                sStaticLock.unlock();
+                sNotificationList.pop_front();
+                continue;
+            }
+
+            ListenersEntry entry=(*it_event).second;
+            File file(entry.first);
+            auto listeners=std::set<FileEventListener *>(entry.second.begin(),entry.second.end());
             sNotificationList.pop_front();
             sStaticLock.unlock();
-            file->dispatchToListeners();
+            
+            for(auto it=listeners.begin(); it!=listeners.end(); ++it)
+                (*it)->onFileChangeEvent(file);
         }
-    }
-
-    void File::dispatchToListeners()
-    {
-        for(auto it=mListeners.begin(); it!=mListeners.end(); ++it)
-            (*it)->onFileChangeEvent(this);
     }
 
     void File::addFileListener(FileEventListener *listener)
     {
-        mListeners.insert(listener);
-        if(mListeners.size()==1)
-            startWatching();
+        File::addFileListener(this,listener);
     }
 
     void File::removeFileListener(FileEventListener *listener)
     {
-        mListeners.erase(listener);
-        if(mListeners.size()==0)
-            stopWatching();
+        File::removeFileListener(this,listener);
     }
 
-    void File::startWatching()
+    // static
+    void File::addFileListener(File *file,FileEventListener *listener)
     {
         sStaticLock.lock();
-        //IN_MODIFY | IN_CREATE | IN_DELETE
-        mWD=inotify_add_watch(sInotifyFD, mPath.c_str(), IN_MODIFY);
-        sWatches.push_back(mWD);
-        sFiles.push_back(this);
+        int wd=inotify_add_watch(sInotifyFD, file->fullPath().c_str(), IN_MODIFY);
+        FileEvent fileEvent(wd,IN_MODIFY);
+//         Debug::log("File::addFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();
+        auto it=sListeners.find(fileEvent);
+        if(it==sListeners.end())
+        {
+            auto entry=ListenersEntry(file->fullPath(),std::set<FileEventListener *>());
+            sListeners.insert(std::pair<FileEvent,ListenersEntry>(fileEvent,entry));
+            it=sListeners.find(fileEvent);
+        }
+        std::set<FileEventListener *> *record=&((*it).second.second);
+        record->insert(listener);
         sStaticLock.unlock();
     }
 
-    void File::stopWatching()
+    // static
+    void File::removeFileListener(File *file,FileEventListener *listener)
     {
         sStaticLock.lock();
-        inotify_rm_watch(sInotifyFD, mWD);
-        std::vector<File *>::iterator pos=std::find(sFiles.begin(),sFiles.end(),this);
-        if(pos!=sFiles.end())
+        int wd=inotify_add_watch(sInotifyFD, file->fullPath().c_str(), IN_MODIFY);
+//         Debug::log("File::removeFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();
+        FileEvent fileEvent(wd,IN_MODIFY);
+        auto it=sListeners.find(fileEvent);
+        if(it!=sListeners.end())
         {
-            int index=std::distance(sFiles.begin(), pos);
-            sWatches.erase(sWatches.begin()+index);
-            sFiles.erase(sFiles.begin()+index);
+            std::set<FileEventListener *> *record=&((*it).second.second);
+            record->erase(listener);
+            if(record->size()==0)
+                sListeners.erase(fileEvent);
         }
         sStaticLock.unlock();
     }
@@ -411,11 +427,7 @@ namespace Steel
 
     void File::setPath(Ogre::String path)
     {
-        if(!mListeners.empty())
-            stopWatching();
         mPath=path;
-        if(!mListeners.empty())
-            startWatching();
     }
 } /* namespace Steel */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -39,7 +39,7 @@ namespace Steel
             virtual void ProcessEvent(Rocket::Core::Event& event);
 
             /// Gets notified when the main document file is modified.
-            virtual void onFileChangeEvent(File *file);
+            virtual void onFileChangeEvent(File file);
             /// reload Rocket files and update context content.
             void reloadContent();
 
@@ -71,6 +71,11 @@ namespace Steel
              * Document state persisence is left to subclasses, except for size and visibility
              */
             bool mAutoReload;
+            /** Files loaded by the main document, for which we might want to be notified of the changes too.
+             * Those files are included as <link href="<path>" reloadonchange="true">
+             * Main use case is styleSheets. Note that mAutoreload has to be true at panel's init.
+             */
+            std::set<File *> mDependencies;
     };
 }
 #endif // UIPANEL_H
