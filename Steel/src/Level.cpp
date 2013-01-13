@@ -50,7 +50,7 @@ namespace Steel
         mMainLight = mSceneManager->createLight("levelLight");
 
         // Create the camera
-        mCamera = new Camera(mSceneManager);
+        mCamera = new Camera(this);
 
         // reuse viewport if possible, entire window
         Ogre::RenderWindow *window=mEngine->renderWindow();

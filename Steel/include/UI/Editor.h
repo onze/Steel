@@ -26,16 +26,27 @@ namespace Steel
             virtual Editor& operator=(const Editor& other);
 
             virtual void init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan);
+            
+            Ogre::Vector3 getDropTargetPosition();
+            Ogre::Quaternion getDropTargetRotation();
+            Ogre::Vector2 getSlotDropPosition();
+            
             /// called right before the underlying document gets shown
             virtual void onShow();
             /// called right before the underlying document gets hidden
             virtual void onHide();
 
             /**
-             * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel: position),
-             * and loads it.
+             * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel position),
+             * and instanciate it.
              */
             void loadModelFromFile(File &file);
+            
+            /**
+             * reads an incomplete terrain slot file from the data folder, fills the incomplete parts (i.e.: terrain position),
+             * and instanciate it.
+             */
+            void loadTerrainSlotFromFile(File &file);
 
             /** returns whether the given screen coordinates collide with the child element with given Id.
              * If no Id is given, the hit test is made with the main document.**/

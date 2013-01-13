@@ -1,23 +1,18 @@
-/*
- * InputManager.h
- *
- *  Created on: 2011-05-13
- *      Author: onze
- */
-
 #ifndef INPUTMANAGER_H_
 #define INPUTMANAGER_H_
 
 #include <string>
 #include <list>
 
-#include "UI/UI.h"
-#include <OgreWindowEventUtilities.h>
 #include <OIS.h>
+#include <OgreVector2.h>
+
+#include <OgreWindowEventUtilities.h>
 
 namespace Steel
 {
     class Engine;
+    class UI;
     /**
      * owned by the engine. Fed input primarily by the UI (possibly by network/automation tools).
      */
@@ -74,6 +69,7 @@ namespace Steel
             {
                 return mMouseMove;
             };
+            /// Absolute on-screen mouse position, in pixels.
             inline Ogre::Vector2 &mousePos()
             {
                 return mMousePos;

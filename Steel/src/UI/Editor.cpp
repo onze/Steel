@@ -22,7 +22,7 @@ namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
         mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSResources(NULL),mDataDir(),
-        mMenuTabIndex(0),mBrush(),mDebugEvents(false)
+        mMenuTabIndex(1),mBrush(),mDebugEvents(false)
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -79,6 +79,56 @@ namespace Steel
         auto form=static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById("editor_select_terrabrush_shape"));
         if(form!=NULL and form->GetNumOptions()>0)
             form->SetSelection(0);
+    }
+
+    Ogre::Vector3 Editor::getDropTargetPosition()
+    {
+        if(NULL==mEngine || NULL==mEngine->level())
+            return Ogre::Vector3::ZERO;
+        return mEngine->level()->camera()->dropTargetPosition();
+    }
+
+    Ogre::Quaternion Editor::getDropTargetRotation()
+    {
+        if(NULL==mEngine || NULL==mEngine->level())
+            return Ogre::Quaternion::ZERO;
+        return mEngine->level()->camera()->dropTargetRotation();
+    }
+
+    Ogre::Vector2 Editor::getSlotDropPosition()
+    {
+        if(NULL==mEngine || NULL==mEngine->level())
+            return Ogre::Vector2::ZERO;
+
+        auto cam=mEngine->level()->camera();
+
+        auto mousPos=mInputMan->mousePos();
+        auto camRay=cam->cam()->getCameraToViewportRay(mousPos.x/static_cast<float>(mWidth),mousPos.y/static_cast<float>(mHeight));
+
+        // get terrain under the cam
+        Ogre::Terrain *terrain=NULL;
+        auto camPos=cam->camNode()->convertLocalToWorldPosition(Ogre::Vector3::ZERO);
+        float height=mEngine->level()->terrainManager()->terrainGroup()->getHeightAtWorldPosition(camPos,&terrain);
+
+        Ogre::Plane plane(Ogre::Vector3::UNIT_Y,0.f);
+        if(NULL!=terrain)
+        {
+            // cam is above a terrain, we use its height as base for the plane
+            plane.d+=height;
+        }
+
+        // find where the drop point is
+        auto result=camRay.intersects(plane);
+        if(!result.first)
+        {
+            Debug::warning("Camera::slotDropPosition(): can't drop above horizontal camera plan !").endl();
+            return Ogre::Vector2(FLT_MAX,FLT_MAX);
+        }
+        Ogre::Vector3 slotWorldPos=camRay.getPoint(result.second);
+
+        long int x=0,y=0;
+        mEngine->level()->terrainManager()->terrainGroup()->convertWorldPositionToTerrainSlot(slotWorldPos,&x,&y);
+        return Ogre::Vector2(static_cast<float>(x),static_cast<float>(y));
     }
 
     bool Editor::hitTest(int x,int y, Rocket::Core::String childId)
@@ -158,13 +208,11 @@ namespace Steel
             }
             else if(value=="$dropTargetPosition")
             {
-                Ogre::Vector3 pos=mEngine->level()->camera()->dropTargetPosition();
-                new_value=Ogre::StringConverter::toString(pos);
+                new_value=Ogre::StringConverter::toString(getDropTargetPosition());
             }
             else if(value=="$dropTargetRotation")
             {
-                Ogre::Quaternion rot=mEngine->level()->camera()->dropTargetRotation();
-                new_value=Ogre::StringConverter::toString(rot);
+                new_value=Ogre::StringConverter::toString(getDropTargetRotation());
             }
             updatedModel[key]=new_value.c_str();
             Debug::log(" -> ")(updatedModel[key].asString()).endl();
@@ -217,6 +265,65 @@ namespace Steel
         return mid;
     }
 
+    void Editor::loadTerrainSlotFromFile(File &file)
+    {
+        Ogre::String intro="Editor::loadTerrainFromFile("+file.fullPath()+"): ";
+        Ogre::String content=file.read();
+
+        Json::Reader reader;
+        Json::Value root;
+        bool parsingOk = reader.parse(content, root, false);
+        if (!parsingOk)
+        {
+            Debug::error(intro)("could not parse this:").endl();
+            Debug::error(content).endl();
+            Debug::error(reader.getFormattedErrorMessages()).endl();
+            return;
+        }
+
+        if(root.size()==0)
+        {
+            Debug::error(intro)("item has size 0, is it an array ?").endl()(root.toStyledString()).endl();
+            return;
+        }
+
+        Json::Value jsonSlot=root[0u];
+        if(jsonSlot.isNull())
+        {
+            Debug::error(intro)("root[0] is null, is it defined ?").endl()(root.toStyledString()).endl();
+            return;
+        }
+
+        auto level=mEngine->level();
+        if(NULL==level)
+        {
+            Debug::error(intro)("no level loaded. Aborting.").endl();
+            return;
+        }
+
+        if(jsonSlot["slotPosition"].asString()=="$slotDropPosition")
+        {
+            auto slotPosition=getSlotDropPosition();
+            // drops farther than 10km away are forbidden
+            if(slotPosition.length()>10000)
+            {
+                Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborting.").endl();
+                return;
+            }
+            jsonSlot["slotPosition"]=Json::Value(Ogre::StringConverter::toString(slotPosition));
+        }
+
+        TerrainManager::TerrainSlotData slot=level->terrainManager()->terrainSlotFromJson(jsonSlot);
+        if(!slot.isValid())
+        {
+            Debug::error(intro)("TerrainManager::TerrainSlotData is not valid. Serialized string was:");
+            Debug::error(jsonSlot.toStyledString()).endl()("Aborting.").endl();
+            return;
+        }
+        level->terrainManager()->defineTerrain(slot);
+        level->terrainManager()->update();
+    }
+
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         if(!hitTest(evt.state.X.abs,evt.state.Y.abs,"menu"))
@@ -247,7 +354,7 @@ namespace Steel
         }
         return true;
     }
-    
+
     void Editor::onFileChangeEvent(File file)
     {
         Debug::log("Editor::onFileChangeEvent(): ")(file.fullPath()).endl();
@@ -255,7 +362,7 @@ namespace Steel
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
     }
-    
+
     void Editor::onShow()
     {
         mBrush.onShow();
@@ -264,17 +371,17 @@ namespace Steel
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
-        
+
         mFSResources->refresh();
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragdrop",this);
         mDocument->AddEventListener("change",this);
         mDocument->AddEventListener("submit",this);
-        
+
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
     }
-    
+
     void Editor::onHide()
     {
         if(mDocument)
@@ -416,25 +523,29 @@ namespace Steel
         else if(command[0]=="instanciate")
         {
             command.erase(command.begin());
-            if(command[0]=="model")
+            Ogre::String instancitationType(command[0]);
+
+            command.erase(command.begin());
+            if(command.size()<1)
             {
-                command.erase(command.begin());
-                if(command.size()<1)
-                {
-                    Debug::error("command contains no file !").endl();
-                    return;
-                }
-                File file(StringUtils::join(command,"."));
-                if(file.exists())
-                    loadModelFromFile(file);
-                else
-                    Debug::warning("file \"")(file)("\"not found. Aborting.").endl();
-            }
-            else
-            {
-                Debug::log("instanciation type unknown: ")(command).endl();
+                Debug::error("command contains no file !").endl();
                 return;
             }
+            File file(StringUtils::join(command,"."));
+            if(file.exists())
+            {
+                if(instancitationType=="model")
+                    loadModelFromFile(file);
+                else if(instancitationType=="terrain_slot")
+                    loadTerrainSlotFromFile(file);
+                else
+                {
+                    Debug::log("instanciation type unknown: ")(command).endl();
+                    return;
+                }
+            }
+            else
+                Debug::warning("file \"")(file)("\"not found. Aborting.").endl();
         }
         else if(command[0]=="options")
         {

@@ -4,13 +4,13 @@
  *  Created on: 2011-05-13
  *      Author: onze
  */
-#include <iostream>
 #include "InputManager.h"
-#include "Debug.h"
-#include "Engine.h"
+
+#include <iostream>
 #include <assert.h>
 
 #if defined OIS_WIN32_PLATFORM
+
 #elif defined OIS_LINUX_PLATFORM
 
 #include <X11/Xlib.h>
@@ -20,6 +20,10 @@
 #endif
 
 using namespace std;
+
+#include "Debug.h"
+#include "Engine.h"
+#include "UI/UI.h"
 
 class equals
 {

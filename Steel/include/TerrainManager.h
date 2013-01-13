@@ -25,7 +25,7 @@ namespace Steel
     {
         protected:
             friend class TerrainManagerEventListener;
-
+        public:
             /// holds all sensitive terrain data between deserialization and instanciation
             /// (because JSon stuff are better confined in {from/to}Json methods)
             class TerrainSlotData
@@ -34,12 +34,11 @@ namespace Steel
                     TerrainSlotData();
                     TerrainSlotData(long x,long y);
                     ~TerrainSlotData();
-                    bool isValid();
+                        bool isValid();
 
                     long int slot_x;
                     long int slot_y;
                     Ogre::String heightmapPath;
-                    Ogre::Vector3 position;
                     int size;
                     Ogre::Real worldSize;
             };
@@ -61,15 +60,18 @@ namespace Steel
             virtual TerrainManager& operator=(const TerrainManager& other);
             virtual bool operator==(const TerrainManager& other) const;
 
-            /// initial setup
+            /// Initial setup method
             void init(Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager);
-            /// clears the terrain and associated structures. (automatically called upon deletion).
+            /// Clears the terrain and all associated structures. (automatically called upon deletion).
             void shutdown();
 
             void addTerrainManagerEventListener(TerrainManagerEventListener *listener);
             void removeTerrainManagerEventListener(TerrainManagerEventListener *listener);
 
-            /// called by Ogre once per frame
+            /// update a terrain slot.
+            void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
+            
+            /// Called by Ogre once per frame
             bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 
             /** return the coordinate at which the given ray intersect the terrain.
@@ -102,7 +104,10 @@ namespace Steel
                                                            Ogre::Real radius,
                                                            RaiseMode rmode=ABSOLUTE,
                                                            RaiseShape rshape=UNIFORM);
-
+            
+            /// take a terrain slot seralization and return its deserialized version
+            TerrainSlotData terrainSlotFromJson(Json::Value &terrainSlotValue);
+            
             // getters
             inline Ogre::TerrainGroup *terrainGroup()
             {
@@ -110,11 +115,13 @@ namespace Steel
             }
             /// recompute blendmaps according to rules
             void updateBlendMaps(Ogre::Terrain* terrain);
+            
+            /// updates internal structures if needed.
+            void update();
 
         protected:
             /// sets default terrain settings
             void configureTerrainDefaults(Ogre::Light* light, Ogre::Terrain::ImportData& newDefault);
-            void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
             /// calls event listeners' callback methods.
             void yieldEvent(LoadingState state);
 

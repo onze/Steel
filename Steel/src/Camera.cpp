@@ -4,11 +4,9 @@
  *  Created on: 2011-05-11
  *      Author: onze
  */
-#ifdef DEBUG
-#include <iostream>
-using namespace std;
+
 #include <assert.h>
-#endif
+#include <float.h>
 
 #include <OgreMath.h>
 #include <OgreQuaternion.h>
@@ -17,20 +15,22 @@ using namespace std;
 #include <OgreRoot.h>
 
 #include "Camera.h"
+#include "Level.h"
 #include "Debug.h"
 #include <tools/StringUtils.h>
 
 namespace Steel
 {
 
-    Camera::Camera(Ogre::SceneManager *sceneManager)
+    Camera::Camera(Level *level)
     {
-        mSceneManager = sceneManager;
+        mLevel=level;
+        mSceneManager = mLevel->sceneManager();
 
-        mCamera = sceneManager->createCamera("mainCamera");
+        mCamera = mSceneManager->createCamera("mainCamera");
         mCamera->setPosition(0.0, 0.0, -.0);
 
-        mCameraNode = sceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode");
+        mCameraNode = mSceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode");
         mCameraNode->attachObject(mCamera);
 
         mCameraNode->setPosition(0.0, 50.0, 200.0);
@@ -55,7 +55,7 @@ namespace Steel
     {
         x *= factor;
         y *= factor;
-        
+
         mCameraNode->yaw(Ogre::Degree(x), Ogre::SceneNode::TS_WORLD);
         mCameraNode->pitch(Ogre::Degree(y), Ogre::SceneNode::TS_LOCAL);
     }
@@ -85,7 +85,7 @@ namespace Steel
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
         mCameraNode->setOrientation(rot);
-        
+
         return true;
     }
 
