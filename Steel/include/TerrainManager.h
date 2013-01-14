@@ -33,14 +33,17 @@ namespace Steel
                 public:
                     TerrainSlotData();
                     TerrainSlotData(long x,long y);
-                    ~TerrainSlotData();
-                        bool isValid();
+                    TerrainSlotData(const TerrainSlotData &o);
+                    virtual ~TerrainSlotData();
+                    TerrainSlotData &operator=(const TerrainSlotData &o);
+                    bool isValid();
 
                     long int slot_x;
                     long int slot_y;
                     Ogre::String heightmapPath;
                     int size;
                     Ogre::Real worldSize;
+                    Ogre::Terrain::LayerInstanceList layerList;
             };
 
         public:
@@ -60,6 +63,14 @@ namespace Steel
             virtual TerrainManager& operator=(const TerrainManager& other);
             virtual bool operator==(const TerrainManager& other) const;
 
+            /// adds and instanciate a slot.
+            void addTerrainSlot(TerrainManager::TerrainSlotData slot);
+
+            /// takes a terrain and serialize its layers into the given json object.
+            void serializeLayerList(Ogre::Terrain* terrain, Json::Value& terrainValue);
+            /// takes a layer serialization and parse it inot the given layer list.
+            void deserializeLayerList(const Json::Value &layerListValue, Ogre::Terrain::LayerInstanceList &layerList);
+
             /// Initial setup method
             void init(Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager);
             /// Clears the terrain and all associated structures. (automatically called upon deletion).
@@ -68,9 +79,6 @@ namespace Steel
             void addTerrainManagerEventListener(TerrainManagerEventListener *listener);
             void removeTerrainManagerEventListener(TerrainManagerEventListener *listener);
 
-            /// update a terrain slot.
-            void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
-            
             /// Called by Ogre once per frame
             bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 
@@ -99,27 +107,31 @@ namespace Steel
              * at radius.
              * Returns slot coordinaes of terrains that were modified in the process.
              */
-            Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter, 
-                                                           Ogre::Real intensity, 
-                                                           Ogre::Real radius,
-                                                           RaiseMode rmode=ABSOLUTE,
-                                                           RaiseShape rshape=UNIFORM);
-            
+            Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter,
+                    Ogre::Real intensity,
+                    Ogre::Real radius,
+                    RaiseMode rmode=ABSOLUTE,
+                    RaiseShape rshape=UNIFORM);
+
             /// take a terrain slot seralization and return its deserialized version
-            TerrainSlotData terrainSlotFromJson(Json::Value &terrainSlotValue);
-            
+            TerrainSlotData terrainSlotFromJson(Json::Value &terrainSlotValue,TerrainManager::TerrainSlotData &terrainSlot);
+
+            /// recompute blendmaps according to rules
+            void updateBlendMaps(Ogre::Terrain* terrain);
+
             // getters
             inline Ogre::TerrainGroup *terrainGroup()
             {
                 return mTerrainGroup;
             }
-            /// recompute blendmaps according to rules
-            void updateBlendMaps(Ogre::Terrain* terrain);
-            
-            /// updates internal structures if needed.
-            void update();
 
         protected:
+
+            /// update a terrain slot.
+            void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
+
+            /// updates internal structures if needed.
+            void update();
             /// sets default terrain settings
             void configureTerrainDefaults(Ogre::Light* light, Ogre::Terrain::ImportData& newDefault);
             /// calls event listeners' callback methods.

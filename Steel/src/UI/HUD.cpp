@@ -5,6 +5,8 @@
 #include <Engine.h>
 #include <UI/UI.h>
 #include <Debug.h>
+#include <Level.h>
+#include <Camera.h>
 
 namespace Steel
 {
@@ -53,6 +55,12 @@ namespace Steel
                 {
                     Ogre::RenderTarget::FrameStats ogreStats=mEngine->renderWindow()->getStatistics();
                     elem->SetInnerRML(Ogre::StringConverter::toString(static_cast<int>(ogreStats.avgFPS)).c_str());
+                }
+                elem=mDocument->GetElementById("camPos");
+                if(elem!=NULL)
+                {
+                    auto camPos=mEngine->level()->camera()->camNode()->getPosition();
+                    elem->SetInnerRML(Ogre::StringConverter::toString(camPos).c_str());
                 }
             }
         }

@@ -283,14 +283,7 @@ namespace Steel
 
         if(root.size()==0)
         {
-            Debug::error(intro)("item has size 0, is it an array ?").endl()(root.toStyledString()).endl();
-            return;
-        }
-
-        Json::Value jsonSlot=root[0u];
-        if(jsonSlot.isNull())
-        {
-            Debug::error(intro)("root[0] is null, is it defined ?").endl()(root.toStyledString()).endl();
+            Debug::error(intro)("item has size 0, is it defined ?").endl()(root.toStyledString()).endl();
             return;
         }
 
@@ -301,7 +294,7 @@ namespace Steel
             return;
         }
 
-        if(jsonSlot["slotPosition"].asString()=="$slotDropPosition")
+        if(root["slotPosition"].asString()=="$slotDropPosition")
         {
             auto slotPosition=getSlotDropPosition();
             // drops farther than 10km away are forbidden
@@ -310,18 +303,18 @@ namespace Steel
                 Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborting.").endl();
                 return;
             }
-            jsonSlot["slotPosition"]=Json::Value(Ogre::StringConverter::toString(slotPosition));
+            root["slotPosition"]=Json::Value(Ogre::StringConverter::toString(slotPosition));
         }
 
-        TerrainManager::TerrainSlotData slot=level->terrainManager()->terrainSlotFromJson(jsonSlot);
+        TerrainManager::TerrainSlotData slot;
+        level->terrainManager()->terrainSlotFromJson(root,slot);
         if(!slot.isValid())
         {
             Debug::error(intro)("TerrainManager::TerrainSlotData is not valid. Serialized string was:");
-            Debug::error(jsonSlot.toStyledString()).endl()("Aborting.").endl();
+            Debug::error(root.toStyledString()).endl()("Aborting.").endl();
             return;
         }
-        level->terrainManager()->defineTerrain(slot);
-        level->terrainManager()->update();
+        level->terrainManager()->addTerrainSlot(slot);
     }
 
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
