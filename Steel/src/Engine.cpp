@@ -315,7 +315,7 @@ namespace Steel
 //         mUI.editor().processCommand("editorbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.load.PG01-dev");
 //         mUI.editor().processCommand("editorbrush.mode.terraform");
-//         mUI.editor().processCommand("engine.level.instanciate.model./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
+//         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 
 
         const double ms2us=1000.;
@@ -446,7 +446,7 @@ namespace Steel
 
         //process keyboard
         bool moveCam=false;
-        float dx = .0f, dy = .0f, dz = .0f, speed = 1.f;
+        float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
         for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
             if(mEditMode)

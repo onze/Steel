@@ -21,37 +21,43 @@
 
 namespace Steel
 {
-/**
- * instances of this class handle ogre related stuff.
- */
-class OgreModelManager: public _ModelManager<OgreModel>
-{
-public:
-	OgreModelManager();
-	OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
-	virtual ~OgreModelManager();
-        
-	/**
-	 * initialize new OgreModels according to data in the json serialization.
-	 */
-        std::vector<ModelId> fromJson(Json::Value &models);
-        
-	/**
-	 * initialize a new OgreModel and returns its identifier.
-	 */
-	ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
-	///////////////////////////////////////////////////////////
-	//getters
-	inline Ogre::SceneManager *sceneManager()
-	{
-		return mSceneManager;
-	}
+    /**
+     * instances of this class handle ogre related stuff.
+     */
+    class OgreModelManager: public _ModelManager<OgreModel>
+    {
+        public:
+            OgreModelManager();
+            OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
+            virtual ~OgreModelManager();
 
-protected:
-	Ogre::SceneManager *mSceneManager;
-	Ogre::SceneNode *mLevelRoot;
-};
+            /**
+             * batched call to fromSingleJson.
+             */
+            std::vector<ModelId> fromJson(Json::Value &models);
+            
+            /**
+             * initialize a new OgreModel according to data in the json serialization.
+             */
+            ModelId fromSingleJson(Json::Value &model);
+
+            /**
+             * initialize a new OgreModel and returns its identifier.
+             */
+            ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
+            ///////////////////////////////////////////////////////////
+            //getters
+            inline Ogre::SceneManager *sceneManager()
+            {
+                return mSceneManager;
+            }
+
+        protected:
+            Ogre::SceneManager *mSceneManager;
+            Ogre::SceneNode *mLevelRoot;
+    };
 
 }
 
 #endif /* OGREMODELMANAGER_H_ */
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

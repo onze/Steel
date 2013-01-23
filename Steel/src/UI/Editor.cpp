@@ -81,6 +81,61 @@ namespace Steel
             form->SetSelection(0);
     }
 
+    bool Editor::dynamicFillSerialization(Json::Value& root)
+    {
+        Ogre::String intro="Editor::dynamicFillSerialization(): ";
+        if(root.isConvertibleTo(Json::arrayValue))
+        {
+            // array: add each value to the fringe
+            for(unsigned i=0; i<root.size(); ++i)
+            {
+                if(!dynamicFillSerialization(root[i]))
+                    return false;
+            }
+        }
+        else if(root.isConvertibleTo(Json::objectValue))
+        {
+            // dict:: add each value to the fringe
+            Ogre::String key;
+            Json::Value value;
+            auto names=root.getMemberNames();
+            for(auto it=names.begin(); it!=names.end(); ++it)
+            {
+                key=*it;
+                Ogre::String svalue,new_svalue;
+                svalue=new_svalue=root[key].asString();
+//                 Debug::log(key)(":")(svalue);
+
+                if(svalue.at(0)!='$')
+                    new_svalue=svalue;
+                else if(svalue=="$dropTargetPosition")
+                    new_svalue=Ogre::StringConverter::toString(getDropTargetPosition());
+                else if(svalue=="$dropTargetRotation")
+                    new_svalue=Ogre::StringConverter::toString(getDropTargetRotation());
+                else if(svalue=="$slotDropPosition")
+                {
+                    auto slotPosition=getSlotDropPosition();
+                    // drops farther than 10km away are forbidden
+                    if(slotPosition.length()>10000)
+                    {
+                        Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborting.").endl();
+                        return false;
+                    }
+                    new_svalue=Ogre::StringConverter::toString(slotPosition);
+                }
+
+                root[key]=new_svalue.c_str();
+//                 Debug::log(" -> ")(root[key].asString()).endl();
+            }
+        }
+        else
+        {
+            Debug::error(intro)(" unrecognized value type. Value was:")(root).endl()("Aborting.").endl();
+            return false;
+        }
+        return true;
+    }
+
     Ogre::Vector3 Editor::getDropTargetPosition()
     {
         if(NULL==mEngine || NULL==mEngine->level())
@@ -151,87 +206,64 @@ namespace Steel
         return false;
     }
 
-    void Editor::loadModelFromFile(File &file)
+    bool Editor::instanciateResource(File &file)
     {
-        Debug::log("Editor::loadModelFromFile(")(file)(")").endl();
+        Ogre::String intro="Editor::instanciateResource("+file.fullPath()+"): ";
         Ogre::String content=file.read();
-        Debug::log(content).endl();
 
         Json::Reader reader;
         Json::Value root;
         bool parsingOk = reader.parse(content, root, false);
         if (!parsingOk)
         {
-            Debug::error("could not parse this:").endl();
+            Debug::error(intro)("could not parse this:").endl();
             Debug::error(content).endl();
             Debug::error(reader.getFormattedErrorMessages()).endl();
+            return false;
+        }
+
+        if(!dynamicFillSerialization(root))
+        {
+            Debug::error(intro)("could not find all values. Aborting.").endl();
+            return false;
+        }
+
+        Ogre::String instancitationType=file.extension();
+        if(instancitationType=="model")
+            loadModelFromSerialization(root);
+        else if(instancitationType=="terrain_slot")
+            loadTerrainSlotFromSerialization(root);
+        else
+        {
+            Debug::log("instanciation type unknown: ")(instancitationType).endl();
+            return false;
+        }
+        return true;
+    }
+
+    void Editor::loadModelFromSerialization(Json::Value &root)
+    {
+        Debug::log("Editor::loadModelFromSerialization(")(root)(")").endl();
+        
+        Json::Value value=root["modelType"];
+        if(value.isNull())
+        {
+            Debug::error("serialization is missing a \"modelType\" value. Aborting.").endl();
             return;
         }
 
-        if(root.size()==0)
-        {
-            Debug::error("item has size 0, is it an array ?").endl()(root.toStyledString()).endl();
-            return;
-        }
-
-        Json::Value jsonModel=root[0u];
-        if(jsonModel.isNull())
-        {
-            Debug::error("root[0] is null, is it defined ?").endl()(root.toStyledString()).endl();
-            return;
-        }
-        //         Debug::log(root).endl();
-
-        Json::Value jsonAttr=jsonModel["modelType"];
-        if(jsonAttr.isNull())
-        {
-            Debug::error("template is missing a \"modelType\" value.").endl();
-            return;
-        }
-        Ogre::String modelType= jsonAttr.asString();
-
-
-        // fill dynamic values
-        jsonModel.removeMember("modelType");
-        auto names=jsonModel.getMemberNames();
-        Json::Value updatedModel;
-        Ogre::String key,value,new_value;
-        for(auto it=names.begin(); it!=names.end(); ++it)
-        {
-            key=*it;
-            value=jsonModel[key].asString();
-            Debug::log(key)(":")(value);
-            new_value="";
-            if(value.at(0)!='$')
-            {
-                new_value=value;
-            }
-            else if(value=="$dropTargetPosition")
-            {
-                new_value=Ogre::StringConverter::toString(getDropTargetPosition());
-            }
-            else if(value=="$dropTargetRotation")
-            {
-                new_value=Ogre::StringConverter::toString(getDropTargetRotation());
-            }
-            updatedModel[key]=new_value.c_str();
-            Debug::log(" -> ")(updatedModel[key].asString()).endl();
-        }
-        root[0u]=updatedModel;
-
-        content=root.toStyledString();
-        Debug::log("->").endl()(content).endl();
+        Ogre::String modelType= value.asString();
         // ask the right manager to load this model
         if(modelType=="MT_OGRE")
         {
             Level *level=mEngine->level();
             if(level==NULL)
             {
-                Debug::warning("Editor::loadModelFromFile(): no level to instanciate stuff in.").endl();
+                Debug::warning("Editor::loadModelFromSerialization(): no level to instanciate stuff in.").endl();
                 return;
             }
-            auto mids=level->ogreModelMan()->fromJson(root);
-            ModelId mid = mids[0];
+//             ! currently sending a dict, but manager expects an array -> segfault
+            ModelId mid = level->ogreModelMan()->fromSingleJson(root);
             if(mid==INVALID_ID)
                 return;
             AgentId aid=level->newAgent();
@@ -265,27 +297,9 @@ namespace Steel
         return mid;
     }
 
-    void Editor::loadTerrainSlotFromFile(File &file)
+    void Editor::loadTerrainSlotFromSerialization(Json::Value &root)
     {
-        Ogre::String intro="Editor::loadTerrainFromFile("+file.fullPath()+"): ";
-        Ogre::String content=file.read();
-
-        Json::Reader reader;
-        Json::Value root;
-        bool parsingOk = reader.parse(content, root, false);
-        if (!parsingOk)
-        {
-            Debug::error(intro)("could not parse this:").endl();
-            Debug::error(content).endl();
-            Debug::error(reader.getFormattedErrorMessages()).endl();
-            return;
-        }
-
-        if(root.size()==0)
-        {
-            Debug::error(intro)("item has size 0, is it defined ?").endl()(root.toStyledString()).endl();
-            return;
-        }
+        Ogre::String intro="Editor::loadTerrainSlotFromJson()";
 
         auto level=mEngine->level();
         if(NULL==level)
@@ -294,16 +308,10 @@ namespace Steel
             return;
         }
 
-        if(root["slotPosition"].asString()=="$slotDropPosition")
+        if(root["slotPosition"].isNull())
         {
-            auto slotPosition=getSlotDropPosition();
-            // drops farther than 10km away are forbidden
-            if(slotPosition.length()>10000)
-            {
-                Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborting.").endl();
-                return;
-            }
-            root["slotPosition"]=Json::Value(Ogre::StringConverter::toString(slotPosition));
+            Debug::error(intro)("can't find key \"slotPosition\". Aborting.").endl();
+            return;
         }
 
         TerrainManager::TerrainSlotData slot;
@@ -314,6 +322,7 @@ namespace Steel
             Debug::error(root.toStyledString()).endl()("Aborting.").endl();
             return;
         }
+
         level->terrainManager()->addTerrainSlot(slot);
     }
 
@@ -435,8 +444,7 @@ namespace Steel
                     Debug::error("Editor::ProcessEvent(): file not found: ")(file).endl();
                     return;
                 }
-                raw_commmand+=file.extension();
-                raw_commmand+="."+file.fullPath();
+                raw_commmand+=file.fullPath();
             }
             else
             {
@@ -516,9 +524,6 @@ namespace Steel
         else if(command[0]=="instanciate")
         {
             command.erase(command.begin());
-            Ogre::String instancitationType(command[0]);
-
-            command.erase(command.begin());
             if(command.size()<1)
             {
                 Debug::error("command contains no file !").endl();
@@ -526,17 +531,7 @@ namespace Steel
             }
             File file(StringUtils::join(command,"."));
             if(file.exists())
-            {
-                if(instancitationType=="model")
-                    loadModelFromFile(file);
-                else if(instancitationType=="terrain_slot")
-                    loadTerrainSlotFromFile(file);
-                else
-                {
-                    Debug::log("instanciation type unknown: ")(command).endl();
-                    return;
-                }
-            }
+                instanciateResource(file);
             else
                 Debug::warning("file \"")(file)("\"not found. Aborting.").endl();
         }

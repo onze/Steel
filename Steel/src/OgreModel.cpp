@@ -28,11 +28,6 @@ namespace Steel
         mSceneNode->attachObject(mEntity);
     }
 
-    ModelType OgreModel::modelType()
-    {
-        return MT_OGRE;
-    }
-
     OgreModel::OgreModel(const OgreModel &m)
     {
 //	Debug::log("OgreModel::OgreModel(const OgreModel &m)").endl();
@@ -76,6 +71,11 @@ namespace Steel
     {
         return mSceneNode->getPosition();
     }
+    
+    ModelType OgreModel::modelType()
+    {
+        return MT_OGRE;
+    }
 
     void OgreModel::rotate(Ogre::Vector3 &rotation)
     {
@@ -98,7 +98,7 @@ namespace Steel
     {
         mSceneNode->setPosition(pos);
     }
-    
+
     void OgreModel::setRotation(Ogre::Quaternion const &rot)
     {
         mSceneNode->setOrientation(rot);

@@ -29,7 +29,8 @@ namespace Steel
             virtual Model *at(ModelId id)=0;
             virtual bool incRef(ModelId id)=0;
             virtual void releaseModel(ModelId modelId)=0;
-            virtual std::vector<ModelId> fromJson(Json::Value &object)=0;
+            virtual std::vector<ModelId> fromJson(Json::Value &models)=0;
+            virtual ModelId fromSingleJson(Json::Value &model)=0;
             virtual void toJson(Json::Value &object)=0;
     };
 

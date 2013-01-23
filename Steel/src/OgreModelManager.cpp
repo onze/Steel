@@ -42,29 +42,33 @@ namespace Steel
             //TODO: implement id remapping, so that we stay in a low id range
             //TODO: put fool proof conditions under #ifdef DEBUG
             Json::Value value = *it;
-            // get values for init
-            Ogre::String meshName = value["entityMeshName"].asString();
-            // TODO: preparse all meshes, batch declare them, do a single group initialization
-            // TODO: use the level's resourceGroup name
-            Ogre::ResourceGroupManager::getSingleton ().declareResource(meshName, "FileSystem", "Steel");
-            Ogre::ResourceGroupManager::getSingleton ().initialiseResourceGroup("Steel");
-
-            Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(value["position"].asString());
-            Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(value["rotation"].asString());
-            ModelId id = newModel(meshName, pos, rot);
-            //get values for load
-            //incRef(id);
-            int loadingOk=mModels[id].fromJson(value, mLevelRoot, mSceneManager);
-            //TODO discard, quarantine, repair ?
-            if(loadingOk)
-                ids.push_back(id);
-            else
-            {
-                releaseModel(id);
-                ids.push_back(INVALID_ID);
-            }
+            ids.push_back(fromSingleJson(value));
         }
         return ids;
+    }
+
+    ModelId OgreModelManager::fromSingleJson(Json::Value &model)
+    {
+        // get values for init
+        Ogre::String meshName = model["entityMeshName"].asString();
+        // TODO: preparse all meshes, batch declare them, do a single group initialization
+        // TODO: use the level's resourceGroup name
+        Ogre::ResourceGroupManager::getSingleton ().declareResource(meshName, "FileSystem", "Steel");
+        Ogre::ResourceGroupManager::getSingleton ().initialiseResourceGroup("Steel");
+
+        Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(model["position"].asString());
+        Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(model["rotation"].asString());
+        ModelId id = newModel(meshName, pos, rot);
+        //get values for load
+        //incRef(id);
+        int loadingOk=mModels[id].fromJson(model, mLevelRoot, mSceneManager);
+        //TODO discard, quarantine, repair ?
+        if(!loadingOk)
+        {
+            releaseModel(id);
+            id=INVALID_ID;
+        }
+        return id;
     }
 
     ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
@@ -78,3 +82,4 @@ namespace Steel
 }
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

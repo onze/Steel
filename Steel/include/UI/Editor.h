@@ -35,22 +35,28 @@ namespace Steel
             virtual void onShow();
             /// called right before the underlying document gets hidden
             virtual void onHide();
+            
+            /// Fills dynamic fields with values of dynamic queries.
+            bool dynamicFillSerialization(Json::Value &root);
 
             /**
              * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel position),
              * and instanciate it.
              */
-            void loadModelFromFile(File &file);
+            void loadModelFromSerialization(Json::Value &root);
             
             /**
              * reads an incomplete terrain slot file from the data folder, fills the incomplete parts (i.e.: terrain position),
              * and instanciate it.
              */
-            void loadTerrainSlotFromFile(File &file);
+            void loadTerrainSlotFromSerialization(Json::Value &root);
 
             /** returns whether the given screen coordinates collide with the child element with given Id.
              * If no Id is given, the hit test is made with the main document.**/
             bool hitTest(int x,int y, Rocket::Core::String childId="body");
+            
+            /// Preprocess a resource file (fills dynamic values), and instanciate its description if all requirements are satisfied.
+            bool instanciateResource(Steel::File& file);
 
             /// make a command out of a Rocket event
             void ProcessEvent(Rocket::Core::Event& event);

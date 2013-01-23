@@ -17,9 +17,16 @@ namespace Steel
             
             ///
             void init();
-
-            /// Initialize new PhysicsModel according to data in the json serialization.
+            
+            /**
+             * batched call to fromSingleJson.
+             */
             std::vector<ModelId> fromJson(Json::Value &models);
+            
+            /**
+             * initialize a new PhysicsModel according to data in the json serialization.
+             */
+            ModelId fromSingleJson(Json::Value &model);
 
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();

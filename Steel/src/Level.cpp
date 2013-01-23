@@ -384,6 +384,7 @@ namespace Steel
                 Debug::warning("no modelManager for type ")(type).endl();
                 continue;
             }
+            
             mm->fromJson(models);
         }
         Debug::log("models done").endl();
