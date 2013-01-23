@@ -38,10 +38,10 @@ namespace Steel
                 return mRefCount <= 0L;
             }
 
-            ///serialize itself into the given Json object
+            /// Serialize itself into the given Json object
             virtual void toJson(Json::Value &object)=0;
 
-            ///deserialize itself from the given Json object. return true is successful.
+            /// Deserialize itself from the given Json object. return true is successful.
             virtual bool fromJson(Json::Value &object)=0;
 
             //getters
@@ -51,16 +51,9 @@ namespace Steel
             }
             virtual ModelType modelType()=0;
         protected:
-            /**
-             * called by decRef() when the ref count gets below 0.
-             */
-            virtual void cleanup()
-            {
-            }
-            ;
-            /**
-             * Number of agents referencing it.
-             */
+            /// Called by decRef() when the ref count gets below 0.
+            virtual void cleanup() {};
+            /// Number of agents referencing it.
             unsigned long mRefCount;
     };
 
