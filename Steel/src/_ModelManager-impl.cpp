@@ -10,7 +10,9 @@
 
 #include "OgreModel.h"
 #include "BTModel.h"
+#include <PhysicsModel.h>
 
 template class Steel::_ModelManager<Steel::BTModel>;
 template class Steel::_ModelManager<Steel::OgreModel>;
+template class Steel::_ModelManager<Steel::PhysicsModel>;
 

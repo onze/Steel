@@ -10,7 +10,7 @@
 namespace Steel
 {
 
-    Ogre::String modelTypesAsString__data[] = { "MT_OGRE", "MT_BT" };
+    Ogre::String modelTypesAsString__data[] = { "MT_OGRE", "MT_BT", "MT_PHYSICS" };
 
     std::vector<Ogre::String> modelTypesAsString = std::vector<Ogre::String> (
                 modelTypesAsString__data,
