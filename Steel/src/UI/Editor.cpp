@@ -17,6 +17,7 @@
 #include "UI/FileSystemDataSource.h"
 #include <Camera.h>
 #include <OgreModelManager.h>
+#include <Agent.h>
 
 namespace Steel
 {
@@ -95,7 +96,7 @@ namespace Steel
         }
         else if(root.isConvertibleTo(Json::objectValue))
         {
-            // dict:: add each value to the fringe
+            // dict:: process each value
             Ogre::String key;
             Json::Value value;
             auto names=root.getMemberNames();
@@ -104,7 +105,6 @@ namespace Steel
                 key=*it;
                 Ogre::String svalue,new_svalue;
                 svalue=new_svalue=root[key].asString();
-//                 Debug::log(key)(":")(svalue);
 
                 if(svalue.at(0)!='$')
                     new_svalue=svalue;
@@ -112,6 +112,16 @@ namespace Steel
                     new_svalue=Ogre::StringConverter::toString(getDropTargetPosition());
                 else if(svalue=="$dropTargetRotation")
                     new_svalue=Ogre::StringConverter::toString(getDropTargetRotation());
+                else if(svalue=="$agentUnderMouse")
+                {
+                    auto selection=std::list<ModelId>();
+                    mEngine->pickAgents(selection, mInputMan->mousePos().x,mInputMan->mousePos().y);
+
+                    if(selection.size()>0)
+                        new_svalue=Ogre::StringConverter::toString(selection.front());
+                    else
+                        new_svalue=Json::Value().asString();
+                }
                 else if(svalue=="$slotDropPosition")
                 {
                     auto slotPosition=getSlotDropPosition();
@@ -125,7 +135,6 @@ namespace Steel
                 }
 
                 root[key]=new_svalue.c_str();
-//                 Debug::log(" -> ")(root[key].asString()).endl();
             }
         }
         else
@@ -244,7 +253,15 @@ namespace Steel
     void Editor::loadModelFromSerialization(Json::Value &root)
     {
         Debug::log("Editor::loadModelFromSerialization(")(root)(")").endl();
-        
+
+        Level *level=mEngine->level();
+        Ogre::String intro="Editor::loadModelFromSerialization(): ";
+        if(level==NULL)
+        {
+            Debug::error(intro)("no level to instanciate stuff in.").endl();
+            return;
+        }
+
         Json::Value value=root["modelType"];
         if(value.isNull())
         {
@@ -256,21 +273,33 @@ namespace Steel
         // ask the right manager to load this model
         if(modelType=="MT_OGRE")
         {
-            Level *level=mEngine->level();
-            if(level==NULL)
-            {
-                Debug::warning("Editor::loadModelFromSerialization(): no level to instanciate stuff in.").endl();
-                return;
-            }
-//             ! currently sending a dict, but manager expects an array -> segfault
             ModelId mid = level->ogreModelMan()->fromSingleJson(root);
             if(mid==INVALID_ID)
+            {
+                Debug::error(intro)("got invalid model id for content:")(value).endl()("Aborting.").endl();
                 return;
+            }
+
             AgentId aid=level->newAgent();
             if(aid==INVALID_ID)
+            {
+                level->ogreModelMan()->releaseModel(mid);
+                Debug::error(intro)("could not create an agent to link the model to ! Aborting (model was released).").endl();
                 return;
+            }
+
             if(!level->linkAgentToModel(aid,MT_OGRE,mid))
+            {
+                level->ogreModelMan()->releaseModel(mid);
+                level->deleteAgent(aid);
+                Debug::error(intro)("could not link agent ")(aid)("to model ")(mid)(" ! Aborting (model was released, agent deleted).").endl();
                 return;
+            }
+            //TODO add visual notification in the UI
+        }
+        else if(modelType=="MT_PHYSICS")
+        {
+//             TODO: invoke physics modelMan, create bullet instance, attach it to ogre model
         }
         else
             Debug::log("Unknown model type: ")(modelType).endl();
