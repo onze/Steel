@@ -73,7 +73,6 @@ namespace Steel
              */
             inline OgreModel *ogreModel()
             {
-
                 return (OgreModel *) model(MT_OGRE);
             }
 
