@@ -24,6 +24,7 @@ namespace Steel
     class Camera;
     class ModelManager;
     class OgreModelManager;
+    class PhysicsModelManager;
 
     class Level:public TerrainManagerEventListener
     {
@@ -74,6 +75,8 @@ namespace Steel
             ModelId newOgreModel(Ogre::String name,
                                  Ogre::Vector3 pos = Ogre::Vector3::ZERO,
                                  Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
+            
+//             ModelId newPhysicsModel()=0;
 
             virtual void onTerrainEvent(TerrainManager::LoadingState state);
 
@@ -90,6 +93,9 @@ namespace Steel
             bool save();
             /// Collects level's agents' properties and put them in a string.
              void serialize(Ogre::String &s);
+             
+             /// Main loop iteration.
+             void update(float timestep);
 
             //getters
             inline Ogre::ColourValue backgroundColor()
@@ -124,6 +130,11 @@ namespace Steel
             inline OgreModelManager *ogreModelMan()
             {
                 return mOgreModelMan;
+            }
+            
+            inline PhysicsModelManager *physicsModelMan()
+            {
+                return mPhysicsModelMan;
             }
 
             inline Ogre::SceneManager *sceneManager()
@@ -168,6 +179,9 @@ namespace Steel
 
             /// responsible for OgreModel's instances.
             OgreModelManager *mOgreModelMan;
+            
+            /// responsible for PhysicsModel's instances.
+            PhysicsModelManager *mPhysicsModelMan;
 
             /// behavior tree manager.
 //	BTModelManager *mBTModelMan;

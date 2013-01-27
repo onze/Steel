@@ -26,6 +26,7 @@
 #include "OgreModelManager.h"
 #include "tools/OgreUtils.h"
 #include <tools/StringUtils.h>
+#include <PhysicsModelManager.h>
 
 namespace Steel
 {
@@ -35,7 +36,7 @@ namespace Steel
         mEngine(engine),mViewport(NULL),
         mPath(path.subfile(name)), mName(name), mBackgroundColor(Ogre::ColourValue::Black),
         mSceneManager(NULL),mLevelRoot(NULL),
-        mAgents(std::map<AgentId, Agent *>()),mOgreModelMan(NULL),mCamera(NULL),
+        mAgents(std::map<AgentId, Agent *>()),mOgreModelMan(NULL),mPhysicsModelMan(NULL),mCamera(NULL),
         mTerrainMan(),mMainLight(NULL)
     {
         Debug::log(logName()+"()").endl();
@@ -65,7 +66,9 @@ namespace Steel
 
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
-        mOgreModelMan = new OgreModelManager(mSceneManager, mLevelRoot);
+        mOgreModelMan = new OgreModelManager(this,mSceneManager, mLevelRoot);
+        mPhysicsModelMan = new PhysicsModelManager(this);
+        mPhysicsModelMan->init();
 //	mBTModelMan = new BTModelManager(mPath);
         //mBTModelMan->loadResources();
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
@@ -76,8 +79,15 @@ namespace Steel
     {
         Debug::log(logName()+".~Level()").endl();
         mTerrainMan.shutdown();
+
+        mPhysicsModelMan->clear();
+        delete mPhysicsModelMan;
+        mPhysicsModelMan=NULL;
+
         mOgreModelMan->clear();
         delete mOgreModelMan;
+        mOgreModelMan=NULL;
+
         Ogre::RenderWindow *window=mEngine->renderWindow();
         if (mSceneManager != NULL)
         {
@@ -106,22 +116,27 @@ namespace Steel
 
     bool Level::linkAgentToModel(AgentId aid, ModelType mtype, ModelId mid)
     {
-        Agent *agent = getAgent(aid);
-        if (agent == NULL)
+        if (aid == INVALID_ID)
         {
-            Debug::error(logName()+".linkAgentToOgreModel(): aid ")(aid)(" does not exist.").endl();
+            Debug::error(logName()+".linkAgentToModel(): aid ")(aid)(" does not exist.").endl();
             return false;
         }
 
         ModelManager *mm = modelManager(mtype);
         if (mm == NULL)
         {
-            Debug::error(logName()+".linkAgentToOgreModel(): mtype ")((long int)mtype)(" aka \"");
+            Debug::error(logName()+".linkAgentToModel(): mtype ")((long int)mtype)(" aka \"");
             Debug::error(modelTypesAsString[mtype])("\" does not exist.").endl();
             return false;
         }
-        //all clear
-        return agent->linkToModel(mtype, mid);
+
+        if(mid==INVALID_ID)
+        {
+            Debug::error(logName()+".linkAgentToModel(): invalid model id.").endl();
+            return false;
+        }
+
+        return mm->linkAgentToModel(aid, mid);
     }
 
     Ogre::String Level::logName()
@@ -173,14 +188,23 @@ namespace Steel
 
     ModelManager *Level::modelManager(ModelType modelType)
     {
-        //TODO: replace this by a lookup into a protected map of model managers.
+        //TODO: replace this by a lookup into a protected map of model managers ?
         ModelManager *mm = NULL;
         switch (modelType)
         {
             case MT_OGRE:
                 mm = mOgreModelMan;
                 break;
+            case MT_PHYSICS:
+                mm=mPhysicsModelMan;
+                break;
             default:
+                Debug::error("Level::modelManager(): unknown modelType ")(modelType);
+                if(MT_FIRST<modelType && modelType<MT_LAST)
+                    Debug::error(" (")(modelTypesAsString[modelType])(")");
+                else
+                    Debug::error(" (with no string representation.)");
+                Debug::error.endl();
                 break;
         }
         return mm;
@@ -384,7 +408,7 @@ namespace Steel
                 Debug::warning("no modelManager for type ")(type).endl();
                 continue;
             }
-            
+
             mm->fromJson(models);
         }
         Debug::log("models done").endl();
@@ -403,6 +427,11 @@ namespace Steel
         Debug::log("agents done").endl();
         Debug::log(logName()+".deserialize(): done").unIndent().endl();
         return true;
+    }
+    
+    void Level::update(float timestep)
+    {
+        mPhysicsModelMan->update(timestep);   
     }
 
 }

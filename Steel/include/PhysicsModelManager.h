@@ -3,6 +3,7 @@
 
 #include <btBulletDynamicsCommon.h>
 
+#include "steeltypes.h"
 #include "_ModelManager.h"
 #include "PhysicsModel.h"
 
@@ -12,17 +13,17 @@ namespace Steel
     {
 
         public:
-            PhysicsModelManager();
+            PhysicsModelManager(Level *level);
             virtual ~PhysicsModelManager();
-            
+
             ///
             void init();
-            
+
             /**
              * batched call to fromSingleJson.
              */
             std::vector<ModelId> fromJson(Json::Value &models);
-            
+
             /**
              * initialize a new PhysicsModel according to data in the json serialization.
              */
@@ -30,7 +31,17 @@ namespace Steel
 
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();
+
+            virtual ModelType modelType()
+            {
+                return MT_PHYSICS;
+            };
+            
+            /// Main loop iteration
+            void update(float timestep);
+            
         protected:
+            virtual bool onAgentLinked(AgentId aid, ModelId mid);
             // not owned
             //owned
             btDynamicsWorld *mWorld;

@@ -15,15 +15,9 @@
 
 namespace Steel
 {
-
-    OgreModelManager::OgreModelManager() :
-        _ModelManager<OgreModel>(), mSceneManager(NULL), mLevelRoot(NULL)
-    {
-
-    }
-
-    OgreModelManager::OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot) :
-        _ModelManager<OgreModel>(), mSceneManager(sceneManager), mLevelRoot(levelRoot)
+    OgreModelManager::OgreModelManager(Level *level,Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot) :
+        _ModelManager<OgreModel>(level),
+        mSceneManager(sceneManager), mLevelRoot(levelRoot)
     {
 
     }

@@ -16,8 +16,9 @@
 #include "Engine.h"
 #include "UI/FileSystemDataSource.h"
 #include <Camera.h>
-#include <OgreModelManager.h>
 #include <Agent.h>
+#include <OgreModelManager.h>
+#include <PhysicsModelManager.h>
 
 namespace Steel
 {
@@ -118,17 +119,17 @@ namespace Steel
                     mEngine->pickAgents(selection, mInputMan->mousePos().x,mInputMan->mousePos().y);
 
                     if(selection.size()>0)
-                        new_svalue=Ogre::StringConverter::toString(selection.front());
+                        new_svalue=Ogre::StringConverter::toString((unsigned int)selection.front());
                     else
                         new_svalue=Json::Value().asString();
                 }
                 else if(svalue=="$slotDropPosition")
                 {
                     auto slotPosition=getSlotDropPosition();
-                    // drops farther than 10km away are forbidden
-                    if(slotPosition.length()>10000)
+                    // drops farther than 5km away are forbidden
+                    if(slotPosition.length()>5000)
                     {
-                        Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborting.").endl();
+                        Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborted.").endl();
                         return false;
                     }
                     new_svalue=Ogre::StringConverter::toString(slotPosition);
@@ -139,7 +140,7 @@ namespace Steel
         }
         else
         {
-            Debug::error(intro)(" unrecognized value type. Value was:")(root).endl()("Aborting.").endl();
+            Debug::error(intro)(" unrecognized value type. Value was:")(root).endl()("Aborted.").endl();
             return false;
         }
         return true;
@@ -233,7 +234,7 @@ namespace Steel
 
         if(!dynamicFillSerialization(root))
         {
-            Debug::error(intro)("could not find all values. Aborting.").endl();
+            Debug::error(intro)("could not find all values. Aborted.").endl();
             return false;
         }
 
@@ -253,9 +254,9 @@ namespace Steel
     void Editor::loadModelFromSerialization(Json::Value &root)
     {
         Debug::log("Editor::loadModelFromSerialization(")(root)(")").endl();
+        Ogre::String intro="Editor::loadModelFromSerialization(): ";
 
         Level *level=mEngine->level();
-        Ogre::String intro="Editor::loadModelFromSerialization(): ";
         if(level==NULL)
         {
             Debug::error(intro)("no level to instanciate stuff in.").endl();
@@ -265,7 +266,7 @@ namespace Steel
         Json::Value value=root["modelType"];
         if(value.isNull())
         {
-            Debug::error("serialization is missing a \"modelType\" value. Aborting.").endl();
+            Debug::error("serialization is missing a \"modelType\" value. Aborted.").endl();
             return;
         }
 
@@ -274,17 +275,11 @@ namespace Steel
         if(modelType=="MT_OGRE")
         {
             ModelId mid = level->ogreModelMan()->fromSingleJson(root);
-            if(mid==INVALID_ID)
-            {
-                Debug::error(intro)("got invalid model id for content:")(value).endl()("Aborting.").endl();
-                return;
-            }
-
             AgentId aid=level->newAgent();
             if(aid==INVALID_ID)
             {
                 level->ogreModelMan()->releaseModel(mid);
-                Debug::error(intro)("could not create an agent to link the model to ! Aborting (model was released).").endl();
+                Debug::error(intro)("could not create an agent to link the model to. Model released. Aborted.").endl();
                 return;
             }
 
@@ -292,14 +287,23 @@ namespace Steel
             {
                 level->ogreModelMan()->releaseModel(mid);
                 level->deleteAgent(aid);
-                Debug::error(intro)("could not link agent ")(aid)("to model ")(mid)(" ! Aborting (model was released, agent deleted).").endl();
+                Debug::error(intro)("could not link agent ")(aid)("to OgreModel ")(mid)(". Model released. Agent deleted. Aborted.").endl();
                 return;
             }
             //TODO add visual notification in the UI
         }
         else if(modelType=="MT_PHYSICS")
         {
-//             TODO: invoke physics modelMan, create bullet instance, attach it to ogre model
+            ModelId mid=level->physicsModelMan()->fromSingleJson(root);
+            Debug::log("new PhysicsModel with id ")(mid).endl();
+            AgentId aid=Ogre::StringConverter::parseLong(root["targetAgent"].asString(),INVALID_ID);
+
+            if(!level->linkAgentToModel(aid,MT_PHYSICS,mid))
+            {
+                level->physicsModelMan()->releaseModel(mid);
+                Debug::error(intro)("could not link agent ")(aid)(" to PhysicsModel ")(mid)(". Model released. Aborted.").endl();
+            }
+            //TODO add visual notification in the UI
         }
         else
             Debug::log("Unknown model type: ")(modelType).endl();
@@ -333,13 +337,13 @@ namespace Steel
         auto level=mEngine->level();
         if(NULL==level)
         {
-            Debug::error(intro)("no level loaded. Aborting.").endl();
+            Debug::error(intro)("no level loaded. Aborted.").endl();
             return;
         }
 
         if(root["slotPosition"].isNull())
         {
-            Debug::error(intro)("can't find key \"slotPosition\". Aborting.").endl();
+            Debug::error(intro)("can't find key \"slotPosition\". Aborted.").endl();
             return;
         }
 
@@ -348,7 +352,7 @@ namespace Steel
         if(!slot.isValid())
         {
             Debug::error(intro)("TerrainManager::TerrainSlotData is not valid. Serialized string was:");
-            Debug::error(root.toStyledString()).endl()("Aborting.").endl();
+            Debug::error(root.toStyledString()).endl()("Aborted.").endl();
             return;
         }
 
@@ -490,13 +494,13 @@ namespace Steel
                 auto inputField=(Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
                 if(inputField==NULL)
                 {
-                    Debug::error("Editor::ProcessEvent(): can't find level name input field with id=\"level_name\". Aborting.").endl();
+                    Debug::error("Editor::ProcessEvent(): can't find level name input field with id=\"level_name\". Aborted.").endl();
                     return;
                 }
                 Ogre::String levelName=inputField->GetValue().CString();
                 if(levelName=="")
                 {
-                    Debug::error("Editor::ProcessEvent(): can't create a level with not name. Aborting.").endl();
+                    Debug::error("Editor::ProcessEvent(): can't create a level with not name. Aborted.").endl();
                     return;
                 }
                 raw_commmand+="."+levelName;
@@ -562,7 +566,7 @@ namespace Steel
             if(file.exists())
                 instanciateResource(file);
             else
-                Debug::warning("file \"")(file)("\"not found. Aborting.").endl();
+                Debug::warning("file \"")(file)("\"not found. Aborted.").endl();
         }
         else if(command[0]=="options")
         {

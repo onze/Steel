@@ -10,20 +10,17 @@
 namespace Steel
 {
 
-BTModelManager::BTModelManager() :
-		_ModelManager<BTModel>(), mPath("")
-{
-}
+    BTModelManager::BTModelManager(Level *level,Ogre::String path) :
+        _ModelManager<BTModel>(level),
+        mPath(path)
+    {
 
-BTModelManager::BTModelManager(Ogre::String path) :
-		_ModelManager<BTModel>(), mPath(path)
-{
+    }
 
-}
-
-BTModelManager::~BTModelManager()
-{
-	// TODO Auto-generated destructor stub
-}
+    BTModelManager::~BTModelManager()
+    {
+        // TODO Auto-generated destructor stub
+    }
 
 } /* namespace Steel */
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

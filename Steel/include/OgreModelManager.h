@@ -11,7 +11,6 @@
 #include <list>
 
 #include <json/json.h>
-
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
 
@@ -21,21 +20,21 @@
 
 namespace Steel
 {
+    class Level;
     /**
      * instances of this class handle ogre related stuff.
      */
     class OgreModelManager: public _ModelManager<OgreModel>
     {
         public:
-            OgreModelManager();
-            OgreModelManager(Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
+            OgreModelManager(Level *level,Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
             virtual ~OgreModelManager();
 
             /**
              * batched call to fromSingleJson.
              */
             std::vector<ModelId> fromJson(Json::Value &models);
-            
+
             /**
              * initialize a new OgreModel according to data in the json serialization.
              */
@@ -51,6 +50,11 @@ namespace Steel
             {
                 return mSceneManager;
             }
+
+            virtual ModelType modelType()
+            {
+                return MT_OGRE;
+            };
 
         protected:
             Ogre::SceneManager *mSceneManager;

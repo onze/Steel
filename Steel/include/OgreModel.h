@@ -48,6 +48,16 @@ namespace Steel
             ///serialize itself into the given Json object
             virtual void toJson(Json::Value &node);
 
+            // getters
+            inline Ogre::Entity* entity()
+            {
+                return mEntity;
+            }
+            inline Ogre::SceneNode* sceneNode()
+            {
+                return mSceneNode;
+            }
+
         protected:
             ///made private to forbid its use. The deserialisation method to use needs more params.
             virtual bool fromJson(Json::Value &node)

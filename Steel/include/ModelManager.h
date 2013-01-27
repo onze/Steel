@@ -16,8 +16,8 @@ namespace Steel
 {
     class Model;
     /**
-     * Abstract class used as a common interface for the templated/specialized versions of modelManagers.
-     * The way modelManager design is laid out is thusly:
+     * Pure abstract class used as a common interface for the template-specialized versions of modelManagers.
+     * The way modelManager design is laid out is this way:
      * - ModelManager "implements" the common interface, so that any model manager can be pointed at with the same pointer.
      * - _ModelManager<M> is a templated subclass of ModelManager, that implements common behavior.
      * - ModelManager<BlahModel> are subclasses that specialize in one single type of model, and implements details specifics to
@@ -27,8 +27,12 @@ namespace Steel
     {
         public:
             virtual Model *at(ModelId id)=0;
+            
             virtual bool incRef(ModelId id)=0;
+            virtual bool decRef(ModelId id)=0;
             virtual void releaseModel(ModelId modelId)=0;
+            virtual bool linkAgentToModel(AgentId aid, ModelId mid)=0;
+            
             virtual std::vector<ModelId> fromJson(Json::Value &models)=0;
             virtual ModelId fromSingleJson(Json::Value &model)=0;
             virtual void toJson(Json::Value &object)=0;

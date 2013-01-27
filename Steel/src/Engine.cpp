@@ -335,6 +335,9 @@ namespace Steel
                 return false;
             // update file watching
             File::dispatchEvents();
+            
+            if(NULL!=mLevel)
+                mLevel->update(float(timer.getMilliseconds()-graphicsStart)/1000.f);
 
             graphicsStart=timer.getMilliseconds();
             mStats.lastEngineDuration=static_cast<double>(graphicsStart-engineStart);

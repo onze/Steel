@@ -70,7 +70,8 @@ namespace Steel
         }
         if(nModels==0)
         {
-            Debug::error("Agent::fromJson(): agent ")(mId)("linked with 0 models ? json string:").endl()(value).endl();;
+            Debug::error("Agent::fromJson(): agent ")(mId);
+            Debug::error("linked with 0 models ? json string:").endl()(value).endl();
             return false;
         }
         return true;
@@ -78,10 +79,33 @@ namespace Steel
 
     bool Agent::linkToModel(ModelType modelType, ModelId modelId)
     {
-//	Debug::log("Agent<")(mId)(">::linkToModel(ModelType ")(modelTypesAsString[modelType]);
-//	Debug::log(", ModelId ")(modelId)(")").endl();
-        mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
-        return mLevel->modelManager(modelType)->incRef(modelId);
+        Ogre::String intro="Agent::linkToModel(type="+Ogre::StringConverter::toString(modelType)+", id="+Ogre::StringConverter::toString(modelId)+"): ";
+        if (modelId == INVALID_ID)
+        {
+            Debug::error(intro)("Agent ")(mId)("'s model id is invalid. Aborting.").endl();
+            return false;
+        }
+
+        //result.first==iterator placed at location, result.second==successful insertion flag
+        auto result=mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
+        if(!result.second)
+        {
+            Debug::error(intro)("Could not insert model (overwrites are not allowed). Aborting.").endl();
+            return false;
+        }
+
+        mLevel->modelManager(modelType)->incRef(modelId);
+        return true;
+    }
+
+    void Agent::unlinkFromModel(ModelType modelType)
+    {
+        auto it=mModelIds.find(modelType);
+        if(it!=mModelIds.end())
+        {
+            mLevel->modelManager(modelType)->decRef((*it).second);
+            mModelIds.erase(it);
+        }
     }
 
     Model *Agent::model(ModelType modelType)
@@ -91,15 +115,7 @@ namespace Steel
         if (id == INVALID_ID)
             return NULL;
 
-        switch (modelType)
-        {
-            case MT_OGRE:
-                return mLevel->ogreModelMan()->at(id);
-                break;
-            default:
-                Debug::error("in Agent::model(): unknown modelType: ")(modelType)(" for id: ")(id).endl();
-                throw std::runtime_error("in Agent::model(): unknown modelType");
-        }
+        return mLevel->modelManager(modelType)->at(id);
     }
 
     ModelId Agent::modelId(ModelType modelType)

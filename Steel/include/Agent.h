@@ -43,50 +43,42 @@ namespace Steel
                 return mId;
             }
 
-            /**
-             * setup new Agent according to data in the json serialization.
-             */
+            /// Setup new Agent according to data in the json serialization.
             bool fromJson(Json::Value &models);
-
+            
+            /// Assigns a model to the agent for the given type.
             bool linkToModel(ModelType modelType, ModelId modelId);
+            
+            /// Opposite of linkToModel
+            void unlinkFromModel(ModelType modelType);
 
-            /**
-             * returns an address to the model of the given type, if any. returns NULL otherwise.
-             */
+            /// Returns an address to the model of the given type, if any. returns NULL otherwise.
             Model *model(ModelType modelType);
 
-            /**
-             * return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
-             */
+            /// Return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
             ModelId modelId(ModelType modelType);
 
-            /**
-             * return all ids of all contained model types.
-             */
+            /// Return all ids of all contained model types.
             std::map<ModelType, ModelId> &modelsIds()
             {
                 return mModelIds;
             }
 
-            /**
-             * shortcut to Agent::model(MT_OGRE).
-             */
+            /// Shortcut to Agent::model(MT_OGRE).
             inline OgreModel *ogreModel()
             {
                 return (OgreModel *) model(MT_OGRE);
             }
 
-            /**
-             * shortcut to Agent::modelId(MT_OGRE).
-             */
+            /// Shortcut to Agent::modelId(MT_OGRE).
             inline ModelId ogreModelId()
             {
                 return modelId(MT_OGRE);
             }
 
             /**
-             * make an agent selected or not.
-             * being (de)selected can have different effects on the agent's models.
+             * Make an agent selected or not. 
+             * Being (de)selected can have different effects on the agent's models.
              */
             void setSelected(bool selected);
 

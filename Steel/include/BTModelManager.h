@@ -14,19 +14,18 @@
 
 namespace Steel
 {
+    class Level;
+    class BTModelManager: public _ModelManager<BTModel>
+    {
+        public:
+            BTModelManager(Level *level,Ogre::String mPath);
+            virtual ~BTModelManager();
 
-class BTModelManager: public _ModelManager<BTModel>
-{
-private:
-	BTModelManager();
-public:
-	BTModelManager(Ogre::String mPath);
-	virtual ~BTModelManager();
-
-protected:
-	///base path to BT files
-	Ogre::String mPath;
-};
+        protected:
+            ///base path to BT files
+            Ogre::String mPath;
+    };
 
 } /* namespace Steel */
 #endif /* BTMODELMANAGER_H_ */
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

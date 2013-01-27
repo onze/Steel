@@ -8,22 +8,26 @@
 #include "_ModelManager.h"
 #include "Debug.h"
 #include "Model.h"
+#include <Agent.h>
+#include <Level.h>
 
 namespace Steel
 {
 
     template<class M>
-    _ModelManager<M>::_ModelManager() :
+    _ModelManager<M>::_ModelManager(Level *level) :
         ModelManager()
     {
         mModels = std::vector<M>();
         mModelsFreeList = std::list<ModelId>();
+        mLevel=level;
     }
 
     template<class M>
     _ModelManager<M>::~_ModelManager()
     {
         clear();
+        mLevel=NULL;
     }
 
     template<class M>
@@ -38,13 +42,24 @@ namespace Steel
     template<class M>
     bool _ModelManager<M>::incRef(ModelId id)
     {
-        if (id < 0 || id >= mModels.size())
+        if (id >= mModels.size())
         {
-            Debug::warning("void _ModelManager<")(modelTypesAsString[mModels[id].modelType()]);
-            Debug::warning(">::incRef(): modelId ")(id)("\" does not exist.").endl();
+            Debug::error(logName()+"::incRef(): modelId ")(id)("\" does not exist.").endl();
             return false;
         }
         mModels[id].incRef();
+        return true;
+    }
+    
+    template<class M>
+    bool _ModelManager<M>::decRef(ModelId id)
+    {
+        if (id >= mModels.size())
+        {
+            Debug::error(logName()+"::incRef(): modelId ")(id)("\" does not exist.").endl();
+            return false;
+        }
+        mModels[id].decRef();
         return true;
     }
 
@@ -69,14 +84,18 @@ namespace Steel
             id = (ModelId) mModels.size();
             mModels.push_back(M());
         }
-//	mModels[id].incRef();
+// 	mModels[id].incRef();
         return id;
     }
 
     template<class M>
     bool _ModelManager<M>::isValid(ModelId id)
     {
-        return id >= 0 && id < mModels.size() && !mModels[id].isFree();
+        bool ret=true;
+        ret&=id >= 0;
+        ret&=id < mModels.size();
+        ret&=!mModels[id].isFree();
+        return ret;
     }
 
     template<class M>
@@ -102,6 +121,28 @@ namespace Steel
                 continue;
             m->toJson(object[Ogre::StringConverter::toString(id)]);
         }
+    }
+
+    template<class M>
+    bool _ModelManager<M>::linkAgentToModel(AgentId aid, ModelId mid)
+    {
+        Agent *agent = mLevel->getAgent(aid);
+        if(!agent->linkToModel(modelType(),mid))
+        {
+            Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
+            Debug::error("): agent could not link to model.Aborted.").endl();
+            return false;
+        }
+
+        if(!onAgentLinked(aid,mid))
+        {
+            agent->unlinkFromModel(modelType());
+            Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
+            Debug::error("): specialized linking errored. Agent unlinked. Aborted.").endl();
+            return false;
+        }
+
+        return incRef(mid);
     }
 
 }

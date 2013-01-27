@@ -1,8 +1,14 @@
 #include "PhysicsModelManager.h"
 
+#include "Level.h"
+#include <OgreModel.h>
+#include <Agent.h>
+#include <BtOgreGP.h>
+#include <BtOgrePG.h>
+
 namespace Steel
 {
-    PhysicsModelManager::PhysicsModelManager():_ModelManager<PhysicsModel>(),
+    PhysicsModelManager::PhysicsModelManager(Level * level):_ModelManager<PhysicsModel>(level),
         mWorld(NULL),mSolver(NULL),mDispatcher(NULL),mCollisionConfig(NULL),mBroadphase(NULL)
     {
 
@@ -36,11 +42,49 @@ namespace Steel
         return std::vector<ModelId>();
     }
 
-    ModelId PhysicsModelManager::newModel()
+    ModelId PhysicsModelManager::fromSingleJson(Json::Value &models)
     {
-        return INVALID_ID;
+        ModelId mid=newModel();
+        return mid;
     }
 
+    ModelId PhysicsModelManager::newModel()
+    {
+        ModelId mid=allocateModel();
+        return mid;
+    }
+
+    bool PhysicsModelManager::onAgentLinked(AgentId aid, ModelId pmodelId)
+    {
+        Ogre::String intro=logName()+"::onLinked(): ";
+        Agent *agent=mLevel->getAgent(aid);
+
+        PhysicsModel *pmodel=at(pmodelId);
+#ifdef DEBUG
+        assert(agent->modelId(MT_PHYSICS)==pmodelId);
+        assert(agent->model(MT_PHYSICS)==pmodel);
+#endif
+        if(NULL==pmodel)
+        {
+            Debug::error(intro)("agent ")(agent->id())(" has no PhysicsModel ")(pmodelId)(" to represent. Aborting.").endl();
+            return false;
+        }
+
+        OgreModel *omodel=(OgreModel *)agent->model(MT_OGRE);
+        if(NULL==omodel)
+        {
+            Debug::error(intro)("agent ")(agent->id())(" has no OgreModel to represent. Aborting.").endl();
+            return false;
+        }
+
+        pmodel->init(mWorld,omodel);
+        return true;
+    }
+
+    void PhysicsModelManager::update(float timestep)
+    {
+        mWorld->stepSimulation(timestep,7);
+    }
 }
 
 
