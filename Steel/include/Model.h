@@ -34,12 +34,12 @@ namespace Steel
             }
             inline void decRef()
             {
-                if (--mRefCount <= 0L)
-                    cleanup();
+                if (--mRefCount == 0L)
+                    this->cleanup();
             }
             inline bool isFree()
             {
-                return mRefCount <= 0L;
+                return mRefCount == 0L;
             }
 
             /// Serialize itself into the given Json object
