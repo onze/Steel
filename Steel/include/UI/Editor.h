@@ -96,6 +96,8 @@ namespace Steel
             EditorBrush mBrush;
             /// If set to true, will print all events with empty "value" attribute for elements whose "id" attribute is set.
             bool mDebugEvents;
+            /// true during the dragging of a item from the edior's menu.
+            bool mIsDraggingFromMenu;
         private:
     };
 }

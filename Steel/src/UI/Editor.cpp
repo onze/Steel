@@ -24,7 +24,7 @@ namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
         mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSResources(NULL),mDataDir(),
-        mMenuTabIndex(1),mBrush(),mDebugEvents(false)
+        mMenuTabIndex(1),mBrush(),mDebugEvents(false),mIsDraggingFromMenu(false)
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -374,7 +374,7 @@ namespace Steel
 
     bool Editor::mouseMoved(const OIS::MouseEvent& evt)
     {
-        if(!hitTest(evt.state.X.abs,evt.state.Y.abs,"menu"))
+        if(!mIsDraggingFromMenu && !hitTest(evt.state.X.abs,evt.state.Y.abs,"menu"))
         {
             mBrush.mouseMoved(evt);
             Rocket::Core::Element *elem;
@@ -409,6 +409,7 @@ namespace Steel
 
         mFSResources->refresh();
         mDocument->AddEventListener("click",this);
+        mDocument->AddEventListener("dragstart",this);
         mDocument->AddEventListener("dragdrop",this);
         mDocument->AddEventListener("change",this);
         mDocument->AddEventListener("submit",this);
@@ -445,7 +446,10 @@ namespace Steel
             // ok in dev, but dev has a corrupt stack on exit
             Rocket::Core::ElementReference *ref= static_cast<Rocket::Core::ElementReference *>(evt.GetParameter< void * >("drag_element", NULL));
             elem=**ref;
+            mIsDraggingFromMenu=false;
         }
+        else if(evt=="dragstart")
+            mIsDraggingFromMenu=true;
         else
             elem=evt.GetTargetElement();
 
