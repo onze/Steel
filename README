@@ -1,12 +1,14 @@
 == Steel ==
 
 This project is an entity-based game engine, that makes use of the following libraries:
-- Ogre3d (3d rendering)
+- Ogre3d (rendering)
 - OIS (input system)
 - libRocket (UI)
+- Bullet (physics) + btOgre
+- Inotify (file change monitoring, linux)
 
 ---
 
-As of now, the engine is in its very early stages of development, and is not usable in any way.
+As of now, the engine is in its very early stages of development, and is not reaaly usable yet.
 
-Files include a hardcoded CMakeLists.txt known to build the engine under linux. Steel may eventually support windows/mac/whatnot as well.
+Files include a short, hardcoded CMakeLists.txt known to build the engine under linux. Steel may eventually support windows/mac/whatnot.
