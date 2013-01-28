@@ -13,11 +13,10 @@ namespace Steel
     class OgreModel;
     class PhysicsModel:public Model
     {
-
         public:
             PhysicsModel();
+            PhysicsModel(const PhysicsModel& o);
             void init(btDynamicsWorld *world,OgreModel *omodel);
-            PhysicsModel(const PhysicsModel& other);
             virtual PhysicsModel& operator=(const PhysicsModel& other);
             virtual ~PhysicsModel();
             virtual ModelType modelType();
@@ -30,6 +29,7 @@ namespace Steel
         protected:
             virtual void cleanup();
             //not owned
+            btDynamicsWorld *mWorld;
             //owned
             btRigidBody* mBody;
     };

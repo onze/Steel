@@ -56,7 +56,7 @@ namespace Steel
     {
         if (id >= mModels.size())
         {
-            Debug::error(logName()+"::incRef(): modelId ")(id)("\" does not exist.").endl();
+            Debug::error(logName()+"::decRef(): modelId ")(id)("\" does not exist.").endl();
             return false;
         }
         mModels[id].decRef();
@@ -87,17 +87,7 @@ namespace Steel
 // 	mModels[id].incRef();
         return id;
     }
-
-    template<class M>
-    bool _ModelManager<M>::isValid(ModelId id)
-    {
-        bool ret=true;
-        ret&=id >= 0;
-        ret&=id < mModels.size();
-        ret&=!mModels[id].isFree();
-        return ret;
-    }
-
+    
     template<class M>
     void _ModelManager<M>::releaseModel(ModelId id)
     {
@@ -108,6 +98,16 @@ namespace Steel
         //TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
         if (m->isFree())
             mModelsFreeList.push_front(id);
+    }
+
+    template<class M>
+    bool _ModelManager<M>::isValid(ModelId id)
+    {
+        bool ret=true;
+        ret&=id >= 0;
+        ret&=id < mModels.size();
+        ret&=!mModels[id].isFree();
+        return ret;
     }
 
     template<class M>

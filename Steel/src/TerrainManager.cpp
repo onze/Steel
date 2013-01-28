@@ -12,6 +12,7 @@
 #include <Debug.h>
 #include <TerrainManagerEventListener.h>
 #include <tools/StringUtils.h>
+#include <TerrainPhysicsManager.h>
 
 namespace Steel
 {
@@ -19,7 +20,8 @@ namespace Steel
     TerrainManager::TerrainManager():Ogre::FrameListener(),
         mResourceGroupName("TerrainManager-defaultResourceGroup-name"),
         mLoadingState(INIT),mListeners(std::set<TerrainManagerEventListener *>()),
-        mTerrainGlobals(NULL),mTerrainGroup(NULL),mTerrainsImported(false),mPath("")
+        mTerrainGlobals(NULL),mTerrainGroup(NULL),mTerrainsImported(false),mPath(""),
+        mTerrainPhysicsMan(NULL)
     {
     }
 
@@ -27,7 +29,7 @@ namespace Steel
         mResourceGroupName(o.mResourceGroupName),mLoadingState(o.mLoadingState),
         mListeners(o.mListeners),mTerrainGlobals(o.mTerrainGlobals),
         mTerrainGroup(o.mTerrainGroup),mTerrainsImported(o.mTerrainsImported),
-        mPath(o.mPath)
+        mPath(o.mPath),mTerrainPhysicsMan(NULL)
     {
     }
 
@@ -38,14 +40,6 @@ namespace Steel
 
     TerrainManager& TerrainManager::operator=(const TerrainManager& o)
     {
-        //TODO: check this
-        mResourceGroupName=o.mResourceGroupName;
-        mLoadingState=o.mLoadingState;
-        mListeners=o.mListeners;
-        mTerrainGlobals=o.mTerrainGlobals;
-        mTerrainGroup=o.mTerrainGroup;
-        mTerrainsImported=o.mTerrainsImported;
-        mPath=o.mPath;
         return *this;
     }
 
@@ -80,6 +74,11 @@ namespace Steel
 
     void TerrainManager::shutdown()
     {
+        if(NULL!=mTerrainPhysicsMan)
+        {
+            delete mTerrainPhysicsMan;
+            mTerrainPhysicsMan=NULL;
+        }
         Ogre::Root::getSingletonPtr()->removeFrameListener(this);
         if(NULL!=mTerrainGroup)
         {
@@ -145,6 +144,8 @@ namespace Steel
             buildPath.mkdir();
         mTerrainGroup->setFilenameConvention(buildPath.subfile("terrain").fullPath(), Ogre::String("terrain"));
         mTerrainGroup->setOrigin(Ogre::Vector3::ZERO);
+
+        mTerrainPhysicsMan=new TerrainPhysicsManager(this);
 
         // default terrain
 //         Ogre::ColourValue ambient=Ogre::ColourValue::White;
@@ -481,7 +482,7 @@ namespace Steel
     void TerrainManager::addTerrainSlot(TerrainManager::TerrainSlotData slot)
     {
         defineTerrain(slot);
-        update();
+        updateTerrains();
     }
 
     TerrainManager::TerrainSlotData TerrainManager::terrainSlotFromJson(Json::Value &terrainSlotValue,TerrainManager::TerrainSlotData &terrainSlot)
@@ -512,7 +513,6 @@ namespace Steel
     {
 
         mLoadingState=INIT;
-        Ogre::Root::getSingletonPtr()->addFrameListener(this);
 
         // setup directional light for the terrain manager
         // TODO: encapsulate into a lightManager (need light models ?)
@@ -532,7 +532,7 @@ namespace Steel
         else
             for(auto it=terrainSlots.begin(); it!=terrainSlots.end(); ++it)
                 defineTerrain(*it);
-        update();
+        updateTerrains();
     }
 
     void TerrainManager::defineTerrain(TerrainSlotData &terrainSlotData)
@@ -553,8 +553,6 @@ namespace Steel
             idata->worldSize=terrainSlotData.worldSize;
             // as for now, we only use defaults for those values
             idata->layerDeclaration=mTerrainGroup->getDefaultImportSettings().layerDeclaration;
-//             auto ll=mTerrainGroup->getDefaultImportSettings().layerList;
-//             idata->layerList=Ogre::Terrain::LayerInstanceList(ll.begin(),ll.end());
             idata->layerList.assign(terrainSlotData.layerList.begin(),terrainSlotData.layerList.end());
             if(mTerrainGroup->getTerrain(x,y)!=NULL)
                 mTerrainGroup->removeTerrain(x,y);
@@ -591,7 +589,12 @@ namespace Steel
         defaultimp.layerList.assign(newDefault.layerList.begin(),newDefault.layerList.end());
     }
 
-    void TerrainManager::update()
+    void TerrainManager::update(float timestep)
+    {
+        mTerrainPhysicsMan->update(timestep);
+    }
+
+    void TerrainManager::updateTerrains()
     {
         mLoadingState=INIT;
         Ogre::Root::getSingletonPtr()->addFrameListener(this);
@@ -647,30 +650,82 @@ namespace Steel
 
     bool TerrainManager::frameRenderingQueued(const Ogre::FrameEvent &evt)
     {
-        if (mTerrainGroup->isDerivedDataUpdateInProgress())
+        bool verbose=false;
+        bool updateInProgress=mTerrainGroup->isDerivedDataUpdateInProgress();
+        switch(mLoadingState)
         {
-            if (mTerrainsImported)
-            {
-                if(mLoadingState!=BUILDING)
+            case INIT:
+                if(updateInProgress)
                 {
-                    mLoadingState=BUILDING;
-                    Debug::log("TerrainManager now in BUILDING state.").endl();
+                    if(mTerrainsImported)
+                    {
+                        mLoadingState=BUILDING;
+                        if(verbose)Debug::log("TerrainManager now in BUILDING state.").endl();
+                        yieldEvent(mLoadingState);
+                    }
+                    else
+                    {
+                        // done importing
+                        mLoadingState=TEXTURING;
+                        if(verbose)Debug::log("TerrainManager now in TEXTURING state.").endl();
+                        yieldEvent(mLoadingState);
+                    }
+                }
+                else
+                    mLoadingState=SAVING;
+                break;
+            case BUILDING:
+                // geometry operations are synchronous, no need to wait.
+                mLoadingState=TEXTURING;
+                if(verbose)Debug::log("TerrainManager now in TEXTURING state.").endl();
+                yieldEvent(mLoadingState);
+                break;
+            case TEXTURING:
+                if(!updateInProgress)
+                {
+                    //done texturing
+                    mLoadingState=SAVING;
+                    if(verbose)Debug::log("TerrainManager now in SAVING state.").endl();
                     yieldEvent(mLoadingState);
+                }
+                break;
+            case SAVING:
+                // TODO:keep fast caching, add invalidate feature
+                //mTerrainGroup->saveAllTerrains(true);
+                mLoadingState=READY;
+                if(verbose)Debug::log("TerrainManager now in READY state.").endl();
+                yieldEvent(mLoadingState);
+                break;
+            case READY:
+                Ogre::Root::getSingletonPtr()->removeFrameListener(this);
+                break;
+            default:
+                Debug::error("hit default case in TerrainManager::frameRenderingQueued()").endl();
+        }
+        if(0)
+        {
+            if (mTerrainGroup->isDerivedDataUpdateInProgress())
+            {
+                if (mTerrainsImported)
+                {
+                    if(mLoadingState!=BUILDING)
+                    {
+                        mLoadingState=BUILDING;
+                        Debug::log("TerrainManager now in BUILDING state.").endl();
+                        yieldEvent(mLoadingState);
+                    }
+                }
+                else
+                {
+                    if(mLoadingState!=TEXTURING)
+                    {
+                        mLoadingState=TEXTURING;
+                        Debug::log("TerrainManager now in TEXTURING state.").endl();
+                        yieldEvent(mLoadingState);
+                    }
                 }
             }
             else
-            {
-                if(mLoadingState!=TEXTURING)
-                {
-                    mLoadingState=TEXTURING;
-                    Debug::log("TerrainManager now in TEXTURING state.").endl();
-                    yieldEvent(mLoadingState);
-                }
-            }
-        }
-        else
-        {
-            if (mTerrainsImported)
             {
                 if(mLoadingState!=SAVING)
                 {
@@ -682,11 +737,14 @@ namespace Steel
                 }
                 else
                 {
-                    mTerrainsImported = false;
-                    Ogre::Root::getSingletonPtr()->removeFrameListener(this);
-                    mLoadingState=READY;
-                    Debug::log("TerrainManager now in READY state.").endl();
-                    yieldEvent(mLoadingState);
+                    if(!mTerrainsImported)
+                    {
+                        mTerrainsImported = false;
+                        mLoadingState=READY;
+                        Debug::log("TerrainManager now in READY state.").endl();
+                        yieldEvent(mLoadingState);
+                        Ogre::Root::getSingletonPtr()->removeFrameListener(this);
+                    }
                 }
             }
         }
@@ -797,7 +855,13 @@ namespace Steel
             if(minx<maxx && minz<maxz)
             {
                 terrain->dirtyRect(Ogre::Rect(minx,minz,maxx,maxz));
-                terrain->updateGeometry();
+                terrain->update(false);
+                if(BUILDING!=mLoadingState)
+                {
+                    mLoadingState=INIT;
+                    mTerrainsImported=true;
+                    Ogre::Root::getSingletonPtr()->addFrameListener(this);
+                }
             }
         }
         return terrains;
@@ -848,4 +912,5 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 

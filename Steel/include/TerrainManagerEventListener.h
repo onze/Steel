@@ -5,6 +5,7 @@
 
 namespace Steel
 {
+    /// Class inheriting void onTerrainEvent(TerrainManager::LoadingState state);
     class TerrainManagerEventListener
     {
         public:

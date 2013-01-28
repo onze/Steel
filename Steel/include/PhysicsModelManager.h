@@ -1,7 +1,7 @@
 #ifndef PHYSICSMODELMANAGER_H
 #define PHYSICSMODELMANAGER_H
 
-#include <btBulletDynamicsCommon.h>
+class btDynamicsWorld;
 
 #include "steeltypes.h"
 #include "_ModelManager.h"
@@ -13,11 +13,8 @@ namespace Steel
     {
 
         public:
-            PhysicsModelManager(Level *level);
+            PhysicsModelManager(Level *level,btDynamicsWorld *world);
             virtual ~PhysicsModelManager();
-
-            ///
-            void init();
 
             /**
              * batched call to fromSingleJson.
@@ -37,18 +34,11 @@ namespace Steel
                 return MT_PHYSICS;
             };
             
-            /// Main loop iteration
-            void update(float timestep);
-            
         protected:
             virtual bool onAgentLinked(AgentId aid, ModelId mid);
             // not owned
-            //owned
             btDynamicsWorld *mWorld;
-            btSequentialImpulseConstraintSolver *mSolver;
-            btCollisionDispatcher *mDispatcher;
-            btDefaultCollisionConfiguration *mCollisionConfig;
-            btAxisSweep3 *mBroadphase;
+            //owned
     };
 }
 #endif // PHYSICSMODELMANAGER_H

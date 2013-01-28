@@ -21,6 +21,7 @@ namespace Ogre
 namespace Steel
 {
     class TerrainManagerEventListener;
+    class TerrainPhysicsManager;
     class TerrainManager:public Ogre::FrameListener
     {
         protected:
@@ -31,11 +32,11 @@ namespace Steel
             class TerrainSlotData
             {
                 public:
+                    TerrainSlotData &operator=(const TerrainSlotData &o);
+                    TerrainSlotData(const TerrainSlotData &o);
                     TerrainSlotData();
                     TerrainSlotData(long x,long y);
-                    TerrainSlotData(const TerrainSlotData &o);
                     virtual ~TerrainSlotData();
-                    TerrainSlotData &operator=(const TerrainSlotData &o);
                     bool isValid();
 
                     long int slot_x;
@@ -45,6 +46,10 @@ namespace Steel
                     Ogre::Real worldSize;
                     Ogre::Terrain::LayerInstanceList layerList;
             };
+            
+            TerrainManager(const TerrainManager& other);
+            virtual TerrainManager& operator=(const TerrainManager& other);
+            virtual bool operator==(const TerrainManager& other) const;
 
         public:
             /// terrain size in vertices (should be 2^n+1)
@@ -58,10 +63,7 @@ namespace Steel
             enum LoadingState {INIT=0,BUILDING,TEXTURING,SAVING,READY};
 
             TerrainManager();
-            TerrainManager(const TerrainManager& other);
             virtual ~TerrainManager();
-            virtual TerrainManager& operator=(const TerrainManager& other);
-            virtual bool operator==(const TerrainManager& other) const;
 
             /// adds and instanciate a slot.
             void addTerrainSlot(TerrainManager::TerrainSlotData slot);
@@ -116,6 +118,9 @@ namespace Steel
             /// take a terrain slot seralization and return its deserialized version
             TerrainSlotData terrainSlotFromJson(Json::Value &terrainSlotValue,TerrainManager::TerrainSlotData &terrainSlot);
 
+            /// Main loop iteration
+            void update(float timestep);
+
             /// recompute blendmaps according to rules
             void updateBlendMaps(Ogre::Terrain* terrain);
 
@@ -124,17 +129,24 @@ namespace Steel
             {
                 return mTerrainGroup;
             }
+            
+            inline TerrainPhysicsManager *terrainPhysicsMan()
+            {
+                return mTerrainPhysicsMan;
+            }
 
         protected:
 
-            /// update a terrain slot.
+            /// Declares a terrain slot.
             void defineTerrain(Steel::TerrainManager::TerrainSlotData& terrainSlotData);
 
-            /// updates internal structures if needed.
-            void update();
-            /// sets default terrain settings
+            /// Updates internal terrain structures if needed.
+            void updateTerrains();
+
+            /// Sets default terrain settings
             void configureTerrainDefaults(Ogre::Light* light, Ogre::Terrain::ImportData& newDefault);
-            /// calls event listeners' callback methods.
+
+            /// Calls event listeners' callback methods.
             void yieldEvent(LoadingState state);
 
             // not owned
@@ -142,12 +154,14 @@ namespace Steel
 
             // owned
             Ogre::String mResourceGroupName;
+            /// Helps tracking overall internal terrains loading state.
             LoadingState mLoadingState;
             std::set<TerrainManagerEventListener *> mListeners;
             Ogre::TerrainGlobalOptions *mTerrainGlobals;
             Ogre::TerrainGroup *mTerrainGroup;
             bool mTerrainsImported;
             File mPath;
+            TerrainPhysicsManager *mTerrainPhysicsMan;
     };
 }
 #endif // TERRAINMANAGER_H

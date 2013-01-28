@@ -12,13 +12,14 @@
 namespace Steel
 {
     PhysicsModel::PhysicsModel():Model(),
-        mBody(NULL)
+        mWorld(NULL),mBody(NULL)
     {
 
     }
 
     void PhysicsModel::init(btDynamicsWorld *world,OgreModel *omodel)
     {
+        mWorld=world;
         Ogre::String intro="PhysicsModel::init(): ";
         if(NULL==world)
         {
@@ -48,24 +49,32 @@ namespace Steel
         world->addRigidBody(mBody);
     }
 
-    PhysicsModel::PhysicsModel(const PhysicsModel& other)
+    PhysicsModel::PhysicsModel(const PhysicsModel& o)
     {
-
+        operator=(o);
+    }
+    
+    PhysicsModel &PhysicsModel::operator=(const PhysicsModel& o)
+    {
+        Model::operator=(o);
+        mWorld=o.mWorld;
+        mBody=o.mBody;
+        return *this;
     }
 
     PhysicsModel::~PhysicsModel()
     {
-
+        if(!isFree())
+            cleanup();
     }
 
     void PhysicsModel::cleanup()
     {
-
-    }
-
-    PhysicsModel& PhysicsModel::operator=(const PhysicsModel& other)
-    {
-        return *this;
+        if(NULL!=mWorld)
+        {
+            mWorld->removeRigidBody(mBody);
+            mWorld=NULL;
+        }
     }
 
     ModelType PhysicsModel::modelType()

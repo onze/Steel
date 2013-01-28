@@ -27,6 +27,7 @@
 #include "tools/OgreUtils.h"
 #include <tools/StringUtils.h>
 #include <PhysicsModelManager.h>
+#include <TerrainPhysicsManager.h>
 
 namespace Steel
 {
@@ -66,13 +67,13 @@ namespace Steel
 
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
+        mTerrainMan.init(mName+".terrainManager",path.subfile(mName),mSceneManager);
+        
         mOgreModelMan = new OgreModelManager(this,mSceneManager, mLevelRoot);
-        mPhysicsModelMan = new PhysicsModelManager(this);
-        mPhysicsModelMan->init();
+        mPhysicsModelMan = new PhysicsModelManager(this,mTerrainMan.terrainPhysicsMan()->world());
 //	mBTModelMan = new BTModelManager(mPath);
         //mBTModelMan->loadResources();
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
-        mTerrainMan.init(mName+".terrainManager",path.subfile(mName),mSceneManager);
     }
 
     Level::~Level()
@@ -431,7 +432,7 @@ namespace Steel
     
     void Level::update(float timestep)
     {
-        mPhysicsModelMan->update(timestep);   
+        mTerrainMan.update(timestep);   
     }
 
 }
