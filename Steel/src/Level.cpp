@@ -478,6 +478,11 @@ namespace Steel
             assert(aid!=INVALID_ID);
             Agent *agent = getAgent(aid);
             agent->fromJson(*it);
+            if(agent->modelsIds().size()==0)
+            {
+                Debug::warning("deleting agent ")(aid)(" with 0 models.").endl();
+                deleteAgent(aid);
+            }
         }
         Debug::log("agents done").endl();
         Debug::log(logName()+".deserialize(): done").unIndent().endl();

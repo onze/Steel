@@ -57,22 +57,28 @@ namespace Steel
     bool Agent::fromJson(Json::Value &value)
     {
 //	Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
-        int nModels=0;
+        int nModels=0, nExpected=0;
         for (ModelType mt_it = (ModelType) ((int) MT_FIRST + 1); mt_it != MT_LAST; mt_it = (ModelType) ((int) mt_it + 1))
         {
-            Json::Value mTypeValue = value[modelTypesAsString[mt_it]];
+            Ogre::String mtName=modelTypesAsString[mt_it];
+            Json::Value mTypeValue = value[mtName];
             // possibly no model of this type
             if(mTypeValue.isNull())
                 continue;
+            ++nExpected;
             ModelId modelId = (ModelId) Ogre::StringConverter::parseUnsignedLong(mTypeValue.asString());
-            linkToModel(mt_it, modelId);
+            if(!linkToModel(mt_it, modelId))
+            {
+                Debug::error("Agent::fromJson(): agent ")(mId);
+                Debug::error(" would not link with model<>")(mtName)("> ")(mId)(". Skipping.").endl();
+                continue;
+            }
             ++nModels;
         }
-        if(nModels==0)
+        if(nModels!=nExpected)
         {
-            Debug::error("Agent::fromJson(): agent ")(mId);
-            Debug::error("linked with 0 models ? json string:").endl()(value).endl();
-            return false;
+            Debug::warning("Agent::fromJson(): agent ")(mId)(" linked with (")(nModels)(" models, ");
+            Debug::warning(nExpected)(" were expected. Json string:").endl()(value).endl();
         }
         return true;
     }
@@ -80,9 +86,9 @@ namespace Steel
     bool Agent::linkToModel(ModelType mType, ModelId modelId)
     {
         Ogre::String intro="Agent::linkToModel(type="+modelTypesAsString[mType]+", id="+Ogre::StringConverter::toString(modelId)+"): ";
-        if (modelId == INVALID_ID)
+        if(!mLevel->modelManager(mType)->isValid(modelId))
         {
-            Debug::error(intro)("Agent ")(mId)("'s model id is invalid. Aborting.").endl();
+            Debug::error(intro)("model ")(modelId)(" is not valid. Aborting.").endl();
             return false;
         }
 
@@ -94,8 +100,7 @@ namespace Steel
             return false;
         }
 
-        mLevel->modelManager(mType)->incRef(modelId);
-        return true;
+        return mLevel->modelManager(mType)->incRef(modelId);
     }
 
     void Agent::unlinkFromModel(ModelType mType)
