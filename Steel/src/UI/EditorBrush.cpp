@@ -162,7 +162,7 @@ namespace Steel
                             Ogre::Terrain *terrain=*it;
                             terrain->update(true);
                             level->terrainManager()->updateBlendMaps(terrain);
-                            level->terrainManager()->updateHeigtmap(terrain);
+//                             level->terrainManager()->updateHeightmap(terrain);
                             continue;
                             for(int index=1; index<terrain->getLayerCount(); ++index)
                                 terrain->getLayerBlendMap(index)->dirty();

@@ -19,7 +19,7 @@ namespace Ogre
 
 namespace BtOgre
 {
-    class DebugDrawer;   
+    class DebugDrawer;
 }
 
 class btHeightfieldTerrainShape;
@@ -35,6 +35,9 @@ namespace Steel
             class TerrainPhysics
             {
                 public:
+                    TerrainPhysics():
+                        mTerrainShape(NULL),mMotionState(NULL),mBody(NULL),mHeightfieldData(NULL)
+                    {}
                     btHeightfieldTerrainShape *mTerrainShape;
                     btDefaultMotionState* mMotionState;
                     btRigidBody* mBody;
@@ -54,21 +57,21 @@ namespace Steel
             bool activateTerrainFor(Ogre::Terrain *ogreTerrain);
             /// Removes a physics terrain's from the simulation
             bool deactivateTerrainFor(Ogre::Terrain *ogreTerrain);
-            
+
             btTransform getOgreTerrainTransform(Ogre::Terrain * oterrain);
-            
+
             /// Called by Ogre once per frame
             bool frameRenderingQueued(const Ogre::FrameEvent &evt);
-            
+
             /// Inherited from TerrainManagerEventListener
             void onTerrainEvent(TerrainManager::LoadingState state);
-            
+
             /// Returns whether debug draw of physic shapes is activated
             bool getDebugDraw();
 
             /// Main loop iteration
             void update(float timestep);
-            
+
             /// Update height values
             void updateHeightmap(Ogre::Terrain* terrain);
 
@@ -80,13 +83,13 @@ namespace Steel
 
             /// Returns the PhysicsTerrain representing the given terrain.
             TerrainPhysics *getTerrainFor(Ogre::Terrain *ogreTerrain) const;
-            
+
             // setters
             /// De/activate debug draw of physic shapes
             void setDebugDraw(bool flag);
-            
+
         protected:
-            void updateTerrainHeightData(Ogre::Terrain *oterrain, TerrainPhysics* pterrain);
+            void updateHeightmap(Ogre::Terrain *oterrain, TerrainPhysics* pterrain);
             // not owned
             /// owner
             TerrainManager *mTerrainMan;

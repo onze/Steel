@@ -3,6 +3,7 @@
 #include <BtOgrePG.h>
 #include <BtOgreExtras.h>
 #include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
+#include <BulletCollision/BroadphaseCollision/btBroadphaseProxy.h>
 
 #include "TerrainPhysicsManager.h"
 #include <Debug.h>
@@ -12,9 +13,8 @@
 
 namespace Steel
 {
-
     TerrainPhysicsManager::TerrainPhysicsManager(TerrainManager *terrainMan):
-        TerrainManagerEventListener(),Ogre::FrameListener(),
+    TerrainManagerEventListener(),Ogre::FrameListener(),
         mTerrainMan(NULL),mTerrains(std::map<Ogre::Terrain *,TerrainPhysics *>()),
         mWorld(NULL),mSolver(NULL),mDispatcher(NULL),mCollisionConfig(NULL),mBroadphase(NULL),
         mDebugDrawer(NULL)
@@ -122,7 +122,7 @@ namespace Steel
                 break;
         }
     }
-
+    
     TerrainPhysicsManager::TerrainPhysics *TerrainPhysicsManager::getTerrainFor(Ogre::Terrain *ogreTerrain) const
     {
         auto it=mTerrains.find(ogreTerrain);
@@ -164,7 +164,6 @@ namespace Steel
         btTransform transform=getOgreTerrainTransform(ogreTerrain);
         terrain->mMotionState = new btDefaultMotionState(transform);
 
-        updateTerrainHeightData(ogreTerrain,terrain);
 
         btScalar mass(0.);
         btVector3 localInertia(0,0,0);
@@ -175,7 +174,9 @@ namespace Steel
                 localInertia);
         terrain->mBody= new btRigidBody(rbInfo);
         terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
-
+        
+        updateHeightmap(ogreTerrain,terrain);
+        
         //add the body to the dynamics world
         mWorld->addRigidBody(terrain->mBody);
         return true;
@@ -198,9 +199,9 @@ namespace Steel
     {
         TerrainPhysics *pterrain=getTerrainFor(oterrain);
         if(NULL!=pterrain)
-            updateTerrainHeightData(oterrain,pterrain);
+            updateHeightmap(oterrain,pterrain);
     }
-    void TerrainPhysicsManager::updateTerrainHeightData(Ogre::Terrain *oterrain,TerrainPhysics *pterrain)
+    void TerrainPhysicsManager::updateHeightmap(Ogre::Terrain *oterrain,TerrainPhysics *pterrain)
     {
         // We need to mirror the ogre-height-data along the z axis
         // This is related to how Ogre and Bullet differ in heighmap storing
@@ -226,6 +227,15 @@ namespace Steel
         transform.setOrigin(BtOgre::Convert::toBullet(pos));
         transform.setRotation(BtOgre::Convert::toBullet(Ogre::Quaternion::IDENTITY));
         pterrain->mMotionState->setWorldTransform(transform);
+        
+        // wake up rigbodies in the area
+        pterrain->mBody->activate(true);
+//         btVector3 min,max;
+//         pterrain->mBody->getAabb(min,max);
+        auto objects=mWorld->getCollisionObjectArray();
+        for(auto i=0;i<objects.size();++i)
+            objects[i]->activate(true);
+//         mWorld->contactTest(pterrain->mBody->getCollisionShape(),);
     }
     bool TerrainPhysicsManager::removeTerrainFor(Ogre::Terrain *ogreTerrain)
     {

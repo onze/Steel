@@ -79,11 +79,11 @@ namespace Steel
     Level::~Level()
     {
         Debug::log(logName()+".~Level()").endl();
-        mTerrainMan.shutdown();
 
         mPhysicsModelMan->clear();
         delete mPhysicsModelMan;
         mPhysicsModelMan=NULL;
+        mTerrainMan.shutdown();
 
         mOgreModelMan->clear();
         delete mOgreModelMan;

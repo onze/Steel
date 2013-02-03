@@ -126,7 +126,7 @@ namespace Steel
             void updateBlendMaps(Ogre::Terrain* terrain);
             
             /// Recompute heightmap for the given terrain
-            void updateHeigtmap(Ogre::Terrain* terrain);
+            void updateHeightmap(Ogre::Terrain* terrain);
 
             // getters
             inline Ogre::TerrainGroup *terrainGroup()

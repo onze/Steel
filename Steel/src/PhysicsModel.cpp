@@ -53,7 +53,7 @@ namespace Steel
     {
         operator=(o);
     }
-    
+
     PhysicsModel &PhysicsModel::operator=(const PhysicsModel& o)
     {
         Model::operator=(o);
@@ -70,9 +70,10 @@ namespace Steel
 
     void PhysicsModel::cleanup()
     {
-        if(NULL!=mWorld)
+        if(NULL!=mWorld && mBody!=NULL)
         {
             mWorld->removeRigidBody(mBody);
+            mBody=NULL;
             mWorld=NULL;
         }
     }
@@ -91,14 +92,14 @@ namespace Steel
     {
         Json::Value value;
         bool allWasFine = true;
-        
+
         // gather it
         value = root["mass"];
         if (value.isNull() && !(allWasFine = false))
             Debug::error("in PhysicsModel::fromJson(): invalid field 'mass' (skipped).").endl();
         else
             mMass = Ogre::StringConverter::parseReal(value.asString(),0.f);
-        
+
         if (!allWasFine)
         {
             Debug::error("json was:").endl()(root.toStyledString()).endl();

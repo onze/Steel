@@ -650,7 +650,7 @@ namespace Steel
         blendMap1->update();
     }
     
-    void TerrainManager::updateHeigtmap(Ogre::Terrain* terrain)
+    void TerrainManager::updateHeightmap(Ogre::Terrain* terrain)
     {
         mTerrainPhysicsMan->updateHeightmap(terrain);
     }
@@ -823,6 +823,7 @@ namespace Steel
                     mTerrainsImported=true;
                     Ogre::Root::getSingletonPtr()->addFrameListener(this);
                 }
+                mTerrainPhysicsMan->updateHeightmap(terrain);
             }
         }
         return terrains;
