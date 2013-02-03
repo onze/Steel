@@ -1,7 +1,10 @@
 #ifndef TERRAINPHYSICSMANAGER_H
 #define TERRAINPHYSICSMANAGER_H
+
 #include <map>
+
 #include <OgreVector2.h>
+#include <OgreFrameListener.h>
 
 #include "TerrainManagerEventListener.h"
 #include "TerrainManager.h"
@@ -11,16 +14,23 @@ namespace Ogre
     class Terrain;
 }
 
+namespace BtOgre
+{
+    class DebugDrawer;   
+}
+
 class btHeightfieldTerrainShape;
 class btDynamicsWorld;
 class btSequentialImpulseConstraintSolver;
 class btCollisionDispatcher;
 class btDefaultCollisionConfiguration;
 class btAxisSweep3;
+class btDefaultMotionState;
+class btRigidBody;
 
 namespace Steel
 {
-    class TerrainPhysicsManager:public TerrainManagerEventListener
+    class TerrainPhysicsManager:public TerrainManagerEventListener,Ogre::FrameListener
     {
         private:
             TerrainPhysicsManager(const TerrainPhysicsManager& other);
@@ -30,13 +40,15 @@ namespace Steel
             {
                 public:
                     btHeightfieldTerrainShape *mTerrainShape;
+                    btDefaultMotionState* mMotionState;
+                    btRigidBody* mBody;
             };
 
         public:
             TerrainPhysicsManager(TerrainManager *terrainMan);
             virtual ~TerrainPhysicsManager();
 
-            /// Instanciates a physics terrain
+            /// Instanciates a physics terrain. See bullet terrain demo for reference.
             bool createTerrainFor(Ogre::Terrain* ogreTerrain);
             /// Deletes a physics terrain
             bool removeTerrainFor(Ogre::Terrain* ogreTerrain);
@@ -45,6 +57,9 @@ namespace Steel
             bool activateTerrainFor(Ogre::Terrain *ogreTerrain);
             /// Removes a physics terrain's from the simulation
             bool deactivateTerrainFor(Ogre::Terrain *ogreTerrain);
+            
+            /// Called by Ogre once per frame
+            bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 
             /// Main loop iteration
             void update(float timestep);
@@ -58,10 +73,15 @@ namespace Steel
                 return mWorld;
             }
 
-        protected:
-
             /// Returns the PhysicsTerrain representing the given terrain.
-            TerrainPhysics *getTerrainFor(Ogre::Terrain *ogreTerrain);
+            TerrainPhysics *getTerrainFor(Ogre::Terrain *ogreTerrain) const;
+            
+            /// Returns whether debug draw of physic shapes is activated
+            bool getDebugDraw();
+            
+            /// De/activate debug draw of physic shapes
+            void setDebugDraw(bool flag);
+        protected:
 
             // not owned
             /// owner
@@ -75,6 +95,7 @@ namespace Steel
             btCollisionDispatcher *mDispatcher;
             btDefaultCollisionConfiguration *mCollisionConfig;
             btAxisSweep3 *mBroadphase;
+            BtOgre::DebugDrawer *mDebugDrawer;
 
     };
 }

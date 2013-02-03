@@ -9,7 +9,6 @@ class btDynamicsWorld;
 
 namespace Steel
 {
-    class Agent;
     class OgreModel;
     class PhysicsModel:public Model
     {
@@ -32,6 +31,7 @@ namespace Steel
             btDynamicsWorld *mWorld;
             //owned
             btRigidBody* mBody;
+            Ogre::Real mMass;
     };
 }
 #endif // PHYSICSMODEL_H

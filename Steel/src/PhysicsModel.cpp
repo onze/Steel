@@ -6,18 +6,19 @@
 #include "steeltypes.h"
 #include <Agent.h>
 #include <OgreModel.h>
+#include <tools/StringUtils.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 
 namespace Steel
 {
     PhysicsModel::PhysicsModel():Model(),
-        mWorld(NULL),mBody(NULL)
+        mWorld(NULL),mBody(NULL),mMass(.0f)
     {
 
     }
 
-    void PhysicsModel::init(btDynamicsWorld *world,OgreModel *omodel)
+    void PhysicsModel::init(btDynamicsWorld* world, Steel::OgreModel* omodel)
     {
         mWorld=world;
         Ogre::String intro="PhysicsModel::init(): ";
@@ -37,15 +38,14 @@ namespace Steel
         btSphereShape *mShape = converter.createSphere();
 
         //Calculate inertia.
-        btScalar mass = 5;
         btVector3 inertia;
-        mShape->calculateLocalInertia(mass, inertia);
+        mShape->calculateLocalInertia(mMass, inertia);
 
         //Create BtOgre MotionState (connects Ogre and Bullet).
         BtOgre::RigidBodyState *state = new BtOgre::RigidBodyState(omodel->sceneNode());
 
         //Create the Body.
-        mBody = new btRigidBody(mass, state, mShape, inertia);
+        mBody = new btRigidBody(mMass, state, mShape, inertia);
         world->addRigidBody(mBody);
     }
 
@@ -82,13 +82,29 @@ namespace Steel
         return MT_PHYSICS;
     }
 
-    void PhysicsModel::toJson(Json::Value &object)
+    void PhysicsModel::toJson(Json::Value &root)
     {
-
+        root["mass"]=StringUtils::toJson(mMass);
     }
 
-    bool PhysicsModel::fromJson(Json::Value &object)
+    bool PhysicsModel::fromJson(Json::Value &root)
     {
+        Json::Value value;
+        bool allWasFine = true;
+        
+        // gather it
+        value = root["mass"];
+        if (value.isNull() && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field 'mass' (skipped).").endl();
+        else
+            mMass = Ogre::StringConverter::parseReal(value.asString(),0.f);
+        
+        if (!allWasFine)
+        {
+            Debug::error("json was:").endl()(root.toStyledString()).endl();
+            Debug::error("deserialisation aborted.").endl();
+            return false;
+        }
         return true;
     }
 

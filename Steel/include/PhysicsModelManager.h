@@ -34,8 +34,8 @@ namespace Steel
                 return MT_PHYSICS;
             };
             
+            virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
         protected:
-            virtual bool onAgentLinked(AgentId aid, ModelId mid);
             // not owned
             btDynamicsWorld *mWorld;
             //owned

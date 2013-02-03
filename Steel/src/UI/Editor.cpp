@@ -77,10 +77,32 @@ namespace Steel
 //             elem->AddEventListener("submit",this);
         }
         mBrush.init(engine,this,mInputMan);
-        // brush shape
-        auto form=static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById("editor_select_terrabrush_shape"));
-        if(form!=NULL and form->GetNumOptions()>0)
-            form->SetSelection(0);
+    }
+
+    AgentId Editor::agentIdUnderMouse()
+    {
+        auto selection=std::list<ModelId>();
+        mEngine->pickAgents(selection, mInputMan->mousePos().x,mInputMan->mousePos().y);
+
+        AgentId aid=INVALID_ID;
+        if(selection.size()>0)
+            aid=selection.front();
+        return aid;
+    }
+
+    ModelId Editor::modelIdUnderMouse(ModelType mType)
+    {
+        Ogre::String intro="Editor::ModelIdUnderMouse(mType="+modelTypesAsString[mType]+")";
+
+        ModelId mid=INVALID_ID;
+        AgentId aid=agentIdUnderMouse();
+
+        Agent *agent=mEngine->level()->getAgent(aid);
+        if(NULL==agent)
+            Debug::error(intro)("Can't find agent ")(aid).endl();
+        else
+            mid=agent->modelId(mType);
+        return mid;
     }
 
     bool Editor::dynamicFillSerialization(Json::Value& root)
@@ -120,6 +142,13 @@ namespace Steel
 
                     if(selection.size()>0)
                         new_svalue=Ogre::StringConverter::toString((unsigned int)selection.front());
+                    else
+                        new_svalue=Json::Value().asString();
+                }
+                else if(svalue=="$OgreModelUnderMouse")
+                {
+                    //TODO use ModelIdUnderMouse
+                    if(0);
                     else
                         new_svalue=Json::Value().asString();
                 }
@@ -279,6 +308,7 @@ namespace Steel
             if(aid==INVALID_ID)
             {
                 level->ogreModelMan()->releaseModel(mid);
+                level->deleteAgent(aid);
                 Debug::error(intro)("could not create an agent to link the model to. Model released. Aborted.").endl();
                 return;
             }
@@ -294,15 +324,20 @@ namespace Steel
         }
         else if(modelType=="MT_PHYSICS")
         {
+            AgentId aid=agentIdUnderMouse();
+            if(INVALID_ID==aid)
+            {
+                Debug::error(intro)("invalid agent id. Aborted.").endl();
+                return;
+            }
             ModelId mid=level->physicsModelMan()->fromSingleJson(root);
-            Debug::log("new PhysicsModel with id ")(mid).endl();
-            AgentId aid=Ogre::StringConverter::parseLong(root["targetAgent"].asString(),INVALID_ID);
-
             if(!level->linkAgentToModel(aid,MT_PHYSICS,mid))
             {
-                level->physicsModelMan()->releaseModel(mid);
-                Debug::error(intro)("could not link agent ")(aid)(" to PhysicsModel ")(mid)(". Model released. Aborted.").endl();
+                level->physicsModelMan()->decRef(mid);
+                Debug::error(intro)("could not link. Model released. Aborted.").endl();
             }
+            else
+                Debug::log("new PhysicsModel with id ")(mid).endl();
             //TODO add visual notification in the UI
         }
         else
@@ -416,6 +451,17 @@ namespace Steel
 
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
+
+        // set brush shape
+        auto select_form=static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById("editor_select_terrabrush_shape"));
+        if(select_form!=NULL and select_form->GetNumOptions()>0)
+        {
+            int index=select_form->GetSelection();
+            if(index<0)
+                select_form->SetSelection(0);
+            else
+                processCommand(Ogre::String("editorbrush.terrabrush.distribution.")+select_form->GetOption(index)->GetValue().CString());
+        }
     }
 
     void Editor::onHide()
@@ -436,6 +482,8 @@ namespace Steel
 
     void Editor::ProcessEvent(Rocket::Core::Event &evt)
     {
+        if(!isVisible())
+            return;
         // create the command
         Rocket::Core::Element *elem=NULL;
         // in case of drag&drop, elem points to the element being dragged
@@ -455,7 +503,7 @@ namespace Steel
 
         if(elem==NULL)
         {
-            Debug::log("Editor::ProcessEvent(): no target element for event of type ")(evt.GetType()).endl();
+            if(mDebugEvents)Debug::log("Editor::ProcessEvent(): no target element for event of type ")(evt.GetType()).endl();
             return;
         }
 

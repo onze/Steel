@@ -122,28 +122,34 @@ namespace Steel
             m->toJson(object[Ogre::StringConverter::toString(id)]);
         }
     }
-
-    template<class M>
-    bool _ModelManager<M>::linkAgentToModel(AgentId aid, ModelId mid)
-    {
-        Agent *agent = mLevel->getAgent(aid);
-        if(!agent->linkToModel(modelType(),mid))
+    
+        template<class M>
+        bool _ModelManager<M>::onAgentLinkedToModel(AgentId aid, ModelId mid)
         {
-            Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
-            Debug::error("): agent could not link to model.Aborted.").endl();
-            return false;
+            // no problem with that
+            return true;
         }
-
-        if(!onAgentLinked(aid,mid))
-        {
-            agent->unlinkFromModel(modelType());
-            Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
-            Debug::error("): specialized linking errored. Agent unlinked. Aborted.").endl();
-            return false;
-        }
-
-        return incRef(mid);
-    }
+//     template<class M>
+//     bool _ModelManager<M>::linkAgentToModel(AgentId aid, ModelId mid)
+//     {
+//         Agent *agent = mLevel->getAgent(aid);
+//         if(!agent->linkToModel(modelType(),mid))
+//         {
+//             Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
+//             Debug::error("): agent could not link to model.Aborted.").endl();
+//             return false;
+//         }
+// 
+//         if(!onAgentLinkedToModel(aid,mid))
+//         {
+//             agent->unlinkFromModel(modelType());
+//             Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
+//             Debug::error("): specialized linking errored. Agent unlinked. Aborted.").endl();
+//             return false;
+//         }
+// 
+//         return incRef(mid);
+//     }
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -29,7 +29,7 @@ namespace Steel
 
     std::vector<ModelId> OgreModelManager::fromJson(Json::Value &models)
     {
-        Debug::log("OgreModelManager::fromJson()")(models).endl();
+        Debug::log(logName()+"::fromJson()")(models).endl();
         std::vector<ModelId> ids;
         for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
         {

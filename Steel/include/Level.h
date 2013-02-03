@@ -54,7 +54,10 @@ namespace Steel
             
             bool isOver();
 
-            bool linkAgentToModel(AgentId aid, ModelType mtype, ModelId mid);
+            /// Links an agent to a model.
+            bool linkAgentToModel(AgentId aid,ModelType mType,ModelId mid);
+            /// Triggered by an agent that linked to a model.
+            bool onAgentLinkedToModel(AgentId aid, ModelType mtype, ModelId mid);
 
             /**
              * loads a level serialization string from a file and restore the state it represents.

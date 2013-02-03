@@ -605,8 +605,10 @@ namespace Steel
             Ogre::TerrainGroup::TerrainIterator ti = mTerrainGroup->getTerrainIterator();
             while(ti.hasMoreElements())
             {
-                Ogre::Terrain* t = ti.getNext()->instance;
-                updateBlendMaps(t);
+                Ogre::Terrain* terrain = ti.getNext()->instance;
+                updateBlendMaps(terrain);
+                if(NULL==mTerrainPhysicsMan->getTerrainFor(terrain))
+                    mTerrainPhysicsMan->createTerrainFor(terrain);
             }
         }
         mTerrainGroup->freeTemporaryResources();
@@ -701,52 +703,6 @@ namespace Steel
                 break;
             default:
                 Debug::error("hit default case in TerrainManager::frameRenderingQueued()").endl();
-        }
-        if(0)
-        {
-            if (mTerrainGroup->isDerivedDataUpdateInProgress())
-            {
-                if (mTerrainsImported)
-                {
-                    if(mLoadingState!=BUILDING)
-                    {
-                        mLoadingState=BUILDING;
-                        Debug::log("TerrainManager now in BUILDING state.").endl();
-                        yieldEvent(mLoadingState);
-                    }
-                }
-                else
-                {
-                    if(mLoadingState!=TEXTURING)
-                    {
-                        mLoadingState=TEXTURING;
-                        Debug::log("TerrainManager now in TEXTURING state.").endl();
-                        yieldEvent(mLoadingState);
-                    }
-                }
-            }
-            else
-            {
-                if(mLoadingState!=SAVING)
-                {
-                    mLoadingState=SAVING;
-                    Debug::log("TerrainManager now in SAVING state.").endl();
-                    yieldEvent(mLoadingState);
-                    // TODO:keep fast caching, add invalidate feature
-                    //                     mTerrainGroup->saveAllTerrains(true);
-                }
-                else
-                {
-                    if(!mTerrainsImported)
-                    {
-                        mTerrainsImported = false;
-                        mLoadingState=READY;
-                        Debug::log("TerrainManager now in READY state.").endl();
-                        yieldEvent(mLoadingState);
-                        Ogre::Root::getSingletonPtr()->removeFrameListener(this);
-                    }
-                }
-            }
         }
         // continue rendering
         return true;

@@ -60,11 +60,11 @@ namespace Steel
         int nModels=0;
         for (ModelType mt_it = (ModelType) ((int) MT_FIRST + 1); mt_it != MT_LAST; mt_it = (ModelType) ((int) mt_it + 1))
         {
-            Json::Value modelTypeValue = value[modelTypesAsString[mt_it]];
+            Json::Value mTypeValue = value[modelTypesAsString[mt_it]];
             // possibly no model of this type
-            if(modelTypeValue.isNull())
+            if(mTypeValue.isNull())
                 continue;
-            ModelId modelId = (ModelId) Ogre::StringConverter::parseUnsignedLong(modelTypeValue.asString());
+            ModelId modelId = (ModelId) Ogre::StringConverter::parseUnsignedLong(mTypeValue.asString());
             linkToModel(mt_it, modelId);
             ++nModels;
         }
@@ -77,9 +77,9 @@ namespace Steel
         return true;
     }
 
-    bool Agent::linkToModel(ModelType modelType, ModelId modelId)
+    bool Agent::linkToModel(ModelType mType, ModelId modelId)
     {
-        Ogre::String intro="Agent::linkToModel(type="+Ogre::StringConverter::toString(modelType)+", id="+Ogre::StringConverter::toString(modelId)+"): ";
+        Ogre::String intro="Agent::linkToModel(type="+modelTypesAsString[mType]+", id="+Ogre::StringConverter::toString(modelId)+"): ";
         if (modelId == INVALID_ID)
         {
             Debug::error(intro)("Agent ")(mId)("'s model id is invalid. Aborting.").endl();
@@ -87,40 +87,40 @@ namespace Steel
         }
 
         //result.first==iterator placed at location, result.second==successful insertion flag
-        auto result=mModelIds.insert(std::pair<ModelType, ModelId>(modelType, modelId));
+        auto result=mModelIds.insert(std::pair<ModelType, ModelId>(mType, modelId));
         if(!result.second)
         {
             Debug::error(intro)("Could not insert model (overwrites are not allowed). Aborting.").endl();
             return false;
         }
 
-        mLevel->modelManager(modelType)->incRef(modelId);
+        mLevel->modelManager(mType)->incRef(modelId);
         return true;
     }
 
-    void Agent::unlinkFromModel(ModelType modelType)
+    void Agent::unlinkFromModel(ModelType mType)
     {
-        auto it=mModelIds.find(modelType);
+        auto it=mModelIds.find(mType);
         if(it!=mModelIds.end())
         {
-            mLevel->modelManager(modelType)->decRef((*it).second);
+            mLevel->modelManager(mType)->decRef((*it).second);
             mModelIds.erase(it);
         }
     }
 
-    Model *Agent::model(ModelType modelType)
+    Model *Agent::model(ModelType mType)
     {
-        ModelId id = modelId(modelType);
+        ModelId id = modelId(mType);
 
         if (id == INVALID_ID)
             return NULL;
 
-        return mLevel->modelManager(modelType)->at(id);
+        return mLevel->modelManager(mType)->at(id);
     }
 
-    ModelId Agent::modelId(ModelType modelType)
+    ModelId Agent::modelId(ModelType mType)
     {
-        std::map<ModelType, ModelId>::iterator it = mModelIds.find(modelType);
+        std::map<ModelType, ModelId>::iterator it = mModelIds.find(mType);
         return (it == mModelIds.end() ? INVALID_ID : it->second);
     }
 
@@ -133,7 +133,7 @@ namespace Steel
 
     Json::Value Agent::toJson()
     {
-//	Debug::log("Agent<")(mId)("> with ")(mModelIds.size())(" modelTypes:").endl();
+//	Debug::log("Agent<")(mId)("> with ")(mModelIds.size())(" mTypes:").endl();
         Json::Value root;
         // add the agent's model ids to its json representation
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)

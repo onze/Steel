@@ -110,7 +110,7 @@ namespace Steel
              * center to the given coordinates.
              * see http://www.ogre3d.org/tikiwiki/Raycasting+to+the+polygon+level
              */
-            void pickAgents(std::list<ModelId> &selection, int x, int y);
+            void pickAgents(std::list< Steel::AgentId >& selection, int x, int y);
 
             /// execute a serialized command. Return true if the next command can be processed before the next frame.
             bool processCommand(std::vector<Ogre::String> command);

@@ -50,6 +50,11 @@ namespace Steel
              * and instanciate it.
              */
             void loadTerrainSlotFromSerialization(Json::Value &root);
+            
+            /// Finds the agent owning the first OgreModel under the mouse, and returns its id.
+            AgentId agentIdUnderMouse();
+            /// Finds the agent owning the first OgreModel under the mouse, and returns its model of the given type.
+            ModelId modelIdUnderMouse(ModelType mType);
 
             /** returns whether the given screen coordinates collide with the child element with given Id.
              * If no Id is given, the hit test is made with the main document.**/

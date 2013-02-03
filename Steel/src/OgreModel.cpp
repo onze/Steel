@@ -133,6 +133,7 @@ namespace Steel
 
     bool OgreModel::fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager)
     {
+        Ogre::String intro="in OgreModel::fromJson(): ";
         // data to gather
         Ogre::String meshName;
         Ogre::Vector3 pos;
@@ -144,19 +145,19 @@ namespace Steel
         // gather it
         value = node["position"];
         if (value.isNull() && !(allWasFine = false))
-            Debug::error("in OgreModel::fromJson(): invalid field 'position' (skipped).").endl();
+            Debug::error(intro)("invalid field 'position' (skipped).").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node["rotation"];
         if (value.isNull() && !(allWasFine = false))
-            Debug::error("in OgreModel::fromJson(): invalid field 'rotation' (skipped).").endl();
+            Debug::error(intro)("invalid field 'rotation' (skipped).").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
 
         value = node["entityMeshName"];
         if (value.isNull() && !(allWasFine = false))
-            Debug::error("in OgreModel::fromJson(): invalid field 'entityMeshName' (skipped).").endl();
+            Debug::error(intro)("invalid field 'entityMeshName' (skipped).").endl();
         else
             meshName = Ogre::String(value.asString());
 
@@ -174,14 +175,14 @@ namespace Steel
             // make sure we've been called with all arguments, because they're all needed now
             if (levelRoot == NULL || sceneManager == NULL)
             {
-                Debug::error("in OgreModel::fromJson(): a new mesh is required, but sceneManager or levelRoot are NULL.");
+                Debug::error(intro)("a new mesh is required, but sceneManager or levelRoot are NULL.");
                 Debug::error(" Aborting.").endl();
                 return false;
             }
             // make sure the new meshName is valid
             if (meshName.length()==0 || !Ogre::ResourceGroupManager::getSingletonPtr()->resourceExistsInAnyGroup(meshName))
             {
-                Debug::error("in OgreModel::fromJson(): new mesh name is not valid:")(meshName).endl();
+                Debug::error(intro)("new mesh name is not valid:")(meshName).endl();
                 return false;
             }
             Ogre::Any any = mSceneNode->getUserAny();

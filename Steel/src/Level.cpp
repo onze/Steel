@@ -68,7 +68,7 @@ namespace Steel
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
         mAgents = std::map<AgentId, Agent *>();
         mTerrainMan.init(mName+".terrainManager",path.subfile(mName),mSceneManager);
-        
+
         mOgreModelMan = new OgreModelManager(this,mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this,mTerrainMan.terrainPhysicsMan()->world());
 //	mBTModelMan = new BTModelManager(mPath);
@@ -115,29 +115,71 @@ namespace Steel
         mAgents.erase(it);
     }
 
-    bool Level::linkAgentToModel(AgentId aid, ModelType mtype, ModelId mid)
+    bool Level::linkAgentToModel(AgentId aid,ModelType mType,ModelId mid)
     {
+        Ogre::String intro="Level::linkAgentToModel(): ";
         if (aid == INVALID_ID)
         {
-            Debug::error(logName()+".linkAgentToModel(): aid ")(aid)(" does not exist.").endl();
+            Debug::error(intro)("aid ")(aid)(" does not exist.").endl();
             return false;
         }
+        Agent *agent=getAgent(aid);
 
-        ModelManager *mm = modelManager(mtype);
+        ModelManager *mm = modelManager(mType);
         if (mm == NULL)
         {
-            Debug::error(logName()+".linkAgentToModel(): mtype ")((long int)mtype)(" aka \"");
-            Debug::error(modelTypesAsString[mtype])("\" does not exist.").endl();
+            Debug::error(intro)("mType ")((long int)mType)(" aka \"");
+            Debug::error(modelTypesAsString[mType])("\" does not exist.").endl();
             return false;
         }
 
         if(mid==INVALID_ID)
         {
-            Debug::error(logName()+".linkAgentToModel(): invalid model id.").endl();
+            Debug::error(intro)("invalid model id.").endl();
             return false;
         }
 
-        return mm->linkAgentToModel(aid, mid);
+        if(!agent->linkToModel(mType,mid))
+        {
+            Debug::error(intro)("linkage agent ")(aid)("<->model<")(modelTypesAsString[mType])(">");
+            Debug::error(mid)(" failed.").endl();
+            return false;
+        }
+
+        if(!onAgentLinkedToModel(aid,mType,mid))
+        {
+            agent->unlinkFromModel(mType);
+            Debug::error(intro)("linkage agent ")(aid)("<->model<")(modelTypesAsString[mType])(">");
+            Debug::error(mid)(" refused. Unlinked. Aborted.").endl();
+            return false;
+        }
+        return true;
+    }
+
+    bool Level::onAgentLinkedToModel(AgentId aid, ModelType mType, ModelId mid)
+    {
+        Ogre::String intro=logName()+".onAgentLinkedToModel(): ";
+        if (aid == INVALID_ID)
+        {
+            Debug::error(intro)("aid ")(aid)(" does not exist.").endl();
+            return false;
+        }
+
+        ModelManager *mm = modelManager(mType);
+        if (mm == NULL)
+        {
+            Debug::error(intro)("mType ")((long int)mType)(" aka \"");
+            Debug::error(modelTypesAsString[mType])("\" does not exist.").endl();
+            return false;
+        }
+
+        if(mid==INVALID_ID)
+        {
+            Debug::error(intro)("invalid model id.").endl();
+            return false;
+        }
+        //TODO:OPT: pass pointers ?
+        return mm->onAgentLinkedToModel(aid, mid);
     }
 
     Ogre::String Level::logName()
@@ -198,6 +240,9 @@ namespace Steel
                 break;
             case MT_PHYSICS:
                 mm=mPhysicsModelMan;
+                break;
+            case MT_BT:
+                mm=NULL;
                 break;
             default:
                 Debug::error("Level::modelManager(): unknown modelType ")(modelType);
@@ -287,16 +332,19 @@ namespace Steel
 
     void Level::processCommand(std::vector<Ogre::String> command)
     {
+        Ogre::String intro="Level::processCommand("+StringUtils::join(command,".")+")";
+        if(command.size()==0)
+            return;
         if(command[0]=="load")
             load();
         else if(command[0]=="save")
             save();
+        else if(command.size()>1 && command[0]=="PhysicsTerrainManager" && command[1]=="switch_debug_draw")
+            mTerrainMan.terrainPhysicsMan()->setDebugDraw(!mTerrainMan.terrainPhysicsMan()->getDebugDraw());
         else if(command[0]=="delete")
-            Debug::error("to be implemented: level deletion").endl();
+            Debug::error(intro)("to be implemented: level deletion").endl();
         else
-        {
-            Debug::log("Editor::processLevelCommand(): unknown command: ")(command).endl();
-        }
+            Debug::log("Level::processLevelCommand(): unknown command: ")(command).endl();
     }
 
     void Level::serialize(Ogre::String &s)
@@ -333,7 +381,7 @@ namespace Steel
             ModelManager *mm = modelManager(modelType);
             if (mm == NULL)
             {
-                Debug::log(logName()+".serialize(): no modelManager of type ")(modelTypesAsString[modelType]).endl();
+                Debug::warning(logName()+".serialize(): no modelManager of type ")(modelTypesAsString[modelType]).endl();
                 continue;
             }
             mm->toJson(models[modelTypesAsString[modelType]]);
@@ -392,27 +440,33 @@ namespace Steel
 
         Debug::log("instanciate ALL the models ! \\o/").endl();
         Json::Value dict = root["models"];
-        assert(!dict.isNull());
-
-        for (ModelType i = (ModelType) ((int) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((int) i + 1))
+        if(dict.isNull())
         {
-            Ogre::String type = modelTypesAsString[i];
-            Json::Value models = dict[type];
-            if (models.isNull())
-            {
-                Debug::log("no models for type ")(type).endl();
-                continue;
-            }
-            ModelManager *mm = modelManager(i);
-            if (mm == NULL)
-            {
-                Debug::warning("no modelManager for type ")(type).endl();
-                continue;
-            }
-
-            mm->fromJson(models);
+            Debug::warning("no models, really ?").endl();
         }
-        Debug::log("models done").endl();
+        else
+        {
+
+            for (ModelType i = (ModelType) ((int) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((int) i + 1))
+            {
+                Ogre::String type = modelTypesAsString[i];
+                Json::Value models = dict[type];
+                if (models.isNull())
+                {
+                    Debug::log("no models for type ")(type).endl();
+                    continue;
+                }
+                ModelManager *mm = modelManager(i);
+                if (mm == NULL)
+                {
+                    Debug::warning("no modelManager for type ")(type).endl();
+                    continue;
+                }
+
+                mm->fromJson(models);
+            }
+            Debug::log("models done").endl();
+        }
 
         Debug::log("now instanciate ALL the agents ! \\o/").endl();
         dict = root["agents"];
@@ -429,10 +483,10 @@ namespace Steel
         Debug::log(logName()+".deserialize(): done").unIndent().endl();
         return true;
     }
-    
+
     void Level::update(float timestep)
     {
-        mTerrainMan.update(timestep);   
+        mTerrainMan.update(timestep);
     }
 
 }

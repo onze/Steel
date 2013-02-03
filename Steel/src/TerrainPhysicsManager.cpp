@@ -1,19 +1,23 @@
-#include "TerrainPhysicsManager.h"
-#include <Debug.h>
-#include <TerrainManager.h>
 
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
+#include <BtOgreExtras.h>
+#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
+
+#include "TerrainPhysicsManager.h"
+#include <Debug.h>
+#include <TerrainManager.h>
 #include <OgreTerrain.h>
 
-#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 
 namespace Steel
 {
 
-    TerrainPhysicsManager::TerrainPhysicsManager(TerrainManager *terrainMan):TerrainManagerEventListener(),
+    TerrainPhysicsManager::TerrainPhysicsManager(TerrainManager *terrainMan):
+        TerrainManagerEventListener(),Ogre::FrameListener(),
         mTerrainMan(NULL),mTerrains(std::map<Ogre::Terrain *,TerrainPhysics *>()),
-        mWorld(NULL),mSolver(NULL),mDispatcher(NULL),mCollisionConfig(NULL),mBroadphase(NULL)
+        mWorld(NULL),mSolver(NULL),mDispatcher(NULL),mCollisionConfig(NULL),mBroadphase(NULL),
+        mDebugDrawer(NULL)
     {
         mTerrainMan=terrainMan;
         mBroadphase = new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024);
@@ -25,6 +29,10 @@ namespace Steel
         mWorld->setGravity(btVector3(0,-9.8,0));
 
         terrainMan->addTerrainManagerEventListener(this);
+
+        mDebugDrawer = new BtOgre::DebugDrawer(terrainMan->sceneManager()->getRootSceneNode(), mWorld);
+        mDebugDrawer->setDebugMode(false);
+        mWorld->setDebugDrawer(mDebugDrawer);
     }
 
     TerrainPhysicsManager::TerrainPhysicsManager(const TerrainPhysicsManager& o)
@@ -35,6 +43,15 @@ namespace Steel
     {
         if(NULL!=mWorld)
         {
+            if(getDebugDraw())
+                setDebugDraw(false);
+
+            if(NULL!=mDebugDrawer)
+            {
+                mWorld->setDebugDrawer(NULL);
+                delete mDebugDrawer;
+                mDebugDrawer=NULL;
+            }
             //remove the rigidbodies from the dynamics world and delete them
             for (int i=mWorld->getNumCollisionObjects()-1; i>=0 ; i--)
             {
@@ -71,6 +88,26 @@ namespace Steel
         return false;
     }
 
+    bool TerrainPhysicsManager::getDebugDraw()
+    {
+        return mDebugDrawer->getDebugMode();
+    }
+
+    void TerrainPhysicsManager::setDebugDraw(bool flag)
+    {
+        mDebugDrawer->setDebugMode(flag);
+        if(flag)
+        {
+            Ogre::Root::getSingletonPtr()->addFrameListener(this);
+            Debug::log("TerrainPhysicsManager::setDebugDraw(true)").endl();
+        }
+        else
+        {
+            Ogre::Root::getSingletonPtr()->removeFrameListener(this);
+            Debug::log("TerrainPhysicsManager::setDebugDraw(false)").endl();
+        }
+    }
+
     void TerrainPhysicsManager::onTerrainEvent(TerrainManager::LoadingState state)
     {
         switch(state)
@@ -84,7 +121,7 @@ namespace Steel
         }
     }
 
-    TerrainPhysicsManager::TerrainPhysics *TerrainPhysicsManager::getTerrainFor(Ogre::Terrain *ogreTerrain)
+    TerrainPhysicsManager::TerrainPhysics *TerrainPhysicsManager::getTerrainFor(Ogre::Terrain *ogreTerrain) const
     {
         auto it=mTerrains.find(ogreTerrain);
         if(it==mTerrains.end())
@@ -104,13 +141,53 @@ namespace Steel
         }
 
         int side=ogreTerrain->getSize();
-        terrain->mTerrainShape=new btHeightfieldTerrainShape(side,side,
-                ogreTerrain->getHeightData(),
-                1.f,
-                ogreTerrain->getMinHeight(),ogreTerrain->getMaxHeight(),
-                1, PHY_FLOAT, false);
+        // create it
+        auto minHeight=ogreTerrain->getMinHeight(),maxHeight=ogreTerrain->getMaxHeight();
+        terrain=new TerrainPhysics();
 
+        // >>> We need to mirror the ogre-height-data along the z axis first!
+        // This is related to how Ogre and Bullet differ in heighmap storing
+        float *pTerrainHeightData = ogreTerrain->getHeightData();
+        float pTerrainHeightDataConvert[side * side];
+        for(int i = 0; i < side; ++i)
+        {
+            memcpy(pTerrainHeightDataConvert + side* i,
+                   pTerrainHeightData + side* (side- i - 1),
+                   sizeof(float)*(side));
+        }
+        // <<< End of conversion
+
+        terrain->mTerrainShape=new btHeightfieldTerrainShape(side,side,
+                pTerrainHeightDataConvert,
+                1.f,
+                minHeight,maxHeight,
+                1, PHY_FLOAT, false);
+        terrain->mTerrainShape->setUseDiamondSubdivision(true);
+        float metersBetweenVertices = ogreTerrain->getWorldSize()/(ogreTerrain->getSize()-1);
+        terrain->mTerrainShape->setLocalScaling(btVector3(metersBetweenVertices,1.f,metersBetweenVertices));
+
+        // save it
         mTerrains[ogreTerrain]=terrain;
+        // set origin to middle of heightfield
+        btTransform transform;
+        transform.setIdentity();
+        Ogre::Vector3 pos=ogreTerrain->getPosition();
+        pos.y=(maxHeight+minHeight)/2.f;
+        transform.setOrigin(BtOgre::Convert::toBullet(pos));
+        transform.setRotation(BtOgre::Convert::toBullet(Ogre::Quaternion::IDENTITY));
+        btScalar mass(0.);
+        btVector3 localInertia(0,0,0);
+
+        terrain->mMotionState = new btDefaultMotionState(transform);
+        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,
+                terrain->mMotionState,
+                terrain->mTerrainShape,
+                localInertia);
+        terrain->mBody= new btRigidBody(rbInfo);
+        terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+
+        //add the body to the dynamics world
+        mWorld->addRigidBody(terrain->mBody);
         return true;
     }
 
@@ -138,8 +215,15 @@ namespace Steel
 
     void TerrainPhysicsManager::update(float timestep)
     {
-        if(mWorld)
+        if(NULL!=mWorld)
             mWorld->stepSimulation(timestep,7);
+    }
+
+    bool TerrainPhysicsManager::frameRenderingQueued(const Ogre::FrameEvent &evt)
+    {
+        if(NULL!=mDebugDrawer)
+            mDebugDrawer->step();
+        return true;
     }
 
 }

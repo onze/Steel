@@ -70,8 +70,8 @@ namespace Steel
             /// Dump all models' json representation into the given object.
             void toJson(Json::Value &object);
 
-            ///
-            virtual bool linkAgentToModel(AgentId aid, ModelId mid);
+            /// Triggered by the level after an agent linked itself to an owned model
+            virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
 
             /// modelType associated with this Manager
             virtual ModelType modelType()=0;
@@ -88,12 +88,7 @@ namespace Steel
              * The allocated model has a refCount of one. Call decRef on it to release it.
              */
             ModelId allocateModel();
-
-            /// Subclass's specialized operations go here.
-            virtual bool onAgentLinked(AgentId aid, ModelId mid)
-            {
-                return true;
-            };
+            
             // not owned
             Level *mLevel;
             //owned

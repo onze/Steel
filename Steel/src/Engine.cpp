@@ -424,7 +424,7 @@ namespace Steel
         return true;
     }
 
-    void Engine::pickAgents(std::list<ModelId> &selection, int x, int y)
+    void Engine::pickAgents(std::list<AgentId> &selection, int x, int y)
     {
         //get nodes that collide
         std::list<Ogre::SceneNode *> nodes;

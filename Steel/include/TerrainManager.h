@@ -134,6 +134,11 @@ namespace Steel
             {
                 return mTerrainPhysicsMan;
             }
+            
+            inline Ogre::SceneManager *sceneManager()
+            {
+                return mSceneManager;   
+            }
 
         protected:
 
