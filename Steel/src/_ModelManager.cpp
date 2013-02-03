@@ -104,9 +104,8 @@ namespace Steel
     bool _ModelManager<M>::isValid(ModelId id)
     {
         bool ret=true;
-        ret&=id >= 0;
-        ret&=id < mModels.size();
-        ret&=!mModels[id].isFree();
+        ret&=id != INVALID_ID;
+        ret&=id < mModels.size() && mModels[id].isFree();
         return ret;
     }
 
