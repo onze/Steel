@@ -32,10 +32,10 @@ namespace Steel
             class TerrainSlotData
             {
                 public:
-                    TerrainSlotData &operator=(const TerrainSlotData &o);
-                    TerrainSlotData(const TerrainSlotData &o);
                     TerrainSlotData();
                     TerrainSlotData(long x,long y);
+                    TerrainSlotData(const TerrainSlotData &o);
+                    TerrainSlotData &operator=(const TerrainSlotData &o);
                     virtual ~TerrainSlotData();
                     bool isValid();
 
@@ -47,6 +47,7 @@ namespace Steel
                     Ogre::Terrain::LayerInstanceList layerList;
             };
             
+        private:
             TerrainManager(const TerrainManager& other);
             virtual TerrainManager& operator=(const TerrainManager& other);
             virtual bool operator==(const TerrainManager& other) const;
@@ -121,23 +122,26 @@ namespace Steel
             /// Main loop iteration
             void update(float timestep);
 
-            /// recompute blendmaps according to rules
+            /// Recompute blendmaps according to rules
             void updateBlendMaps(Ogre::Terrain* terrain);
+            
+            /// Recompute heightmap for the given terrain
+            void updateHeigtmap(Ogre::Terrain* terrain);
 
             // getters
             inline Ogre::TerrainGroup *terrainGroup()
             {
                 return mTerrainGroup;
             }
-            
+
             inline TerrainPhysicsManager *terrainPhysicsMan()
             {
                 return mTerrainPhysicsMan;
             }
-            
+
             inline Ogre::SceneManager *sceneManager()
             {
-                return mSceneManager;   
+                return mSceneManager;
             }
 
         protected:

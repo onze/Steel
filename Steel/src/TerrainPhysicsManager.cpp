@@ -52,6 +52,10 @@ namespace Steel
                 delete mDebugDrawer;
                 mDebugDrawer=NULL;
             }
+
+            while(mTerrains.size()>0)
+                removeTerrainFor((*mTerrains.begin()).first);
+
             //remove the rigidbodies from the dynamics world and delete them
             for (int i=mWorld->getNumCollisionObjects()-1; i>=0 ; i--)
             {
@@ -113,8 +117,6 @@ namespace Steel
         switch(state)
         {
             case TerrainManager::READY:
-                //let's update the heightmap bullet thingy here
-
                 break;
             default:
                 break;
@@ -135,50 +137,38 @@ namespace Steel
         TerrainPhysics *terrain=getTerrainFor(ogreTerrain);
         if(NULL!=terrain)
         {
-            Debug::error("TerrainPhysicsManager::createTerrain(): PhysicsTerrain already exists ");
+            Debug::error("TerrainPhysicsManager::createTerrain(): TerrainPhysics already exists ");
             Debug::error("at position ")(ogreTerrain->getPosition())(". Aborted.").endl();
             return false;
         }
 
+        // some const
         int side=ogreTerrain->getSize();
-        // create it
         auto minHeight=ogreTerrain->getMinHeight(),maxHeight=ogreTerrain->getMaxHeight();
+        float metersBetweenVertices = ogreTerrain->getWorldSize()/(ogreTerrain->getSize()-1);
+
+        // create and save the new terrain
         terrain=new TerrainPhysics();
+        mTerrains[ogreTerrain]=terrain;
 
-        // >>> We need to mirror the ogre-height-data along the z axis first!
-        // This is related to how Ogre and Bullet differ in heighmap storing
-        float *pTerrainHeightData = ogreTerrain->getHeightData();
-        float pTerrainHeightDataConvert[side * side];
-        for(int i = 0; i < side; ++i)
-        {
-            memcpy(pTerrainHeightDataConvert + side* i,
-                   pTerrainHeightData + side* (side- i - 1),
-                   sizeof(float)*(side));
-        }
-        // <<< End of conversion
-
+        // give it a bullet representation
+        terrain->mHeightfieldData=new float[side * side];
         terrain->mTerrainShape=new btHeightfieldTerrainShape(side,side,
-                pTerrainHeightDataConvert,
+                terrain->mHeightfieldData,
                 1.f,
                 minHeight,maxHeight,
                 1, PHY_FLOAT, false);
         terrain->mTerrainShape->setUseDiamondSubdivision(true);
-        float metersBetweenVertices = ogreTerrain->getWorldSize()/(ogreTerrain->getSize()-1);
         terrain->mTerrainShape->setLocalScaling(btVector3(metersBetweenVertices,1.f,metersBetweenVertices));
 
-        // save it
-        mTerrains[ogreTerrain]=terrain;
-        // set origin to middle of heightfield
-        btTransform transform;
-        transform.setIdentity();
-        Ogre::Vector3 pos=ogreTerrain->getPosition();
-        pos.y=(maxHeight+minHeight)/2.f;
-        transform.setOrigin(BtOgre::Convert::toBullet(pos));
-        transform.setRotation(BtOgre::Convert::toBullet(Ogre::Quaternion::IDENTITY));
+        btTransform transform=getOgreTerrainTransform(ogreTerrain);
+        terrain->mMotionState = new btDefaultMotionState(transform);
+
+        updateTerrainHeightData(ogreTerrain,terrain);
+
         btScalar mass(0.);
         btVector3 localInertia(0,0,0);
 
-        terrain->mMotionState = new btDefaultMotionState(transform);
         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,
                 terrain->mMotionState,
                 terrain->mTerrainShape,
@@ -191,15 +181,68 @@ namespace Steel
         return true;
     }
 
+    btTransform TerrainPhysicsManager::getOgreTerrainTransform(Ogre::Terrain * oterrain)
+    {
+        auto minHeight=oterrain->getMinHeight(),maxHeight=oterrain->getMaxHeight();
+        btTransform transform;
+        transform.setIdentity();
+        // set origin to middle of heightfield
+        Ogre::Vector3 pos=oterrain->getPosition();
+        pos.y=(maxHeight+minHeight)/2.f;
+        transform.setOrigin(BtOgre::Convert::toBullet(pos));
+        transform.setRotation(BtOgre::Convert::toBullet(Ogre::Quaternion::IDENTITY));
+        return transform;
+    }
+
+    void TerrainPhysicsManager::updateHeightmap(Ogre::Terrain* oterrain)
+    {
+        TerrainPhysics *pterrain=getTerrainFor(oterrain);
+        if(NULL!=pterrain)
+            updateTerrainHeightData(oterrain,pterrain);
+    }
+    void TerrainPhysicsManager::updateTerrainHeightData(Ogre::Terrain *oterrain,TerrainPhysics *pterrain)
+    {
+        // We need to mirror the ogre-height-data along the z axis
+        // This is related to how Ogre and Bullet differ in heighmap storing
+
+        auto minHeight=oterrain->getMinHeight(),maxHeight=oterrain->getMaxHeight();
+        int side=oterrain->getSize();
+
+        float *physicsData=pterrain->mHeightfieldData;
+        float *pTerrainHeightData=oterrain->getHeightData();
+
+        for(int i = 0; i < side; ++i)
+        {
+            memcpy(physicsData + side* i,
+                   pTerrainHeightData + side* (side- i - 1),
+                   sizeof(float)*(side));
+        }
+
+        // set origin to middle of heightfield
+        btTransform transform;
+        transform.setIdentity();
+        Ogre::Vector3 pos=oterrain->getPosition();
+        pos.y=(maxHeight+minHeight)/2.f;
+        transform.setOrigin(BtOgre::Convert::toBullet(pos));
+        transform.setRotation(BtOgre::Convert::toBullet(Ogre::Quaternion::IDENTITY));
+        pterrain->mMotionState->setWorldTransform(transform);
+    }
     bool TerrainPhysicsManager::removeTerrainFor(Ogre::Terrain *ogreTerrain)
     {
         auto it=mTerrains.find(ogreTerrain);
         if(it==mTerrains.end())
         {
-            Debug::error("TerrainPhysicsManager::removeTerrain(): no such PhysicsTerrain. Aborted.").endl();
+            Debug::error("TerrainPhysicsManager::removeTerrainFor(): no such TerrainPhysics. Aborted.").endl();
             return false;
         }
-        mTerrains.erase(it);
+
+        TerrainPhysics *terrain=(*it).second;
+        if(NULL!=terrain->mHeightfieldData)
+        {
+            delete terrain->mHeightfieldData;
+            terrain->mHeightfieldData=NULL;
+            mTerrains.erase(it);
+        }
         return true;
     }
 

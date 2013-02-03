@@ -29,7 +29,7 @@ namespace Steel
         mResourceGroupName(o.mResourceGroupName),mLoadingState(o.mLoadingState),
         mListeners(o.mListeners),mTerrainGlobals(o.mTerrainGlobals),
         mTerrainGroup(o.mTerrainGroup),mTerrainsImported(o.mTerrainsImported),
-        mPath(o.mPath),mTerrainPhysicsMan(NULL)
+        mPath(o.mPath),mTerrainPhysicsMan(o.mTerrainPhysicsMan)
     {
     }
 
@@ -648,6 +648,11 @@ namespace Steel
         blendMap1->dirty();
         blendMap0->update();
         blendMap1->update();
+    }
+    
+    void TerrainManager::updateHeigtmap(Ogre::Terrain* terrain)
+    {
+        mTerrainPhysicsMan->updateHeightmap(terrain);
     }
 
     bool TerrainManager::frameRenderingQueued(const Ogre::FrameEvent &evt)

@@ -3,6 +3,9 @@
 
 #include <map>
 
+#include <bullet/btBulletCollisionCommon.h>
+#include <bullet/btBulletDynamicsCommon.h>
+
 #include <OgreVector2.h>
 #include <OgreFrameListener.h>
 
@@ -20,13 +23,6 @@ namespace BtOgre
 }
 
 class btHeightfieldTerrainShape;
-class btDynamicsWorld;
-class btSequentialImpulseConstraintSolver;
-class btCollisionDispatcher;
-class btDefaultCollisionConfiguration;
-class btAxisSweep3;
-class btDefaultMotionState;
-class btRigidBody;
 
 namespace Steel
 {
@@ -42,6 +38,7 @@ namespace Steel
                     btHeightfieldTerrainShape *mTerrainShape;
                     btDefaultMotionState* mMotionState;
                     btRigidBody* mBody;
+                    float *mHeightfieldData;
             };
 
         public:
@@ -58,14 +55,22 @@ namespace Steel
             /// Removes a physics terrain's from the simulation
             bool deactivateTerrainFor(Ogre::Terrain *ogreTerrain);
             
+            btTransform getOgreTerrainTransform(Ogre::Terrain * oterrain);
+            
             /// Called by Ogre once per frame
             bool frameRenderingQueued(const Ogre::FrameEvent &evt);
+            
+            /// Inherited from TerrainManagerEventListener
+            void onTerrainEvent(TerrainManager::LoadingState state);
+            
+            /// Returns whether debug draw of physic shapes is activated
+            bool getDebugDraw();
 
             /// Main loop iteration
             void update(float timestep);
             
-            /// Inherited from TerrainManagerEventListener
-            void onTerrainEvent(TerrainManager::LoadingState state);
+            /// Update height values
+            void updateHeightmap(Ogre::Terrain* terrain);
 
             // getters
             inline btDynamicsWorld *world()
@@ -76,13 +81,12 @@ namespace Steel
             /// Returns the PhysicsTerrain representing the given terrain.
             TerrainPhysics *getTerrainFor(Ogre::Terrain *ogreTerrain) const;
             
-            /// Returns whether debug draw of physic shapes is activated
-            bool getDebugDraw();
-            
+            // setters
             /// De/activate debug draw of physic shapes
             void setDebugDraw(bool flag);
+            
         protected:
-
+            void updateTerrainHeightData(Ogre::Terrain *oterrain, TerrainPhysics* pterrain);
             // not owned
             /// owner
             TerrainManager *mTerrainMan;
