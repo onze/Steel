@@ -30,6 +30,7 @@ namespace Steel
             
             virtual bool incRef(ModelId id)=0;
             virtual bool decRef(ModelId id)=0;
+            virtual bool isValid(ModelId id)=0;
             virtual void releaseModel(ModelId modelId)=0;
             virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid)=0;
             

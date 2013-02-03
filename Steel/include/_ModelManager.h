@@ -48,7 +48,7 @@ namespace Steel
             void clear();
 
             /// Returns true if the given model is in use.
-            bool isValid(ModelId id);
+            virtual bool isValid(ModelId id);
 
             /// Decrements the given model, and deletes it if nobody uses it.
             void releaseModel(ModelId modelId);
