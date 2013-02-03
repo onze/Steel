@@ -105,8 +105,14 @@ namespace Steel
     {
         bool ret=true;
         ret&=id != INVALID_ID;
-        ret&=id < mModels.size() && mModels[id].isFree();
+        ret&=id < mModels.size();
         return ret;
+    }
+    
+    template<class M>
+    bool _ModelManager<M>::isFree(ModelId id)
+    {
+        return  isValid(id) && !mModels[id].isFree();
     }
 
     template<class M>

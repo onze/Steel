@@ -303,6 +303,7 @@ namespace Steel
         // ask the right manager to load this model
         if(modelType=="MT_OGRE")
         {
+            intro.append("in MT_OGRE type: ");
             ModelId mid = level->ogreModelMan()->fromSingleJson(root);
             AgentId aid=level->newAgent();
             if(aid==INVALID_ID)
@@ -324,6 +325,7 @@ namespace Steel
         }
         else if(modelType=="MT_PHYSICS")
         {
+            intro.append("in MT_PHYSICS type: ");
             AgentId aid=agentIdUnderMouse();
             if(INVALID_ID==aid)
             {
@@ -341,7 +343,7 @@ namespace Steel
             //TODO add visual notification in the UI
         }
         else
-            Debug::log("Unknown model type: ")(modelType).endl();
+            Debug::log(intro)("Unknown model type: ")(modelType).endl();
     }
 
     AgentId Editor::instanciateFromMeshFile(File &meshFile,Ogre::Vector3 &pos,Ogre::Quaternion &rot)

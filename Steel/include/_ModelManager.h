@@ -47,7 +47,9 @@ namespace Steel
             /// Clears every models from its memory.
             void clear();
 
-            /// Returns true if the given model is in use.
+            /// Returns true if the given model id is in use.
+            virtual bool isFree(ModelId id);
+            /// Returns true if the given model id points to a model.
             virtual bool isValid(ModelId id);
 
             /// Decrements the given model, and deletes it if nobody uses it.
