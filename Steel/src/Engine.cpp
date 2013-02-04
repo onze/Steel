@@ -379,13 +379,6 @@ namespace Steel
                 case OIS::KC_GRAVE:
                     stopEditMode();
                     break;
-                case OIS::KC_R:
-                    mUI.editor().reloadContent();
-                    break;
-                case OIS::KC_S:
-                    if(mInputMan.isKeyDown(OIS::KC_LCONTROL))
-                        if(mLevel!=NULL)
-                            mLevel->save();
                 default:
 //                     Debug::log("Engine::keyReleased: ")(evt.key).endl();
                     break;

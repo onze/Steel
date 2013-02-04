@@ -31,6 +31,7 @@ namespace Steel
     {
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
             mLevel->modelManager(it->first)->releaseModel(it->second);
+        mModelIds.clear();
     }
 
     Agent::Agent(const Agent &t) :

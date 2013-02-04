@@ -96,14 +96,12 @@ namespace Steel
             ;
             //end of static stuff
 
-            /**
-             * unique id.
-             */
+            /// Unique id.
             AgentId mId;
-            /**
-             * ptr to the level the agent is in.
-             */
+            
+            /// Ptr to the level the agent is in.
             Level *mLevel;
+            
             std::map<ModelType, ModelId> mModelIds;
     };
 

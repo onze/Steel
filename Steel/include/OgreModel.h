@@ -69,6 +69,7 @@ namespace Steel
             virtual void cleanup();
             Ogre::SceneNode *mSceneNode;
             Ogre::Entity *mEntity;
+            Ogre::SceneManager *mSceneManager;
     };
 
 }

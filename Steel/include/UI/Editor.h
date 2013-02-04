@@ -75,6 +75,8 @@ namespace Steel
             void processOptionCommand(std::vector<Ogre::String> command);
 
             //implements the OIS keyListener and mouseListener, as this allows the UI to pass them on as they arrive.
+            bool keyPressed(const OIS::KeyEvent& evt);
+            bool keyReleased(const OIS::KeyEvent& evt);
             bool mouseMoved(const OIS::MouseEvent& evt);
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);

@@ -8,12 +8,14 @@
 #include "OgreModel.h"
 #include "Debug.h"
 #include <tools/StringUtils.h>
+#include <tools/OgreUtils.h>
 
 namespace Steel
 {
 
     OgreModel::OgreModel() :
-        Model(), mSceneNode(NULL), mEntity(NULL)
+        Model(),
+        mSceneNode(NULL), mEntity(NULL),mSceneManager(NULL)
     {
 
     }
@@ -23,6 +25,7 @@ namespace Steel
                          Ogre::SceneNode *levelRoot,
                          Ogre::SceneManager *sceneManager)
     {
+        mSceneManager=sceneManager;
         mEntity = sceneManager->createEntity(meshName);
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
@@ -41,6 +44,7 @@ namespace Steel
 //	Debug::log("OgreModel::operator=(const OgreModel &m)").endl();
         mEntity = m.mEntity;
         mSceneNode = m.mSceneNode;
+        mSceneManager=m.mSceneManager;
         return *this;
     }
 
@@ -51,19 +55,17 @@ namespace Steel
 
     void OgreModel::cleanup()
     {
-//	Debug::log("OgreModel::cleanup()").endl();
-        if (mSceneNode != NULL)
-        {
-            mSceneNode->removeAndDestroyAllChildren();
-            mSceneNode->detachAllObjects();
-            mSceneNode->getParent()->removeChild(mSceneNode);
-            delete mSceneNode;
-            mSceneNode = NULL;
-        }
+//         Debug::log("OgreModel::cleanup()").endl();
         if (mEntity != NULL)
         {
-            delete mEntity;
+            mEntity->detachFromParent();
+            mSceneManager->destroyEntity(mEntity);
             mEntity = NULL;
+        }
+        if (mSceneNode != NULL)
+        {
+            OgreUtils::destroySceneNode(mSceneNode);
+            mSceneNode = NULL;
         }
     }
 
@@ -71,7 +73,7 @@ namespace Steel
     {
         return mSceneNode->getPosition();
     }
-    
+
     ModelType OgreModel::modelType()
     {
         return MT_OGRE;

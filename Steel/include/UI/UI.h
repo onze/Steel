@@ -23,8 +23,8 @@ namespace Steel
      */
     class UI:public Rocket::Core::SystemInterface,Ogre::RenderQueueListener,EngineEventListener
     {
-
         public:
+            typedef std::map< OIS::KeyCode, Rocket::Core::Input::KeyIdentifier > KeyIdentifierMap;
             UI();
             UI(const UI& other);
             virtual ~UI();
@@ -83,6 +83,11 @@ namespace Steel
             {
                 return mUIDataDir;
             }
+            
+            KeyIdentifierMap &keyIdentifiers()
+            {
+                return mKeyIdentifiers;   
+            }
         protected:
             // not owned
             InputManager *mInputMan;
@@ -97,7 +102,7 @@ namespace Steel
             Ogre::Timer mTimer;
             RenderInterfaceOgre3D *mRocketRenderInterface;
             Rocket::Core::Context* mMainContext;
-            typedef std::map< OIS::KeyCode, Rocket::Core::Input::KeyIdentifier > KeyIdentifierMap;
+            
             /// maps OIS key codes to rocket ones for input injection into Rocket UI
             KeyIdentifierMap mKeyIdentifiers;
             ///editor panel

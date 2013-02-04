@@ -277,20 +277,15 @@ namespace Steel
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
         mMainContext->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
-        if(mEditMode)
-            mEditor.context()->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
+        
         if (evt.text >= 32)
-        {
             mMainContext->ProcessTextInput((Rocket::Core::word) evt.text);
-            if(mEditMode)
-                mEditor.context()->ProcessTextInput((Rocket::Core::word) evt.text);
-        }
         else if (keyIdentifier == Rocket::Core::Input::KI_RETURN)
-        {
             mMainContext->ProcessTextInput((Rocket::Core::word) '\n');
-            if(mEditMode)
-                mEditor.context()->ProcessTextInput((Rocket::Core::word) '\n');
-        }
+        
+        if(mEditMode)
+            mEditor.keyPressed(evt);
+        
         return true;
     }
 
@@ -298,9 +293,12 @@ namespace Steel
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
         int keyModifierState=getKeyModifierState();
+        
         mMainContext->ProcessKeyUp(keyIdentifier ,keyModifierState);
+        
         if(mEditMode)
-            mEditor.context()->ProcessKeyUp(keyIdentifier ,keyModifierState);
+            mEditor.keyReleased(evt);
+        
         return true;
     }
 

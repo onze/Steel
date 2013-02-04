@@ -396,6 +396,46 @@ namespace Steel
         level->terrainManager()->addTerrainSlot(slot);
     }
 
+    bool Editor::keyPressed(const OIS::KeyEvent& evt)
+    {
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
+        mContext->ProcessKeyDown(keyIdentifier ,mUI->getKeyModifierState());
+
+        if (evt.text >= 32)
+        {
+            mContext->ProcessTextInput((Rocket::Core::word) evt.text);
+        }
+        else if (keyIdentifier == Rocket::Core::Input::KI_RETURN)
+        {
+            mContext->ProcessTextInput((Rocket::Core::word) '\n');
+        }
+        return true;
+    }
+
+    bool Editor::keyReleased(const OIS::KeyEvent& evt)
+    {
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
+        mContext->ProcessKeyUp(keyIdentifier ,mUI->getKeyModifierState());
+        Level *level=mEngine->level();
+        switch(evt.key)
+        {
+            case OIS::KC_R:
+                reloadContent();
+                break;
+            case OIS::KC_S:
+                if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                    if(level!=NULL)
+                        level->save();
+                break;
+            case OIS::KC_DELETE:
+                mEngine->deleteSelection();
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         if(!hitTest(evt.state.X.abs,evt.state.Y.abs,"menu"))
