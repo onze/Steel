@@ -419,13 +419,26 @@ namespace Steel
         Level *level=mEngine->level();
         switch(evt.key)
         {
+            case OIS::KC_H:
+                mBrush.setMode(EditorBrush::TERRAFORM);
+                break;
             case OIS::KC_R:
-                reloadContent();
+                if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                    reloadContent();
+                else
+                    mBrush.setMode(EditorBrush::ROTATE);
                 break;
             case OIS::KC_S:
                 if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                {
                     if(level!=NULL)
                         level->save();
+                }
+                else
+                    mBrush.setMode(EditorBrush::SCALE);
+                break;
+            case OIS::KC_T:
+                mBrush.setMode(EditorBrush::TRANSLATE);
                 break;
             case OIS::KC_DELETE:
                 mEngine->deleteSelection();

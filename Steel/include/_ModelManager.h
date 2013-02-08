@@ -97,7 +97,6 @@ namespace Steel
             /// Contains models.
             std::vector<M> mModels;
             std::list<ModelId> mModelsFreeList;
-
     };
 }
 
