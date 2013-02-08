@@ -36,6 +36,21 @@ namespace Steel
         node->getCreator()->destroySceneNode(node);
     }
 
+    template<class T>
+    T OgreUtils::mean(std::vector<T> const &v)
+    {
+        if(v.size()==0)
+            return T();
+        if(v.size()==1)
+            return v[0];
+        T mean=v[0];
+        for(auto it=v.begin()+1; it!=v.end(); ++it)
+            mean+=*it;
+        return mean/float(v.size());
+    }
+    // template definition
+    template Ogre::Vector3 OgreUtils::mean<Ogre::Vector3>(std::vector<Ogre::Vector3> const &);
+
     void OgreUtils::resourceGroupsInfos()
     {
         Debug::log("== Resources locations ==").indent().endl();
