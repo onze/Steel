@@ -1,6 +1,10 @@
 #ifndef OGREUTILS_H
 #define OGREUTILS_H
+
+#include <vector>
+
 #include <OgrePrerequisites.h>
+#include <OgreVector3.h>
 
 namespace Ogre
 {
@@ -17,6 +21,10 @@ namespace Steel
 
             ///see http://www.ogre3d.org/forums/viewtopic.php?p=445350#p445350
             static void destroyAllAttachedMovableObjects(Ogre::SceneNode* node);
+            
+            /// Returns the mean of the given class. Class must implement operator+(T const &) and operator/(float).
+            template<class T>
+            static T mean(std::vector<T> const &v);
             
             /// prints resource Groups and their content
             static void resourceGroupsInfos();
