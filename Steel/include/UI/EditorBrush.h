@@ -101,7 +101,7 @@ namespace Steel
 
             /// holds the position to put the selection back to, if edition is cancelled
             Ogre::Vector3 mSelectionPosBeforeTransformation;
-            std::vector<Ogre::Quaternion> mSelectionRotBeforeTransformation;
+            Ogre::Quaternion mSelectionRotationAroundCenterBeforeTransformation;
 
             /// true when selection is begin dragged (translated/rotated/scaled)
             bool mIsDraggingSelection;

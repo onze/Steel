@@ -85,6 +85,11 @@ namespace Steel
         mSceneNode->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(rotation.y), Ogre::Node::TS_WORLD);
         mSceneNode->rotate(Ogre::Vector3::UNIT_Z, Ogre::Degree(rotation.z), Ogre::Node::TS_WORLD);
     }
+    
+    void OgreModel::rotate(Ogre::Quaternion &q)
+    {
+        mSceneNode->rotate(q,Ogre::Node::TS_WORLD);
+    }
 
     Ogre::Quaternion OgreModel::rotation()
     {
@@ -94,6 +99,11 @@ namespace Steel
     void OgreModel::setNodeAny(Ogre::Any any)
     {
         mSceneNode->getUserObjectBindings().setUserAny(any);
+    }
+
+    void OgreModel::move(Ogre::Vector3 const &dpos)
+    {
+        mSceneNode->translate(dpos);
     }
 
     void OgreModel::setPosition(Ogre::Vector3 const &pos)
@@ -108,16 +118,9 @@ namespace Steel
 
     void OgreModel::setSelected(bool selected)
     {
-
 #ifdef DEBUG
         mSceneNode->showBoundingBox(selected);
 #endif
-
-    }
-
-    void OgreModel::translate(Ogre::Vector3 t)
-    {
-        mSceneNode->translate(t);
     }
 
     void OgreModel::toJson(Json::Value &node)

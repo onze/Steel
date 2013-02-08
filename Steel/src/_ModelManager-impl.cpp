@@ -6,11 +6,10 @@
  */
 
 #include "_ModelManager.cpp"
-#include "OgreModelManager.h"
 
 #include "OgreModel.h"
 #include "BTModel.h"
-#include <PhysicsModel.h>
+#include "PhysicsModel.h"
 
 template class Steel::_ModelManager<Steel::BTModel>;
 template class Steel::_ModelManager<Steel::OgreModel>;

@@ -23,6 +23,7 @@
 #include "RayCaster.h"
 #include "tools/File.h"
 #include <tools/StringUtils.h>
+#include <tools/OgreUtils.h>
 #include "tests/utests.h"
 #include <EngineEventListener.h>
 
@@ -65,7 +66,7 @@ namespace Steel
         // Create a light
         //         Ogre::Light* l = mSceneManager->createLight("MainLight");
         //         l->setPosition(20, 80, 50);
-        
+
         return new Level(this,mRootDir.subfile("data").subfile("levels"), levelName);
     }
 
@@ -78,10 +79,10 @@ namespace Steel
         }
         if(NULL!=mLevel)
             fireOnLevelUnsetEvent();
-        
+
         Level *previous=mLevel;
         mLevel=newLevel;
-        
+
         if(NULL!=newLevel)
             fireOnLevelSetEvent();
         return previous;
@@ -235,7 +236,7 @@ namespace Steel
         // makes sure the window is usable (for instance for gui init) once out of init.
         mRenderWindow->update();
         mRoot->clearEventTimes();
-        
+
         mRayCaster = new RayCaster(this);
         mUI.init(mRenderWindow->getWidth(),
                  mRenderWindow->getHeight(),
@@ -335,7 +336,7 @@ namespace Steel
                 return false;
             // update file watching
             File::dispatchEvents();
-            
+
             if(NULL!=mLevel)
                 mLevel->update(float(timer.getMilliseconds()-graphicsStart)/1000.f);
 
@@ -614,7 +615,14 @@ namespace Steel
 
     Ogre::Vector3 Engine::selectionPosition()
     {
-        Ogre::Vector3 pos = Ogre::Vector3::ZERO;
+        if (!hasSelection())
+            return Ogre::Vector3::ZERO;
+        return OgreUtils::mean(selectionPositions());
+    }
+
+    std::vector<Ogre::Vector3> Engine::selectionPositions()
+    {
+        std::vector<Ogre::Vector3> pos;
         if (!hasSelection())
             return pos;
         Agent *agent;
@@ -623,9 +631,9 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            pos += agent->ogreModel()->position();
+            pos.push_back(agent->ogreModel()->position());
         }
-        return pos / Ogre::Real(mSelection.size());
+        return pos;
     }
 
     std::vector<Ogre::Quaternion> Engine::selectionRotations()
@@ -634,14 +642,31 @@ namespace Steel
         if (!hasSelection())
             return rots;
         Agent *agent;
+        auto mean=selectionPosition();;
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            rots.push_back(agent->ogreModel()->rotation());
+            rots.push_back(mean.getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z));
         }
         return rots;
+    }
+
+    Ogre::Quaternion Engine::selectionOrientationFromCenter()
+    {
+        if (!hasSelection())
+            return Ogre::Quaternion::IDENTITY;
+
+        AgentId aid=*(mSelection.begin());
+        Agent *agent=mLevel->getAgent(aid);
+        if (agent == NULL)
+        {
+            Debug::error("Engine::selectionOrientationFromCenter(): selection's first item (agent ")(aid)(") is not valid.").endl();
+            return Ogre::Quaternion::IDENTITY;
+        }
+
+        return selectionPosition().getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z);
     }
 
     void Engine::setRootDir(Ogre::String rootdir)
@@ -659,10 +684,9 @@ namespace Steel
         mRootDir = rootdir;
     }
 
-    void Engine::setSelectedAgents(std::list<AgentId> selection, bool selected)
+    void Engine::setSelectedAgents(std::list<AgentId> selection, bool replacePrevious)
     {
-        //unselect last selection if any
-        if (hasSelection())
+        if (replacePrevious)
             clearSelection();
         Agent *agent;
         //process actual selections
@@ -676,29 +700,139 @@ namespace Steel
         }
     }
 
-    void Engine::setSelectionPosition(Ogre::Vector3 pos)
+    bool Engine::isSelected(AgentId aid)
     {
+        return std::find(mSelection.begin(),mSelection.end(),aid)!=mSelection.end();
+    }
+
+    void Engine::setSelectionPosition(const Ogre::Vector3 &pos)
+    {
+        if (!hasSelection())
+            return;
         Agent *agent;
+        Ogre::Vector3 diff=pos-OgreUtils::mean(selectionPositions());
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->setPosition(pos);
+            agent->ogreModel()->move(diff);
         }
     }
 
-    void Engine::setSelectionRotations(std::vector<Ogre::Quaternion> const &rots)
+    void Engine::setSelectionPosition(const std::vector<Ogre::Vector3> &pos)
     {
+        if (!hasSelection())
+            return;
         Agent *agent;
-        assert(rots.size()==mSelection.size());
-        int i=0;
+        assert(pos.size()==mSelection.size());
+        auto it_pos=pos.begin();
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->setRotation(rots[i++]);
+            agent->ogreModel()->setPosition(*(it_pos++));
+        }
+    }
+
+    void Engine::moveSelection(const Ogre::Vector3 &dpos)
+    {
+        if (!hasSelection())
+            return;
+        Agent *agent;
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            agent->ogreModel()->move(dpos);
+        }
+    }
+
+    void Engine::moveSelection(const std::vector<Ogre::Vector3> &dpos)
+    {
+        if (!hasSelection())
+            return;
+        Agent *agent;
+        assert(dpos.size()==mSelection.size());
+        auto it_pos=dpos.begin();
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            agent->ogreModel()->move(*(it_pos++));
+        }
+    }
+
+    void Engine::setSelectionRotation(const std::vector<Ogre::Quaternion> &rots)
+    {
+        if (!hasSelection())
+            return;
+        Agent *agent;
+        assert(rots.size()==mSelection.size());
+        auto it_rot=rots.begin();
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            agent->ogreModel()->setRotation(*(it_rot++));
+        }
+    }
+
+    void Engine::rotateSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis)
+    {
+        if (!hasSelection())
+            return;
+        Agent *agent;
+        OgreModel *model;
+        Ogre::Vector3 center=selectionPosition();
+        auto rotation=Ogre::Quaternion(angle,axis);
+        auto plane=Ogre::Plane(axis,center);
+        if(mSelection.size()==1)
+        {
+            agent = mLevel->getAgent(mSelection.front());
+            if (agent == NULL)
+                return;
+            model=agent->ogreModel();
+            model->rotate(rotation);
+        }
+        else
+        {
+            for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+            {
+                agent = mLevel->getAgent(*it);
+                if (agent == NULL)
+                    continue;
+                model=agent->ogreModel();
+
+                auto modelPosition=model->position();
+                auto modelProj=plane.projectVector(modelPosition);
+                // rotated projection (rotated within plane space, but kept in world space)
+                auto modelRotatedProj=rotation*(modelProj-center)+center;
+                // deproject it as far as it was
+                modelRotatedProj+=modelPosition-modelProj;
+                model->setPosition(modelRotatedProj);
+                model->rotate(rotation);
+            }
+        }
+    }
+
+    void Engine::setSelectionRotationAroundCenter(const Ogre::Quaternion &rot)
+    {
+        if (!hasSelection())
+            return;
+        Agent *agent;
+//         Ogre::Vector3 center=selectionPosition();
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+//             agent->ogreModel()->move();
+//             agent->ogreModel()->rotate();
         }
     }
 
@@ -716,18 +850,6 @@ namespace Steel
         mEditMode=false;
         mUI.stopEditMode();
         mInputMan.grabInput(true);
-    }
-
-    void Engine::translateSelection(Ogre::Vector3 t)
-    {
-        Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
-        {
-            agent = mLevel->getAgent(*it);
-            if (agent == NULL)
-                continue;
-            agent->ogreModel()->translate(t);
-        }
     }
 
 }

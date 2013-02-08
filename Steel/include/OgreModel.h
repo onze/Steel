@@ -36,11 +36,12 @@ namespace Steel
             Ogre::Vector3 position();
             Ogre::Quaternion rotation();
             void rotate(Ogre::Vector3 &rotation);
+            void rotate(Ogre::Quaternion &q);
             void setNodeAny(Ogre::Any any);
+            void move(Ogre::Vector3 const &dpos);
             void setPosition(Ogre::Vector3 const &pos);
             void setRotation(Ogre::Quaternion const &rot);
             void setSelected(bool selected);
-            void translate(Ogre::Vector3 t);
 
             ///deserialize itself from the given Json object
             virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot=NULL, Ogre::SceneManager *sceneManager=NULL);

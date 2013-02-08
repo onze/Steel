@@ -128,8 +128,9 @@ namespace Steel
              * expensive, and may make the engine not as responsive until it exits.
              */
             Level *setCurrentLevel(Level *newLevel);
-
-            void setSelectedAgents(std::list<AgentId> selection, bool selected);
+            
+            /// Set the currenlty selected agents. If replacePrevious is true (default), any previous selection is cancelled.
+            void setSelectedAgents(std::list<AgentId> selection, bool replacePrevious=true);
             void shutdown();
 
             void startEditMode();
@@ -139,20 +140,29 @@ namespace Steel
              * called to resize the window.
              */
             void resizeWindow(int width, int height);
-
-            void rotateSelection(Ogre::Vector3 rotation);
-
-            /**
-             * Returns the mean of all positions of selected things.
-             */
+            
+            /// Return true if the given AgentId is part of the current selection.
+            bool isSelected(AgentId aid);
+            /// Returns mean position of selected agents.
             Ogre::Vector3 selectionPosition();
+            /// Returns positions of selected agents.
+            std::vector< Ogre::Vector3 > selectionPositions();
 
-            /**
-             * Returns rotations of selected things.
-             */
+            /// Returns orientations of selected agents.
             std::vector<Ogre::Quaternion> selectionRotations();
+            /// Returns orientation of selection center to the first item of the selection.
+            Ogre::Quaternion selectionOrientationFromCenter();
 
-            void translateSelection(Ogre::Vector3 v);
+            void moveSelection(const Ogre::Vector3 &dpos);
+            void moveSelection(const std::vector<Ogre::Vector3> &dpos);
+            
+            void setSelectionPosition(const Ogre::Vector3 &pos);
+            void setSelectionPosition(const std::vector<Ogre::Vector3> &pos);
+            
+            void setSelectionRotation(const std::vector<Ogre::Quaternion> &rots);
+            void setSelectionRotationAroundCenter(const Ogre::Quaternion &rot);
+            void rotateSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis);
+            void rotateSelection(Ogre::Vector3 rotation);
 
             ////////////////////////////////////////////////
             //getters
@@ -197,18 +207,11 @@ namespace Steel
 
             //setters
 
-            /**
-             * sets application main directory.
-             */
+            /// Sets application main directory.
             void setRootDir(File rootdir);
 
-            /**
-             * sets application main directory.
-             */
+            /// Sets application main directory.
             void setRootDir(Ogre::String rootdir);
-
-            void setSelectionPosition(Ogre::Vector3 pos);
-            void setSelectionRotations(std::vector<Ogre::Quaternion> const &rots);
 
         protected:
             /// invoke processCommand on all registered commands

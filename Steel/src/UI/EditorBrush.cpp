@@ -15,17 +15,18 @@
 #include <Level.h>
 #include <tools/Cylinder.h>
 #include <tools/OgreUtils.h>
+#include <Agent.h>
 #include <OgreManualObject.h>
 #include <OgreMeshManager.h>
 
 namespace Steel
 {
     Ogre::SceneNode *EditorBrush::sTerraBrushVisual=NULL;
-    
+
     EditorBrush::EditorBrush():Ogre::FrameListener(),
         mEngine(NULL),mEditor(NULL),
         mMode(TRANSLATE),mContinuousModeActivated(false),
-        mSelectionPosBeforeTransformation(Ogre::Vector3::ZERO),mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
+        mSelectionPosBeforeTransformation(Ogre::Vector3()),mSelectionRotationAroundCenterBeforeTransformation(Ogre::Quaternion()),
         mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
         mTerraScale(1.1f),mSelectedTerrainHeight(.0f),mRaiseShape(TerrainManager::RaiseShape::UNIFORM),
         mModeStack(std::vector<BrushMode>()),
@@ -71,7 +72,6 @@ namespace Steel
     bool EditorBrush::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         mContinuousModeActivated=false;
-        std::list<ModelId> selection;
         switch(mMode)
         {
             case TRANSLATE:
@@ -80,26 +80,43 @@ namespace Steel
                 switch (id)
                 {
                     case OIS::MB_Left:
-                        if (mEngine->hasSelection())
-                        {
-                            mEngine->clearSelection();
-                        }
+                    {
+                        std::list<ModelId> selection;
                         mEngine->pickAgents(selection, evt.state.X.abs, evt.state.Y.abs);
-                        mEngine->setSelectedAgents(selection, true);
+
+                        // click on nothing
+                        if(selection.size()==0)
+                            mEngine->clearSelection();
+                        else if(mEngine->hasSelection())
+                        {
+                            // clicked a new agent
+                            if(!mEngine->isSelected(selection.front()))
+                            {
+                                mEngine->setSelectedAgents(selection,!mInputMan->isKeyDown(OIS::KC_LCONTROL));
+                            }
+                        }
+                        else
+                        {
+                            mEngine->setSelectedAgents(selection);
+                            Debug::log("EditorBrush::mousePressed(): selection position:")(mEngine->selectionPosition()).endl();
+                        }
+
                         if (mEngine->hasSelection())
                         {
                             // saved so that we know what to reset properties to
                             //TODO: save complete serialisations
                             mSelectionPosBeforeTransformation = mEngine->selectionPosition();
+                            mSelectionRotationAroundCenterBeforeTransformation = mEngine->selectionOrientationFromCenter();
                         }
                         break;
+                    }
                     case OIS::MB_Right:
                         // cancel current selection dragging (translate, etc)
                         if(mIsDraggingSelection)
                         {
                             mIsDraggingSelectionCancelled=true;
                             mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
-                            mEngine->setSelectionRotations(mSelectionRotBeforeTransformation);
+                            mEngine->setSelectionRotationAroundCenter(mSelectionRotationAroundCenterBeforeTransformation);
                         }
                         break;
                     default:
@@ -143,10 +160,13 @@ namespace Steel
             case SCALE:
                 if(id==OIS::MB_Left)
                 {
-                    mIsDraggingSelectionCancelled=false;
-                    mIsDraggingSelection=false;
-                    mSelectionPosBeforeTransformation = mEngine->selectionPosition();
-                    mSelectionRotBeforeTransformation = mEngine->selectionRotations();
+                    if(mIsDraggingSelection)
+                    {
+                        mIsDraggingSelectionCancelled=false;
+                        mIsDraggingSelection=false;
+                        mSelectionPosBeforeTransformation = mEngine->selectionPosition();
+                        mSelectionRotationAroundCenterBeforeTransformation = mEngine->selectionOrientationFromCenter();
+                    }
                 }
                 break;
             case TERRAFORM:
@@ -241,11 +261,12 @@ namespace Steel
                 if(mIsDraggingSelectionCancelled)
                     return true;
                 mIsDraggingSelection=true;
+                Ogre::Vector3 selectionPos = mEngine->selectionPosition();
+
                 switch (mMode)
                 {
                     case TRANSLATE:
                     {
-                        Ogre::Vector3 selectionPos = mEngine->selectionPosition();
                         // translating with shift held: along Y axis
                         if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                         {
@@ -278,7 +299,7 @@ namespace Steel
                                     // finally, we translate the selection according to the vector given by substracting two points.
                                     Ogre::Vector3 t = dst - src;
                                     t.y = t.y > 10.f ? .0f : t.y < -10.f ? 0.f : t.y;
-                                    mEngine->translateSelection(Ogre::Vector3::UNIT_Y * t);
+                                    mEngine->moveSelection(Ogre::Vector3::UNIT_Y * t);
                                 }
                             }
                         }
@@ -305,7 +326,7 @@ namespace Steel
                                     Ogre::Vector3 t = dst - src;
                                     // just making sure we have an horizontal translation (should be useless since plane is horizontal)
                                     t.y = 0.f;
-                                    mEngine->translateSelection(t);
+                                    mEngine->moveSelection(t);
                                 }
                             }
                         }
@@ -313,14 +334,40 @@ namespace Steel
                     break;
                     case ROTATE:
                     {
-                        Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
-                        mEngine->rotateSelection(r);
+                        // project past and present mouse ray -> position at selection height
+                        Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
+                        plane.normalise();
+                        Ogre::Vector3 center=mEngine->selectionPosition();
+
+                        Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
+                        std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+                        if (result.first)
+                        {
+                            Ogre::Vector3 src = ray.getPoint(result.second)-center;
+                            src.normalise();
+                            // then we do the same with the new coordinates on the viewport
+                            ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
+                            result = ray.intersects(plane);
+                            if (result.first)
+                            {
+                                Ogre::Vector3 dst = ray.getPoint(result.second)-center;
+                                dst.normalise();
+                                // take the angle between them, in the direction given by the sign of their crossProduct (cw/ccw)
+                                Ogre::Radian r=src.angleBetween(dst)*Ogre::Math::Sign(src.crossProduct(dst).y);
+                                // rotate selection around Y on its center of the same amount
+                                mEngine->rotateSelectionRotationAroundCenter(r,Ogre::Vector3::UNIT_Y);
+                                
+                                //// simple heuristic - early ages
+                                //Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
+                                //mEngine->rotateSelection(r);
+                            }
+                        }
                     }
                     break;
                     case SCALE:
                     case TERRAFORM:
-                        // not only done when the mouse moves, but also when it stays at the same place with a button down,
-                        // hence implemented in frameRenderingQueued
+                        // not only done when the mouse moves, but also when it stays at the same place with a button held down,
+                        // hence, implemented in frameRenderingQueued
                     default:
                         break;
                 } //end of switch (mMode)
