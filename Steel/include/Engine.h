@@ -148,20 +148,38 @@ namespace Steel
             /// Returns positions of selected agents.
             std::vector< Ogre::Vector3 > selectionPositions();
 
-            /// Returns orientations of selected agents.
+            /// Returns orientations of selected agents' models.
             std::vector<Ogre::Quaternion> selectionRotations();
-            /// Returns orientation of selection center to the first item of the selection.
+            /** Returns the shortest arc quaternion to rotate the selection 
+             * center to the first selected agent's model.*/
             Ogre::Quaternion selectionOrientationFromCenter();
-
+            /** Same as selectionOrientationFromCenter, but for each selected agent's model.*/
+            std::vector<Ogre::Quaternion> selectionOrientationsFromCenter();
+            
+            /// Move all selected agents' models by the given amount.
             void moveSelection(const Ogre::Vector3 &dpos);
+            /// Move the <i>i</i>th selected agent's model by the <i>i</i>th given amount.
             void moveSelection(const std::vector<Ogre::Vector3> &dpos);
             
+            /// Move all selected agents' models to the given position.
             void setSelectionPosition(const Ogre::Vector3 &pos);
-            void setSelectionPosition(const std::vector<Ogre::Vector3> &pos);
+            /// Move the <i>i</i>th selected agent's model to the <i>i</i>th given position.
+            void setSelectionPositions(const std::vector<Ogre::Vector3> &pos);
             
-            void setSelectionRotation(const std::vector<Ogre::Quaternion> &rots);
-            void setSelectionRotationAroundCenter(const Ogre::Quaternion &rot);
+            /// Rotate the <i>i</i>th selected agent's model to the <i>i</i>th given rotation.
+            void setSelectionRotations(const std::vector<Ogre::Quaternion> &rots);
+            /** Move all selected agents' models around the selection center position, 
+             * so that the first agent's model's projection on a plane with the given 
+             * normal has the given angle to the z axis.
+             * */
+            void setSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis);
+            /** Move all selected agents' models around the selection center position, 
+             * so that the first agent's model's projection on a plane with the given 
+             * normal has the given angle to the z axis.
+             * */
             void rotateSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis);
+            
+            /// Rotate all selected agents' models by the given rotation. See OgreModel::rotate for details.
             void rotateSelection(Ogre::Vector3 rotation);
 
             ////////////////////////////////////////////////

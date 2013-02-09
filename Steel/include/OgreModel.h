@@ -16,6 +16,7 @@
 
 #include "Model.h"
 
+
 namespace Steel
 {
 
@@ -33,12 +34,19 @@ namespace Steel
             virtual ~OgreModel();
 
             virtual ModelType modelType();
+            
             Ogre::Vector3 position();
             Ogre::Quaternion rotation();
-            void rotate(Ogre::Vector3 &rotation);
+            /// Rotate the model's scenenode by r.x in the x axis, etc.
+            void rotate(Ogre::Vector3 &r);
+            /// Rotate the model's scenenode by the given quaternion
             void rotate(Ogre::Quaternion &q);
+            
             void setNodeAny(Ogre::Any any);
+            
+            /// Translates the model's scenenode by the given vector.
             void move(Ogre::Vector3 const &dpos);
+            
             void setPosition(Ogre::Vector3 const &pos);
             void setRotation(Ogre::Quaternion const &rot);
             void setSelected(bool selected);

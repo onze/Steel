@@ -26,7 +26,7 @@ namespace Steel
     EditorBrush::EditorBrush():Ogre::FrameListener(),
         mEngine(NULL),mEditor(NULL),
         mMode(TRANSLATE),mContinuousModeActivated(false),
-        mSelectionPosBeforeTransformation(Ogre::Vector3()),mSelectionRotationAroundCenterBeforeTransformation(Ogre::Quaternion()),
+        mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
         mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
         mTerraScale(1.1f),mSelectedTerrainHeight(.0f),mRaiseShape(TerrainManager::RaiseShape::UNIFORM),
         mModeStack(std::vector<BrushMode>()),
@@ -105,8 +105,8 @@ namespace Steel
                         {
                             // saved so that we know what to reset properties to
                             //TODO: save complete serialisations
-                            mSelectionPosBeforeTransformation = mEngine->selectionPosition();
-                            mSelectionRotationAroundCenterBeforeTransformation = mEngine->selectionOrientationFromCenter();
+                            mSelectionPosBeforeTransformation = mEngine->selectionPositions();
+                            mSelectionRotBeforeTransformation = mEngine->selectionRotations();
                         }
                         break;
                     }
@@ -115,8 +115,8 @@ namespace Steel
                         if(mIsDraggingSelection)
                         {
                             mIsDraggingSelectionCancelled=true;
-                            mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
-                            mEngine->setSelectionRotationAroundCenter(mSelectionRotationAroundCenterBeforeTransformation);
+                            mEngine->setSelectionPositions(mSelectionPosBeforeTransformation);
+                            mEngine->setSelectionRotations(mSelectionRotBeforeTransformation);
                         }
                         break;
                     default:
@@ -164,8 +164,8 @@ namespace Steel
                     {
                         mIsDraggingSelectionCancelled=false;
                         mIsDraggingSelection=false;
-                        mSelectionPosBeforeTransformation = mEngine->selectionPosition();
-                        mSelectionRotationAroundCenterBeforeTransformation = mEngine->selectionOrientationFromCenter();
+                        mSelectionPosBeforeTransformation = mEngine->selectionPositions();
+                        mSelectionRotBeforeTransformation = mEngine->selectionRotations();
                     }
                 }
                 break;
@@ -387,6 +387,7 @@ namespace Steel
                     }
                     break;
                     case SCALE:
+                        
                         break;
                     case TERRAFORM:
                         // not only done when the mouse moves, but also when it stays at the same place with a button held down,

@@ -642,13 +642,12 @@ namespace Steel
         if (!hasSelection())
             return rots;
         Agent *agent;
-        auto mean=selectionPosition();;
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            rots.push_back(mean.getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z));
+            rots.push_back(agent->ogreModel()->rotation());
         }
         return rots;
     }
@@ -658,7 +657,7 @@ namespace Steel
         if (!hasSelection())
             return Ogre::Quaternion::IDENTITY;
 
-        AgentId aid=*(mSelection.begin());
+        AgentId aid=mSelection.front();
         Agent *agent=mLevel->getAgent(aid);
         if (agent == NULL)
         {
@@ -667,6 +666,23 @@ namespace Steel
         }
 
         return selectionPosition().getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z);
+    }
+    
+    std::vector<Ogre::Quaternion> Engine::selectionOrientationsFromCenter()
+    {
+        std::vector<Ogre::Quaternion> rots;
+        if (!hasSelection())
+            return rots;
+        Agent *agent;
+        auto mean=selectionPosition();;
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            rots.push_back(mean.getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z));
+        }
+        return rots;
     }
 
     void Engine::setRootDir(Ogre::String rootdir)
@@ -720,7 +736,7 @@ namespace Steel
         }
     }
 
-    void Engine::setSelectionPosition(const std::vector<Ogre::Vector3> &pos)
+    void Engine::setSelectionPositions(const std::vector<Ogre::Vector3> &pos)
     {
         if (!hasSelection())
             return;
@@ -766,7 +782,7 @@ namespace Steel
         }
     }
 
-    void Engine::setSelectionRotation(const std::vector<Ogre::Quaternion> &rots)
+    void Engine::setSelectionRotations(const std::vector<Ogre::Quaternion> &rots)
     {
         if (!hasSelection())
             return;
@@ -820,7 +836,7 @@ namespace Steel
         }
     }
 
-    void Engine::setSelectionRotationAroundCenter(const Ogre::Quaternion &rot)
+    void Engine::setSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis)
     {
         if (!hasSelection())
             return;

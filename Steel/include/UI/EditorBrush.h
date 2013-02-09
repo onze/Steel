@@ -100,8 +100,8 @@ namespace Steel
             bool mContinuousModeActivated;
 
             /// holds the position to put the selection back to, if edition is cancelled
-            Ogre::Vector3 mSelectionPosBeforeTransformation;
-            Ogre::Quaternion mSelectionRotationAroundCenterBeforeTransformation;
+            std::vector<Ogre::Vector3> mSelectionPosBeforeTransformation;
+            std::vector<Ogre::Quaternion> mSelectionRotBeforeTransformation;
 
             /// true when selection is begin dragged (translated/rotated/scaled)
             bool mIsDraggingSelection;
