@@ -98,7 +98,7 @@ namespace Steel
             // than all remaining entities
             if ((closest_distance >= 0.0f) && (closest_distance < query_result[qr_idx].distance))
             {
-                break;
+//                 break;
             }
             // only check this result if it's a hit against an entity
             if (query_result[qr_idx].movable != NULL)

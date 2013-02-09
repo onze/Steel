@@ -651,6 +651,22 @@ namespace Steel
         }
         return rots;
     }
+    
+    std::vector<Ogre::Vector3> Engine::selectionScales()
+    {
+        std::vector<Ogre::Vector3> scales;
+        if (!hasSelection())
+            return scales;
+        Agent *agent;
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            scales.push_back(agent->ogreModel()->scale());
+        }
+        return scales;
+    }
 
     Ogre::Quaternion Engine::selectionOrientationFromCenter()
     {
@@ -835,20 +851,35 @@ namespace Steel
             }
         }
     }
-
-    void Engine::setSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis)
+    
+    void Engine::rescaleSelection(const Ogre::Vector3 &scale)
     {
         if (!hasSelection())
-            return;
+            return;   
         Agent *agent;
-//         Ogre::Vector3 center=selectionPosition();
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-//             agent->ogreModel()->move();
-//             agent->ogreModel()->rotate();
+            agent->ogreModel()->rescale(scale);
+        }
+    }
+    
+    void Engine::setSelectionScales(const std::vector<Ogre::Vector3> &scales)
+    {
+        if (!hasSelection())
+            return;
+        
+        Agent *agent;
+        assert(scales.size()==mSelection.size());
+        auto it_sca=scales.begin();
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            agent->ogreModel()->setScale(*(it_sca++));
         }
     }
 

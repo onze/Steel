@@ -155,6 +155,8 @@ namespace Steel
             Ogre::Quaternion selectionOrientationFromCenter();
             /** Same as selectionOrientationFromCenter, but for each selected agent's model.*/
             std::vector<Ogre::Quaternion> selectionOrientationsFromCenter();
+            /// Returns scale of selected agents' models.
+            std::vector<Ogre::Vector3> selectionScales();
             
             /// Move all selected agents' models by the given amount.
             void moveSelection(const Ogre::Vector3 &dpos);
@@ -168,11 +170,7 @@ namespace Steel
             
             /// Rotate the <i>i</i>th selected agent's model to the <i>i</i>th given rotation.
             void setSelectionRotations(const std::vector<Ogre::Quaternion> &rots);
-            /** Move all selected agents' models around the selection center position, 
-             * so that the first agent's model's projection on a plane with the given 
-             * normal has the given angle to the z axis.
-             * */
-            void setSelectionRotationAroundCenter(const Ogre::Radian &angle, const Ogre::Vector3 &axis);
+            
             /** Move all selected agents' models around the selection center position, 
              * so that the first agent's model's projection on a plane with the given 
              * normal has the given angle to the z axis.
@@ -181,6 +179,11 @@ namespace Steel
             
             /// Rotate all selected agents' models by the given rotation. See OgreModel::rotate for details.
             void rotateSelection(Ogre::Vector3 rotation);
+            
+            /// Rescale all selected agents' models by the given factor.
+            void rescaleSelection(const Ogre::Vector3 &scale);
+            /// Scale the <i>i</i>th selected agent's model to the <i>i</i>th given factor.
+            void setSelectionScales(const std::vector<Ogre::Vector3> &scale);
 
             ////////////////////////////////////////////////
             //getters

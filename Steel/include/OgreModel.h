@@ -37,23 +37,27 @@ namespace Steel
             
             Ogre::Vector3 position();
             Ogre::Quaternion rotation();
+            Ogre::Vector3 scale();
+            
+            
+            /// Translates the model's scenenode by the given vector.
+            void move(Ogre::Vector3 const &dpos);
             /// Rotate the model's scenenode by r.x in the x axis, etc.
             void rotate(Ogre::Vector3 &r);
             /// Rotate the model's scenenode by the given quaternion
             void rotate(Ogre::Quaternion &q);
-            
-            void setNodeAny(Ogre::Any any);
-            
-            /// Translates the model's scenenode by the given vector.
-            void move(Ogre::Vector3 const &dpos);
+            /// Rescale the model's scenenode by the given factor (current_scale*given_scale).
+            void rescale(Ogre::Vector3 const &scale);
             
             void setPosition(Ogre::Vector3 const &pos);
             void setRotation(Ogre::Quaternion const &rot);
+            void setScale(Ogre::Vector3 const &sca);
             void setSelected(bool selected);
+            
+            void setNodeAny(Ogre::Any any);
 
             ///deserialize itself from the given Json object
             virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot=NULL, Ogre::SceneManager *sceneManager=NULL);
-
             ///serialize itself into the given Json object
             virtual void toJson(Json::Value &node);
 

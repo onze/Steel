@@ -29,6 +29,7 @@ namespace Steel
         mEntity = sceneManager->createEntity(meshName);
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
+        mSceneNode->setInheritScale(false);
     }
 
     OgreModel::OgreModel(const OgreModel &m)
@@ -69,14 +70,29 @@ namespace Steel
         }
     }
 
+    ModelType OgreModel::modelType()
+    {
+        return MT_OGRE;
+    }
+
     Ogre::Vector3 OgreModel::position()
     {
         return mSceneNode->getPosition();
     }
 
-    ModelType OgreModel::modelType()
+    Ogre::Quaternion OgreModel::rotation()
     {
-        return MT_OGRE;
+        return mSceneNode->getOrientation();
+    }
+
+    Ogre::Vector3 OgreModel::scale()
+    {
+        return mSceneNode->getScale();
+    }
+    
+    void OgreModel::move(Ogre::Vector3 const &dpos)
+    {
+        mSceneNode->translate(dpos);
     }
 
     void OgreModel::rotate(Ogre::Vector3 &rotation)
@@ -86,24 +102,19 @@ namespace Steel
         mSceneNode->rotate(Ogre::Vector3::UNIT_Z, Ogre::Degree(rotation.z), Ogre::Node::TS_WORLD);
     }
     
+    void OgreModel::rescale(Ogre::Vector3 const &scale)
+    {
+        mSceneNode->scale(scale);
+    }
+    
     void OgreModel::rotate(Ogre::Quaternion &q)
     {
         mSceneNode->rotate(q,Ogre::Node::TS_WORLD);
     }
 
-    Ogre::Quaternion OgreModel::rotation()
-    {
-        return mSceneNode->getOrientation();
-    }
-
     void OgreModel::setNodeAny(Ogre::Any any)
     {
         mSceneNode->getUserObjectBindings().setUserAny(any);
-    }
-
-    void OgreModel::move(Ogre::Vector3 const &dpos)
-    {
-        mSceneNode->translate(dpos);
     }
 
     void OgreModel::setPosition(Ogre::Vector3 const &pos)
@@ -114,6 +125,11 @@ namespace Steel
     void OgreModel::setRotation(Ogre::Quaternion const &rot)
     {
         mSceneNode->setOrientation(rot);
+    }
+    
+    void OgreModel::setScale(Ogre::Vector3 const &sca)
+    {
+        mSceneNode->setScale(sca);
     }
 
     void OgreModel::setSelected(bool selected)

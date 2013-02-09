@@ -26,7 +26,9 @@ namespace Steel
     EditorBrush::EditorBrush():Ogre::FrameListener(),
         mEngine(NULL),mEditor(NULL),
         mMode(TRANSLATE),mContinuousModeActivated(false),
-        mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
+        mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),
+        mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
+        mSelectionScaleBeforeTransformation(std::vector<Ogre::Vector3>()),
         mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
         mTerraScale(1.1f),mSelectedTerrainHeight(.0f),mRaiseShape(TerrainManager::RaiseShape::UNIFORM),
         mModeStack(std::vector<BrushMode>()),
@@ -107,6 +109,7 @@ namespace Steel
                             //TODO: save complete serialisations
                             mSelectionPosBeforeTransformation = mEngine->selectionPositions();
                             mSelectionRotBeforeTransformation = mEngine->selectionRotations();
+                            mSelectionScaleBeforeTransformation= mEngine->selectionScales();
                         }
                         break;
                     }
@@ -117,6 +120,7 @@ namespace Steel
                             mIsDraggingSelectionCancelled=true;
                             mEngine->setSelectionPositions(mSelectionPosBeforeTransformation);
                             mEngine->setSelectionRotations(mSelectionRotBeforeTransformation);
+                            mEngine->setSelectionScales(mSelectionScaleBeforeTransformation);
                         }
                         break;
                     default:
@@ -305,7 +309,7 @@ namespace Steel
                         else
                         {
                             // normal translation: on the x/z plane
-                            Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
+                            Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
                             // what we want is a vector of translation from the selection's position to a new one.
                             // first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
                             // (the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
@@ -359,7 +363,7 @@ namespace Steel
                         else
                         {
                             // project past and present mouse ray -> position at selection height
-                            Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
+                            Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
                             Ogre::Vector3 selectionPos=mEngine->selectionPosition();
 
                             Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
@@ -387,8 +391,16 @@ namespace Steel
                     }
                     break;
                     case SCALE:
-                        
-                        break;
+                    {
+                        Ogre::Plane plane= Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
+                        Ogre::Vector3 src,dst;
+                        if(mousePlaneProjection(plane,_x / w, _y / h,src) && mousePlaneProjection(plane,x / w, y / h,dst))
+                        {
+                            Ogre::Real factor=selectionPos.distance(dst)/selectionPos.distance(src);
+                            mEngine->rescaleSelection(Ogre::Vector3(factor,factor,factor));
+                        }
+                    }
+                    break;
                     case TERRAFORM:
                         // not only done when the mouse moves, but also when it stays at the same place with a button held down,
                         // hence, implemented in frameRenderingQueued
@@ -400,6 +412,18 @@ namespace Steel
         } //end of if(evt.state.buttonDown(OIS::MB_Left))
         // not used
         return true;
+    }
+
+    bool EditorBrush::mousePlaneProjection(const Ogre::Plane &plane,float x, float y,Ogre::Vector3 &pos)
+    {
+        Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x, y);
+        std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+        if (result.first)
+        {
+            pos=ray.getPoint(result.second);
+            return true;
+        }
+        return false;
     }
 
     bool EditorBrush::frameRenderingQueued(const Ogre::FrameEvent &evt)

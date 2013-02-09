@@ -54,19 +54,24 @@ namespace Steel
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseMoved(const OIS::MouseEvent& evt);
-    
+
+            /** Tries to project a ray starting at the current camera and passing through the 
+             * given screen position, through the given plane. If the ray does, the intersection
+             * is set into the given pos (in coordinates local), and the method returns true; It eturns false otherwise */
+            bool mousePlaneProjection(const Ogre::Plane &plane,float x, float y,Ogre::Vector3 &pos);
+
             void onShow();
             void onHide();
-            
+
             /// command interface
             void processCommand(std::vector<Ogre::String> command);
-            
+
             /// saves the current editing mode
             void pushMode();
-            
+
             ///restore the last saved editing mode
             void popMode();
-            
+
             //getters
             inline BrushMode mode()
             {
@@ -74,13 +79,13 @@ namespace Steel
             }
             //setters
             void setMode(BrushMode mode);
-            
+
             inline float intensity()
             {
                 if(sTerraBrushVisual==NULL)return .0f;
                 return sTerraBrushVisual->getScale().y/3.f;
             }
-            
+
             inline float radius()
             {
                 if(sTerraBrushVisual==NULL)return .0f;
@@ -102,6 +107,7 @@ namespace Steel
             /// holds the position to put the selection back to, if edition is cancelled
             std::vector<Ogre::Vector3> mSelectionPosBeforeTransformation;
             std::vector<Ogre::Quaternion> mSelectionRotBeforeTransformation;
+            std::vector<Ogre::Vector3> mSelectionScaleBeforeTransformation;
 
             /// true when selection is begin dragged (translated/rotated/scaled)
             bool mIsDraggingSelection;
@@ -116,10 +122,10 @@ namespace Steel
             float mSelectedTerrainHeight;
             /// current terrabrush shape
             TerrainManager::RaiseShape mRaiseShape;
-            
+
             std::vector<BrushMode> mModeStack;
             std::set<Ogre::Terrain *> mModifiedTerrains;
-            
+
     };
 }
 #endif // EDITORBRUSH_H
