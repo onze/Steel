@@ -5,6 +5,7 @@
  *      Author: onze
  */
 
+#include <list>
 #include <iostream>
 #include <unistd.h>
 #include <memory>
@@ -651,7 +652,7 @@ namespace Steel
         }
         return rots;
     }
-    
+
     std::vector<Ogre::Vector3> Engine::selectionScales()
     {
         std::vector<Ogre::Vector3> scales;
@@ -682,7 +683,7 @@ namespace Steel
         }
         return selectionPosition().getRotationTo(agent->position(),Ogre::Vector3::UNIT_Z);
     }
-    
+
     std::vector<Ogre::Quaternion> Engine::selectionOrientationsFromCenter()
     {
         std::vector<Ogre::Quaternion> rots;
@@ -724,10 +725,32 @@ namespace Steel
         for (std::list<AgentId>::iterator it = selection.begin(); it != selection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
-            if (agent == NULL)
+            if (NULL ==agent )
                 continue;
             mSelection.push_back(agent->id());
             agent->setSelected(true);
+        }
+    }
+
+    void Engine::removeFromSelection(const std::list<AgentId> &selection)
+    {
+        for (auto it_sel= selection.begin(); it_sel!= selection.end(); ++it_sel)
+        {
+            auto aid=*it_sel;
+            if (INVALID_ID==aid)
+                break;
+            while(true)
+            {
+                auto it=std::find(mSelection.begin(),mSelection.end(),aid);
+                if(mSelection.end()==it)
+                    break;
+                mSelection.erase(it);
+
+                auto agent = mLevel->getAgent(aid);
+                if (NULL == agent)
+                    continue;
+                agent->setSelected(false);
+            }
         }
     }
 
@@ -847,11 +870,11 @@ namespace Steel
             }
         }
     }
-    
+
     void Engine::rescaleSelection(const Ogre::Vector3 &scale)
     {
         if (!hasSelection())
-            return;   
+            return;
         Agent *agent;
         for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
@@ -861,12 +884,12 @@ namespace Steel
             agent->rescale(scale);
         }
     }
-    
+
     void Engine::setSelectionScales(const std::vector<Ogre::Vector3> &scales)
     {
         if (!hasSelection())
             return;
-        
+
         Agent *agent;
         assert(scales.size()==mSelection.size());
         auto it_sca=scales.begin();

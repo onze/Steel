@@ -87,15 +87,16 @@ namespace Steel
                         mEngine->pickAgents(selection, evt.state.X.abs, evt.state.Y.abs);
 
                         // click on nothing
-                        if(selection.size()==0)
+                        if(selection.size()==0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
                             mEngine->clearSelection();
                         else if(mEngine->hasSelection())
                         {
                             // clicked a new agent
-                            if(!mEngine->isSelected(selection.front()))
-                            {
+                            if(mEngine->isSelected(selection.front()))
+                                mEngine->removeFromSelection(selection);
+                            else
                                 mEngine->setSelectedAgents(selection,!mInputMan->isKeyDown(OIS::KC_LCONTROL));
-                            }
+
                         }
                         else
                         {

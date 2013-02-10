@@ -59,9 +59,16 @@ namespace Steel
             
             /// Creates and returns a new level.
             Level *createLevel(Ogre::String name);
-
+            
+            /// Set the currenlty selected agents. If replacePrevious is true (default), any previous selection is cancelled.
+            void setSelectedAgents(std::list<AgentId> selection, bool replacePrevious=true);
             void clearSelection();
             void deleteSelection();
+            void removeFromSelection(const std::list<AgentId> &aids);
+            inline bool hasSelection()
+            {
+                return !mSelection.empty();
+            }
 
             /**
              * init from an app that already has created the engine's rendering window.
@@ -78,11 +85,6 @@ namespace Steel
             void fireOnLevelSetEvent();
             /// warns all EngineListeners that a new level has been set
             void fireOnLevelUnsetEvent();
-
-            inline bool hasSelection()
-            {
-                return !mSelection.empty();
-            }
 
             /**
              * game-side/standalone init.
@@ -128,9 +130,6 @@ namespace Steel
              * expensive, and may make the engine not as responsive until it exits.
              */
             Level *setCurrentLevel(Level *newLevel);
-            
-            /// Set the currenlty selected agents. If replacePrevious is true (default), any previous selection is cancelled.
-            void setSelectedAgents(std::list<AgentId> selection, bool replacePrevious=true);
             void shutdown();
 
             void startEditMode();
