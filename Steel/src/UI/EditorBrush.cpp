@@ -266,70 +266,31 @@ namespace Steel
                     return true;
                 mIsDraggingSelection=true;
                 Ogre::Vector3 selectionPos = mEngine->selectionPosition();
+                Ogre::Vector3 src,dst;
+                Ogre::Vector3 camPos=mEngine->level()->camera()->camNode()->getPosition();
+                // wall facing the camera, placed between cam and selection
+                auto dirToCam=camPos-selectionPos;
+                Ogre::Plane vPlane=Ogre::Plane(dirToCam, selectionPos);
+                Ogre::Plane hPlane= Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
 
                 switch (mMode)
                 {
                     case TRANSLATE:
                     {
-                        // translating with shift held: along Y axis
                         if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                         {
-                            // I have not found a faster way to do this:
-                            // first I build a plan with the camera orientation as normal (but vertical).
-                            Ogre::Vector3 normal = mEngine->level()->camera()->camNode()->getOrientation()* Ogre::Vector3::UNIT_Z;
-                            normal.y = .0f;
-                            Ogre::Plane plane = Ogre::Plane(normal, Ogre::Vector3::ZERO);
-                            // and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
-                            // ask IT its distance to where I wanted to put it (the selection),
-                            Ogre::Real dist = plane.getDistance(selectionPos);
-                            // and build a new one there. suboptimal =/
-                            plane = Ogre::Plane(normal, dist);
-                            // the idea here is to move the selection on a plane perpendicular to the camera view.
-                            // we want a vector of the translation from src to dst, where src is where a ray cast from the camera
-                            // to the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
-                            // passing through the current mouse coordinates.
-                            Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-                            std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-                            if (result.first)
+                            if(mousePlaneProjection(vPlane,_x / w, _y / h,src) && mousePlaneProjection(vPlane,x / w, y / h,dst))
                             {
-                                Ogre::Vector3 src = ray.getPoint(result.second);
-                                // then we do the same with the new coordinates on the viewport
-                                ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-                                result = ray.intersects(plane);
-                                if (result.first)
-                                {
-                                    Ogre::Vector3 dst = ray.getPoint(result.second);
-                                    // finally, we translate the selection according to the vector given by substracting two points.
-                                    Ogre::Vector3 t = dst - src;
-                                    t.y = t.y > 10.f ? .0f : t.y < -10.f ? 0.f : t.y;
-                                    mEngine->moveSelection(Ogre::Vector3::UNIT_Y * t);
-                                }
+                                mEngine->moveSelection(Ogre::Vector3(.0f,(dst-src).y,.0f));
                             }
                         }
                         else
                         {
-                            // normal translation: on the x/z plane
-                            Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
-                            // what we want is a vector of translation from the selection's position to a new one.
-                            // first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
-                            // (the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
-                            Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-                            std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-                            if (result.first)
+                            if(mousePlaneProjection(hPlane,_x / w, _y / h,src) && mousePlaneProjection(hPlane,x / w, y / h,dst))
                             {
-                                Ogre::Vector3 src = ray.getPoint(result.second);
-                                // then we do the same with the new coordinates on the viewport
-                                ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-                                result = ray.intersects(plane);
-                                if (result.first)
-                                {
-                                    Ogre::Vector3 dst = ray.getPoint(result.second);
-                                    // finally, we translate the selection according to the vector given by substracting two points.
-                                    Ogre::Vector3 t = dst - src;
-                                    // just making sure we have an horizontal translation (should be useless since plane is horizontal)
-                                    t.y = 0.f;
-                                    mEngine->moveSelection(t);
-                                }
+                                auto dpos=dst-src;
+                                dpos.y=.0f;
+                                mEngine->moveSelection(dpos);
                             }
                         }
                     }
@@ -338,63 +299,35 @@ namespace Steel
                     {
                         if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                         {
-                            Ogre::SceneNode *cam=mEngine->level()->camera()->camNode();
-                            // wall facing the camera, placed between cam and selection
-                            auto dirToCam=cam->getPosition()-selectionPos;
-                            Ogre::Plane plane = Ogre::Plane(dirToCam, (cam->getPosition()+selectionPos)/2.f);
-
-                            // project past and present mouse ray
-                            Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-                            std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-                            if (result.first)
+                            Ogre::Plane plane = Ogre::Plane(dirToCam, (camPos+selectionPos)/2.f);
+                            if(mousePlaneProjection(plane,_x / w, _y / h,src) && mousePlaneProjection(plane,x / w, y / h,dst))
                             {
-                                Ogre::Vector3 src = ray.getPoint(result.second)-selectionPos;
-                                // then we do the same with the new coordinates on the viewport
-                                ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-                                result = ray.intersects(plane);
-                                if (result.first)
-                                {
-                                    Ogre::Vector3 dst = ray.getPoint(result.second)-selectionPos;
-                                    Ogre::Radian r=src.angleBetween(dst);
-                                    mEngine->rotateSelectionRotationAroundCenter(r,src.crossProduct(dst));
-                                }
+                                src-=selectionPos;
+                                dst-=selectionPos;
+                                Ogre::Radian r=src.angleBetween(dst);
+                                mEngine->rotateSelectionRotationAroundCenter(r,src.crossProduct(dst));
                             }
                         }
                         else
                         {
-                            // project past and present mouse ray -> position at selection height
-                            Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
-                            Ogre::Vector3 selectionPos=mEngine->selectionPosition();
-
-                            Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-                            std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-                            if (result.first)
+                            if(mousePlaneProjection(hPlane,_x / w, _y / h,src) && mousePlaneProjection(hPlane,x / w, y / h,dst))
                             {
-                                Ogre::Vector3 src = ray.getPoint(result.second)-selectionPos;
-                                // then we do the same with the new coordinates on the viewport
-                                ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-                                result = ray.intersects(plane);
-                                if (result.first)
-                                {
-                                    Ogre::Vector3 dst = ray.getPoint(result.second)-selectionPos;
-                                    // take the angle between them, in the direction given by the sign of their crossProduct (cw/ccw)
-                                    Ogre::Radian r=src.angleBetween(dst)*Ogre::Math::Sign(src.crossProduct(dst).y);
-                                    // rotate selection around Y on its center of the same amount
-                                    mEngine->rotateSelectionRotationAroundCenter(r,Ogre::Vector3::UNIT_Y);
-
-                                    //// simple heuristic - early ages
-                                    //Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
-                                    //mEngine->rotateSelection(r);
-                                }
+                                src-=selectionPos;
+                                dst-=selectionPos;
+                                // take the angle between them, in the direction given by the sign of their crossProduct (cw/ccw)
+                                Ogre::Radian r=src.angleBetween(dst)*Ogre::Math::Sign(src.crossProduct(dst).y);
+                                // rotate selection around Y on its center of the same amount
+                                mEngine->rotateSelectionRotationAroundCenter(r,Ogre::Vector3::UNIT_Y);
+                                //// simple heuristic - early ages
+                                //Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
+                                //mEngine->rotateSelection(r);
                             }
                         }
                     }
                     break;
                     case SCALE:
                     {
-                        Ogre::Plane plane= Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
-                        Ogre::Vector3 src,dst;
-                        if(mousePlaneProjection(plane,_x / w, _y / h,src) && mousePlaneProjection(plane,x / w, y / h,dst))
+                        if(mousePlaneProjection(hPlane,_x / w, _y / h,src) && mousePlaneProjection(hPlane,x / w, y / h,dst))
                         {
                             Ogre::Real factor=selectionPos.distance(dst)/selectionPos.distance(src);
                             mEngine->rescaleSelection(Ogre::Vector3(factor,factor,factor));
@@ -646,5 +579,6 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 
 
