@@ -68,7 +68,7 @@ namespace Steel
     ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
     {
         ModelId id = allocateModel();
-        mModels[id].init(meshName, pos, rot, mLevelRoot, mSceneManager);
+        mModels[id].init(meshName, pos, rot, Ogre::Vector3::UNIT_SCALE, mLevelRoot, mSceneManager);
         mModels[id].setNodeAny(Ogre::Any(id));
         return id;
     }
