@@ -609,7 +609,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->rotate(rotation);
+            agent->rotate(rotation);
         }
     }
 
@@ -631,7 +631,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            pos.push_back(agent->ogreModel()->position());
+            pos.push_back(agent->position());
         }
         return pos;
     }
@@ -647,7 +647,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            rots.push_back(agent->ogreModel()->rotation());
+            rots.push_back(agent->rotation());
         }
         return rots;
     }
@@ -663,7 +663,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            scales.push_back(agent->ogreModel()->scale());
+            scales.push_back(agent->scale());
         }
         return scales;
     }
@@ -680,8 +680,7 @@ namespace Steel
             Debug::error("Engine::selectionOrientationFromCenter(): selection's first item (agent ")(aid)(") is not valid.").endl();
             return Ogre::Quaternion::IDENTITY;
         }
-
-        return selectionPosition().getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z);
+        return selectionPosition().getRotationTo(agent->position(),Ogre::Vector3::UNIT_Z);
     }
     
     std::vector<Ogre::Quaternion> Engine::selectionOrientationsFromCenter()
@@ -696,7 +695,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            rots.push_back(mean.getRotationTo(agent->ogreModel()->position(),Ogre::Vector3::UNIT_Z));
+            rots.push_back(mean.getRotationTo(agent->position(),Ogre::Vector3::UNIT_Z));
         }
         return rots;
     }
@@ -748,7 +747,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->move(diff);
+            agent->move(diff);
         }
     }
 
@@ -764,7 +763,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->setPosition(*(it_pos++));
+            agent->setPosition(*(it_pos++));
         }
     }
 
@@ -778,7 +777,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->move(dpos);
+            agent->move(dpos);
         }
     }
 
@@ -794,7 +793,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->move(*(it_pos++));
+            agent->move(*(it_pos++));
         }
     }
 
@@ -810,7 +809,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->setRotation(*(it_rot++));
+            agent->setRotation(*(it_rot++));
         }
     }
 
@@ -819,7 +818,6 @@ namespace Steel
         if (!hasSelection())
             return;
         Agent *agent;
-        OgreModel *model;
         Ogre::Vector3 center=selectionPosition();
         auto rotation=Ogre::Quaternion(angle,axis);
         auto plane=Ogre::Plane(axis,center);
@@ -828,8 +826,7 @@ namespace Steel
             agent = mLevel->getAgent(mSelection.front());
             if (agent == NULL)
                 return;
-            model=agent->ogreModel();
-            model->rotate(rotation);
+            agent->rotate(rotation);
         }
         else
         {
@@ -837,17 +834,16 @@ namespace Steel
             {
                 agent = mLevel->getAgent(*it);
                 if (agent == NULL)
-                    continue;
-                model=agent->ogreModel();
+                    continue;;
 
-                auto modelPosition=model->position();
-                auto modelProj=plane.projectVector(modelPosition);
+                auto pos=agent->position();
+                auto proj=plane.projectVector(pos);
                 // rotated projection (rotated within plane space, but kept in world space)
-                auto modelRotatedProj=rotation*(modelProj-center)+center;
+                auto rotatedProj=rotation*(proj-center)+center;
                 // deproject it as far as it was
-                modelRotatedProj+=modelPosition-modelProj;
-                model->setPosition(modelRotatedProj);
-                model->rotate(rotation);
+                rotatedProj+=pos-proj;
+                agent->setPosition(rotatedProj);
+                agent->rotate(rotation);
             }
         }
     }
@@ -862,7 +858,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->rescale(scale);
+            agent->rescale(scale);
         }
     }
     
@@ -879,7 +875,7 @@ namespace Steel
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
                 continue;
-            agent->ogreModel()->setScale(*(it_sca++));
+            agent->setScale(*(it_sca++));
         }
     }
 

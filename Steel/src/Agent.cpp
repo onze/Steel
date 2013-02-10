@@ -114,7 +114,7 @@ namespace Steel
         }
     }
 
-    Model *Agent::model(ModelType mType)
+    Model *Agent::model(ModelType mType) const
     {
         ModelId id = modelId(mType);
 
@@ -124,9 +124,9 @@ namespace Steel
         return mLevel->modelManager(mType)->at(id);
     }
 
-    ModelId Agent::modelId(ModelType mType)
+    ModelId Agent::modelId(ModelType mType) const
     {
-        std::map<ModelType, ModelId>::iterator it = mModelIds.find(mType);
+        auto it = mModelIds.find(mType);
         return (it == mModelIds.end() ? INVALID_ID : it->second);
     }
 
@@ -152,5 +152,64 @@ namespace Steel
         return root;
     }
 
+    Ogre::Vector3 Agent::position() const
+    {
+        auto omodel=ogreModel();
+        return NULL==omodel?Ogre::Vector3::ZERO:omodel->position();
+    }
+
+    Ogre::Quaternion Agent::rotation() const
+    {
+        auto omodel=ogreModel();
+        return NULL==omodel?Ogre::Quaternion::ZERO:omodel->rotation();
+    }
+
+    Ogre::Vector3 Agent::scale() const
+    {
+        auto omodel=ogreModel();
+        return NULL==omodel?Ogre::Vector3::ZERO:omodel->scale();
+    }
+
+    void Agent::move(const Ogre::Vector3 &dpos)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->move(dpos);
+    }
+
+    void Agent::rotate(const Ogre::Vector3& rot)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->rotate(rot);
+    }
+
+    void Agent::rotate(const Ogre::Quaternion &q)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->rotate(q);
+    }
+
+    void Agent::rescale(const Ogre::Vector3 &scale)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->rescale(scale);
+    }
+
+    void Agent::setPosition(const Ogre::Vector3 &pos)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->setPosition(pos);
+    }
+
+    void Agent::setRotation(const Ogre::Quaternion &rot)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->setRotation(rot);
+    }
+
+    void Agent::setScale(const Ogre::Vector3 &sca)
+    {
+        auto omodel=ogreModel();
+        if(NULL!=omodel)omodel->setScale(sca);
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

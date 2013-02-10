@@ -22,6 +22,7 @@ namespace Steel
     void OgreModel::init(Ogre::String meshName,
                          Ogre::Vector3 pos,
                          Ogre::Quaternion rot,
+                         Ogre::Vector3 scale,
                          Ogre::SceneNode *levelRoot,
                          Ogre::SceneManager *sceneManager)
     {
@@ -30,6 +31,7 @@ namespace Steel
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
         mSceneNode->setInheritScale(false);
+        mSceneNode->setScale(scale);
     }
 
     OgreModel::OgreModel(const OgreModel &m)
@@ -75,39 +77,39 @@ namespace Steel
         return MT_OGRE;
     }
 
-    Ogre::Vector3 OgreModel::position()
+    Ogre::Vector3 OgreModel::position() const
     {
         return mSceneNode->getPosition();
     }
 
-    Ogre::Quaternion OgreModel::rotation()
+    Ogre::Quaternion OgreModel::rotation() const
     {
         return mSceneNode->getOrientation();
     }
 
-    Ogre::Vector3 OgreModel::scale()
+    Ogre::Vector3 OgreModel::scale() const
     {
         return mSceneNode->getScale();
     }
     
-    void OgreModel::move(Ogre::Vector3 const &dpos)
+    void OgreModel::move(const Ogre::Vector3 &dpos)
     {
         mSceneNode->translate(dpos);
     }
 
-    void OgreModel::rotate(Ogre::Vector3 &rotation)
+    void OgreModel::rotate(const Ogre::Vector3 &rotation)
     {
         mSceneNode->rotate(Ogre::Vector3::UNIT_X, Ogre::Degree(rotation.x), Ogre::Node::TS_WORLD);
         mSceneNode->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(rotation.y), Ogre::Node::TS_WORLD);
         mSceneNode->rotate(Ogre::Vector3::UNIT_Z, Ogre::Degree(rotation.z), Ogre::Node::TS_WORLD);
     }
     
-    void OgreModel::rescale(Ogre::Vector3 const &scale)
+    void OgreModel::rescale(const Ogre::Vector3 &scale)
     {
         mSceneNode->scale(scale);
     }
     
-    void OgreModel::rotate(Ogre::Quaternion &q)
+    void OgreModel::rotate(const Ogre::Quaternion &q)
     {
         mSceneNode->rotate(q,Ogre::Node::TS_WORLD);
     }
@@ -117,17 +119,17 @@ namespace Steel
         mSceneNode->getUserObjectBindings().setUserAny(any);
     }
 
-    void OgreModel::setPosition(Ogre::Vector3 const &pos)
+    void OgreModel::setPosition(const Ogre::Vector3 &pos)
     {
         mSceneNode->setPosition(pos);
     }
 
-    void OgreModel::setRotation(Ogre::Quaternion const &rot)
+    void OgreModel::setRotation(const Ogre::Quaternion &rot)
     {
         mSceneNode->setOrientation(rot);
     }
     
-    void OgreModel::setScale(Ogre::Vector3 const &sca)
+    void OgreModel::setScale(const Ogre::Vector3 &sca)
     {
         mSceneNode->setScale(sca);
     }
@@ -149,6 +151,7 @@ namespace Steel
         //TODO: use abbreviated keys for release
         node["position"] = StringUtils::toJson(mSceneNode->getPosition());
         node["rotation"] = StringUtils::toJson(mSceneNode->getOrientation());
+        node["scale"] = StringUtils::toJson(mSceneNode->getScale());
         node["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
     }
 
@@ -159,22 +162,29 @@ namespace Steel
         Ogre::String meshName;
         Ogre::Vector3 pos;
         Ogre::Quaternion rot;
+        Ogre::Vector3 scale=Ogre::Vector3::UNIT_SCALE;
 
         Json::Value value;
         bool allWasFine = true;
 
         // gather it
         value = node["position"];
-        if (value.isNull() && !(allWasFine = false))
+        if (value.isNull())
             Debug::error(intro)("invalid field 'position' (skipped).").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node["rotation"];
-        if (value.isNull() && !(allWasFine = false))
+        if (value.isNull())
             Debug::error(intro)("invalid field 'rotation' (skipped).").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
+        
+        value = node["scale"];
+        if (value.isNull())
+            Debug::error(intro)("invalid field 'scale' (skipped).").endl();
+        else
+            scale = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node["entityMeshName"];
         if (value.isNull() && !(allWasFine = false))
@@ -185,7 +195,7 @@ namespace Steel
         if (!allWasFine)
         {
             Debug::error("json was:").endl()(node.toStyledString()).endl();
-            Debug::error("deserialisation aborted.").endl();
+            Debug::error("model deserialisation aborted.").endl();
             return false;
         }
 
@@ -208,13 +218,14 @@ namespace Steel
             }
             Ogre::Any any = mSceneNode->getUserAny();
             cleanup();
-            init(meshName, pos, rot, levelRoot, sceneManager);
+            init(meshName, pos, rot, scale, levelRoot, sceneManager);
             setNodeAny(any);
         }
         else
         {
-            mSceneNode->setPosition(pos);
-            mSceneNode->setOrientation(rot);
+            setPosition(pos);
+            setRotation(rot);
+            setScale(scale);
         }
         return true;
     }

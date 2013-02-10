@@ -27,6 +27,7 @@ namespace Steel
             void init(	Ogre::String meshName,
                         Ogre::Vector3 pos,
                         Ogre::Quaternion rot,
+                        Ogre::Vector3 scale,
                         Ogre::SceneNode *mLevelRoot,
                         Ogre::SceneManager *mSceneManager);
             OgreModel(const OgreModel &m);
@@ -35,23 +36,23 @@ namespace Steel
 
             virtual ModelType modelType();
             
-            Ogre::Vector3 position();
-            Ogre::Quaternion rotation();
-            Ogre::Vector3 scale();
-            
+            Ogre::Vector3 position() const;
+            Ogre::Quaternion rotation() const;
+            Ogre::Vector3 scale() const;
             
             /// Translates the model's scenenode by the given vector.
-            void move(Ogre::Vector3 const &dpos);
+            void move(const Ogre::Vector3 &dpos);
             /// Rotate the model's scenenode by r.x in the x axis, etc.
-            void rotate(Ogre::Vector3 &r);
+            void rotate(const Ogre::Vector3 &r);
             /// Rotate the model's scenenode by the given quaternion
-            void rotate(Ogre::Quaternion &q);
+            void rotate(const Ogre::Quaternion &q);
             /// Rescale the model's scenenode by the given factor (current_scale*given_scale).
-            void rescale(Ogre::Vector3 const &scale);
+            void rescale(const Ogre::Vector3 &scale);
             
-            void setPosition(Ogre::Vector3 const &pos);
-            void setRotation(Ogre::Quaternion const &rot);
-            void setScale(Ogre::Vector3 const &sca);
+            void setPosition(const Ogre::Vector3 &pos);
+            void setRotation(const Ogre::Quaternion &rot);
+            void setScale(const Ogre::Vector3 &sca);
+            
             void setSelected(bool selected);
             
             void setNodeAny(Ogre::Any any);
