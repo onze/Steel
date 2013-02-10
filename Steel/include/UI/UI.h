@@ -1,6 +1,5 @@
-
-#ifndef UI_H
-#define UI_H
+#ifndef STEEL_UI_H
+#define STEEL_UI_H
 
 #include <Rocket/Core.h>
 #include <OgreSceneManager.h>
@@ -65,7 +64,7 @@ namespace Steel
             bool mouseMoved(const OIS::MouseEvent& evt);
             bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
             bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            
+
             /// called when a new level becomes the current level.
             void onLevelSet(Level *level);
             /// called right before a level is unset (becomes not current anymore).
@@ -78,15 +77,15 @@ namespace Steel
             {
                 return mEditor;
             }
-            
+
             File dataDir()
             {
                 return mUIDataDir;
             }
-            
+
             KeyIdentifierMap &keyIdentifiers()
             {
-                return mKeyIdentifiers;   
+                return mKeyIdentifiers;
             }
         protected:
             // not owned
@@ -97,12 +96,12 @@ namespace Steel
             // owned
             unsigned int mWidth;
             unsigned int mHeight;
-            
+
             /// used to know how long has passed since Engin startup (libRocket has to know)
             Ogre::Timer mTimer;
             RenderInterfaceOgre3D *mRocketRenderInterface;
             Rocket::Core::Context* mMainContext;
-            
+
             /// maps OIS key codes to rocket ones for input injection into Rocket UI
             KeyIdentifierMap mKeyIdentifiers;
             ///editor panel
@@ -116,5 +115,5 @@ namespace Steel
     };
 }
 
-#endif // UI_H
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

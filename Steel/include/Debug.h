@@ -1,12 +1,5 @@
-/*
- * Debug.h
- *
- *  Created on: 2011-06-21
- *      Author: onze
- */
-
-#ifndef DEBUG_H_
-#define DEBUG_H_
+#ifndef STEEL_DEBUG_H_
+#define STEEL_DEBUG_H_
 
 #include <iostream>
 #include <json/value.h>
@@ -289,6 +282,6 @@ namespace Steel
 
 }
 
-#endif /* DEBUG_H_ */
+#endif /* STEEL_DEBUG_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

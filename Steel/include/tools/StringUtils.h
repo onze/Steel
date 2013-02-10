@@ -1,5 +1,5 @@
-#ifndef STRINGUTILS_H
-#define STRINGUTILS_H
+#ifndef STEEL_STRINGUTILS_H
+#define STEEL_STRINGUTILS_H
 #include <limits.h>
 #include <vector>
 #include <string>
@@ -73,7 +73,7 @@ namespace Steel
             {
                 return Json::Value(Ogre::StringConverter::toString(value).c_str());
             }
-            
+
             /// serialize the value into a Json::Value object.
             inline static Json::Value toJson(std::string const &value)
             {
@@ -81,5 +81,5 @@ namespace Steel
             }
     };
 }
-#endif // STRINGUTILS_H
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

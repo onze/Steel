@@ -1,5 +1,5 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is largely derived from of libRocket, the HTML/CSS Interface Middleware
  *
  * For the latest information, see http://www.librocket.com
  *

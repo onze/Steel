@@ -1,5 +1,5 @@
-#ifndef INPUTMANAGER_H_
-#define INPUTMANAGER_H_
+#ifndef STEEL_INPUTMANAGER_H_
+#define STEEL_INPUTMANAGER_H_
 
 #include <string>
 #include <list>
@@ -130,5 +130,5 @@ namespace Steel
 
 }
 
-#endif /* INPUTMANAGER_H_ */
+#endif /* STEEL_INPUTMANAGER_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -1,12 +1,5 @@
-/*
- * BTSequence.h
- *
- *  Created on: 2011-07-18
- *      Author: onze
- */
-
-#ifndef BTSEQUENCE_H_
-#define BTSEQUENCE_H_
+#ifndef STEEL_BTSEQUENCE_H_
+#define STEEL_BTSEQUENCE_H_
 
 #include "BT/BTNode.h"
 
@@ -26,4 +19,4 @@ protected:
 };
 
 }
-#endif /* BTSEQUENCE_H_ */
+#endif /* STEEL_BTSEQUENCE_H_ */

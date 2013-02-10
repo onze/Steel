@@ -1,12 +1,5 @@
-/*
- * Camera.h
- *
- *  Created on: 2011-05-11
- *      Author: onze
- */
-
-#ifndef CAMERA_H_
-#define CAMERA_H_
+#ifndef STEEL_CAMERA_H_
+#define STEEL_CAMERA_H_
 
 #include <json/json.h>
 
@@ -73,5 +66,5 @@ namespace Steel
 
 }
 
-#endif /* CAMERA_H_ */
+#endif /* STEEL_CAMERA_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

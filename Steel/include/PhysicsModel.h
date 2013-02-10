@@ -1,5 +1,5 @@
-#ifndef PHYSICSMODEL_H
-#define PHYSICSMODEL_H
+#ifndef STEEL_PHYSICSMODEL_H
+#define STEEL_PHYSICSMODEL_H
 
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 
@@ -34,5 +34,5 @@ namespace Steel
             Ogre::Real mMass;
     };
 }
-#endif // PHYSICSMODEL_H
+#endif // STEEL_PHYSICSMODEL_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

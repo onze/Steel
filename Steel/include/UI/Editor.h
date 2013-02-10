@@ -1,5 +1,5 @@
-#ifndef EDITOR_H
-#define EDITOR_H
+#ifndef STEEL_EDITOR_H
+#define STEEL_EDITOR_H
 
 #include <vector>
 
@@ -108,5 +108,5 @@ namespace Steel
         private:
     };
 }
-#endif // EDITOR_H
+#endif // STEEL_EDITOR_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

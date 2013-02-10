@@ -1,5 +1,5 @@
-#ifndef OGREUTILS_H
-#define OGREUTILS_H
+#ifndef STEEL_OGREUTILS_H
+#define STEEL_OGREUTILS_H
 
 #include <vector>
 
@@ -30,5 +30,5 @@ namespace Steel
             static void resourceGroupsInfos();
     };
 }
-#endif // OGREUTILS_H
+#endif 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -1,12 +1,5 @@
-/*
- * Engine.h
- *
- *  Created on: 2011-05-06
- *      Author: onze
- */
-
-#ifndef ENGINE_H_
-#define ENGINE_H_
+#ifndef STEEL_ENGINE_H_
+#define STEEL_ENGINE_H_
 
 #include <string>
 #include <list>
@@ -290,6 +283,6 @@ namespace Steel
     };
 }
 
-#endif /* ENGINE_H_ */
+#endif /* STEEL_ENGINE_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

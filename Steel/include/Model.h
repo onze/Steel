@@ -1,12 +1,5 @@
-/*
- * Model.h
- *
- *  Created on: 2011-06-16
- *      Author: onze
- */
-
-#ifndef MODEL_H_
-#define MODEL_H_
+#ifndef STEEL_MODEL_H_
+#define STEEL_MODEL_H_
 
 #include <json/json.h>
 
@@ -68,5 +61,5 @@ namespace Steel
 
 }
 
-#endif /* MODEL_H_ */
+#endif /* STEEL_MODEL_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

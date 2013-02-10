@@ -1,12 +1,5 @@
-/*
- * File.h
- *
- *  Created on: Dec 13, 2011
- *      Author: onze
- */
-
-#ifndef FILE_H_
-#define FILE_H_
+#ifndef STEEL_FILE_H_
+#define STEEL_FILE_H_
 
 #include <iostream>
 #include <fstream>
@@ -31,10 +24,10 @@ namespace Steel
     class File
     {
         public:
-            
+
             typedef std::pair<int,uint32_t> FileEvent;
             typedef std::pair<Ogre::String,std::set<FileEventListener *> >  ListenersEntry;
-        
+
             /// initialise the File subsystem. Return 0 if success, error code otherwise.
             static int init();
 
@@ -46,10 +39,10 @@ namespace Steel
 
             /// return the application's current path.
             static File getCurrentDirectory();
-            
+
             /// register an event listener. It will be notified of file events.
             static void addFileListener(File *file, FileEventListener *listener);
-            
+
             /// register an event listener. It will be notified of file events.
             static void removeFileListener(File *file, FileEventListener *listener);
 
@@ -177,7 +170,7 @@ namespace Steel
 
 
         protected:
-            
+
             /// fd of the file getting files event notifications from the kernel
             static int sInotifyFD;
 
@@ -189,10 +182,10 @@ namespace Steel
 
             /// wd of files that have changed since init/last call to dispatchToFiles (FIFO)
             static std::list<FileEvent> sNotificationList;
-            
+
             /// tells inotify to monitor this file
             void startWatching();
-            
+
             /// tells inotify to stop monitoring this file
             void stopWatching();
 

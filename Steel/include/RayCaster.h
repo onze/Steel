@@ -5,8 +5,8 @@
  *      Author: onze
  */
 
-#ifndef RAYCASTER_H_
-#define RAYCASTER_H_
+#ifndef STEEL_RAYCASTER_H_
+#define STEEL_RAYCASTER_H_
 
 #include <list>
 
@@ -65,5 +65,5 @@ namespace Steel
 
 }
 
-#endif /* RAYCASTER_H_ */
+#endif /* STEEL_RAYCASTER_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

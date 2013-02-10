@@ -2,8 +2,6 @@
 #define STEEL_CYLINDER_H
 #include <OgreMesh.h>
 
-
-
 namespace Ogre
 {
     class SceneNode;
@@ -37,5 +35,5 @@ namespace Steel
 
 }
 
-#endif // STEEL_CYLINDER_H
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

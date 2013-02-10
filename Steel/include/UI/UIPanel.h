@@ -1,5 +1,6 @@
-#ifndef UIPANEL_H
-#define UIPANEL_H
+#ifndef STEEL_UIPANEL_H
+#define STEEL_UIPANEL_H
+
 #include <Rocket/Core/Context.h>
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/EventListener.h>
@@ -78,5 +79,5 @@ namespace Steel
             std::set<File *> mDependencies;
     };
 }
-#endif // UIPANEL_H
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

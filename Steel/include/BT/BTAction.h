@@ -1,12 +1,5 @@
-/*
- * BTAction.h
- *
- *  Created on: 2011-07-18
- *      Author: onze
- */
-
-#ifndef BTACTION_H_
-#define BTACTION_H_
+#ifndef STEEL_BTACTION_H_
+#define STEEL_BTACTION_H_
 
 #include <string>
 #include "BTNode.h"
@@ -26,4 +19,4 @@ protected:
 
 }
 
-#endif /* BTACTION_H_ */
+#endif /* STEEL_BTACTION_H_ */

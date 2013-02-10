@@ -1,12 +1,5 @@
-/*
- * BTCounter.h
- *
- *  Created on: 2011-07-21
- *      Author: onze
- */
-
-#ifndef BTCOUNTER_H_
-#define BTCOUNTER_H_
+#ifndef STEEL_BTCOUNTER_H_
+#define STEEL_BTCOUNTER_H_
 
 #include "BT/BTNode.h"
 #include "BT/BTDecorator.h"
@@ -28,4 +21,4 @@ protected:
 
 }
 
-#endif /* BTCOUNTER_H_ */
+#endif /* STEEL_BTCOUNTER_H_ */

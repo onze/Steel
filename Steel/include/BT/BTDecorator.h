@@ -1,12 +1,5 @@
-/*
- * BTDecorator.h
- *
- *  Created on: 2011-07-21
- *      Author: onze
- */
-
-#ifndef BTDECORATOR_H_
-#define BTDECORATOR_H_
+#ifndef STEEL_BTDECORATOR_H_
+#define STEEL_BTDECORATOR_H_
 
 #include "BT/BTNode.h"
 
@@ -25,4 +18,4 @@ public:
 
 }
 
-#endif /* BTDECORATOR_H_ */
+#endif /* STEEL_BTDECORATOR_H_ */

@@ -1,5 +1,5 @@
-#ifndef ENGINEEVENTLISTENER_H
-#define ENGINEEVENTLISTENER_H
+#ifndef STEEL_ENGINEEVENTLISTENER_H
+#define STEEL_ENGINEEVENTLISTENER_H
 
 namespace Steel
 {
@@ -21,5 +21,5 @@ namespace Steel
     };
 }
 
-#endif // ENGINEEVENTLISTENER_H
+#endif // STEEL_ENGINEEVENTLISTENER_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

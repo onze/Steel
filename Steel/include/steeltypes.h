@@ -1,12 +1,5 @@
-/*
- * steeltypes.h
- *
- *  Created on: 2011-06-17
- *      Author: onze
- */
-
-#ifndef STEELTYPES_H_
-#define STEELTYPES_H_
+#ifndef STEEL_STEELTYPES_H_
+#define STEEL_STEELTYPES_H_
 
 #include <limits.h>
 #include <vector>
@@ -43,5 +36,5 @@ namespace Steel
 
 }
 
-#endif /* STEELTYPES_H_ */
+#endif /* STEEL_STEELTYPES_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

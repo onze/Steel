@@ -1,12 +1,5 @@
-/*
- * Node.h
- *
- *  Created on: 2011-07-18
- *      Author: onze
- */
-
-#ifndef BTNODE_H_
-#define BTNODE_H_
+#ifndef STEEL_BTNODE_H_
+#define STEEL_BTNODE_H_
 
 #include <list>
 #include <string>
@@ -62,4 +55,4 @@ protected:
 };
 
 }
-#endif /* BTNODE_H_ */
+#endif /* STEEL_BTNODE_H_ */

@@ -1,12 +1,5 @@
-/*
- * Agent.h
- *
- *  Created on: 2011-06-15
- *      Author: onze
- */
-
-#ifndef AGENT_H_
-#define AGENT_H_
+#ifndef STEEL_AGENT_H_
+#define STEEL_AGENT_H_
 
 #include <limits.h>
 #include <exception>
@@ -47,7 +40,7 @@ namespace Steel
             /// Setup new Agent according to data in the json serialization.
             bool fromJson(Json::Value &models);
             Json::Value toJson();
-            
+
             /// Assigns a model to the agent for the given type.
             bool linkToModel(ModelType modelType, ModelId modelId);
             /// Opposite of linkToModel
@@ -57,7 +50,7 @@ namespace Steel
             Model *model(ModelType modelType) const;
             /// Return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
             ModelId modelId(ModelType modelType) const;
-            
+
             /// Return all ids of all contained model types.
             std::map<ModelType, ModelId> &modelsIds()
             {
@@ -75,15 +68,15 @@ namespace Steel
             }
 
             /**
-             * Make an agent selected or not. 
+             * Make an agent selected or not.
              * Being (de)selected can have different effects on the agent's models.
              */
             void setSelected(bool selected);
-            
+
             Ogre::Vector3 position() const;
             Ogre::Quaternion rotation() const;
             Ogre::Vector3 scale() const;
-            
+
             /// Translates the agent by the given vector.
             void move(const Ogre::Vector3 &dpos);
             /// Rotate the agent by r.x in the x axis, etc.
@@ -92,7 +85,7 @@ namespace Steel
             void rotate(const Ogre::Quaternion &q);
             /// Rescale the agent by the given factor (current_scale*given_scale).
             void rescale(const Ogre::Vector3 &scale);
-            
+
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
@@ -112,14 +105,14 @@ namespace Steel
 
             /// Unique id.
             AgentId mId;
-            
+
             /// Ptr to the level the agent is in.
             Level *mLevel;
-            
+
             std::map<ModelType, ModelId> mModelIds;
     };
 
 }
 
-#endif /* AGENT_H_ */
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

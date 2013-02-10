@@ -1,5 +1,5 @@
-#ifndef HUD_H
-#define HUD_H
+#ifndef STEEL_HUD_H
+#define STEEL_HUD_H
 
 #include "UI/UIPanel.h"
 #include <OgreFrameListener.h>
@@ -41,5 +41,5 @@ namespace Steel
         bool mShowFPS;
     };
 }
-#endif // HUD_H
+#endif // STEEL_HUD_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

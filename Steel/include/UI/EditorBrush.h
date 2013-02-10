@@ -1,5 +1,5 @@
-#ifndef EDITORBRUSH_H
-#define EDITORBRUSH_H
+#ifndef STEEL_EDITORBRUSH_H
+#define STEEL_EDITORBRUSH_H
 
 #include <vector>
 
@@ -9,6 +9,7 @@
 #include <OgreFrameListener.h>
 
 #include <TerrainManager.h>
+#include "SelectionBox.h"
 
 
 namespace Ogre
@@ -125,8 +126,10 @@ namespace Steel
 
             std::vector<BrushMode> mModeStack;
             std::set<Ogre::Terrain *> mModifiedTerrains;
+            
+            SelectionBox mSelectionBox;
 
     };
 }
-#endif // EDITORBRUSH_H
+#endif // STEEL_EDITORBRUSH_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

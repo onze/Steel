@@ -1,12 +1,5 @@
-/*
- * Level.h
- *
- *  Created on: 2011-05-13
- *      Author: onze
- */
-
-#ifndef LEVEL_H_
-#define LEVEL_H_
+#ifndef STEEL_LEVEL_H_
+#define STEEL_LEVEL_H_
 
 #include <map>
 #include <memory>
@@ -199,5 +192,5 @@ namespace Steel
     };
 }
 
-#endif /* LEVEL_H_ */
+#endif /* STEEL_LEVEL_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

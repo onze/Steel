@@ -1,5 +1,5 @@
-#ifndef TERRAINMANAGER_H
-#define TERRAINMANAGER_H
+#ifndef STEEL_TERRAINMANAGER_H
+#define STEEL_TERRAINMANAGER_H
 
 #include <json/value.h>
 
@@ -173,5 +173,5 @@ namespace Steel
             TerrainPhysicsManager *mTerrainPhysicsMan;
     };
 }
-#endif // TERRAINMANAGER_H
+#endif // STEEL_TERRAINMANAGER_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

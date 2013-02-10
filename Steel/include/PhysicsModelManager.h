@@ -1,5 +1,5 @@
-#ifndef PHYSICSMODELMANAGER_H
-#define PHYSICSMODELMANAGER_H
+#ifndef STEEL_PHYSICSMODELMANAGER_H
+#define STEEL_PHYSICSMODELMANAGER_H
 
 class btDynamicsWorld;
 
@@ -41,5 +41,5 @@ namespace Steel
             //owned
     };
 }
-#endif // PHYSICSMODELMANAGER_H
+#endif // STEEL_PHYSICSMODELMANAGER_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

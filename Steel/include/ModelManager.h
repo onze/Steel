@@ -1,12 +1,5 @@
-/*
- * Manager.h
- *
- *  Created on: 2011-07-02
- *      Author: onze
- */
-
-#ifndef MODELMANAGER_H_
-#define MODELMANAGER_H_
+#ifndef STEEL_MODELMANAGER_H_
+#define STEEL_MODELMANAGER_H_
 
 #include "steeltypes.h"
 #include <json/json.h>
@@ -41,5 +34,4 @@ namespace Steel
 
 }
 #endif
-
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

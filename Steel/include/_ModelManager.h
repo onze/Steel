@@ -1,12 +1,5 @@
-/*
- * Manager.h
- *
- *  Created on: 2011-06-17
- *      Author: onze
- */
-
-#ifndef _MODELMANAGER_H_
-#define _MODELMANAGER_H_
+#ifndef STEEL__MODELMANAGER_H_
+#define STEEL__MODELMANAGER_H_
 
 #include <json/json.h>
 
@@ -37,10 +30,10 @@ namespace Steel
              * ModelIds are meant for this, as seen in Agent.h/cpp.
              */
             virtual M *at(ModelId id);
-            
+
             /// Increments the ref count of the given model.
             virtual bool incRef(ModelId id);
-            
+
             /// Decrements the ref count of the given model.
             virtual bool decRef(ModelId id);
 
@@ -90,7 +83,7 @@ namespace Steel
              * The allocated model has a refCount of one. Call decRef on it to release it.
              */
             ModelId allocateModel();
-            
+
             // not owned
             Level *mLevel;
             //owned
@@ -100,5 +93,5 @@ namespace Steel
     };
 }
 
-#endif /* _MODELMANAGER_H_ */
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -1,12 +1,5 @@
-/*
- * BTBuilder.h
- *
- *  Created on: 2011-07-18
- *      Author: onze
- */
-
-#ifndef BTBUILDER_H_
-#define BTBUILDER_H_
+#ifndef STEEL_BTBUILDER_H_
+#define STEEL_BTBUILDER_H_
 
 #include <string>
 #include "BT/BTNode.h"
@@ -28,4 +21,4 @@ protected:
 
 }
 
-#endif /* BTBUILDER_H_ */
+#endif /* STEEL_BTBUILDER_H_ */

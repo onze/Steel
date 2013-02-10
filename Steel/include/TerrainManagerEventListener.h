@@ -1,5 +1,5 @@
-#ifndef TERRAINMANAGEREVENTLISTENER_H
-#define TERRAINMANAGEREVENTLISTENER_H
+#ifndef STEEL_TERRAINMANAGEREVENTLISTENER_H
+#define STEEL_TERRAINMANAGEREVENTLISTENER_H
 
 #include <TerrainManager.h>
 
@@ -16,5 +16,5 @@ namespace Steel
     };
 
 }
-#endif // TERRAINMANAGEREVENTLISTENER_H
+#endif // STEEL_TERRAINMANAGEREVENTLISTENER_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

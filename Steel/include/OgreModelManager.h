@@ -1,12 +1,5 @@
-/*
- * OgreModelManager.h
- *
- *  Created on: 2011-06-16
- *      Author: onze
- */
-
-#ifndef OGREMODELMANAGER_H_
-#define OGREMODELMANAGER_H_
+#ifndef STEEL_OGREMODELMANAGER_H_
+#define STEEL_OGREMODELMANAGER_H_
 
 #include <list>
 
@@ -63,5 +56,5 @@ namespace Steel
 
 }
 
-#endif /* OGREMODELMANAGER_H_ */
+#endif /* STEEL_OGREMODELMANAGER_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -1,5 +1,5 @@
-#ifndef TERRAINPHYSICSMANAGER_H
-#define TERRAINPHYSICSMANAGER_H
+#ifndef STEEL_TERRAINPHYSICSMANAGER_H
+#define STEEL_TERRAINPHYSICSMANAGER_H
 
 #include <map>
 
@@ -106,5 +106,5 @@ namespace Steel
 
     };
 }
-#endif // TERRAINPHYSICSMANAGER_H
+#endif // STEEL_TERRAINPHYSICSMANAGER_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

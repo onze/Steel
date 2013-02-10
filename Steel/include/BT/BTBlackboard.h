@@ -1,12 +1,5 @@
-/*
- * BTBlackboard.h
- *
- *  Created on: 2011-07-21
- *      Author: onze
- */
-
-#ifndef BTBLACKBOARD_H_
-#define BTBLACKBOARD_H_
+#ifndef STEEL_BTBLACKBOARD_H_
+#define STEEL_BTBLACKBOARD_H_
 
 namespace Steel
 {
@@ -20,4 +13,4 @@ public:
 
 }
 
-#endif /* BTBLACKBOARD_H_ */
+#endif /* STEEL_BTBLACKBOARD_H_ */

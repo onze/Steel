@@ -1,12 +1,5 @@
-/*
- * OgreModel.h
- *
- *  Created on: 2011-06-17
- *      Author: onze
- */
-
-#ifndef OGREMODEL_H_
-#define OGREMODEL_H_
+#ifndef STEEL_OGREMODEL_H_
+#define STEEL_OGREMODEL_H_
 
 #include <json/json.h>
 
@@ -88,5 +81,5 @@ namespace Steel
 
 }
 
-#endif /* OGREMODEL_H_ */
+#endif /* STEEL_OGREMODEL_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
