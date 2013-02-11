@@ -74,6 +74,11 @@ namespace Steel
             {
                 return mMousePos;
             };
+            /// Absolute on-screen mouse position, in pixels.
+            inline Ogre::Vector2 &mousePosAtLastMousePressed()
+            {
+                return mMousePosAtLastMousePressed;
+            };
             inline OIS::Mouse* mouse()
             {
                 return mMouse;
@@ -119,10 +124,10 @@ namespace Steel
 
             std::list<OIS::KeyCode> mKeysPressed;
             bool mHasMouseMoved;
-            /**
-             * move since last known position, last known position.
-             */
+            /// Move since last known position, last known position.
             Ogre::Vector2 mMouseMove,mMousePos,mLastMouseMove;
+            
+            Ogre::Vector2 mMousePosAtLastMousePressed;
 
             /// used by push/popMouseState. Store mouse position only.
             std::list<Ogre::Vector2> mMouseStateStack;

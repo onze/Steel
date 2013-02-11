@@ -258,7 +258,7 @@ namespace Steel
     bool InputManager::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         OIS::MouseState ms = evt.state;
-        mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
+        mMousePosAtLastMousePressed=mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
 
         mEngine->mousePressed(evt,id);
         mUI->mousePressed(evt,id);

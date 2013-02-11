@@ -9,8 +9,6 @@
 #include <OgreFrameListener.h>
 
 #include <TerrainManager.h>
-#include "SelectionBox.h"
-
 
 namespace Ogre
 {
@@ -24,6 +22,7 @@ namespace Steel
     class Engine;
     class Editor;
     class InputManager;
+    class SelectionBox;
 
     class EditorBrush:public Ogre::FrameListener
     {
@@ -118,7 +117,9 @@ namespace Steel
             /// disk used as visual terraforming brush
             static Ogre::SceneNode *sTerraBrushVisual;
             /// factor by which the terraforming brush is scaled up (down: 1/mTerraScale)
-            float mTerraScale;
+            float mTerraScaleFactor;
+            /// scale of the brush
+            Ogre::Vector3 mTerraScale;
             /// terrain height at mousePressed (used in terrascale equalize mode)
             float mSelectedTerrainHeight;
             /// current terrabrush shape
@@ -127,8 +128,10 @@ namespace Steel
             std::vector<BrushMode> mModeStack;
             std::set<Ogre::Terrain *> mModifiedTerrains;
             
-            SelectionBox mSelectionBox;
-
+            /// True while the mouse is being dragged, but drag did not start on a selected agent.
+            bool mIsSelecting;
+            /// Helper for selecting many agents at once
+            SelectionBox *mSelectionBox;
     };
 }
 #endif // STEEL_EDITORBRUSH_H
