@@ -188,10 +188,12 @@ namespace Steel
         if(NULL!=omodel)omodel->rotate(q);
     }
 
-    void Agent::rescale(const Ogre::Vector3 &scale)
+    void Agent::rescale(const Ogre::Vector3 &sca)
     {
         auto omodel=ogreModel();
-        if(NULL!=omodel)omodel->rescale(scale);
+        if(NULL!=omodel)omodel->rescale(sca);
+        auto pmodel=physicsModel();
+        if(NULL!=pmodel)pmodel->rescale(sca);
     }
 
     void Agent::setPosition(const Ogre::Vector3 &pos)
@@ -210,6 +212,8 @@ namespace Steel
     {
         auto omodel=ogreModel();
         if(NULL!=omodel)omodel->setScale(sca);
+        auto pmodel=physicsModel();
+        if(NULL!=pmodel)pmodel->setScale(sca);
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

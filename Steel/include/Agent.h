@@ -9,6 +9,7 @@
 #include <OgreVector3.h>
 
 #include "steeltypes.h"
+#include "PhysicsModel.h"
 
 namespace Steel
 {
@@ -66,6 +67,12 @@ namespace Steel
             {
                 return modelId(MT_OGRE);
             }
+            
+            /// Shortcut to Agent::model(MT_OGRE).
+            inline PhysicsModel *physicsModel() const
+            {
+                return (PhysicsModel *) model(MT_PHYSICS);
+            }
 
             /**
              * Make an agent selected or not.
@@ -84,7 +91,7 @@ namespace Steel
             /// Rotate the agent by the given quaternion
             void rotate(const Ogre::Quaternion &q);
             /// Rescale the agent by the given factor (current_scale*given_scale).
-            void rescale(const Ogre::Vector3 &scale);
+            void rescale(const Ogre::Vector3& sca);
 
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);

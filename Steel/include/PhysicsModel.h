@@ -22,9 +22,12 @@ namespace Steel
 
             ///serialize itself into the given Json object
             virtual void toJson(Json::Value &object);
-
             ///deserialize itself from the given Json object. return true is successful.
             virtual bool fromJson(Json::Value &object);
+
+            
+            void rescale(const Ogre::Vector3 &sca);
+            void setScale(const Ogre::Vector3 &sca);
         protected:
             virtual void cleanup();
             //not owned

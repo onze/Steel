@@ -34,8 +34,9 @@ namespace Steel
         }
         // Create shape
         BtOgre::StaticMeshToShapeConverter converter(omodel->entity());
+        btConvexHullShape *mShape= converter.createConvex();
         // You can also just use btSphereShape(1.2) or something.
-        btSphereShape *mShape = converter.createSphere();
+//         btSphereShape *mShape = converter.createSphere();1
 
         //Calculate inertia.
         btVector3 inertia;
@@ -107,6 +108,16 @@ namespace Steel
             return false;
         }
         return true;
+    }
+
+    void PhysicsModel::rescale(const Ogre::Vector3 &sca)
+    {
+        mBody->getCollisionShape()->setLocalScaling(mBody->getCollisionShape()->getLocalScaling()*BtOgre::Convert::toBullet(sca));
+    }
+
+    void PhysicsModel::setScale(const Ogre::Vector3 &sca)
+    {
+        mBody->getCollisionShape()->setLocalScaling(BtOgre::Convert::toBullet(sca));
     }
 
 }
