@@ -133,8 +133,20 @@ namespace Steel
     void Agent::setSelected(bool selected)
     {
         OgreModel *om = ogreModel();
-        if (om != NULL)
-            om->setSelected(selected);
+        if (om != NULL)om->setSelected(selected);
+        auto pmodel=physicsModel();
+        if(NULL!=pmodel)
+        {
+            if(selected)
+            {
+                pmodel->pushState();
+                pmodel->toKinematics();
+            }
+            else
+            {
+                pmodel->popState();
+            }
+        }
     }
 
     Json::Value Agent::toJson()
@@ -174,6 +186,8 @@ namespace Steel
     {
         auto omodel=ogreModel();
         if(NULL!=omodel)omodel->move(dpos);
+        auto pmodel=physicsModel();
+        if(NULL!=pmodel)pmodel->move(dpos);
     }
 
     void Agent::rotate(const Ogre::Vector3& rot)
@@ -200,6 +214,8 @@ namespace Steel
     {
         auto omodel=ogreModel();
         if(NULL!=omodel)omodel->setPosition(pos);
+        auto pmodel=physicsModel();
+        if(NULL!=pmodel)pmodel->setPosition(pos);
     }
 
     void Agent::setRotation(const Ogre::Quaternion &rot)

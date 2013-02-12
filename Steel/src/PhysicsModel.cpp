@@ -13,7 +13,7 @@
 namespace Steel
 {
     PhysicsModel::PhysicsModel():Model(),
-        mWorld(NULL),mBody(NULL),mMass(.0f)
+        mWorld(NULL),mBody(NULL),mMass(.0f),mIsKinematics(false),mStates(std::stack<bool>())
     {
 
     }
@@ -108,6 +108,74 @@ namespace Steel
             return false;
         }
         return true;
+    }
+
+    bool PhysicsModel::popState()
+    {
+        if(!mStates.empty())
+        {
+            if(mStates.top()!=mIsKinematics)
+            {
+                mIsKinematics?toRigidBody():toKinematics();
+            }
+            mStates.pop();
+        }
+        return mIsKinematics;
+    }
+
+    void PhysicsModel::pushState()
+    {
+        mStates.push(mIsKinematics);
+    }
+
+    void PhysicsModel::toKinematics()
+    {
+        mWorld->removeRigidBody(mBody);
+        // http://www.oogtech.org/content/2011/09/07/bullet-survival-kit-4-the-motion-state/
+        // This flag tells the engine that the object is kinematic –
+        // so it shouldn’t move under the influence of gravity or because of colliding with other objects
+        mBody->setCollisionFlags(mBody->getCollisionFlags()|btCollisionObject::CF_KINEMATIC_OBJECT);
+        mBody->setActivationState(DISABLE_DEACTIVATION);
+        auto zero=btVector3(0.f,.0f,.0f);
+        mBody->setLinearVelocity(zero);
+        mBody->setAngularVelocity(zero);
+        mIsKinematics=true;
+        mWorld->addRigidBody(mBody);
+    }
+
+    void PhysicsModel::toRigidBody()
+    {
+        mWorld->removeRigidBody(mBody);
+        mBody->setActivationState(ACTIVE_TAG);
+        mBody->setCollisionFlags(mBody->getCollisionFlags()&~btCollisionObject::CF_KINEMATIC_OBJECT);
+        mIsKinematics=false;
+        mWorld->addRigidBody(mBody);
+    }
+
+    void PhysicsModel::move(const Ogre::Vector3 &dpos)
+    {
+        bool switchBack=false;
+        if(!mIsKinematics && (switchBack=true))toKinematics();
+
+        btTransform ts=mBody->getWorldTransform();
+        ts.setOrigin(ts.getOrigin()+BtOgre::Convert::toBullet(dpos));
+        mBody->getMotionState()->setWorldTransform(ts);
+        mBody->setCenterOfMassTransform(ts);
+
+        if(switchBack)toRigidBody();
+    }
+
+    void PhysicsModel::setPosition(const Ogre::Vector3 &pos)
+    {
+        bool switchBack=false;
+        if(!mIsKinematics && (switchBack=true))toKinematics();
+
+        btTransform ts=mBody->getWorldTransform();
+        ts.setOrigin(BtOgre::Convert::toBullet(pos));
+        mBody->getMotionState()->setWorldTransform(ts);
+        mBody->setCenterOfMassTransform(ts);
+
+        if(switchBack)toRigidBody();
     }
 
     void PhysicsModel::rescale(const Ogre::Vector3 &sca)
