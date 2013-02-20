@@ -7,6 +7,8 @@ namespace Steel
 {
     void start_tests();
     void tests_StringUtils();
+    void tests_File();
+    void tests_ConfigFile();
 }
 
 #endif

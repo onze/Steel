@@ -1,5 +1,6 @@
 #include <tools/StringUtils.h>
 #include <tools/File.h>
+#include <tools/ConfigFile.h>
 #include <Debug.h>
 
 namespace Steel
@@ -45,7 +46,7 @@ namespace Steel
         assert(dst[1]=="b,c");
         assert(dst[2]=="d");
         assert(dst.size()==3);
-        
+
         assert(src==StringUtils::join(StringUtils::split(src,sep0),sep0));
         assert("a.b"==StringUtils::join(StringUtils::split("a.b;c",";"),".",0,-1));
         assert(""==StringUtils::join(StringUtils::split("a;b;c","."),".",0,-1));
@@ -54,10 +55,40 @@ namespace Steel
         Debug::log("tests_StringUtils(): passed").endl();
     }
 
+    void tests_ConfigFile()
+    {
+        Debug::log("tests_ConfigFile(): passed").endl();
+        
+        Ogre::String path="/tmp/test.cfg";
+        Ogre::String path2="/tmp/test.cfg2";
+        File file(path);
+        if(file.exists())
+            file.rm();
+
+        ConfigFile cf(path);
+        assert(cf.getSetting("iop")=="");
+        Ogre::String ret,value="haha";
+        cf.setSetting("iop",value);
+        ret=cf.getSetting("iop");
+        assert(ret==value);
+        cf.save();
+
+        auto cf2=ConfigFile(path2);
+        cf=cf2;
+        ret=cf.getSetting("iop");
+        assert(ret=="");
+        cf=ConfigFile(path);
+        ret=cf.getSetting("iop");
+        assert(ret==value);
+        
+        Debug::log("tests_ConfigFile(): passed").endl();
+    }
+
     void start_tests()
     {
         tests_StringUtils();
-//         test_File();
+        test_File();
+        tests_ConfigFile();
     }
 
 }
