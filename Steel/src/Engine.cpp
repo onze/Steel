@@ -28,8 +28,6 @@
 #include "tests/utests.h"
 #include <EngineEventListener.h>
 
-using namespace std;
-
 namespace Steel
 {
 
@@ -177,7 +175,7 @@ namespace Steel
         // Load resource paths from config file
         Ogre::ConfigFile cf;
         cf.load("resources.cfg");
-
+        
         // Go through all sections & settings in the file
         Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
 
@@ -445,7 +443,7 @@ namespace Steel
         //process keyboard
         bool moveCam=false;
         float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
-        for (list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
+        for (std::list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end(); ++it)
         {
             if(mEditMode)
             {
@@ -906,8 +904,8 @@ namespace Steel
     {
 //         Debug::log("Engine::startEditMode()").endl();
         mEditMode=true;
-        mUI.startEditMode();
         mInputMan.grabInput(false);
+        mUI.startEditMode();
     }
 
     void Engine::stopEditMode()
