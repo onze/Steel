@@ -183,6 +183,20 @@ namespace Steel
                         this->operator()("]");
                         return *this;
                     }
+                    
+                    template<class T>
+                    DebugObject &operator()(std::set<T> const &container)
+                    {
+                        this->operator()("set[");
+                        for(auto it=container.begin(); it!=container.end(); ++it)
+                        {
+                            this->operator()(*it)(", ");
+                            //                             if(((T)(*it))!=((T)container.back()))
+                            //                                 this->operator()(", ");
+                        }
+                        this->operator()("]");
+                        return *this;
+                    }
 
                     template<class T>
                     DebugObject &operator()(std::list<T> const &container)
@@ -251,9 +265,7 @@ namespace Steel
             ///false as long as Debug::init has not been called.
             static bool isInit;
 
-            /**
-             * Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
-             */
+            /// Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
             static void init(Ogre::String defaultLogName, Ogre::LogListener *logListener)
             {
                 Ogre::LogManager *olm = new Ogre::LogManager();
