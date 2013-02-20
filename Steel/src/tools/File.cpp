@@ -8,7 +8,9 @@
 #include <fstream>
 
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
@@ -20,6 +22,7 @@
 #include "tools/File.h"
 #include "Debug.h"
 #include "Poco/DirectoryIterator.h"
+
 
 namespace Steel
 {
@@ -89,9 +92,14 @@ namespace Steel
         return *this;
     }
 
-    bool File::operator!= ( File const &o )
+    bool File::operator== ( File const &o ) const
     {
-        return fullPath()!=o.fullPath();
+        return fullPath()==o.fullPath();
+    }
+    
+    bool File::operator!= ( File const &o ) const
+    {
+        return !operator==(o);
     }
 
     int File::init()
@@ -137,6 +145,35 @@ namespace Steel
 #else
         SYSCALL_ALIAS_mkdir(path.c_str(), 0777); // notice that 777 is different from 0777
 #endif
+    }
+
+    bool File::touch()
+    {
+        if(isDir())
+        {
+            if(!exists())
+                mkdir();
+            return true;
+        }
+        Ogre::String path=fullPath();
+#if defined(_WIN32)
+        throw std::runtime_error("File::touch not implemented");
+#else
+        return open(path.c_str(), O_WRONLY|O_CREAT|O_NONBLOCK)!=-1;
+#endif
+        return false;
+    }
+
+    void File::rm()
+    {
+        if(isDir())
+            throw std::runtime_error("File::rm not implemented for directories");
+#if defined(_WIN32)
+            throw std::runtime_error("File::rm not implemented");
+#else
+        unlink(fullPath().c_str());
+#endif
+        return;
     }
 
     void File::poolAndNotify()
@@ -209,7 +246,7 @@ namespace Steel
             auto listeners=std::set<FileEventListener *>(entry.second.begin(),entry.second.end());
             sNotificationList.pop_front();
             sStaticLock.unlock();
-            
+
             for(auto it=listeners.begin(); it!=listeners.end(); ++it)
                 (*it)->onFileChangeEvent(file);
         }
@@ -318,7 +355,7 @@ namespace Steel
         return S_ISDIR ( st_buf.st_mode );
 #else
 #warning bool File::isDir() is not implemented for your platform.
-        throw std::runtime_exception("bool File::isDir() is not implemented for your platform.");
+        throw std::runtime_error("bool File::isDir() is not implemented for your platform.");
 #endif
     }
 
@@ -348,7 +385,7 @@ namespace Steel
         return S_ISREG ( st_buf.st_mode );
 #else
 #warning bool File::isFile() is not implemented for your platform.
-        throw std::runtime_exception("bool File::isFile() is not implemented for your platform.");
+        throw std::runtime_error("bool File::isFile() is not implemented for your platform.");
 #endif
     }
 
@@ -408,15 +445,15 @@ namespace Steel
         return Ogre::String ( fileData );
     }
 
-    File &File::write ( Ogre::String buffer )
+    File &File::write(Ogre::String buffer, std::ios_base::openmode mode)
     {
         std::ofstream s;
-        s.open ( fullPath().c_str() );
-        s.write ( buffer.c_str(), buffer.length() * sizeof ( char ) );
+        s.open(fullPath().c_str(), mode);
+        s.write(buffer.c_str(), buffer.length()*sizeof(char));
         return *this;
     }
 
-    File File::subfile ( Ogre::String const filename ) const
+    File File::subfile(Ogre::String const filename) const
     {
 #ifdef __unix
         return File ( fullPath() + "/" + filename );

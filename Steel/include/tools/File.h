@@ -56,6 +56,11 @@ namespace Steel
                 ANY=~0
             };
 
+            typedef std::ios_base::openmode OpenMode;
+            static const OpenMode OM_OVERWRITE=std::ios_base::trunc;
+            static const OpenMode OM_APPEND=std::ios_base::app;
+            static const OpenMode OM_BINARY=std::ios_base::binary;
+
             File();
             File ( const char *fullpath );
             File ( Ogre::String fullpath );
@@ -70,7 +75,8 @@ namespace Steel
             File ( File const &f );
             virtual ~File();
             File &operator= ( const File &f );
-            bool operator!= ( const File &f );
+            bool operator== ( const File &f ) const;
+            bool operator!= ( const File &f ) const;
 
             /// register an event listener. It will be notified of file events. If the file path change, it need to be removed and reset.
             void addFileListener(FileEventListener *listener);
@@ -82,7 +88,7 @@ namespace Steel
             Ogre::String read();
 
             /// write the given string into the file, replacing what's already in.
-            File &write ( Ogre::String s );
+            File &write (Ogre::String s, OpenMode mode=OM_APPEND);
 
             /// returns the file name (extension is part of the name)
             Ogre::String fileBaseName() const;
@@ -144,6 +150,15 @@ namespace Steel
             void mkdir();
 
             /**
+             * creates the file fullpath() is poiting to.
+             * Returns false if the file could not be created.
+             */
+            bool touch();
+            
+            /// Deletes the file. Silent if the file does not exist or on a directory.
+            void rm();
+
+            /**
              * list the current directory and return a list of files.
              * Only instances pointing to an existing directory return a non-empty list.
              * NodeType filter indicates whether to return folders, files, or both (default).
@@ -192,19 +207,13 @@ namespace Steel
             /// inotify callback method. Dispatches event to File instances.
             static void poolAndNotify();
 
-            /**
-             * standardized path to the file.
-             */
+            /// Standardized path to the file.
             Ogre::String mPath;
 
-            /**
-             * node name.
-             */
+            /// Node name.
             Ogre::String mBaseName;
 
-            /**
-             * extension of the file. Empty string if the file is a directory.
-             */
+            /// Extension of the file. Empty string if the file is a directory.
             Ogre::String mExtension;
 
     };
