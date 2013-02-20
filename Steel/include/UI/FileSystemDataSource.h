@@ -1,6 +1,8 @@
 #ifndef STEEL_FILESYSTEMDATASOURCE_H
 #define STEEL_FILESYSTEMDATASOURCE_H
 
+#include <Rocket/Core/Element.h>
+#include <Rocket/Core/EventListener.h>
 #include <Rocket/Controls/DataSource.h>
 #include <Rocket/Controls/DataFormatter.h>
 #include <OgrePrerequisites.h>
@@ -13,12 +15,12 @@ namespace Steel
      * This class operates as a data source for a ui librocket grid element:
      * it reads a file system and "write" to the grid a hierarchy of resources.
      * see http://librocket.com/wiki/documentation/tutorials/Datagrid
-     * 
+     *
      * Each produced item is whether a file or a folder with the following properties:
      * - it emits a click event when clicked, with click value "<mDataSourceName>.<item full path>"
      * - it emits a dragdrop event when dropped, with dragdrop value "<mDataSourceName>.<item full path>"
      */
-    class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Controls::DataFormatter
+    class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Controls::DataFormatter,Rocket::Core::EventListener
     {
         private:
             FileSystemDataSource() {};
@@ -28,6 +30,11 @@ namespace Steel
             virtual ~FileSystemDataSource();
             virtual FileSystemDataSource& operator=(const FileSystemDataSource& other);
             virtual bool operator==(const FileSystemDataSource& other) const;
+
+            void localizeDatagridBody(Rocket::Core::Element *docRoot);
+            /** When building the tree, a record is kept of each row matching a folder that contains a
+             config file with the attribute expand=true; This method expand all such rows.*/
+            void expandRows();
 
             //inherited from DataSource
             /**
@@ -52,9 +59,12 @@ namespace Steel
              */
             virtual int GetNumRows(const Rocket::Core::String& table);
 
+            /// Regenerate the tree. Nodes open beforehand are reopened afterwards.
             void refresh()
             {
                 NotifyRowChange("$root");
+                mDatagrid->Update();
+                expandRows();
             }
 
             /** Formats the raw results of a data source request into RML.
@@ -63,7 +73,15 @@ namespace Steel
              * @param[in] raw_data A list of the raw data fields.
              */
             virtual void FormatData(Rocket::Core::String& formatted_data,const Rocket::Core::StringList& raw_data);
+
+            /// Rocket::Core::EventListener interface.
+            virtual void ProcessEvent(Rocket::Core::Event& event);
         protected:
+            /// Returns the name of the file, in each non-leaf of the subtree, that contains configuration for the row representing it.
+            Ogre::String confFileName();
+            // not owned
+            Rocket::Core::Element *mDatagrid;
+            // owned
             Ogre::String mDatasourceName;
             File mRootDir;
     };

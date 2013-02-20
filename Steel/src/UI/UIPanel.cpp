@@ -134,8 +134,8 @@ namespace Steel
     {
         if (NULL==mDocument)
             return;
-        onShow();
         mDocument->Show();
+        onShow();
     }
 
     void UIPanel::hide()

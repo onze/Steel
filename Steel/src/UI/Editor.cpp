@@ -69,6 +69,7 @@ namespace Steel
         mUI=ui;
         mInputMan=inputMan;
         UIPanel::init(width,height);
+        mFSResources->localizeDatagridBody(mDocument);
         auto elem=(Rocket::Controls::ElementFormControlInput *)mDocument->GetElementById("level_name");
         if(elem!=NULL)
         {
@@ -459,6 +460,8 @@ namespace Steel
     bool Editor::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         mBrush.mouseReleased(evt,id);
+        if(id==OIS::MB_Right)
+            mFSResources->expandRows();
         return true;
     }
 
@@ -496,7 +499,7 @@ namespace Steel
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
-
+        
         mFSResources->refresh();
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragstart",this);
@@ -517,6 +520,7 @@ namespace Steel
             else
                 processCommand(Ogre::String("editorbrush.terrabrush.distribution.")+select_form->GetOption(index)->GetValue().CString());
         }
+        
     }
 
     void Editor::onHide()
@@ -623,7 +627,7 @@ namespace Steel
                 if(optionId>-1)
                 {
                     raw_commmand+=".";
-                    raw_commmand+=form->GetOption(optionId)->GetValue().CString();
+                    raw_commmand+=form->GetValue().CString();
                 }
                 else
                     return;
@@ -704,6 +708,8 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
+
 
 
 

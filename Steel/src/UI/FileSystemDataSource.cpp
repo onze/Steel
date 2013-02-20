@@ -1,18 +1,30 @@
 #include "UI/FileSystemDataSource.h"
+
+#include <list>
+
 #include <Debug.h>
 #include <tools/StringUtils.h>
+#include <tools/ConfigFile.h>
+#include <OgreConfigFile.h>
+#include <Rocket/Controls/ElementDataGridRow.h>
+#include <Rocket/Controls/ElementDataGrid.h>
+#include <Rocket/Controls/ElementDataGridExpandButton.h>
 
 namespace Steel
 {
 
     FileSystemDataSource::FileSystemDataSource(Ogre::String datasourceName,File rootDir)
         :Rocket::Controls::DataSource(datasourceName.c_str()),Rocket::Controls::DataFormatter(datasourceName.c_str()),
+         Rocket::Core::EventListener(),
+         mDatagrid(NULL),
          mDatasourceName(datasourceName),mRootDir(rootDir)
     {
     }
 
     FileSystemDataSource::FileSystemDataSource(const FileSystemDataSource& o)
         :Rocket::Controls::DataSource(o),Rocket::Controls::DataFormatter(o.mDatasourceName.c_str()),
+         Rocket::Core::EventListener(o),
+         mDatagrid(o.mDatagrid),
          mDatasourceName(o.mDatasourceName),mRootDir(o.mRootDir)
     {
     }
@@ -24,6 +36,9 @@ namespace Steel
 
     FileSystemDataSource& FileSystemDataSource::operator=(const FileSystemDataSource& o)
     {
+        if(&o==this)
+            return *this;
+        mDatagrid=o.mDatagrid;
         mDatasourceName=o.mDatasourceName;
         mRootDir=o.mRootDir;
         return *this;
@@ -81,6 +96,11 @@ namespace Steel
 //             Debug::warning("FileSystemDataSource<")(mDatasourceName)(", ")(mRootDir.fullPath())(">::GetRow(): unknown table ")(table).endl();
     }
 
+    Ogre::String FileSystemDataSource::confFileName()
+    {
+        return "."+mDatasourceName+".conf";
+    }
+
     int FileSystemDataSource::GetNumRows(const Rocket::Core::String& table)
     {
         int n;
@@ -89,8 +109,11 @@ namespace Steel
         else if (table=="$leaf")
             n=0;
         else
+        {
             // ignore hidden files
-            n=File(table.CString()).ls(File::DIR|File::FILE,false).size();
+            File file(table.CString());
+            n=file.ls(File::DIR|File::FILE,false).size();
+        }
 //         Debug::log.endl()("cwd/table:")(table)(" -> ")(n)(" rows").endl();
         return n;
     }
@@ -111,7 +134,12 @@ namespace Steel
             formatted_data += mDatasourceName.c_str();
             formatted_data += "\"";
 
-            if(!isDir)
+            if(isDir)
+            {
+                // dirs only contain their path (so that we can save whether to expand them)
+                formatted_data+=" fullpath=\""+fullpath+"\"";
+            }
+            else
             {
                 formatted_data+=" ondragdrop=\"";
                 formatted_data+=fullpath;
@@ -125,7 +153,9 @@ namespace Steel
             formatted_data += ">";
 
             if (isDir && hasKids)
-                formatted_data += "<datagridexpand/>";
+            {
+                formatted_data += "<datagridexpand />";
+            }
             else
                 formatted_data += "<spacer/>";
 
@@ -146,5 +176,128 @@ namespace Steel
 //         Debug::log(" as: ")(formatted_data).endl();
     }
 
+    void FileSystemDataSource::localizeDatagridBody(Rocket::Core::Element *docRoot)
+    {
+        Ogre::String intro="FileSystemDataSource<"+mDatasourceName+">::localizeDatagridBody(): ";
+        // get our root node
+        if(NULL!=docRoot)
+        {
+            Rocket::Core::ElementList dgElements;
+            docRoot->GetElementsByTagName(dgElements,"datagrid");
+            Rocket::Core::String sourceName=(mDatasourceName+".$root").c_str();
+            if(dgElements.size()>0)
+            {
+                auto it=dgElements.begin();
+                for(; it!=dgElements.end(); ++it)
+                {
+                    auto elem=static_cast<Rocket::Core::Element *>(*it);
+                    if(elem->GetAttribute<Rocket::Core::String>("source","")==sourceName)
+                    {
+                        mDatagrid=elem;
+                        // ask to be notified when rows get clicked
+                        static_cast<Rocket::Controls::ElementDataGrid *>(mDatagrid)->AddEventListener("click",this);
+                        break;
+                    }
+                }
+                if(it==dgElements.end() && NULL==mDatagrid)
+                {
+                    Debug::warning(intro)("associated document does not ");
+                    Debug::warning("have a <datagrid> element with 'source' tag set to ")(sourceName)(". Aborting.").endl();
+                }
+            }
+            else
+            {
+                Debug::warning(intro)("associated document does not have a <datagrid> child. Aborting.").endl();
+            }
+        }
+        else
+            Debug::warning(intro)("was given a NULL main document. Aborting.").endl();
+    }
+
+    void FileSystemDataSource::ProcessEvent(Rocket::Core::Event& event)
+    {
+        Ogre::String intro="FileSystemDataSource::ProcessEvent(): ";
+
+        // make sure we're looking at an intersting event
+        if(event.GetType()!="click")
+            return;
+        // and it's our business to deal with it
+        if(event.GetCurrentElement()!=mDatagrid)
+            return;
+
+        // elem is actually a Rocket::Controls::ElementDataGridExpandButton *
+        Rocket::Core::Element *elem=event.GetTargetElement();
+        if(NULL==elem || elem->GetTagName()!="datagridexpand")
+            return;
+
+        // get the path of the row via the parent resourceitem
+        Rocket::Core::Element *parent=elem->GetParentNode();
+        Ogre::String fullpath=parent->GetAttribute<Rocket::Core::String>("fullpath","").CString();
+        if(fullpath.empty())
+            return;
+
+        File file(fullpath);
+        if(!file.isDir())
+            return;
+
+        // rewind the hierarchy until datagridrow parent
+        while(elem->GetTagName()!="datagridrow")
+        {
+            elem=elem->GetParentNode();
+            if(elem==mDatagrid)
+            {
+                Debug::error(intro)(event.GetTargetElement()->GetTagName())(" element has no Datagrid parent. Aborting.").endl();
+                return;
+            }
+        }
+
+        auto parentRow=static_cast<Rocket::Controls::ElementDataGridRow *>(elem);
+
+        // save setting
+        ConfigFile cf(file.subfile(confFileName()));
+        cf.setSetting("expand",Ogre::StringConverter::toString(parentRow->IsRowExpanded()));
+        cf.save();
+    }
+
+    void FileSystemDataSource::expandRows()
+    {
+        if(NULL==mDatagrid)
+            return;
+
+        // iterate through rows
+        Rocket::Core::ElementList rows;
+        mDatagrid->GetElementsByTagName(rows,"datagridrow");
+        for(auto it=rows.begin(); it!=rows.end(); ++it)
+        {
+            // get to the resourceitem fullpath value...
+            auto row=static_cast<Rocket::Controls::ElementDataGridRow *>(*it);
+            Rocket::Core::ElementList cells;
+            row->GetElementsByTagName(cells,"datagridcell");
+            if(cells.size()==0)
+                continue;
+            Rocket::Core::ElementList elems;
+            cells[0]->GetElementsByTagName(elems,"resourceitem");
+            if(elems.size()==0)
+                continue;
+            // if it exists
+            auto fullpath=elems[0]->GetAttribute<Rocket::Core::String>("fullpath","");
+            // and we want to expand it
+            ConfigFile cf(File(fullpath.CString()).subfile(confFileName()));
+            if(Ogre::StringConverter::parseBool(cf.getSetting("expand"),false))
+            {
+                row->ExpandRow();
+                // don't forget to also expand the button
+                elems.clear();
+                cells[0]->GetElementsByTagName(elems,"datagridexpand");
+                if(elems.size()==0)
+                    continue;
+                auto btn=static_cast<Rocket::Controls::ElementDataGridExpandButton *>(elems[0]);
+                btn->SetClass("expanded",true);
+                btn->SetClass("collapsed",false);
+            }
+        }
+        mDatagrid->UpdateLayout();
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

@@ -166,7 +166,6 @@ namespace Steel
     void UI::startEditMode()
     {
         mEditMode=true;
-        mHUD.show();
         mEditor.show();
     }
 
