@@ -278,6 +278,7 @@ namespace Steel
             /// commands that will be executed at the beginning of next frame
             std::list<std::vector<Ogre::String> > mCommands;
 
+            /// Called back about engine events.
             std::set<EngineEventListener *> mListeners;
 
     };
