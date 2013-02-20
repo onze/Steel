@@ -19,6 +19,10 @@ namespace Steel
      * Each produced item is whether a file or a folder with the following properties:
      * - it emits a click event when clicked, with click value "<mDataSourceName>.<item full path>"
      * - it emits a dragdrop event when dropped, with dragdrop value "<mDataSourceName>.<item full path>"
+     * 
+     * Its stores the state (~config) of a folder node in a file located in that very node. This file's name is
+     * given by confFileName(). The file is written via a ConfigFile instance (key=value pairs), and contains:
+     * - expand = {true, false}: whether the folder node should appear expanded or collapsed
      */
     class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Controls::DataFormatter,Rocket::Core::EventListener
     {
