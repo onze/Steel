@@ -176,13 +176,13 @@ namespace Steel
 
         value = node["rotation"];
         if (value.isNull())
-            Debug::error(intro)("invalid field 'rotation' (skipped).").endl();
+            Debug::warning(intro)("invalid field 'rotation' (skipped).").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
         
         value = node["scale"];
         if (value.isNull())
-            Debug::error(intro)("invalid field 'scale' (skipped).").endl();
+            Debug::warning(intro)("invalid field 'scale' (skipped).").endl();
         else
             scale = Ogre::StringConverter::parseVector3(value.asString());
 
