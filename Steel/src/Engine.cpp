@@ -817,6 +817,21 @@ namespace Steel
             agent->move(*(it_pos++));
         }
     }
+    
+    void Engine::expandSelection(const float dpos)
+    {
+        if (!hasSelection())
+            return;
+        Agent *agent;
+        auto center=selectionPosition();
+        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        {
+            agent = mLevel->getAgent(*it);
+            if (agent == NULL)
+                continue;
+            agent->move((agent->position()-center).normalisedCopy()*dpos);
+        }
+    }
 
     void Engine::setSelectionRotations(const std::vector<Ogre::Quaternion> &rots)
     {

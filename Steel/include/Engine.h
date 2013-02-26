@@ -154,6 +154,8 @@ namespace Steel
             void moveSelection(const Ogre::Vector3 &dpos);
             /// Move the <i>i</i>th selected agent's model by the <i>i</i>th given amount.
             void moveSelection(const std::vector<Ogre::Vector3> &dpos);
+            /// Moves each selected agent away from the selection center.
+            void expandSelection(float d);
             
             /// Move all selected agents' models to the given position.
             void setSelectionPosition(const Ogre::Vector3 &pos);

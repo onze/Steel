@@ -362,7 +362,10 @@ namespace Steel
                             if(mousePlaneProjection(hPlane,_x / w, _y / h,src) && mousePlaneProjection(hPlane,x / w, y / h,dst))
                             {
                                 Ogre::Real factor=selectionPos.distance(dst)/selectionPos.distance(src);
-                                mEngine->rescaleSelection(Ogre::Vector3(factor,factor,factor));
+                                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                                    mEngine->expandSelection(selectionPos.distance(dst)-selectionPos.distance(src));
+                                else
+                                    mEngine->rescaleSelection(Ogre::Vector3(factor,factor,factor));
                             }
                         }
                         break;
