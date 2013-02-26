@@ -223,7 +223,7 @@ namespace Steel
         serialize(s);
 
         File savefile = getSavefile();
-        savefile.write(s);
+        savefile.write(s,File::OM_OVERWRITE);
 
         Debug::log(logName()+".save() into ")(savefile).endl();
         return true;
