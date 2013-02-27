@@ -288,6 +288,7 @@ namespace Steel
             Ogre::Root::getSingletonPtr()->destroyRenderTarget(mRenderWindow);
             mRenderWindow=NULL;
         }
+        mConfig.save();
         Ogre::Root::getSingletonPtr()->shutdown();
         Debug::log("Steel: done").endl();
     }
