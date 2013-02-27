@@ -500,7 +500,7 @@ namespace Steel
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
         mContext->ProcessKeyUp(keyIdentifier ,mUI->getKeyModifierState());
         Level *level=mEngine->level();
-        
+
         switch(evt.key)
         {
             case OIS::KC_H:
@@ -613,9 +613,8 @@ namespace Steel
         // active menu tab
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
-        elem->SetActiveTab(mMenuTabIndex);
+        elem->SetActiveTab(Ogre::StringConverter::parseInt(mEngine->config().getSetting("Editor::menuTabIndex"),0));
 
-        
         mFSResources->refresh(mDocument);
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragstart",this);
@@ -649,7 +648,10 @@ namespace Steel
             // save state
             auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
             if(NULL!=elem)
+            {
                 mMenuTabIndex=elem->GetActiveTab();
+                mEngine->config().setSetting("Editor::menuTabIndex",Ogre::StringConverter::toString(mMenuTabIndex));
+            }
         }
         mBrush.onHide();
     }
