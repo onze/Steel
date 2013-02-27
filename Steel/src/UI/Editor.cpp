@@ -11,20 +11,21 @@
 #include "UI/Editor.h"
 #include "Debug.h"
 #include "tools/StringUtils.h"
-#include <tools/OgreUtils.h>
+#include "tools/OgreUtils.h"
 #include "Level.h"
 #include "Engine.h"
 #include "UI/FileSystemDataSource.h"
-#include <Camera.h>
-#include <Agent.h>
-#include <OgreModelManager.h>
-#include <PhysicsModelManager.h>
+#include "Camera.h"
+#include "Agent.h"
+#include "OgreModelManager.h"
+#include "PhysicsModelManager.h"
 
 namespace Steel
 {
     Editor::Editor():UIPanel("Editor","data/ui/current/editor/editor.rml"),
         mEngine(NULL),mUI(NULL),mInputMan(NULL),mFSResources(NULL),mDataDir(),
-        mMenuTabIndex(1),mBrush(),mDebugEvents(false),mIsDraggingFromMenu(false)
+        mMenuTabIndex(1),mBrush(),mDebugEvents(false),mIsDraggingFromMenu(false),
+        mSelectionsTags(std::map<Ogre::String, Selection>())
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -529,7 +530,41 @@ namespace Steel
             default:
                 break;
         }
+
+        // numeric key pressed: handles tagging (keys: 1,2,3,...,0)
+        if(NULL!=mEngine && evt.key>=OIS::KC_1 && evt.key<=OIS::KC_0)
+        {
+            // OIS::KC_0 is the highest; the modulo makes it 0
+            int tagKey=(evt.key-OIS::KC_1+1)%10;
+            Ogre::String sKey=Ogre::StringConverter::toString(tagKey);
+            if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                setSelectionTag(mEngine->selection(),sKey);
+            else
+                setTaggedSelection(sKey);
+        }
         return true;
+    }
+
+    void Editor::setSelectionTag(const Selection &selection,const Ogre::String &tag)
+    {
+        Debug::log("Editor::setSelectionTag(): saving ")(selection)(" under tag ")(tag).endl();
+        mSelectionsTags.erase(tag);
+        if(selection.size())
+            mSelectionsTags.insert(std::pair<Ogre::String,Selection>(tag,selection));
+    }
+
+    void Editor::setTaggedSelection(const Ogre::String &tag)
+    {
+        mEngine->clearSelection();
+        auto it=mSelectionsTags.find(tag);
+        if(it!=mSelectionsTags.end())
+        {
+            auto selection=(*it).second;
+            Debug::log("Editor::setTaggedSelection(): selecting ")(selection)(" as tag ")(tag).endl();
+            mEngine->setSelectedAgents(selection);
+        }
+        else
+            Debug::log("Editor::setTaggedSelection(): nothing as tag ")(tag).endl();
     }
 
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
