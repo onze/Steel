@@ -39,20 +39,29 @@ namespace Steel
 
     Editor::~Editor()
     {
-        mBrush.shutdown();
-
-        delete mFSResources;
-        mFSResources=NULL;
-
-        mEngine=NULL;
-        mUI=NULL;
-        mInputMan=NULL;
+        shutdown();
     }
 
     Editor& Editor::operator=(const Editor& other)
     {
         throw std::runtime_error("Editor::operator=(const Editor& other): Not Implemented");
         return *this;
+    }
+    
+    void Editor::shutdown()
+    {
+        UIPanel::shutdown();
+        mBrush.shutdown();
+        
+        if(NULL!=mFSResources)
+        {
+            delete mFSResources;
+            mFSResources=NULL;
+        }
+        
+        mEngine=NULL;
+        mUI=NULL;
+        mInputMan=NULL;
     }
 
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan)

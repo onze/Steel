@@ -27,6 +27,7 @@ namespace Steel
             virtual Editor& operator=(const Editor& other);
 
             virtual void init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan);
+            virtual void shutdown();
             
             Ogre::Vector3 getDropTargetPosition();
             Ogre::Quaternion getDropTargetRotation();
