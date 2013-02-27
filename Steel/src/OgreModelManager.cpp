@@ -59,7 +59,6 @@ namespace Steel
         //TODO discard, quarantine, repair ?
         if(!loadingOk)
         {
-            releaseModel(id);
             id=INVALID_ID;
         }
         return id;

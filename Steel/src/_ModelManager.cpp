@@ -40,34 +40,32 @@ namespace Steel
     }
 
     template<class M>
-    bool _ModelManager<M>::incRef(ModelId id)
+    void _ModelManager<M>::incRef(ModelId id)
     {
         if (id >= mModels.size())
         {
             Debug::error(logName()+"::incRef(): modelId ")(id)("\" does not exist.").endl();
-            return false;
+            return;
         }
         mModels[id].incRef();
-        return true;
     }
     
     template<class M>
-    bool _ModelManager<M>::decRef(ModelId id)
+    void _ModelManager<M>::decRef(ModelId id)
     {
         if (id >= mModels.size())
         {
             Debug::error(logName()+"::decRef(): modelId ")(id)("\" does not exist.").endl();
-            return false;
+            return;
         }
+        if (!isValid(id))
+            return;
+        
         mModels[id].decRef();
-        return true;
-    }
-
-    template<class M>
-    void _ModelManager<M>::clear()
-    {
-        mModels.clear();
-        mModelsFreeList.clear();
+        
+        //TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
+        if (mModels[id].isFree())
+            mModelsFreeList.push_front(id);
     }
 
     template<class M>
@@ -89,15 +87,10 @@ namespace Steel
     }
     
     template<class M>
-    void _ModelManager<M>::releaseModel(ModelId id)
+    void _ModelManager<M>::clear()
     {
-        if (!isValid(id))
-            return;
-        M *m = at(id);
-        m->decRef();
-        //TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
-        if (m->isFree())
-            mModelsFreeList.push_front(id);
+        mModels.clear();
+        mModelsFreeList.clear();
     }
 
     template<class M>

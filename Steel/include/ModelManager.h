@@ -24,7 +24,6 @@ namespace Steel
             virtual void incRef(ModelId id)=0;
             virtual void decRef(ModelId id)=0;
             virtual bool isValid(ModelId id)=0;
-            virtual void releaseModel(ModelId modelId)=0;
             virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid)=0;
             
             virtual std::vector<ModelId> fromJson(Json::Value &models)=0;

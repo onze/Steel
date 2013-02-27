@@ -45,9 +45,6 @@ namespace Steel
             /// Returns true if the given model id points to a model.
             virtual bool isValid(ModelId id);
 
-            /// Decrements the given model, and deletes it if nobody uses it.
-            void releaseModel(ModelId modelId);
-
             /// Initialize new Model according to data in the json serialization.
             virtual std::vector<ModelId> fromJson(Json::Value &models)
             {
