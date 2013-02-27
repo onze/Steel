@@ -24,7 +24,7 @@ namespace Steel
      * given by confFileName(). The file is written via a ConfigFile instance (key=value pairs), and contains:
      * - expand = {true, false}: whether the folder node should appear expanded or collapsed
      */
-    class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Controls::DataFormatter,Rocket::Core::EventListener
+    class FileSystemDataSource:public Rocket::Controls::DataSource,Rocket::Core::EventListener,Rocket::Controls::DataFormatter
     {
         private:
             FileSystemDataSource() {};
@@ -75,6 +75,7 @@ namespace Steel
 
             /// Rocket::Core::EventListener interface.
             virtual void ProcessEvent(Rocket::Core::Event& event);
+            
         protected:
             /// Returns the name of the file, in each non-leaf of the subtree, that contains configuration for the row representing it.
             Ogre::String confFileName();

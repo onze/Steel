@@ -13,25 +13,30 @@
 namespace Steel
 {
 
-    FileSystemDataSource::FileSystemDataSource(Ogre::String datasourceName,File rootDir)
-        :Rocket::Controls::DataSource(datasourceName.c_str()),Rocket::Controls::DataFormatter(datasourceName.c_str()),
-         Rocket::Core::EventListener(),
-         mDatagrid(NULL),
-         mDatasourceName(datasourceName),mRootDir(rootDir)
+    FileSystemDataSource::FileSystemDataSource(Ogre::String datasourceName,File rootDir):
+        Rocket::Controls::DataSource(datasourceName.c_str()),
+        Rocket::Core::EventListener(),
+        Rocket::Controls::DataFormatter(datasourceName.c_str()),
+        mDatagrid(NULL),
+        mDatasourceName(datasourceName),mRootDir(rootDir)
     {
     }
 
-    FileSystemDataSource::FileSystemDataSource(const FileSystemDataSource& o)
-        :Rocket::Controls::DataSource(o),Rocket::Controls::DataFormatter(o.mDatasourceName.c_str()),
-         Rocket::Core::EventListener(o),
-         mDatagrid(o.mDatagrid),
-         mDatasourceName(o.mDatasourceName),mRootDir(o.mRootDir)
+    FileSystemDataSource::FileSystemDataSource(const FileSystemDataSource& o):
+        Rocket::Controls::DataSource(o),
+        Rocket::Core::EventListener(o),
+        Rocket::Controls::DataFormatter(o.mDatasourceName.c_str()),
+        mDatagrid(o.mDatagrid),
+        mDatasourceName(o.mDatasourceName),mRootDir(o.mRootDir)
     {
     }
 
     FileSystemDataSource::~FileSystemDataSource()
     {
-
+        if(NULL!=mDatagrid)
+        {
+            mDatagrid->RemoveEventListener("click",this);
+        }
     }
 
     FileSystemDataSource& FileSystemDataSource::operator=(const FileSystemDataSource& o)
