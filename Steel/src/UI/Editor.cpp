@@ -75,7 +75,7 @@ namespace Steel
         {
             elem->SetValue("MyLevel");
             // does not work for some reason
-//             elem->AddEventListener("submit",this);
+            //             elem->AddEventListener("submit",this);
         }
         mBrush.init(engine,this,mInputMan);
     }
@@ -106,7 +106,7 @@ namespace Steel
         return mid;
     }
 
-    bool Editor::dynamicFillSerialization(Json::Value& root)
+    bool Editor::dynamicFillSerialization(Json::Value& root, AgentId aid)
     {
         Ogre::String intro="Editor::dynamicFillSerialization(): ";
         if(root.isConvertibleTo(Json::arrayValue))
@@ -124,11 +124,26 @@ namespace Steel
             Ogre::String key;
             Json::Value value;
             auto names=root.getMemberNames();
+            auto level=mEngine->level();
+            if(NULL==level)
+            {
+                Debug::error(intro)("Cannot find level. Aborting.").endl();
+                return false;
+            }
             for(auto it=names.begin(); it!=names.end(); ++it)
             {
                 key=*it;
                 Ogre::String svalue,new_svalue;
                 svalue=new_svalue=root[key].asString();
+
+                if(INVALID_ID!=aid)
+                {
+                    auto agent=level->getAgent(aid);
+                    if(svalue=="$agentOgreModel")
+                        new_svalue=Ogre::StringConverter::toString(agent->ogreModelId());
+                    else if(svalue=="$agentPhysicsModel")
+                        new_svalue=Ogre::StringConverter::toString(agent->physicsModelId());
+                }
 
                 if(svalue.at(0)!='$')
                     new_svalue=svalue;
@@ -138,13 +153,10 @@ namespace Steel
                     new_svalue=Ogre::StringConverter::toString(getDropTargetRotation());
                 else if(svalue=="$agentUnderMouse")
                 {
-                    auto selection=std::list<ModelId>();
-                    mEngine->pickAgents(selection, mInputMan->mousePos().x,mInputMan->mousePos().y);
-
-                    if(selection.size()>0)
-                        new_svalue=Ogre::StringConverter::toString((unsigned int)selection.front());
-                    else
-                        new_svalue=Json::Value().asString();
+                    AgentId aid_um=agentIdUnderMouse();
+                    if(INVALID_ID==aid_um)
+                        return false;
+                    new_svalue=Ogre::StringConverter::toString((unsigned int)aid_um);
                 }
                 else if(svalue=="$OgreModelUnderMouse")
                 {
@@ -268,9 +280,17 @@ namespace Steel
             return false;
         }
 
+        // will end up pointing to the agent owning all created models
+        Ogre::String aid_s="";
+        if(!root.isArray() && !root["aid"].isNull())
+            aid_s=root["aid"].asCString();
+        AgentId aid=Ogre::StringConverter::parseUnsignedLong(aid_s,INVALID_ID);
+
         Ogre::String instancitationType=file.extension();
         if(instancitationType=="model")
-            loadModelFromSerialization(root);
+            loadModelFromSerialization(root,aid);
+        else if(instancitationType=="models")
+            loadModelsFromSerializations(root,aid);
         else if(instancitationType=="terrain_slot")
             loadTerrainSlotFromSerialization(root);
         else
@@ -281,7 +301,49 @@ namespace Steel
         return true;
     }
 
-    void Editor::loadModelFromSerialization(Json::Value &root)
+    bool Editor::loadModelsFromSerializations(Json::Value& root, Steel::AgentId& aid)
+    {
+        //         Debug::log("Editor::loadModelsFromSerializations(")(root)(")").endl();
+        Ogre::String intro="Editor::loadModelsFromSerializations(): ";
+
+        Level *level=mEngine->level();
+        if(level==NULL)
+        {
+            Debug::error(intro)("no level to instanciate stuff in.").endl();
+            return false;
+        }
+
+        if(!root.isConvertibleTo(Json::arrayValue))
+        {
+            Debug::warning(intro)("can't use models as array. Trying as simple model instead.").endl();
+            return loadModelFromSerialization(root,aid);
+        }
+
+        // instanciate all models
+        for (Json::ValueIterator it = root.begin(); it != root.end(); ++it)
+        {
+            Json::Value node=*it;
+
+            if(INVALID_ID==aid)
+            {
+                Json::Value value=node["modelType"];
+                if(value.isNull() || value.asCString()!=modelTypesAsString[MT_OGRE])
+                {
+                    Debug::error("serialization is not starting with an OgreModel as modelType. Aborted.").endl();
+                    return false;
+                }
+            }
+
+            if(!loadModelFromSerialization(node,aid))
+            {
+                Debug::error(intro)("could not load models. Aborting.").endl();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool Editor::loadModelFromSerialization(Json::Value& root, Steel::AgentId& aid)
     {
         Debug::log("Editor::loadModelFromSerialization(")(root)(")").endl();
         Ogre::String intro="Editor::loadModelFromSerialization(): ";
@@ -290,54 +352,72 @@ namespace Steel
         if(level==NULL)
         {
             Debug::error(intro)("no level to instanciate stuff in.").endl();
-            return;
+            return false;
         }
 
         Json::Value value=root["modelType"];
         if(value.isNull())
         {
             Debug::error("serialization is missing a \"modelType\" value. Aborted.").endl();
-            return;
+            return false;
         }
 
         Ogre::String modelType= value.asString();
+
+        // this is used to know it the agent should be deleted upon failure of the method
+        bool fresh_aid=INVALID_ID==aid;
+        if(fresh_aid)
+        {
+            aid=level->newAgent();
+            if(INVALID_ID==aid)
+            {
+                Debug::error(intro)("could not create an agent to link the model to. Aborted.").endl();
+                return false;
+            }
+            Debug::log(intro)("created agent ")(aid).endl();
+        }
         // ask the right manager to load this model
         if(modelType=="MT_OGRE")
         {
-            intro.append("in MT_OGRE type: ");
-            ModelId mid = level->ogreModelMan()->fromSingleJson(root);
-            AgentId aid=level->newAgent();
-            if(aid==INVALID_ID)
+            if(INVALID_ID!=level->getAgent(aid)->modelId(MT_OGRE))
             {
-                level->ogreModelMan()->releaseModel(mid);
-                level->deleteAgent(aid);
-                Debug::error(intro)("could not create an agent to link the model to. Model released. Aborted.").endl();
-                return;
+                Debug::error(intro)("cannot create a second OgreModel to agent ")(aid);
+                Debug::error(". Skipping OgreModel instanciation.").endl();
+                return true;// skipped, not aborted
             }
 
+            intro.append("in MT_OGRE type: ");
+            ModelId mid = level->ogreModelMan()->fromSingleJson(root);
             if(!level->linkAgentToModel(aid,MT_OGRE,mid))
             {
-                level->ogreModelMan()->releaseModel(mid);
-                level->deleteAgent(aid);
-                Debug::error(intro)("could not link agent ")(aid)("to OgreModel ")(mid)(". Model released. Agent deleted. Aborted.").endl();
-                return;
+                level->ogreModelMan()->decRef(mid);
+                Debug::error(intro)("could not link agent ")(aid)("to OgreModel ");
+                Debug::error(mid)(". Model released. Aborted.").endl();
+                if(fresh_aid)level->deleteAgent(aid);
+                return false;
             }
+            else
+                Debug::log("new OgreModel with id ")(mid).endl();
             //TODO add visual notification in the UI
         }
         else if(modelType=="MT_PHYSICS")
         {
-            intro.append("in MT_PHYSICS type: ");
-            AgentId aid=agentIdUnderMouse();
-            if(INVALID_ID==aid)
+            if(INVALID_ID!=level->getAgent(aid)->modelId(MT_PHYSICS))
             {
-                Debug::error(intro)("invalid agent id. Aborted.").endl();
-                return;
+                Debug::error(intro)("cannot create a second PhysicsModel to agent ")(aid);
+                Debug::error(". Skipping OgreModel instanciation.").endl();
+                return true;// skipped, not aborted
             }
+
+            intro.append("in MT_PHYSICS type: ");
             ModelId mid=level->physicsModelMan()->fromSingleJson(root);
             if(!level->linkAgentToModel(aid,MT_PHYSICS,mid))
             {
                 level->physicsModelMan()->decRef(mid);
-                Debug::error(intro)("could not link. Model released. Aborted.").endl();
+                Debug::error(intro)("could not link agent ")(aid)("to PhysicsModel ");
+                Debug::error(mid)(". Model released. Aborted.").endl();
+                if(fresh_aid)level->deleteAgent(aid);
+                return false;
             }
             else
                 Debug::log("new PhysicsModel with id ")(mid).endl();
@@ -345,6 +425,7 @@ namespace Steel
         }
         else
             Debug::log(intro)("Unknown model type: ")(modelType).endl();
+        return true;
     }
 
     AgentId Editor::instanciateFromMeshFile(File &meshFile,Ogre::Vector3 &pos,Ogre::Quaternion &rot)
@@ -418,6 +499,7 @@ namespace Steel
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
         mContext->ProcessKeyUp(keyIdentifier ,mUI->getKeyModifierState());
         Level *level=mEngine->level();
+        
         switch(evt.key)
         {
             case OIS::KC_H:
