@@ -33,7 +33,7 @@ namespace Steel
 
     Engine::Engine() :
         mRootDir(""), mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(false),
-        mLevel(NULL), mRayCaster(NULL),mSelection(std::list<AgentId>()),mEditMode(false),
+        mLevel(NULL), mRayCaster(NULL),mSelection(Selection()),mEditMode(false),
         mCommands(std::list<std::vector<Ogre::String> >())
     {
         mRootDir = File::getCurrentDirectory();
@@ -90,7 +90,7 @@ namespace Steel
     void Engine::clearSelection()
     {
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -104,7 +104,7 @@ namespace Steel
     {
         if (!hasSelection())
             return;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
             mLevel->deleteAgent(*it);
     }
 
@@ -417,7 +417,7 @@ namespace Steel
         return true;
     }
 
-    void Engine::pickAgents(std::list<AgentId> &selection, int x, int y)
+    void Engine::pickAgents(Selection &selection, int x, int y)
     {
         //get nodes that collide
         std::list<Ogre::SceneNode *> nodes;
@@ -603,7 +603,7 @@ namespace Steel
     {
         //TODO:make selection child of a node on which the rotation is applied
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -625,7 +625,7 @@ namespace Steel
         if (!hasSelection())
             return pos;
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -641,7 +641,7 @@ namespace Steel
         if (!hasSelection())
             return rots;
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -657,7 +657,7 @@ namespace Steel
         if (!hasSelection())
             return scales;
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -689,7 +689,7 @@ namespace Steel
             return rots;
         Agent *agent;
         auto mean=selectionPosition();;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -714,13 +714,13 @@ namespace Steel
         mRootDir = rootdir;
     }
 
-    void Engine::setSelectedAgents(std::list<AgentId> selection, bool replacePrevious)
+    void Engine::setSelectedAgents(Selection selection, bool replacePrevious)
     {
         if (replacePrevious)
             clearSelection();
         Agent *agent;
         //process actual selections
-        for (std::list<AgentId>::iterator it = selection.begin(); it != selection.end(); ++it)
+        for (Selection::iterator it = selection.begin(); it != selection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (NULL ==agent )
@@ -730,7 +730,7 @@ namespace Steel
         }
     }
 
-    void Engine::removeFromSelection(const std::list<AgentId> &selection)
+    void Engine::removeFromSelection(const Selection &selection)
     {
         for (auto it_sel= selection.begin(); it_sel!= selection.end(); ++it_sel)
         {
@@ -763,7 +763,7 @@ namespace Steel
             return;
         Agent *agent;
         Ogre::Vector3 diff=pos-OgreUtils::mean(selectionPositions());
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -779,7 +779,7 @@ namespace Steel
         Agent *agent;
         assert(pos.size()==mSelection.size());
         auto it_pos=pos.begin();
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -793,7 +793,7 @@ namespace Steel
         if (!hasSelection())
             return;
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -809,7 +809,7 @@ namespace Steel
         Agent *agent;
         assert(dpos.size()==mSelection.size());
         auto it_pos=dpos.begin();
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -824,7 +824,7 @@ namespace Steel
             return;
         Agent *agent;
         auto center=selectionPosition();
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -840,7 +840,7 @@ namespace Steel
         Agent *agent;
         assert(rots.size()==mSelection.size());
         auto it_rot=rots.begin();
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -866,7 +866,7 @@ namespace Steel
         }
         else
         {
-            for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+            for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
             {
                 agent = mLevel->getAgent(*it);
                 if (agent == NULL)
@@ -889,7 +889,7 @@ namespace Steel
         if (!hasSelection())
             return;
         Agent *agent;
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)
@@ -906,7 +906,7 @@ namespace Steel
         Agent *agent;
         assert(scales.size()==mSelection.size());
         auto it_sca=scales.begin();
-        for (std::list<AgentId>::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
+        for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->getAgent(*it);
             if (agent == NULL)

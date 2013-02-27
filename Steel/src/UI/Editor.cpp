@@ -82,7 +82,7 @@ namespace Steel
 
     AgentId Editor::agentIdUnderMouse()
     {
-        auto selection=std::list<ModelId>();
+        auto selection=Selection();
         mEngine->pickAgents(selection, mInputMan->mousePos().x,mInputMan->mousePos().y);
 
         AgentId aid=INVALID_ID;
@@ -499,7 +499,7 @@ namespace Steel
         auto elem=(Rocket::Controls::ElementTabSet *)mDocument->GetElementById("editor_tabset");
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
-        
+
         mFSResources->refresh();
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragstart",this);
@@ -520,7 +520,6 @@ namespace Steel
             else
                 processCommand(Ogre::String("editorbrush.terrabrush.distribution.")+select_form->GetOption(index)->GetValue().CString());
         }
-        
     }
 
     void Editor::onHide()
@@ -550,7 +549,6 @@ namespace Steel
         {
             // ok in stable, not in dev
 //             elem= static_cast<Rocket::Core::Element *>(evt.GetParameter< void * >("drag_element", NULL));
-            // ok in dev, but dev has a corrupt stack on exit
             Rocket::Core::ElementReference *ref= static_cast<Rocket::Core::ElementReference *>(evt.GetParameter< void * >("drag_element", NULL));
             elem=**ref;
             mIsDraggingFromMenu=false;

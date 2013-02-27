@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <vector>
+#include <list>
 
 #include <OgreString.h>
 
@@ -11,6 +12,7 @@ namespace Steel
 
     typedef unsigned long AgentId;
     typedef unsigned long ModelId;
+    typedef std::list<AgentId> Selection;
 
     /// invalid Model/Agent id.
     const unsigned long INVALID_ID = ULONG_MAX;
