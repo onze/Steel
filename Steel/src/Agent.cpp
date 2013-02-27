@@ -101,7 +101,8 @@ namespace Steel
             return false;
         }
 
-        return mLevel->modelManager(mType)->incRef(modelId);
+        mLevel->modelManager(mType)->incRef(modelId);
+        return true;
     }
 
     void Agent::unlinkFromModel(ModelType mType)
@@ -109,6 +110,15 @@ namespace Steel
         auto it=mModelIds.find(mType);
         if(it!=mModelIds.end())
         {
+            switch(mType)
+            {
+                case MT_OGRE:
+                    unlinkFromModel(MT_PHYSICS);
+                    break;
+                default:
+                    break;
+            }
+            // general case
             mLevel->modelManager(mType)->decRef((*it).second);
             mModelIds.erase(it);
         }
