@@ -10,17 +10,22 @@ namespace Steel
     {
             ConfigFile() {};
         public:
-            ConfigFile(File file);
+            ConfigFile(File file,bool autoLoad=true);
             ConfigFile(const ConfigFile& other);
             virtual ~ConfigFile();
             virtual ConfigFile& operator=(const ConfigFile& other);
             virtual bool operator==(const ConfigFile& other) const;
 
             Ogre::String getSetting(Ogre::String key);
-            void setSetting(Ogre::String key, Ogre::String value);
+            ConfigFile &setSetting(Ogre::String key, Ogre::String value);
 
             void load();
             void save();
+            
+            inline File& file()
+            {
+             return mFile;   
+            }
         protected:
             File mFile;
             Ogre::NameValuePairList mSettings;

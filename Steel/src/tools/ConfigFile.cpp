@@ -3,9 +3,10 @@
 
 namespace Steel
 {
-    ConfigFile::ConfigFile(File file):mFile(file),mSettings(Ogre::NameValuePairList())
+    ConfigFile::ConfigFile(File file,bool autoLoad):mFile(file),mSettings(Ogre::NameValuePairList())
     {
-        load();
+        if(autoLoad)
+            load();
     }
 
     ConfigFile::ConfigFile(const ConfigFile& o):mFile(o.mFile),mSettings(o.mSettings.begin(),o.mSettings.end())
@@ -78,10 +79,11 @@ namespace Steel
         mFile.write("\n");
     }
 
-    void ConfigFile::setSetting(Ogre::String key, Ogre::String value)
+    ConfigFile& ConfigFile::setSetting(Ogre::String key, Ogre::String value)
     {
         mSettings.erase(key);
         mSettings.insert(Ogre::NameValuePairList::value_type(key,value));
+        return *this;
     }
 
     Ogre::String ConfigFile::getSetting(Ogre::String key)
