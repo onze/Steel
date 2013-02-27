@@ -68,10 +68,15 @@ namespace Steel
                 return modelId(MT_OGRE);
             }
             
-            /// Shortcut to Agent::model(MT_OGRE).
+            /// Shortcut to Agent::model(MT_PHYSICS).
             inline PhysicsModel *physicsModel() const
             {
                 return (PhysicsModel *) model(MT_PHYSICS);
+            }
+            /// Shortcut to Agent::modelId(MT_PHYSICS).
+            inline ModelId physicsModelId() const
+            {
+                return modelId(MT_PHYSICS);
             }
 
             /**
