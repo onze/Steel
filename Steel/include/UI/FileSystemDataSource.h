@@ -19,7 +19,7 @@ namespace Steel
      * Each produced item is whether a file or a folder with the following properties:
      * - it emits a click event when clicked, with click value "<mDataSourceName>.<item full path>"
      * - it emits a dragdrop event when dropped, with dragdrop value "<mDataSourceName>.<item full path>"
-     * 
+     *
      * Its stores the state (~config) of a folder node in a file located in that very node. This file's name is
      * given by confFileName(). The file is written via a ConfigFile instance (key=value pairs), and contains:
      * - expand = {true, false}: whether the folder node should appear expanded or collapsed
@@ -64,12 +64,7 @@ namespace Steel
             virtual int GetNumRows(const Rocket::Core::String& table);
 
             /// Regenerate the tree. Nodes open beforehand are reopened afterwards.
-            void refresh()
-            {
-                NotifyRowChange("$root");
-                mDatagrid->Update();
-                expandRows();
-            }
+            void refresh(Rocket::Core::Element *docRoot);
 
             /** Formats the raw results of a data source request into RML.
              *  Output resourceitems have their attribute "id" set to mDatasourceName.

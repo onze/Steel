@@ -563,8 +563,6 @@ namespace Steel
             Debug::log("Editor::setTaggedSelection(): selecting ")(selection)(" as tag ")(tag).endl();
             mEngine->setSelectedAgents(selection);
         }
-        else
-            Debug::log("Editor::setTaggedSelection(): nothing as tag ")(tag).endl();
     }
 
     bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
@@ -617,7 +615,8 @@ namespace Steel
         if(elem==NULL)return;
         elem->SetActiveTab(mMenuTabIndex);
 
-        mFSResources->refresh();
+        
+        mFSResources->refresh(mDocument);
         mDocument->AddEventListener("click",this);
         mDocument->AddEventListener("dragstart",this);
         mDocument->AddEventListener("dragdrop",this);

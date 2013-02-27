@@ -176,6 +176,14 @@ namespace Steel
 //         Debug::log(" as: ")(formatted_data).endl();
     }
 
+    void FileSystemDataSource::refresh(Rocket::Core::Element *docRoot)
+    {
+        localizeDatagridBody(docRoot);
+        NotifyRowChange("$root");
+        mDatagrid->Update();
+        expandRows();
+    }
+
     void FileSystemDataSource::localizeDatagridBody(Rocket::Core::Element *docRoot)
     {
         Ogre::String intro="FileSystemDataSource<"+mDatasourceName+">::localizeDatagridBody(): ";
