@@ -32,10 +32,10 @@ namespace Steel
             virtual M *at(ModelId id);
 
             /// Increments the ref count of the given model.
-            virtual bool incRef(ModelId id);
+            virtual void incRef(ModelId id);
 
             /// Decrements the ref count of the given model.
-            virtual bool decRef(ModelId id);
+            virtual void decRef(ModelId id);
 
             /// Clears every models from its memory.
             void clear();
