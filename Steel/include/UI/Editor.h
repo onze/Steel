@@ -2,6 +2,7 @@
 #define STEEL_EDITOR_H
 
 #include <vector>
+#include <map>
 
 #include <OIS.h>
 #include <OgreString.h>
@@ -36,14 +37,19 @@ namespace Steel
             /// called right before the underlying document gets hidden
             virtual void onHide();
             
-            /// Fills dynamic fields with values of dynamic queries.
-            bool dynamicFillSerialization(Json::Value &root);
+            /// Fills dynamic fields with values of dynamic queries. Optional aid helps filling $contect* fields.
+            bool dynamicFillSerialization(Json::Value& root, Steel::AgentId aid=INVALID_ID);
 
             /**
-             * reads an incomplete model file from the data folder, fills the incomplete parts (i.e.: OgreModel position),
-             * and instanciate it.
+             * Instanciate a model from its serialization. 
+             * If aid is valid (!=INVALID_ID), the model is attached to that agent. Otherwise, a new agent is created,
+             * aid is set to its id, and then the model is attached to it.
+             * Returns false if a stopping problem occured.
              */
-            void loadModelFromSerialization(Json::Value &root);
+            bool loadModelFromSerialization(Json::Value &root, AgentId &aid);
+            
+            /// Instanciate one or many models from a serialization, and returns the AgentId of the agent that controls it.
+            bool loadModelsFromSerializations(Json::Value& root,AgentId &aid);
             
             /**
              * reads an incomplete terrain slot file from the data folder, fills the incomplete parts (i.e.: terrain position),
@@ -86,6 +92,11 @@ namespace Steel
 
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
+            
+            /// Saves a Selection under the given tag.
+            void setSelectionTag(const Selection &selection,const Ogre::String &tag);
+            /// Set tagged agents as selected
+            void setTaggedSelection(const Ogre::String &tag);
 
         protected:
             //not owned
@@ -105,6 +116,8 @@ namespace Steel
             bool mDebugEvents;
             /// true during the dragging of a item from the edior's menu.
             bool mIsDraggingFromMenu;
+            /// maps tags to set of agents
+            std::map<Ogre::String, Selection> mSelectionsTags;
         private:
     };
 }
