@@ -68,21 +68,22 @@ namespace Steel
         // little backup
         File backup(mFile.fullPath()+".back");
         if(mFile.exists())
-            backup.write(mFile.read());
+            backup.write(mFile.read(),File::OM_OVERWRITE);
 
         // write settings
+        mFile.rm();
         for(auto it=mSettings.begin(); it!=mSettings.end(); ++it)
         {
             Ogre::NameValuePairList::value_type pair=*it;
-            mFile.write(pair.first+" = "+pair.second,File::OM_OVERWRITE);
+            mFile.write(pair.first+" = "+pair.second+"\n",File::OM_APPEND);
         }
-        mFile.write("\n");
+        mFile.write("\n",File::OM_APPEND);
     }
 
     ConfigFile& ConfigFile::setSetting(Ogre::String key, Ogre::String value)
     {
         mSettings.erase(key);
-        mSettings.insert(Ogre::NameValuePairList::value_type(key,value));
+        mSettings.insert(std::pair<Ogre::String,Ogre::String>(key,value));
         return *this;
     }
 

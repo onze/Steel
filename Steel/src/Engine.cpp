@@ -277,6 +277,7 @@ namespace Steel
             delete mLevel;
             mLevel = NULL;
         }
+        mConfig.save();
         if (mRenderWindow != NULL)
         {
             delete mRenderWindow;
@@ -288,7 +289,6 @@ namespace Steel
             Ogre::Root::getSingletonPtr()->destroyRenderTarget(mRenderWindow);
             mRenderWindow=NULL;
         }
-        mConfig.save();
         Ogre::Root::getSingletonPtr()->shutdown();
         Debug::log("Steel: done").endl();
     }

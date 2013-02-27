@@ -64,11 +64,18 @@ namespace Steel
         mEditor=editor;
         mInputMan=inputMan;
         mIsDraggingSelectionCancelled=mIsDraggingSelection=false;
+        
+        mTerraScaleFactor=Ogre::StringConverter::parseReal(mEngine->config().getSetting("EditorBrush::terraScaleFactor"),mTerraScaleFactor);
+        mTerraScale=Ogre::StringConverter::parseVector3(mEngine->config().getSetting("EditorBrush::terraScale"),mTerraScale);
+
         setMode(NONE);
     }
 
     void EditorBrush::shutdown()
     {
+        mEngine->config().setSetting("EditorBrush::terraScaleFactor",Ogre::StringConverter::toString(mTerraScaleFactor));
+        mEngine->config().setSetting("EditorBrush::terraScale",Ogre::StringConverter::toString(mTerraScale));
+
         setMode(NONE);
         if(NULL!=mSelectionBox)
         {
