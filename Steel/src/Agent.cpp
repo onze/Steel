@@ -30,7 +30,7 @@ namespace Steel
     Agent::~Agent()
     {
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
-            mLevel->modelManager(it->first)->releaseModel(it->second);
+            mLevel->modelManager(it->first)->decRef(it->second);
         mModelIds.clear();
     }
 
