@@ -27,8 +27,12 @@ namespace Steel
             }
             inline void decRef()
             {
-                if (--mRefCount == 0L)
-                    this->cleanup();
+                if (mRefCount>0)
+                {
+                    --mRefCount;
+                    if(mRefCount == 0)
+                        this->cleanup();
+                }
             }
             inline bool isFree()
             {
@@ -41,17 +45,19 @@ namespace Steel
 
             /// Deserialize itself from the given Json object. return true is successful.
             virtual bool fromJson(Json::Value &object)
-            {return true;};
+            {
+                return true;
+            };
 
             //getters
             inline unsigned long refCount()
             {
                 return mRefCount;
             }
-            
+
             /// Returns the ModelType associated with this model.
             virtual ModelType modelType()=0;
-            
+
         protected:
             /// Called by decRef() when the ref count gets below 0.
             virtual void cleanup() {};
