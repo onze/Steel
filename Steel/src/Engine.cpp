@@ -31,12 +31,13 @@
 namespace Steel
 {
 
-    Engine::Engine() :
-        mRootDir(""), mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(false),
+    Engine::Engine(Ogre::String confFilename) :
+        mRootDir(""), mConfig(confFilename),mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(false),
         mLevel(NULL), mRayCaster(NULL),mSelection(Selection()),mEditMode(false),
         mCommands(std::list<std::vector<Ogre::String> >())
     {
         mRootDir = File::getCurrentDirectory();
+        mConfig=ConfigFile(mRootDir.subfile(mConfig.file().fileName()));
     }
 
     Engine::~Engine()
@@ -169,13 +170,15 @@ namespace Steel
         Debug::init(defaultLog, logListener);
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
-        mRoot = new Ogre::Root(plugins, "");
+        mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), "");
 
         // setup resources
         // Load resource paths from config file
         Ogre::ConfigFile cf;
         cf.load("resources.cfg");
-        
+
+        mConfig.load();
+
         // Go through all sections & settings in the file
         Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
 
@@ -525,6 +528,10 @@ namespace Steel
             command.erase(command.begin());
             mLevel->processCommand(command);
         }
+        else if(command[0]=="reloadConfig")
+        {
+            reloadConfig();
+        }
         else if(command[0]=="set_level")
         {
             if(command.size()>1)
@@ -573,6 +580,11 @@ namespace Steel
     void Engine::registerCommand(std::vector<Ogre::String> command)
     {
         mCommands.push_back(command);
+    }
+
+    void Engine::reloadConfig()
+    {
+        mConfig.load();
     }
 
     void Engine::redraw()
@@ -817,7 +829,7 @@ namespace Steel
             agent->move(*(it_pos++));
         }
     }
-    
+
     void Engine::expandSelection(const float dpos)
     {
         if (!hasSelection())

@@ -14,6 +14,7 @@
 #include "steeltypes.h"
 #include "InputManager.h"
 #include "tools/File.h"
+#include "tools/ConfigFile.h"
 #include "UI/UI.h"
 
 namespace Steel
@@ -37,7 +38,7 @@ namespace Steel
                     double lastFullFrameDuration;
             };
 
-            Engine();
+            Engine(Ogre::String confFilename="");
             virtual ~Engine();
 
             /// The given listener will be notified of engine event..
@@ -113,6 +114,8 @@ namespace Steel
             void redraw();
             /// adds a command that will be executed at the beginning of next frame.
             void registerCommand(std::vector<Ogre::String> command);
+            
+            void reloadConfig();
 
             /**
              * Sets the given level as the new one. Returns the previous level, that still needs to be deleted.
@@ -227,6 +230,11 @@ namespace Steel
 
             /// Sets application main directory.
             void setRootDir(Ogre::String rootdir);
+            
+            inline ConfigFile &config()
+            {
+                return mConfig;
+            }
 
         protected:
             /// invoke processCommand on all registered commands
@@ -253,6 +261,7 @@ namespace Steel
             bool processInputs();
 
             File mRootDir;
+            ConfigFile mConfig;
             Ogre::Root *mRoot;
             Ogre::RenderWindow *mRenderWindow;
 
