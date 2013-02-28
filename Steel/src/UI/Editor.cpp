@@ -47,18 +47,18 @@ namespace Steel
         throw std::runtime_error("Editor::operator=(const Editor& other): Not Implemented");
         return *this;
     }
-    
+
     void Editor::shutdown()
     {
         UIPanel::shutdown();
         mBrush.shutdown();
-        
+
         if(NULL!=mFSResources)
         {
             delete mFSResources;
             mFSResources=NULL;
         }
-        
+
         mEngine=NULL;
         mUI=NULL;
         mInputMan=NULL;
@@ -534,7 +534,7 @@ namespace Steel
                 mBrush.setMode(EditorBrush::TRANSLATE);
                 break;
             case OIS::KC_DELETE:
-                mEngine->deleteSelection();
+                mEngine->selectionMan().deleteSelection();
                 break;
             default:
                 break;
@@ -547,7 +547,7 @@ namespace Steel
             int tagKey=(evt.key-OIS::KC_1+1)%10;
             Ogre::String sKey=Ogre::StringConverter::toString(tagKey);
             if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                setSelectionTag(mEngine->selection(),sKey);
+                setSelectionTag(mEngine->selectionMan().selection(),sKey);
             else
                 setTaggedSelection(sKey);
         }
@@ -564,13 +564,13 @@ namespace Steel
 
     void Editor::setTaggedSelection(const Ogre::String &tag)
     {
-        mEngine->clearSelection();
+        mEngine->selectionMan().clearSelection();
         auto it=mSelectionsTags.find(tag);
         if(it!=mSelectionsTags.end())
         {
             auto selection=(*it).second;
             Debug::log("Editor::setTaggedSelection(): selecting ")(selection)(" as tag ")(tag).endl();
-            mEngine->setSelectedAgents(selection);
+            mEngine->selectionMan().setSelectedAgents(selection);
         }
     }
 
