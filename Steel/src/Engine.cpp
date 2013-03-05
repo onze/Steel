@@ -59,14 +59,6 @@ namespace Steel
 
     Level *Engine::createLevel(Ogre::String levelName)
     {
-        //      Ogre::Entity* ogreHead = mSceneManager->createEntity("HeadMesh", "ogrehead.mesh");
-        //      Ogre::SceneNode* headNode = mSceneManager->getRootSceneNode()->createChildSceneNode("HeadNode",Ogre::Vector3(0, 0, 0));
-        //      headNode->attachObject(ogreHead);
-
-        // Create a light
-        //         Ogre::Light* l = mSceneManager->createLight("MainLight");
-        //         l->setPosition(20, 80, 50);
-
         return new Level(this,mRootDir.subfile("data").subfile("levels"), levelName);
     }
 
