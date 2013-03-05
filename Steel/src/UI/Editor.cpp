@@ -19,6 +19,7 @@
 #include "Agent.h"
 #include "OgreModelManager.h"
 #include "PhysicsModelManager.h"
+#include <BlackBoardModelManager.h>
 
 namespace Steel
 {
@@ -372,7 +373,7 @@ namespace Steel
             return false;
         }
 
-        Ogre::String modelType= value.asString();
+        Ogre::String modelTypeString= value.asString();
 
         // this is used to know it the agent should be deleted upon failure of the method
         bool fresh_aid=INVALID_ID==aid;
@@ -387,54 +388,41 @@ namespace Steel
             Debug::log(intro)("created agent ")(aid).endl();
         }
         // ask the right manager to load this model
-        if(modelType=="MT_OGRE")
+        ModelType modelType=MT_FIRST;
+        if(modelTypeString=="MT_OGRE")
+            modelType=MT_OGRE;
+        else if(modelTypeString=="MT_PHYSICS")
+            modelType=MT_PHYSICS;
+        else if(modelTypeString=="MT_BLACKBOARD")
+            modelType=MT_BLACKBOARD;
+        else
         {
-            if(INVALID_ID!=level->getAgent(aid)->modelId(MT_OGRE))
-            {
-                Debug::error(intro)("cannot create a second OgreModel to agent ")(aid);
-                Debug::error(". Skipping OgreModel instanciation.").endl();
-                return true;// skipped, not aborted
-            }
-
-            intro.append("in MT_OGRE type: ");
-            ModelId mid = level->ogreModelMan()->fromSingleJson(root);
-            if(!level->linkAgentToModel(aid,MT_OGRE,mid))
-            {
-                level->ogreModelMan()->decRef(mid);
-                Debug::error(intro)("could not link agent ")(aid)("to OgreModel ");
-                Debug::error(mid)(". Model released. Aborted.").endl();
-                if(fresh_aid)level->deleteAgent(aid);
-                return false;
-            }
-            else
-                Debug::log("new OgreModel with id ")(mid).endl();
-            //TODO add visual notification in the UI
+            Debug::log(intro)("Unknown model type: ")(modelTypeString).endl();
+            return false;
         }
-        else if(modelType=="MT_PHYSICS")
-        {
-            if(INVALID_ID!=level->getAgent(aid)->modelId(MT_PHYSICS))
-            {
-                Debug::error(intro)("cannot create a second PhysicsModel to agent ")(aid);
-                Debug::error(". Skipping OgreModel instanciation.").endl();
-                return true;// skipped, not aborted
-            }
 
-            intro.append("in MT_PHYSICS type: ");
-            ModelId mid=level->physicsModelMan()->fromSingleJson(root);
-            if(!level->linkAgentToModel(aid,MT_PHYSICS,mid))
-            {
-                level->physicsModelMan()->decRef(mid);
-                Debug::error(intro)("could not link agent ")(aid)("to PhysicsModel ");
-                Debug::error(mid)(". Model released. Aborted.").endl();
-                if(fresh_aid)level->deleteAgent(aid);
-                return false;
-            }
-            else
-                Debug::log("new PhysicsModel with id ")(mid).endl();
-            //TODO add visual notification in the UI
+        // check if the agent is already linked to such a model
+        if(INVALID_ID!=level->getAgent(aid)->modelId(modelType))
+        {
+            Debug::error(intro)("cannot create a second ")(modelTypeString)(" Model to agent ")(aid);
+            Debug::error(". Skipping ")(modelTypeString)(" Model instanciation.").endl();
+            return true;// skipped, not aborted
+        }
+
+        // try to instanciate the model
+        intro.append("in ").append(modelTypeString).append(" type: ");
+        ModelId mid = level->modelManager(modelType)->fromSingleJson(root);
+        if(!level->linkAgentToModel(aid,modelType,mid))
+        {
+            level->modelManager(modelType)->decRef(mid);
+            Debug::error(intro)("could not link agent ")(aid)(" to  ")(modelTypeString)(" Model ");
+            Debug::error(mid)(". Model released. Aborted.").endl();
+            if(fresh_aid)level->deleteAgent(aid);
+            return false;
         }
         else
-            Debug::log(intro)("Unknown model type: ")(modelType).endl();
+            Debug::log("new ")(modelTypeString)(" Model with id ")(mid).endl();
+        //TODO add visual notification in the UI
         return true;
     }
 
