@@ -1,9 +1,10 @@
 #ifndef STEEL_MODELMANAGER_H_
 #define STEEL_MODELMANAGER_H_
 
-#include "steeltypes.h"
 #include <json/json.h>
 #include <vector>
+
+#include "steeltypes.h"
 
 namespace Steel
 {
@@ -20,12 +21,13 @@ namespace Steel
     {
         public:
             virtual Model *at(ModelId id)=0;
-            
+
             virtual void incRef(ModelId id)=0;
             virtual void decRef(ModelId id)=0;
             virtual bool isValid(ModelId id)=0;
-            virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid)=0;
-            
+            /// Triggered by the level after an agent linked itself to an owned model
+            virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
+
             virtual std::vector<ModelId> fromJson(Json::Value &models)=0;
             virtual ModelId fromSingleJson(Json::Value &model)=0;
             virtual void toJson(Json::Value &object)=0;

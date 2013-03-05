@@ -16,24 +16,20 @@ namespace Steel
             PhysicsModelManager(Level *level,btDynamicsWorld *world);
             virtual ~PhysicsModelManager();
 
-            /**
-             * batched call to fromSingleJson.
-             */
+            virtual inline ModelType modelType()
+            {
+                return MT_PHYSICS;
+            };
+
+            /// Batched call to fromSingleJson.
             std::vector<ModelId> fromJson(Json::Value &models);
 
-            /**
-             * initialize a new PhysicsModel according to data in the json serialization.
-             */
+            /// Initialize a new PhysicsModel according to data in the json serialization.
             ModelId fromSingleJson(Json::Value &model);
 
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();
 
-            virtual ModelType modelType()
-            {
-                return MT_PHYSICS;
-            };
-            
             virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
         protected:
             // not owned

@@ -23,19 +23,13 @@ namespace Steel
             OgreModelManager(Level *level,Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
             virtual ~OgreModelManager();
 
-            /**
-             * batched call to fromSingleJson.
-             */
+            /// Batched call to fromSingleJson.
             std::vector<ModelId> fromJson(Json::Value &models);
 
-            /**
-             * initialize a new OgreModel according to data in the json serialization.
-             */
+            /// Initialize a new OgreModel according to data in the json serialization.
             ModelId fromSingleJson(Json::Value &model);
 
-            /**
-             * initialize a new OgreModel and returns its identifier.
-             */
+            /// Initialize a new OgreModel and returns its identifier.
             ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
             ///////////////////////////////////////////////////////////
             //getters
@@ -44,7 +38,7 @@ namespace Steel
                 return mSceneManager;
             }
 
-            virtual ModelType modelType()
+            virtual inline ModelType modelType()
             {
                 return MT_OGRE;
             };

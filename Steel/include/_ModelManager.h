@@ -61,10 +61,7 @@ namespace Steel
 
             /// Dump all models' json representation into the given object.
             void toJson(Json::Value &object);
-
-            /// Triggered by the level after an agent linked itself to an owned model
-            virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
-
+            
             /// modelType associated with this Manager
             virtual ModelType modelType()=0;
 
@@ -92,3 +89,4 @@ namespace Steel
 
 #endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

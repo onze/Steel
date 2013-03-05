@@ -121,12 +121,6 @@ namespace Steel
         }
     }
     
-        template<class M>
-        bool _ModelManager<M>::onAgentLinkedToModel(AgentId aid, ModelId mid)
-        {
-            // no problem with that
-            return true;
-        }
 //     template<class M>
 //     bool _ModelManager<M>::linkAgentToModel(AgentId aid, ModelId mid)
 //     {

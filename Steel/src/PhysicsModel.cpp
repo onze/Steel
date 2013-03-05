@@ -82,11 +82,6 @@ namespace Steel
         }
     }
 
-    ModelType PhysicsModel::modelType()
-    {
-        return MT_PHYSICS;
-    }
-
     void PhysicsModel::toJson(Json::Value &root)
     {
         root["mass"]=StringUtils::toJson(mMass);

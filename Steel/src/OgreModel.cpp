@@ -72,11 +72,6 @@ namespace Steel
         }
     }
 
-    ModelType OgreModel::modelType()
-    {
-        return MT_OGRE;
-    }
-
     Ogre::Vector3 OgreModel::position() const
     {
         return mSceneNode->getPosition();

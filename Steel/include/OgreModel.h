@@ -9,7 +9,6 @@
 
 #include "Model.h"
 
-
 namespace Steel
 {
 
@@ -27,7 +26,10 @@ namespace Steel
             OgreModel &operator=(const OgreModel &m);
             virtual ~OgreModel();
 
-            virtual ModelType modelType();
+            virtual inline ModelType modelType()
+            {
+                return MT_OGRE;
+            }
             
             Ogre::Vector3 position() const;
             Ogre::Quaternion rotation() const;

@@ -449,7 +449,7 @@ namespace Steel
 
     void Editor::loadTerrainSlotFromSerialization(Json::Value &root)
     {
-        Ogre::String intro="Editor::loadTerrainSlotFromJson()";
+        Ogre::String intro="Editor::loadTerrainSlotFromSerialization()";
 
         auto level=mEngine->level();
         if(NULL==level)

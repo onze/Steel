@@ -18,6 +18,7 @@ namespace Steel
     class ModelManager;
     class OgreModelManager;
     class PhysicsModelManager;
+    class BlackBoardModelManager;
 
     class Level:public TerrainManagerEventListener
     {
@@ -26,7 +27,7 @@ namespace Steel
             Level(Level &level);
             Level &operator=(const Level &level);
         public:
-            
+
             ///@param[in] path: parent dir where the level saves itself
             Level(Engine *engine, File path, Ogre::String name);
             virtual ~Level();
@@ -37,14 +38,14 @@ namespace Steel
             bool deserialize(Ogre::String &s);
 
             /// Returns a pointer to the agent whose id's given, or NULL if there's no such agent.
-             Agent *getAgent(AgentId id);
+            Agent *getAgent(AgentId id);
 
             /// Ffills the list of AgentId with agents that own nodes in the the given list.
             void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<AgentId> &selection);
 
             /// Returns the name of the json file that contains this level's properies.
             File getSavefile();
-            
+
             bool isOver();
 
             /// Links an agent to a model.
@@ -59,7 +60,7 @@ namespace Steel
             bool load();
 
             /// Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
-             AgentId newAgent();
+            AgentId newAgent();
 
             /**
              * creates a new instance of Agent.
@@ -71,7 +72,7 @@ namespace Steel
             ModelId newOgreModel(Ogre::String name,
                                  Ogre::Vector3 pos = Ogre::Vector3::ZERO,
                                  Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
-            
+
 //             ModelId newPhysicsModel()=0;
 
             virtual void onTerrainEvent(TerrainManager::LoadingState state);
@@ -88,10 +89,10 @@ namespace Steel
              */
             bool save();
             /// Collects level's agents' properties and put them in a string.
-             void serialize(Ogre::String &s);
-             
-             /// Main loop iteration.
-             void update(float timestep);
+            void serialize(Ogre::String &s);
+
+            /// Main loop iteration.
+            void update(float timestep);
 
             //getters
             inline Ogre::ColourValue backgroundColor()
@@ -127,7 +128,7 @@ namespace Steel
             {
                 return mOgreModelMan;
             }
-            
+
             inline PhysicsModelManager *physicsModelMan()
             {
                 return mPhysicsModelMan;
@@ -141,6 +142,11 @@ namespace Steel
             inline TerrainManager *terrainManager()
             {
                 return &mTerrainMan;
+            }
+
+            inline BlackBoardModelManager *blackBoardModelMan()
+            {
+                return mBlackBoardModelMan;
             }
 
 
@@ -173,21 +179,24 @@ namespace Steel
             /// agent container.
             std::map<AgentId, Agent *> mAgents;
 
-            /// responsible for OgreModel's instances.
+            /// responsible for OgreModel instances.
             OgreModelManager *mOgreModelMan;
-            
-            /// responsible for PhysicsModel's instances.
+
+            /// responsible for PhysicsModel instances.
             PhysicsModelManager *mPhysicsModelMan;
+
+            /// Responsible for BlackBoardModel instances
+            BlackBoardModelManager *mBlackBoardModelMan;
 
             /// behavior tree manager.
 //	BTModelManager *mBTModelMan;
 
+            /// eases terrain manipulation
+            TerrainManager mTerrainMan;
+
             /// main camera
             Camera *mCamera;
 
-            /// eases terrain manipulation
-            TerrainManager mTerrainMan;
-            
             Ogre::Light *mMainLight;
     };
 }
