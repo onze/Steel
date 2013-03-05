@@ -47,6 +47,7 @@ namespace Steel
             btRigidBody* mBody;
             Ogre::Real mMass;
             bool mIsKinematics;
+            /// kinematics/rigidBody states stack
             std::stack<bool> mStates;
     };
 }

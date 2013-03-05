@@ -60,6 +60,9 @@ namespace Steel
         Model::operator=(o);
         mWorld=o.mWorld;
         mBody=o.mBody;
+        mMass=o.mMass;
+        mIsKinematics=o.mIsKinematics;
+        mStates=o.mStates;
         return *this;
     }
 

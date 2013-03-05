@@ -91,7 +91,7 @@ namespace Steel
     {
         return mSceneNode->getScale();
     }
-    
+
     void OgreModel::move(const Ogre::Vector3 &dpos)
     {
         mSceneNode->translate(dpos);
@@ -103,12 +103,12 @@ namespace Steel
         mSceneNode->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(rotation.y), Ogre::Node::TS_WORLD);
         mSceneNode->rotate(Ogre::Vector3::UNIT_Z, Ogre::Degree(rotation.z), Ogre::Node::TS_WORLD);
     }
-    
+
     void OgreModel::rescale(const Ogre::Vector3 &scale)
     {
         mSceneNode->scale(scale);
     }
-    
+
     void OgreModel::rotate(const Ogre::Quaternion &q)
     {
         mSceneNode->rotate(q,Ogre::Node::TS_WORLD);
@@ -128,7 +128,7 @@ namespace Steel
     {
         mSceneNode->setOrientation(rot);
     }
-    
+
     void OgreModel::setScale(const Ogre::Vector3 &sca)
     {
         mSceneNode->setScale(sca);
@@ -179,7 +179,7 @@ namespace Steel
             Debug::warning(intro)("invalid field 'rotation' (skipped).").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
-        
+
         value = node["scale"];
         if (value.isNull())
             Debug::warning(intro)("invalid field 'scale' (skipped).").endl();
