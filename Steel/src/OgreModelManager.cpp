@@ -27,20 +27,6 @@ namespace Steel
         // TODO Auto-generated destructor stub
     }
 
-    std::vector<ModelId> OgreModelManager::fromJson(Json::Value &models)
-    {
-        Debug::log(logName()+"::fromJson()")(models).endl();
-        std::vector<ModelId> ids;
-        for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
-        {
-            //TODO: implement id remapping, so that we stay in a low id range
-            //TODO: put fool proof conditions under #ifdef DEBUG
-            Json::Value value = *it;
-            ids.push_back(fromSingleJson(value));
-        }
-        return ids;
-    }
-
     ModelId OgreModelManager::fromSingleJson(Json::Value &model)
     {
         // get values for init

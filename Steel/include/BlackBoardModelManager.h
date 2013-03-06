@@ -19,8 +19,6 @@ namespace Steel
             {
                 return MT_BLACKBOARD;
             };
-            
-            ModelId fromSingleJson(Json::Value &model);
 
         protected:
 

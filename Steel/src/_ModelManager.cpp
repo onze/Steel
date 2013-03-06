@@ -49,7 +49,7 @@ namespace Steel
         }
         mModels[id].incRef();
     }
-    
+
     template<class M>
     void _ModelManager<M>::decRef(ModelId id)
     {
@@ -60,9 +60,9 @@ namespace Steel
         }
         if (!isValid(id))
             return;
-        
+
         mModels[id].decRef();
-        
+
         //TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
         if (mModels[id].isFree())
             mModelsFreeList.push_front(id);
@@ -85,7 +85,7 @@ namespace Steel
 // 	mModels[id].incRef();
         return id;
     }
-    
+
     template<class M>
     void _ModelManager<M>::clear()
     {
@@ -101,11 +101,41 @@ namespace Steel
         ret&=id < mModels.size();
         return ret;
     }
-    
+
     template<class M>
     bool _ModelManager<M>::isFree(ModelId id)
     {
         return  isValid(id) && !mModels[id].isFree();
+    }
+
+    template<class M>
+    std::vector<ModelId> _ModelManager<M>::fromJson(Json::Value &models)
+    {
+        Debug::log(logName()+"::fromJson()")(models).endl();
+        std::vector<ModelId> ids;
+        for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
+        {
+            //TODO: implement id remapping, so that we stay in a low id range
+            //TODO: put fool proof conditions under #ifdef DEBUG
+            Json::Value value = *it;
+            ids.push_back(fromSingleJson(value));
+        }
+        return ids;
+    }
+
+    template<class M>
+    ModelId _ModelManager<M>::fromSingleJson(Json::Value &value)
+    {
+        ModelId id = allocateModel();
+        //get values for load
+        //incRef(id);
+        int loadingOk=mModels[id].fromJson(value);
+        //TODO discard, quarantine, repair ?
+        if(!loadingOk)
+        {
+            id=INVALID_ID;
+        }
+        return id;
     }
 
     template<class M>
@@ -120,7 +150,7 @@ namespace Steel
             m->toJson(object[Ogre::StringConverter::toString(id)]);
         }
     }
-    
+
 //     template<class M>
 //     bool _ModelManager<M>::linkAgentToModel(AgentId aid, ModelId mid)
 //     {
@@ -131,7 +161,7 @@ namespace Steel
 //             Debug::error("): agent could not link to model.Aborted.").endl();
 //             return false;
 //         }
-// 
+//
 //         if(!onAgentLinkedToModel(aid,mid))
 //         {
 //             agent->unlinkFromModel(modelType());
@@ -139,9 +169,10 @@ namespace Steel
 //             Debug::error("): specialized linking errored. Agent unlinked. Aborted.").endl();
 //             return false;
 //         }
-// 
+//
 //         return incRef(mid);
 //     }
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

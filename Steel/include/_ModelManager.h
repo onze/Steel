@@ -45,19 +45,10 @@ namespace Steel
             /// Returns true if the given model id points to a model.
             virtual bool isValid(ModelId id);
 
-            /// Initialize new Model according to data in the json serialization.
-            virtual std::vector<ModelId> fromJson(Json::Value &models)
-            {
-                Debug::warning("_ModelManager::fromJson(): NotImplemented by subclass.");
-                return std::vector<ModelId>();
-            }
-
-            /// Initialize new Model according to data in the json serialization.
-            virtual ModelId fromSingleJson(Json::Value &model)
-            {
-                Debug::warning("_ModelManager::fromSingleJson(): NotImplemented by subclass.");
-                return INVALID_ID;
-            }
+            /// Initialize new models according to data in the json serialization.
+            virtual std::vector<ModelId> fromJson(Json::Value &models);
+            /// Initializea single new model according to data in the json serialization.
+            virtual ModelId fromSingleJson(Json::Value &model);
 
             /// Dump all models' json representation into the given object.
             void toJson(Json::Value &object);

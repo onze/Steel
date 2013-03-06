@@ -29,7 +29,8 @@ namespace Steel
             virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
 
             virtual std::vector<ModelId> fromJson(Json::Value &models)=0;
-            virtual ModelId fromSingleJson(Json::Value &model)=0;
+            /// Meant to be reimplemented by subclass when models use extra params in their M::fromJson
+            virtual ModelId fromSingleJson(Json::Value &models)=0;
             virtual void toJson(Json::Value &object)=0;
     };
 

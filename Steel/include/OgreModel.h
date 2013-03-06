@@ -51,10 +51,12 @@ namespace Steel
             void setSelected(bool selected);
             
             void setNodeAny(Ogre::Any any);
-
-            ///deserialize itself from the given Json object
-            virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot=NULL, Ogre::SceneManager *sceneManager=NULL);
-            ///serialize itself into the given Json object
+            
+            /// Not mean to be used.
+            virtual bool fromJson(Json::Value &mode);
+            /// Deserialize itself from the given Json object
+            virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager);
+            /// Serialize itself into the given Json object
             virtual void toJson(Json::Value &node);
 
             // getters
@@ -68,13 +70,6 @@ namespace Steel
             }
 
         protected:
-            ///made private to forbid its use. The deserialisation method to use needs more params.
-            virtual bool fromJson(Json::Value &node)
-            {
-                node.isNull();
-                return false;
-            }
-            ;
             virtual void cleanup();
             Ogre::SceneNode *mSceneNode;
             Ogre::Entity *mEntity;
