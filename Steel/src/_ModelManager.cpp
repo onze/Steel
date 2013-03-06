@@ -133,6 +133,7 @@ namespace Steel
         //TODO discard, quarantine, repair ?
         if(!loadingOk)
         {
+            decRef(id);
             id=INVALID_ID;
         }
         return id;
@@ -175,4 +176,5 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 
