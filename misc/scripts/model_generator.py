@@ -8,12 +8,12 @@ import sys
 headers_path='../../Steel/include'
 sources_path='../../Steel/src'
 template_headers=[
-    "[['%(ClassName)s'%ref]]Model.h",
-    "[['%(ClassName)s'%ref]]ModelManager.h",
+    "tempaltes/[['%(ClassName)s'%ref]]Model.h",
+    "tempaltes/[['%(ClassName)s'%ref]]ModelManager.h",
     ]
 template_sources=[
-    "[['%(ClassName)s'%ref]]Model.cpp",
-    "[['%(ClassName)s'%ref]]ModelManager.cpp",
+    "tempaltes/[['%(ClassName)s'%ref]]Model.cpp",
+    "tempaltes/[['%(ClassName)s'%ref]]ModelManager.cpp",
     ]
 
 def write(lines,dst):
@@ -48,6 +48,7 @@ if __name__=='__main__':
         print 'this script takes a class name argument and a type name argument'
         print 'example: python model_generator.py Test TEST'
         print 'generates files for TestModel with type MT_TEST'
+        exit()
     class_name=sys.argv[1]
     type_name=sys.argv[2]
     ref={
