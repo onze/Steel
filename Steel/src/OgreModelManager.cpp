@@ -29,6 +29,7 @@ namespace Steel
 
     ModelId OgreModelManager::fromSingleJson(Json::Value &model)
     {
+        //TODO: add safety
         // get values for init
         Ogre::String meshName = model["entityMeshName"].asString();
         // TODO: preparse all meshes, batch declare them, do a single group initialization

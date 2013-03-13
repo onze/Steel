@@ -85,6 +85,8 @@ namespace Steel
              */
             void setSelected(bool selected);
 
+            //////////////////////////////////////////////////////////////////////
+            // OgreModel/PhysicsModel shortcuts
             Ogre::Vector3 position() const;
             Ogre::Quaternion rotation() const;
             Ogre::Vector3 scale() const;
