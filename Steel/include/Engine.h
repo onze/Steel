@@ -143,6 +143,16 @@ namespace Steel
             {
                 return mRootDir;
             }
+            
+            inline File dataDir()
+            {
+                return mRootDir.subfile("data");
+            }
+            
+            inline File rawResourcesDir()
+            {
+                return dataDir().subfile("raw_resources");
+            }
 
             inline SelectionManager &selectionMan()
             {

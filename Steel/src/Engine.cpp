@@ -59,7 +59,7 @@ namespace Steel
 
     Level *Engine::createLevel(Ogre::String levelName)
     {
-        return new Level(this,mRootDir.subfile("data").subfile("levels"), levelName);
+        return new Level(this,dataDir().subfile("levels"), levelName);
     }
 
     Level *Engine::setCurrentLevel(Level *newLevel)
@@ -169,10 +169,10 @@ namespace Steel
             }
         }
         auto orm=Ogre::ResourceGroupManager::getSingletonPtr();
-        File dir=mRootDir.subfile("data");
+        File dir=dataDir();
         orm->addResourceLocation(dir.fullPath(), "FileSystem", "Steel",true);
         orm->addResourceLocation(dir.fullPath(), "FileSystem", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,true);
-        dir=dir.subfile("raw_resources");
+        dir=rawResourcesDir();
         orm->addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem","Steel",true);
         orm->addResourceLocation(dir.subfile("textures").fullPath(), "FileSystem","Steel",true);
         //TODO:add materials and models ?
@@ -293,6 +293,7 @@ namespace Steel
 //         mUI.editor().processCommand("engine.level.load.PG01-dev");
 //         mUI.editor().processCommand("editorbrush.mode.terraform");
 //         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
+//          mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Btree models/patrol.model");
 
 
         const double ms2us=1000.;
