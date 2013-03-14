@@ -1,9 +1,11 @@
-#ifndef STEEL_BTMODELMANAGER_H_
-#define STEEL_BTMODELMANAGER_H_
+#ifndef STEEL_BTMODELMANAGER_H
+#define STEEL_BTMODELMANAGER_H
 
 #include "steeltypes.h"
 #include "_ModelManager.h"
 #include "BTModel.h"
+#include "tools/File.h"
+#include "BT/BTShapeManager.h"
 
 namespace Steel
 {
@@ -13,10 +15,15 @@ namespace Steel
         public:
             BTModelManager(Level *level,Ogre::String mPath);
             virtual ~BTModelManager();
+            
+            virtual ModelId fromSingleJson(Json::Value &root);
+            virtual ModelType modelType();
 
         protected:
-            ///base path to BT files
-            Ogre::String mPath;
+            // owned
+            BTShapeManager mBTShapeMan;
+            /// Path to BT folder
+            File mBasePath;
     };
 
 }

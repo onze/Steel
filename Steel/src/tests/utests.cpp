@@ -1,7 +1,10 @@
-#include <tools/StringUtils.h>
-#include <tools/File.h>
-#include <tools/ConfigFile.h>
-#include <Debug.h>
+
+#include "tools/StringUtils.h"
+#include "tools/File.h"
+#include "tools/ConfigFile.h"
+#include "Debug.h"
+#include "BlackBoardModel.h"
+#include "tests/test_BTrees.h"
 
 namespace Steel
 {
@@ -22,9 +25,8 @@ namespace Steel
         */
     }
 
-    void tests_StringUtils()
+    void test_StringUtils()
     {
-        Debug::log("tests_StringUtils(): start").endl();
         Ogre::String src="a.b,c.d",sep0=",",sep1=".",sep2="!";
         std::vector<Ogre::String> dst;
 
@@ -55,7 +57,7 @@ namespace Steel
         Debug::log("tests_StringUtils(): passed").endl();
     }
 
-    void tests_ConfigFile()
+    void test_ConfigFile()
     {
         Debug::log("tests_ConfigFile(): passed").endl();
         
@@ -83,12 +85,20 @@ namespace Steel
         
         Debug::log("tests_ConfigFile(): passed").endl();
     }
+    
+    void test_BlackBoardModel()
+    {
+        BlackBoardModel m;
+//         m.set;
+    }
 
     void start_tests()
     {
-        tests_StringUtils();
+        test_StringUtils();
         test_File();
-        tests_ConfigFile();
+        test_ConfigFile();
+        test_BlackBoardModel();
+        test_BTrees();
     }
 
 }

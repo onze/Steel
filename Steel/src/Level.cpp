@@ -39,7 +39,7 @@ namespace Steel
         mPath(path.subfile(name)), mName(name), mBackgroundColor(Ogre::ColourValue::Black),
         mSceneManager(NULL),mLevelRoot(NULL),
         mAgents(std::map<AgentId, Agent *>()),mOgreModelMan(NULL),mPhysicsModelMan(NULL),
-        mBlackBoardModelMan(NULL),mTerrainMan(),mCamera(NULL),mMainLight(NULL)
+        mBlackBoardModelMan(NULL),mBTModelMan(NULL),mTerrainMan(),mCamera(NULL),mMainLight(NULL)
     {
         Debug::log(logName()+"()").endl();
         if(!mPath.exists())
@@ -72,9 +72,9 @@ namespace Steel
 
         mOgreModelMan = new OgreModelManager(this,mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this,mTerrainMan.terrainPhysicsMan()->world());
+        mBTModelMan=new BTModelManager(this,mEngine->rawResourcesDir().subfile("BT"));
         mBlackBoardModelMan =new BlackBoardModelManager(this);
-//	mBTModelMan = new BTModelManager(mPath);
-        //mBTModelMan->loadResources();
+        
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
 
@@ -90,6 +90,10 @@ namespace Steel
         mOgreModelMan->clear();
         delete mOgreModelMan;
         mOgreModelMan=NULL;
+        
+        mBTModelMan->clear();
+        delete mBTModelMan;
+        mBTModelMan=NULL;
 
         mBlackBoardModelMan->clear();
         delete mBlackBoardModelMan;

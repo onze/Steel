@@ -1,14 +1,14 @@
 #ifndef STEEL_UTESTS_H
 #define STEEL_UTESTS_H
 
-#include <_ModelManager.h>
+#include "_ModelManager.h"
 
 namespace Steel
 {
     void start_tests();
-    void tests_StringUtils();
-    void tests_File();
-    void tests_ConfigFile();
+    void test_StringUtils();
+    void test_File();
+    void test_ConfigFile();
 }
 
 #endif

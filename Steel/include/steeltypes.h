@@ -7,6 +7,8 @@
 
 #include <OgreString.h>
 
+#include "BT/btnodetypes.h"
+
 namespace Steel
 {
 

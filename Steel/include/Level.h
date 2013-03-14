@@ -9,6 +9,7 @@
 #include "tools/File.h"
 #include "TerrainManager.h"
 #include "TerrainManagerEventListener.h"
+#include "BTModelManager.h"
 
 namespace Steel
 {
@@ -143,6 +144,11 @@ namespace Steel
             {
                 return &mTerrainMan;
             }
+            
+            inline BTModelManager *BTModelMan()
+            {
+                return mBTModelMan;
+            }
 
             inline BlackBoardModelManager *blackBoardModelMan()
             {
@@ -188,13 +194,13 @@ namespace Steel
             /// Responsible for BlackBoardModel instances
             BlackBoardModelManager *mBlackBoardModelMan;
 
-            /// behavior tree manager.
-//	BTModelManager *mBTModelMan;
+            /// Responsible for BTModel instances
+            BTModelManager *mBTModelMan;
 
-            /// eases terrain manipulation
+            /// Eases terrain manipulation
             TerrainManager mTerrainMan;
 
-            /// main camera
+            /// Main camera
             Camera *mCamera;
 
             Ogre::Light *mMainLight;
