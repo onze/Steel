@@ -77,6 +77,8 @@ namespace Steel
             File &operator= ( const File &f );
             bool operator== ( const File &f ) const;
             bool operator!= ( const File &f ) const;
+            /// Compare 2 files' fileName() output.
+            bool operator<  ( const File &f ) const;
 
             /// register an event listener. It will be notified of file events. If the file path change, it need to be removed and reset.
             void addFileListener(FileEventListener *listener);
@@ -176,13 +178,6 @@ namespace Steel
 
             /// returns the file extension.
             Ogre::String extension();
-
-            /*
-            Not trivial to implement. There is no definite way to differencite between a directory and a file.
-            /// returns the path relative to the given File
-            Ogre::String relpath(File comp);
-            */
-
 
         protected:
 

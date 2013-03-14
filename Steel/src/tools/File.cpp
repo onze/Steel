@@ -101,6 +101,11 @@ namespace Steel
     {
         return !operator==(o);
     }
+    
+    bool File::operator< ( File const &o ) const
+    {
+        return fileName()<o.fileName();
+    }
 
     int File::init()
     {
