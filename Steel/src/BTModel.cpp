@@ -1,9 +1,3 @@
-/*
- * BTModel.cpp
- *
- *  Created on: Jan 18, 2012
- *      Author: onze
- */
 
 #include "BTModel.h"
 
@@ -27,8 +21,21 @@ namespace Steel
         return *this;
     }
 
-    void BTModel::init()
+    bool BTModel::init(Steel::BTShapeStream* shapeStream)
     {
+        switchShapeTo(shapeStream);
+        return true;
+    }
+    
+    bool BTModel::switchShapeTo(BTShapeStream* shapeStream)
+    {
+        mStateStream.clear();
+        if(!mStateStream.init(shapeStream))
+        {
+            Debug::error("BTModel::switchShapeTo(): can't init stateStream from shapeStream: ")(shapeStream).endl();
+            return false;
+        }
+        return true;
     }
 
     ModelType BTModel::modelType()
@@ -50,7 +57,7 @@ namespace Steel
 
     void BTModel::cleanup()
     {
-
+        mStateStream.clear();
     }
 
 } /* namespace Steel */

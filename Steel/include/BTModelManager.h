@@ -18,6 +18,12 @@ namespace Steel
             
             virtual ModelId fromSingleJson(Json::Value &root);
             virtual ModelType modelType();
+            
+            /**
+             * Reads the file system at the given directory, build the corresponding BTree,
+             * and returns the id of a BTModel executing it.
+             */
+            ModelId buildFromFile(File &rootFile);
 
         protected:
             // owned

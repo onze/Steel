@@ -50,16 +50,27 @@ namespace Steel
             return INVALID_ID;
         }
 
+        ModelId mid=buildFromFile(rootFile);
+        return mid;
+    }
+
+    ModelId BTModelManager::buildFromFile(File &rootFile)
+    {
+        Ogre::String intro="in BTModelManager::buildFromFile("+rootFile.fullPath()+"): ";
+        // get the stream
         BTShapeStream *shapeStream=NULL;
         if(!mBTShapeMan.buildShapeStream(rootFile.fileName(),rootFile,shapeStream))
         {
-            Debug::error(intro)("could not generate a BT shape root node ")(rootFile)(", see above fo details. Aborting.").endl();
+            Debug::error(intro)("could not generate a BT shape root node ")(rootFile);
+            Debug::error(", see above for details. Aborting.").endl();
             return INVALID_ID;
         }
         assert(NULL!=shapeStream);
 
-        //TODO: fix me !
-        return INVALID_ID;
+        // make it build the state stream
+        ModelId mid=allocateModel();
+        mModels[mid].init(shapeStream);
+        return mid;
     }
 
 } /* namespace Steel */

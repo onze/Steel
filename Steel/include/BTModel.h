@@ -3,6 +3,9 @@
 
 #include <json/json.h>
 
+#include "BT/btnodetypes.h"
+#include "BT/BTStateStream.h"
+
 #include "Model.h"
 
 namespace Steel
@@ -18,18 +21,27 @@ namespace Steel
             BTModel(const BTModel &m);
             BTModel &operator=(const BTModel &m);
             virtual ~BTModel();
-            void init();
+            
+            bool init(BTShapeStream *shapeStream);
 
             virtual ModelType modelType();
 
-            /// deserialize itself from the given Json object
+            /// Deserialize itself from the given Json object
             virtual bool fromJson(Json::Value &node);
 
-            /// serialize itself into the given Json object
+            /// Serialize itself into the given Json object
             virtual void toJson(Json::Value &node);
+            
+            /// Sets the current shape to the given one.
+            bool switchShapeTo(BTShapeStream* shapeStream);
 
         protected:
             virtual void cleanup();
+            
+            // not owned
+            // owned
+            /// states, aligned with the shape stream.
+            BTStateStream mStateStream;
     };
 
 }
