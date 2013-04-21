@@ -13,21 +13,37 @@ namespace Steel
      */
     class BTFileNode: public File
     {
-
         public:
+            BTFileNode(const bool isGuard=false);
             BTFileNode();
+            BTFileNode(BTFileNode const &o);
             BTFileNode(const char *fullpath);
             BTFileNode(Ogre::String fullpath);
             virtual ~BTFileNode();
+            BTFileNode &operator=(BTFileNode const &o);
 
             /**
              * Returns a shape token indicating the type of node the file is pointing to. If
              * the file is points to a directory, a lookup for a direct BTShapeToken subfile is done.
              */
-            BTShapeToken shapeTokenType();
+            BTShapeTokenType shapeTokenType();
 
             /// Returns a vector of all children of the file, in the order they should be processed.
             std::vector<BTFileNode> childNodes();
+
+            // getters
+            inline bool isGuard()
+            {
+                return mIsGuard;
+            }
+
+        protected:
+            /**
+             * False, unless set at construction time. A guard Node is the last (or only) children of a node, so that
+             * childNodes never returns an emtpy vector.
+             * Note: guards are only used during construction of the BTShapeStream, not at execution time.
+             */
+            bool mIsGuard;
     };
 
 }
