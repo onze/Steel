@@ -1,21 +1,17 @@
 #ifndef STEEL_BTSELECTOR_H_
 #define STEEL_BTSELECTOR_H_
 
-#include "BT/BTNode.h"
+#include "BT/btnodetypes.h"
 
 namespace Steel
 {
 
-    class BTSelector: public BTNode
+    class BTSelector
     {
         public:
-            BTSelector(BTNode *parent = NULL);
+            BTSelector();
             virtual ~BTSelector();
-            virtual void onStartRunning();
-            virtual void onStopRunning();
-            virtual BTState run();
-        protected:
-            std::list<BTNode *>::iterator it;
+            BTState mState;
     };
 
 }
