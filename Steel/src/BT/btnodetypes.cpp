@@ -6,7 +6,7 @@
 namespace Steel
 {
 
-    Ogre::String BTShapeTokenAsString__data[] =
+    Ogre::String BTShapeTokenTypeAsString__data[] =
     {
         "BTSequence",
         "BTSelector",
@@ -16,10 +16,10 @@ namespace Steel
         "BTNavigator",
         "BTUnknown",
     };
-
-    std::vector<Ogre::String> BTShapeTokenAsString = std::vector<Ogre::String> (
-                BTShapeTokenAsString__data,
-                BTShapeTokenAsString__data+sizeof(BTShapeTokenAsString__data)/sizeof(Ogre::String)
+    
+    std::vector<Ogre::String> BTShapeTokenTypeAsString = std::vector<Ogre::String> (
+                BTShapeTokenTypeAsString__data,
+                BTShapeTokenTypeAsString__data+sizeof(BTShapeTokenTypeAsString__data)/sizeof(Ogre::String)
             );
 
 }

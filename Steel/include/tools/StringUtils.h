@@ -6,9 +6,10 @@
 
 #include <json/json.h>
 #include <OgreString.h>
+#include <OgreStringConverter.h>
 #include <Rocket/Core/String.h>
 
-#include <Debug.h>
+#include <BT/btnodetypes.h>
 
 namespace Steel
 {
@@ -42,7 +43,7 @@ namespace Steel
             template<class T>
             static T join(std::vector<T> const &vec,T const &joiner="",int start=0,int end=INT_MIN)
             {
-                bool verbose=false;
+//                 bool verbose=false;
                 T res;
                 if(vec.size()==0)
                     return res;
@@ -55,14 +56,14 @@ namespace Steel
                 if(start>=end)
                     return res;
 
-                if(verbose)Debug::log("range ")(start)(" ")(end).endl();
+//                 if(verbose)Debug::log("range ")(start)(" ")(end).endl();
 
                 for(auto i=start; i<end; ++i)
                 {
                     if(res.length()>0)
                         res.append(joiner);
                     res.append(vec.at(i));
-                    if(verbose)Debug::log("i: ")(i)(" res:")(res).endl();
+//                     if(verbose)Debug::log("i: ")(i)(" res:")(res).endl();
                 }
                 return res;
             }
@@ -79,6 +80,8 @@ namespace Steel
             {
                 return Json::Value(value.c_str());
             }
+            
+            static Ogre::String BTShapeTokenTypeToString(BTShapeTokenType type);
     };
 }
 #endif

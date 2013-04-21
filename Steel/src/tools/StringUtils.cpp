@@ -50,6 +50,15 @@ namespace Steel
     {
         return StringUtils::join(std::vector<Rocket::Core::String>(vec),joiner,start,end);
     }
+
+    Ogre::String StringUtils::BTShapeTokenTypeToString(BTShapeTokenType type)
+    {
+        if(type<_BTFirst) return "<_BTFirst";
+        if(type==_BTFirst)return "_BTFirst";
+        if(type==_BTLast) return "_BTLast";
+        if(type>_BTLast)  return ">_BTLast";
+        return BTShapeTokenTypeAsString[type];
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

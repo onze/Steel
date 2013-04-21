@@ -11,7 +11,9 @@
 #include <OgreResourceManager.h>
 #include <Rocket/Core/String.h>
 
-#include <steeltypes.h>
+#include "steeltypes.h"
+#include "BT/btnodetypes.h"
+#include "tools/StringUtils.h"
 
 namespace Steel
 {
@@ -62,12 +64,12 @@ namespace Steel
                     /**
                      * equivalent to myDebugObject.log(Ogre::String msg)
                      */
-                    
+
                     DebugObject &operator()(const Ogre::Degree msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg.valueDegrees())+"deg");
                     }
-                    
+
                     DebugObject &operator()(const Ogre::Radian msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg.valueRadians())+"rad");
@@ -77,7 +79,7 @@ namespace Steel
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
-                    
+
                     DebugObject &operator()(const Ogre::Vector3 msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
@@ -87,17 +89,17 @@ namespace Steel
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
-                    
+
                     DebugObject &operator()(const int msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
-                    
+
                     DebugObject &operator()(const unsigned int msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
-                    
+
                     DebugObject &operator()(const long int msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
@@ -107,17 +109,17 @@ namespace Steel
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
-                    
+
                     DebugObject &operator()(const float msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg));
                     }
-                    
+
                     DebugObject &operator()(const char * msg)
                     {
                         return (*this)(Ogre::String(msg));
                     }
-                    
+
                     DebugObject &operator()(Ogre::String const &msg)
                     {
                         mMsg.append(msg);
@@ -146,6 +148,22 @@ namespace Steel
                     DebugObject &operator()(Ogre::StringVector const &vec)
                     {
                         return (*this)(vec);
+                    }
+                    
+                    DebugObject &operator()(BTShapeToken const &token)
+                    {
+                        (*this)("BTShapeToken{type: ")(StringUtils::BTShapeTokenTypeToString(token.type));
+                        (*this)(", begin: ")(token.begin);
+                        return (*this)(", end: ")(token.end)("}");
+                    }
+
+                    DebugObject &operator()(BTShapeStream* const shapeStream)
+                    {
+                        this->operator()("BTShapeStream[").endl().indent();
+                        for(auto it=shapeStream->begin(); it!=shapeStream->end(); ++it)
+                            (*this)(*it)(", ").endl();
+                        this->operator()("]").unIndent();
+                        return *this;
                     }
 
                     DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list)
@@ -183,7 +201,7 @@ namespace Steel
                         this->operator()("]");
                         return *this;
                     }
-                    
+
                     template<class T>
                     DebugObject &operator()(std::set<T> const &container)
                     {
