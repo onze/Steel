@@ -1,15 +1,18 @@
+#include "tests/utests.h"
 
+#include "_ModelManager.h"
 #include "tools/StringUtils.h"
 #include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "Debug.h"
 #include "BlackBoardModel.h"
 #include "tests/test_BTrees.h"
+#include "tests/utest_BTStateShapes.h"
 
 namespace Steel
 {
 
-    void test_File()
+    bool test_File()
     {
         /*
         Debug::log("test_File(): start").endl();
@@ -23,9 +26,11 @@ namespace Steel
         assert(false);
         Debug::log("test_File(): passed").endl();
         */
+
+        return true;
     }
 
-    void test_StringUtils()
+    bool test_StringUtils()
     {
         Ogre::String src="a.b,c.d",sep0=",",sep1=".",sep2="!";
         std::vector<Ogre::String> dst;
@@ -55,12 +60,13 @@ namespace Steel
         assert("a;b;c"==StringUtils::join(StringUtils::split("a;b;c",";"),";"));
 
         Debug::log("tests_StringUtils(): passed").endl();
+        return true;
     }
 
-    void test_ConfigFile()
+    bool test_ConfigFile()
     {
         Debug::log("tests_ConfigFile(): passed").endl();
-        
+
         Ogre::String path="/tmp/test.cfg";
         Ogre::String path2="/tmp/test.cfg2";
         File file(path);
@@ -82,23 +88,34 @@ namespace Steel
         cf=ConfigFile(path);
         ret=cf.getSetting("iop");
         assert(ret==value);
-        
+
         Debug::log("tests_ConfigFile(): passed").endl();
-    }
-    
-    void test_BlackBoardModel()
-    {
-        BlackBoardModel m;
-//         m.set;
+        return true;
     }
 
-    void start_tests()
+    bool test_BlackBoardModel()
     {
-        test_StringUtils();
-        test_File();
-        test_ConfigFile();
-        test_BlackBoardModel();
-        test_BTrees();
+        BlackBoardModel m;
+        //         m.set;
+        Debug::log("test_BlackBoardModel(): passed").endl();
+        return true;
+    }
+
+    bool start_tests(bool abortOnFail)
+    {
+        bool passed=true;
+        if(!(passed&=test_StringUtils()) && abortOnFail)return false;
+        if(!(passed&=test_File()) && abortOnFail)return false;
+        if(!(passed&=test_ConfigFile()) && abortOnFail)return false;
+        if(!(passed&=test_BlackBoardModel()) && abortOnFail)return false;
+        if(!(passed&=test_BTStateShapes()) && abortOnFail)return false;
+        if(!(passed&=test_BTrees()) && abortOnFail)return false;
+
+        if(passed)
+            Debug::log("start_tests(): all unit tests passed.").endl();
+        else
+            Debug::error("Some unit tests failed.");
+        return passed;
     }
 
 }

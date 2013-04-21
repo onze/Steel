@@ -1,5 +1,9 @@
+#ifndef STEEL_TEST_BTREES_H
+#define STEEL_TEST_BTREES_H
 
 namespace Steel
 {
-    void test_BTrees();
+    bool test_BTrees();
 }
+
+#endif

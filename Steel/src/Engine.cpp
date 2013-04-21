@@ -226,11 +226,20 @@ namespace Steel
 
         Debug::log.unIndent();
         // unit testing
-        if(true)
+        if(Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"),false))
         {
             Debug::log("Starting unit tests...").endl();
-            start_tests();
-            Debug::log("unit tests done.").endl();
+            bool abortOnFail=Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests_abort_on_fail"),true);
+            bool all_passed=start_tests(abortOnFail);
+            if(!all_passed)
+            {
+                if(abortOnFail)
+                {
+                    Debug::error("Aborting.");
+                    Debug::log(" (Set Engine::utests_abort_on_fail to true in the config to ignore unit tests results)").endl();
+                    assert(false);
+                }
+            }
         }
         return 0;
     }
