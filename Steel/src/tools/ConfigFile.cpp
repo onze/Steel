@@ -71,7 +71,6 @@ namespace Steel
             backup.write(mFile.read(),File::OM_OVERWRITE);
 
         // write settings
-        mFile.rm();
         for(auto it=mSettings.begin(); it!=mSettings.end(); ++it)
         {
             Ogre::NameValuePairList::value_type pair=*it;
