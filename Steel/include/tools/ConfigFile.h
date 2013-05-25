@@ -8,9 +8,13 @@ namespace Steel
 
     class ConfigFile
     {
+            static const Ogre::String VERSION_ATTRIBUTE_NAME;
             ConfigFile() {};
         public:
-            ConfigFile(File file,bool autoLoad=true);
+            /// Protocol version number.
+            static const Ogre::String VERSION;
+
+            ConfigFile(Steel::File file, bool autoLoad = true);
             ConfigFile(const ConfigFile& other);
             virtual ~ConfigFile();
             virtual ConfigFile& operator=(const ConfigFile& other);
@@ -21,11 +25,17 @@ namespace Steel
 
             void load();
             void save();
-            
+
             inline File& file()
             {
-             return mFile;   
+                return mFile;
             }
+
+            operator Ogre::String()
+            {
+                return "<ConfigFile file="+Ogre::String(mFile)+">";
+            }
+            
         protected:
             File mFile;
             Ogre::NameValuePairList mSettings;

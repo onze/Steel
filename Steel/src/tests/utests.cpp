@@ -6,8 +6,9 @@
 #include "tools/ConfigFile.h"
 #include "Debug.h"
 #include "BlackBoardModel.h"
-#include "tests/test_BTrees.h"
-#include "tests/utest_BTStateShapes.h"
+#include "tests/utests_BTrees.h"
+#include "tests/utests_BTShapeStream.h"
+#include "tests/utests_BTStateStream.h"
 
 namespace Steel
 {
@@ -108,7 +109,8 @@ namespace Steel
         if(!(passed&=test_File()) && abortOnFail)return false;
         if(!(passed&=test_ConfigFile()) && abortOnFail)return false;
         if(!(passed&=test_BlackBoardModel()) && abortOnFail)return false;
-        if(!(passed&=test_BTStateShapes()) && abortOnFail)return false;
+        if(!(passed&=test_BTShapeStream()) && abortOnFail)return false;
+        if(!(passed&=test_BTStateStream()) && abortOnFail)return false;
         if(!(passed&=test_BTrees()) && abortOnFail)return false;
 
         if(passed)

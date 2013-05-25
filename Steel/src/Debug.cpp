@@ -27,6 +27,11 @@ namespace Steel
     {
         // TODO Auto-generated destructor stub
     }
-
+    
+    void Debug::ignoreNextErrorMessage()
+    {
+        Debug::warning("next error can be safely ignored").endl();
+    }
+    
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -130,10 +130,14 @@ namespace Steel
              */
             File parentDir();
 
-            /**
-             * convert the File instance to a string of the path it's pointing to.
-             */
+            /// Convert the File instance to a string of the path it's pointing to.
             operator Ogre::String() const
+            {
+                return fullPath();
+            }
+            
+            /// Convert the File instance to a string of the path it's pointing to.
+            operator Ogre::String()
             {
                 return fullPath();
             }

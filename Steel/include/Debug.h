@@ -263,6 +263,7 @@ namespace Steel
                         mIndents=0;
                         return *this;
                     }
+                    
                 protected:
                     Ogre::Log *mLog;
                     Ogre::String mMsg;
@@ -308,6 +309,10 @@ namespace Steel
                 error.setColors("\033[1;31m", "\033[1;m");
                 Debug::isInit=true;
             }
+            
+            // preset messages
+            /// Displays a message telling an error message will appear and can be ignored (used in utests).
+            static void ignoreNextErrorMessage();
     };
 
 }

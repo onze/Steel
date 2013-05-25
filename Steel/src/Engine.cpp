@@ -32,12 +32,12 @@ namespace Steel
 {
 
     Engine::Engine(Ogre::String confFilename) :
-        mRootDir(""), mConfig(confFilename),mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(false),
+        mRootDir(""), mConfig(confFilename,false),mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(false),
         mLevel(NULL), mRayCaster(NULL),mEditMode(false),
         mCommands(std::list<std::vector<Ogre::String> >()),mSelectionMan(SelectionManager(this))
     {
         mRootDir = File::getCurrentDirectory();
-        mConfig=ConfigFile(mRootDir.subfile(mConfig.file().fileName()));
+        mConfig=ConfigFile(mRootDir.subfile(mConfig.file().fileName()),true);
     }
 
     Engine::~Engine()
