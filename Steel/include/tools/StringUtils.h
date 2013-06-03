@@ -16,6 +16,8 @@ namespace Steel
     class StringUtils
     {
         public:
+            static const Ogre::String LINE_SEP;
+
             /// split a string into parts, delimited by a given separator, not included in the returned resulting vector. Specialized for mixed types.
             static std::vector<Ogre::String> split(Ogre::String src,Rocket::Core::String sep);
 
@@ -80,7 +82,7 @@ namespace Steel
             {
                 return Json::Value(value.c_str());
             }
-            
+
             static Ogre::String BTShapeTokenTypeToString(BTShapeTokenType type);
     };
 }
