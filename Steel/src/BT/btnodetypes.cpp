@@ -12,7 +12,7 @@ namespace Steel
         "BTSelector",
         "BTDecorator",
         "BTCounter",
-        "BTLocalizer",
+        "BTFinder",
         "BTNavigator",
         "BTUnknown",
     };

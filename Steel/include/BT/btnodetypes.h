@@ -17,7 +17,7 @@ namespace Steel
         BTSelectorToken,
         BTDecoratorToken,
         BTCounterToken,
-        BTLocalizerToken,
+        BTFinderToken,
         BTNavigatorToken,
         BTUnknownToken,
 
@@ -25,7 +25,7 @@ namespace Steel
         _BTLast
     };
 
-    /// POD
+    /// Holds shape information
     class BTShapeToken
     {
         public:
@@ -34,9 +34,12 @@ namespace Steel
             unsigned begin;
             /// node index of the next token (last child's +1)
             unsigned end;
+            /// path to file with parameters
+            Ogre::String contentFile;
+            
             bool operator==(BTShapeToken const &o) const
             {
-                return type==o.type && begin==o.begin && end==o.end;
+                return type==o.type && begin==o.begin && end==o.end && contentFile==o.contentFile;
             }
     };
 
@@ -53,10 +56,10 @@ namespace Steel
     /// BTNodes state values.
     enum BTState
     {
-        READY=0,
-        RUNNING,
-        SUCCESS,
-        FAILURE,
+        FAILURE=1<<3,
+        READY=1<<0,
+        RUNNING=1<<1,
+        SUCCESS=1<<2,
     };
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
