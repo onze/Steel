@@ -230,7 +230,7 @@ namespace Steel
         {
             Debug::log("Starting unit tests...").endl();
             bool abortOnFail=Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests_abort_on_fail"),true);
-            bool all_passed=start_tests(abortOnFail);
+            bool all_passed=startTests(this,abortOnFail);
             if(!all_passed)
             {
                 if(abortOnFail)

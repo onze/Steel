@@ -9,6 +9,7 @@
 #include "tests/utests_BTrees.h"
 #include "tests/utests_BTShapeStream.h"
 #include "tests/utests_BTStateStream.h"
+#include <Engine.h>
 
 namespace Steel
 {
@@ -102,7 +103,7 @@ namespace Steel
         return true;
     }
 
-    bool start_tests(bool abortOnFail)
+    bool startTests(Engine *engine,bool abortOnFail)
     {
         bool passed=true;
         if(!(passed&=test_StringUtils()) && abortOnFail)return false;
@@ -114,10 +115,21 @@ namespace Steel
         if(!(passed&=test_BTrees()) && abortOnFail)return false;
 
         if(passed)
-            Debug::log("start_tests(): all unit tests passed.").endl();
+            Debug::log("start_tests(): all direct unit tests passed. Registering gameplay tests...").endl();
         else
             Debug::error("Some unit tests failed.");
+
+        registerGameplayUTests(engine);
         return passed;
+    }
+
+    void registerGameplayUTests(Engine *e)
+    {
+        // should those be grabbed from somewhere else ?
+        Ogre::String res="resources";
+        Ogre::String btrees="BTree models";
+        auto ddir=e->dataDir();
+        e->registerCommand("editor.instanciate."+ddir.subfile(res).subfile(btrees).subfile("patrol.model").fullPath());
     }
 
 }
