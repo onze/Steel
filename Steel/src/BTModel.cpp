@@ -26,7 +26,7 @@ namespace Steel
         switchShapeTo(shapeStream);
         return true;
     }
-    
+
     bool BTModel::switchShapeTo(BTShapeStream* shapeStream)
     {
         mStateStream.clear();
