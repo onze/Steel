@@ -87,7 +87,7 @@ namespace Steel
             void removeFileListener(FileEventListener *listener);
 
             /// return the file content.
-            Ogre::String read();
+            Ogre::String read(bool skiptEmtpyLines=false);
 
             /// write the given string into the file, replacing what's already in.
             File &write (Ogre::String s, OpenMode mode=OM_APPEND);
@@ -135,7 +135,7 @@ namespace Steel
             {
                 return fullPath();
             }
-            
+
             /// Convert the File instance to a string of the path it's pointing to.
             operator Ogre::String()
             {
@@ -160,7 +160,7 @@ namespace Steel
              * Returns false if the file could not be created.
              */
             bool touch();
-            
+
             /// Deletes the file. Silent if the file does not exist or on a directory.
             void rm();
 

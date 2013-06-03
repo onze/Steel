@@ -96,12 +96,12 @@ namespace Steel
     {
         return fullPath()==o.fullPath();
     }
-    
+
     bool File::operator!= ( File const &o ) const
     {
         return !operator==(o);
     }
-    
+
     bool File::operator< ( File const &o ) const
     {
         return fileName()<o.fileName();
@@ -174,7 +174,7 @@ namespace Steel
         if(isDir())
             throw std::runtime_error("File::rm not implemented for directories");
 #if defined(_WIN32)
-            throw std::runtime_error("File::rm not implemented");
+        throw std::runtime_error("File::rm not implemented");
 #else
         unlink(fullPath().c_str());
 #endif
@@ -433,8 +433,10 @@ namespace Steel
         return type;
     }
 
-    Ogre::String File::read()
+    Ogre::String File::read(bool skiptEmtpyLines)
     {
+        if(!exists())
+            return "";
 
         std::ifstream s;
         s.open ( fullPath().c_str() );
@@ -447,7 +449,24 @@ namespace Steel
 
         s.read ( fileData, ( int ) fileLength );
         fileData[fileLength]='\0';
-        return Ogre::String ( fileData );
+        Ogre::String rawContent(fileData);
+
+        if(skiptEmtpyLines)
+        {
+            auto lines=StringUtils::split(rawContent,StringUtils::LINE_SEP);
+            decltype(lines) filteredLines(lines.size());
+            auto it=std::copy_if(lines.begin(),lines.end(),filteredLines.begin(),
+                                 [](Ogre::String line)
+            {
+                auto _line=line;
+                Ogre::StringUtil::trim(_line);
+                return _line.length()>0;
+            }
+                                );
+            filteredLines.resize(std::distance(filteredLines.begin(),it));
+            return StringUtils::join(filteredLines,StringUtils::LINE_SEP);
+        }
+        return rawContent;
     }
 
     File &File::write(Ogre::String buffer, std::ios_base::openmode mode)
