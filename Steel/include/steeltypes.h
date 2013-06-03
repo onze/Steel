@@ -26,10 +26,10 @@ namespace Steel
         MT_FIRST = -1,
         
         //put next ones here
-        // MT_Ogre should be first of actual types, since this order is the laoding order, and all models depend on OgreModels.
+        // MT_Ogre should be first of actual types, since this order is the loading order, and all models depend on OgreModels.
         MT_OGRE,
-        MT_BT,
         MT_PHYSICS,
+        MT_BT,
         MT_BLACKBOARD,
         
         //MT_LAST should stay last (to enable looping).

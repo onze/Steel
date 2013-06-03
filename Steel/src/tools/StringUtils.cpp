@@ -7,7 +7,7 @@ namespace Steel
 
 #ifdef __unix
     const Ogre::String StringUtils::LINE_SEP="\n";
-#else if defined(_WIN32)
+#else //if defined(_WIN32)
     const Ogre::String StringUtils::LINE_SEP="\r\n";
 #endif
 

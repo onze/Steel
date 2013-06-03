@@ -74,7 +74,7 @@ namespace Steel
         mPhysicsModelMan = new PhysicsModelManager(this,mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan=new BTModelManager(this,mEngine->rawResourcesDir().subfile("BT"));
         mBlackBoardModelMan =new BlackBoardModelManager(this);
-        
+
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
 
@@ -90,7 +90,7 @@ namespace Steel
         mOgreModelMan->clear();
         delete mOgreModelMan;
         mOgreModelMan=NULL;
-        
+
         mBTModelMan->clear();
         delete mBTModelMan;
         mBTModelMan=NULL;
@@ -255,7 +255,7 @@ namespace Steel
                 mm=mBlackBoardModelMan;
                 break;
             case MT_BT:
-                mm=NULL;
+                mm=mBTModelMan;
                 break;
             default:
                 Debug::error("Level::modelManager(): unknown modelType ")(modelType);

@@ -144,7 +144,7 @@ namespace Steel
             {
                 return &mTerrainMan;
             }
-            
+
             inline BTModelManager *BTModelMan()
             {
                 return mBTModelMan;
