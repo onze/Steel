@@ -57,6 +57,7 @@ namespace Steel
     ModelId BTModelManager::buildFromFile(File &rootFile)
     {
         Ogre::String intro="in BTModelManager::buildFromFile("+rootFile.fullPath()+"): ";
+
         // get the stream
         BTShapeStream *shapeStream=NULL;
         if(!mBTShapeMan.buildShapeStream(rootFile.fileName(),rootFile,shapeStream))

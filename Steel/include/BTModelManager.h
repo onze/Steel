@@ -15,10 +15,10 @@ namespace Steel
         public:
             BTModelManager(Level *level,Ogre::String mPath);
             virtual ~BTModelManager();
-            
+
             virtual ModelId fromSingleJson(Json::Value &root);
             virtual ModelType modelType();
-            
+
             /**
              * Reads the file system at the given directory, build the corresponding BTree,
              * and returns the id of a BTModel executing it.
@@ -33,5 +33,5 @@ namespace Steel
     };
 
 }
-#endif /* STEEL_BTMODELMANAGER_H_ */
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
