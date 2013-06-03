@@ -28,36 +28,36 @@ namespace Steel
 
             virtual void init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan);
             virtual void shutdown();
-            
+
             Ogre::Vector3 getDropTargetPosition();
             Ogre::Quaternion getDropTargetRotation();
             Ogre::Vector2 getSlotDropPosition();
-            
+
             /// called right before the underlying document gets shown
             virtual void onShow();
             /// called right before the underlying document gets hidden
             virtual void onHide();
-            
+
             /// Fills dynamic fields with values of dynamic queries. Optional aid helps filling $contect* fields.
             bool dynamicFillSerialization(Json::Value& root, Steel::AgentId aid=INVALID_ID);
 
             /**
-             * Instanciate a model from its serialization. 
+             * Instanciate a model from its serialization.
              * If aid is valid (!=INVALID_ID), the model is attached to that agent. Otherwise, a new agent is created,
              * aid is set to its id, and then the model is attached to it.
              * Returns false if a stopping problem occured.
              */
             bool loadModelFromSerialization(Json::Value &root, AgentId &aid);
-            
+
             /// Instanciate one or many models from a serialization, and returns the AgentId of the agent that controls it.
             bool loadModelsFromSerializations(Json::Value& root,AgentId &aid);
-            
+
             /**
              * reads an incomplete terrain slot file from the data folder, fills the incomplete parts (i.e.: terrain position),
              * and instanciate it.
              */
             void loadTerrainSlotFromSerialization(Json::Value &root);
-            
+
             /// Finds the agent owning the first OgreModel under the mouse, and returns its id.
             AgentId agentIdUnderMouse();
             /// Finds the agent owning the first OgreModel under the mouse, and returns its model of the given type.
@@ -66,18 +66,16 @@ namespace Steel
             /** returns whether the given screen coordinates collide with the child element with given Id.
              * If no Id is given, the hit test is made with the main document.**/
             bool hitTest(int x,int y, Rocket::Core::String childId="body");
-            
+
             /// Preprocess a resource file (fills dynamic values), and instanciate its description if all requirements are satisfied.
             bool instanciateResource(Steel::File& file);
 
             /// make a command out of a Rocket event
             void ProcessEvent(Rocket::Core::Event& event);
-            ///general command processing method. dispatches the work to other process*Commands
-            void processCommand(Ogre::String command);
-            /// submethod processing ui commands concerning the engine
-            void processEngineCommand(std::vector<Ogre::String> command);
-            /// submethod processing ui commands concerning levels
-            void processLevelCommand(std::vector<Ogre::String> command);
+            ///general command processing method. dispatches the work to other process
+            void processCommand(Ogre::String rawCommand);
+            ///general command processing method. dispatches the work to other process
+            void processCommand(std::vector<Ogre::String> command);
             /// submethod processing ui commands concerning options
             void processOptionCommand(std::vector<Ogre::String> command);
 
@@ -93,7 +91,7 @@ namespace Steel
 
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
-            
+
             /// Saves a Selection under the given tag.
             void setSelectionTag(const Selection &selection,const Ogre::String &tag);
             /// Set tagged agents as selected

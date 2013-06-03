@@ -767,11 +767,15 @@ namespace Steel
             processCommand(raw_commmand);
     }
 
-    void Editor::processCommand(Ogre::String raw_commmand)
+    void Editor::processCommand(Ogre::String rawCommand)
     {
-        Debug::log("Editor::processCommand(")(raw_commmand)(")").endl();
-        std::vector<Ogre::String> command;
-        command=StringUtils::split(std::string(raw_commmand),std::string("."));
+        Debug::log("Editor::processCommand(raw=")(rawCommand)(")").endl();
+        processCommand(StringUtils::split(std::string(rawCommand),std::string(".")));
+    }
+
+    void Editor::processCommand(std::vector<Ogre::String> command)
+    {
+        Ogre::String intro="in Editor::processCommand(): ";
         // dispatch the command to the right subprocessing function
         if(command[0]=="editor")
         {
@@ -791,30 +795,38 @@ namespace Steel
         }
         else if(command[0]=="instanciate")
         {
+            intro+="instanciate: ";
             command.erase(command.begin());
             if(command.size()<1)
             {
-                Debug::error("command contains no file !").endl();
+                Debug::error(intro)("command \"")(command);
+                Debug::error("\" contains no file !").endl();
                 return;
             }
             File file(StringUtils::join(command,"."));
             if(file.exists())
+            {
                 instanciateResource(file);
+            }
             else
-                Debug::warning("file \"")(file)("\"not found. Aborted.").endl();
+            {
+                Debug::warning(intro)("file \"")(file)("\" not found for command \"");
+                Debug::warning(command)("\". Aborted.").endl();
+            }
         }
         else if(command[0]=="options")
         {
+            intro+="options: ";
             command.erase(command.begin());
             if(command.size()==0)
-                Debug::warning("Editor::processCommand(): no option given.").endl();
+                Debug::warning(intro)("no option given.").endl();
             else
                 processOptionCommand(command);
         }
         else if(command[0]=="resourceGroupsInfos")
             OgreUtils::resourceGroupsInfos();
         else
-            Debug::warning("Editor::processCommand(): unknown command: ")(command).endl();
+            Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
     }
 
     void Editor::processOptionCommand(std::vector<Ogre::String> command)

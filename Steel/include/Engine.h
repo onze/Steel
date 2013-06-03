@@ -105,6 +105,8 @@ namespace Steel
             void redraw();
             /// adds a command that will be executed at the beginning of next frame.
             void registerCommand(std::vector<Ogre::String> command);
+            /// adds a command that will be executed at the beginning of next frame.
+            void registerCommand(Ogre::String rawCommand);
 
             void reloadConfig();
 
@@ -143,12 +145,12 @@ namespace Steel
             {
                 return mRootDir;
             }
-            
+
             inline File dataDir()
             {
                 return mRootDir.subfile("data");
             }
-            
+
             inline File rawResourcesDir()
             {
                 return dataDir().subfile("raw_resources");

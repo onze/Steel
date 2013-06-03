@@ -512,6 +512,11 @@ namespace Steel
             command.erase(command.begin());
             mLevel->processCommand(command);
         }
+        if(command[0]=="editor")
+        {
+            command.erase(command.begin());
+            mUI.editor().processCommand(command);
+        }
         else if(command[0]=="reloadConfig")
         {
             reloadConfig();
@@ -559,6 +564,11 @@ namespace Steel
             if(!processCommand(command))
                 break;
         }
+    }
+
+    void Engine::registerCommand(Ogre::String rawCommand)
+    {
+        mCommands.push_back(StringUtils::split(std::string(rawCommand),std::string(".")));
     }
 
     void Engine::registerCommand(std::vector<Ogre::String> command)
