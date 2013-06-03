@@ -387,17 +387,20 @@ namespace Steel
             }
             Debug::log(intro)("created agent ")(aid).endl();
         }
+
         // ask the right manager to load this model
         ModelType modelType=MT_FIRST;
         if(modelTypeString=="MT_OGRE")
             modelType=MT_OGRE;
+        else if(modelTypeString=="MT_BT")
+            modelType=MT_BT;
         else if(modelTypeString=="MT_PHYSICS")
             modelType=MT_PHYSICS;
         else if(modelTypeString=="MT_BLACKBOARD")
             modelType=MT_BLACKBOARD;
         else
         {
-            Debug::log(intro)("Unknown model type: ")(modelTypeString).endl();
+            Debug::warning(intro)("Unknown model type: ")(modelTypeString).endl();
             return false;
         }
 
@@ -411,7 +414,15 @@ namespace Steel
 
         // try to instanciate the model
         intro.append("in ").append(modelTypeString).append(" type: ");
-        ModelId mid = level->modelManager(modelType)->fromSingleJson(root);
+        auto manager=level->modelManager(modelType);
+        if(NULL==manager)
+        {
+            Debug::error(intro)("could not find proper manager for modelType ")(modelTypeString)(". ");
+            Debug::error("Aborting.").endl();
+            return false;
+        }
+
+        ModelId mid = manager->fromSingleJson(root);
         if(!level->linkAgentToModel(aid,modelType,mid))
         {
             level->modelManager(modelType)->decRef(mid);
