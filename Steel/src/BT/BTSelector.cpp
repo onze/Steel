@@ -12,8 +12,8 @@
 namespace Steel
 {
 
-    BTSelector::BTSelector():
-        mState(READY)
+    BTSelector::BTSelector(const Steel::BTShapeToken& token) :BTNode(token),
+        mCurrentChildNodeIndex(token.end)
     {
     }
 

@@ -1,17 +1,25 @@
 #ifndef STEEL_BTNAVIGATOR_H_
 #define STEEL_BTNAVIGATOR_H_
 
-#include "BT/btnodetypes.h"
+#include <BT/btnodetypes.h>
+#include <BT/BTNode.h>
 
 namespace Steel
 {
 
-    class BTNavigator//:public BTNode
+    class BTNavigator:public BTNode
     {
         public:
-            BTNavigator();
+            inline static BTShapeTokenType tokenType()
+            {
+                return BTNavigatorToken;
+            }
+            
+            BTNavigator(BTShapeToken const &token);
             virtual ~BTNavigator();
+        protected:
             BTState mState;
+            BTShapeToken mToken;
     };
 }
 

@@ -11,14 +11,19 @@
 namespace Steel
 {
 
-    BTSequence::BTSequence() :
-        mState(READY)
+    BTSequence::BTSequence(const Steel::BTShapeToken& token) : BTNode(token),
+        mCurrentChildNodeIndex(token.end)
     {
-
+        switchToNextChild();
     }
 
     BTSequence::~BTSequence()
     {
+    }
+
+    unsigned BTSequence::switchToNextChild()
+    {
+        return mCurrentChildNodeIndex=mToken.begin+((mCurrentChildNodeIndex-mToken.begin)+1)%(mToken.end-mToken.begin);
     }
 
     /*

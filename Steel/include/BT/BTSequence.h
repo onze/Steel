@@ -1,24 +1,36 @@
-#ifndef STEEL_BTSEQUENCE_H_
-#define STEEL_BTSEQUENCE_H_
+#ifndef STEEL_BTSEQUENCE_H
+#define STEEL_BTSEQUENCE_H
 
-// #include "BT/BTNode.h"
-#include "BT/btnodetypes.h"
+#include <BT/BTNode.h>
 
 namespace Steel
 {
 
-    class BTSequence
+    class BTSequence:public BTNode
     {
         public:
-            BTSequence();
+            inline static BTShapeTokenType tokenType()
+            {
+                return BTSequenceToken;
+            }
+
+            BTSequence(BTShapeToken const &token);
             virtual ~BTSequence();
-            BTState mState;
+
+            unsigned switchToNextChild();
+
+            inline unsigned currentChildNodeIndex()
+            {
+                return mCurrentChildNodeIndex;
+            }
+
+
 // 	virtual void onStartRunning();
 // 	virtual void onStopRunning();
         protected:
-//             std::list<BTNode *>::iterator it;
+            unsigned mCurrentChildNodeIndex;
     };
-
 }
-#endif /* STEEL_BTSEQUENCE_H_ */
+
+#endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

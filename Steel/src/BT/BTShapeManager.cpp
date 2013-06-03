@@ -58,6 +58,9 @@ namespace Steel
             BTFileNode file=fringe.front();
             fringe.pop_front();
 
+            if(isIgnored(file))
+                continue;
+
             if(file.isGuard())
             {
                 // popped back to root ?
@@ -69,8 +72,8 @@ namespace Steel
             }
 
             // push the token to the stream
-            stream.push_back( {file.shapeTokenType(),currentIndex,0});
-            
+            stream.push_back( {file.shapeTokenType(),currentIndex,0,file.descriptor().fullPath()});
+
             // add childNodes to fringe for them to be processed next.
             std::vector<BTFileNode> childNodes=file.childNodes();
             fringe.insert(fringe.begin(),childNodes.begin(),childNodes.end());
@@ -81,6 +84,16 @@ namespace Steel
         mStreamMap[streamId]=stream;
         streamPtr=&(mStreamMap[streamId]);
         return true;
+    }
+
+    bool BTShapeManager::isIgnored(const BTFileNode &file)
+    {
+        return Ogre::StringUtil::startsWith(file.fileName(),"__");
+    }
+
+    void BTShapeManager::clearCachedStreams()
+    {
+        mStreamMap.clear();
     }
 
 }

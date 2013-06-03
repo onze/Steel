@@ -6,6 +6,7 @@
 #include "OgreString.h"
 
 #include "BT/btnodetypes.h"
+#include "BTFileNode.h"
 #include "tools/File.h"
 
 namespace Steel
@@ -35,6 +36,12 @@ namespace Steel
              * @return true if no error occured.
              */
             bool buildShapeStream(Ogre::String streamId, Steel::File& rootFile, Steel::BTShapeStream*& stream);
+            
+            /// Removes all streams from the map
+            void clearCachedStreams();
+            
+            /// Returns true if the file matches the ignored files pattern (name starts with a double underscore).
+            bool isIgnored(const BTFileNode &file);
 
         protected:
             // not owned

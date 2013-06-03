@@ -4,19 +4,22 @@
 
 #include <OgreString.h>
 
-#include "tests/utest_BTStateShapes.h"
+#include "tests/utests_BTShapeStream.h"
 
-#include <BT/BTShapeManager.h>
+#include <BT/btnodetypes.h>
 #include <Debug.h>
+#include <BT/BTShapeManager.h>
+#include <BT/BTFileNode.h>
+#include <Engine.h>
 
 namespace Steel
 {
     /**
-     * Builds a shapeStream directly from the shapeStream
+     * Builds a shapeStream directly from the shapeStream.
      */
-    bool test_BTStateShapes()
+    bool test_BTShapeStream()
     {
-        Ogre::String intro="test_BTStateShapes(): ",abortMsg="Aborting unit test.";
+        Ogre::String intro="test_BTShapeStream(): ",abortMsg="Aborting unit test.";
 
         BTShapeManager shapeMan;
         Ogre::String streamId="utests/shapes/A - sequence";
@@ -33,18 +36,16 @@ namespace Steel
             return false;
         }
 
-
         BTShapeToken groundTruth_data[] =
         {
-            {BTSequenceToken,0,7},//A
-            {BTSequenceToken,1,4},//+-B
-            {BTLocalizerToken,2,3},//| +-C
-            {BTNavigatorToken,3,4},//| |-D
-            {BTSequenceToken,4,7},//+-E
-            {BTLocalizerToken,5,6},//  +-F
-//             {BTNavigatorToken,6,7},//  |-G
+            {BTSequenceToken,0,7,BTFileNode(rootFile).descriptor()},//A
+            {BTSequenceToken,1,4,BTFileNode(rootFile.subfile("B - sequence")).descriptor()},//+-B
+            {BTFinderToken,2,3,BTFileNode(rootFile.subfile("B - sequence").subfile("C - finder")).descriptor()},//| +-C
+            {BTNavigatorToken,3,4,BTFileNode(rootFile.subfile("B - sequence").subfile("D - navigator")).descriptor()},//| |-D
+            {BTSequenceToken,4,7,BTFileNode(rootFile.subfile("E - sequence")).descriptor()},//+-E
+            {BTFinderToken,5,6,BTFileNode(rootFile.subfile("E - sequence").subfile("F - finder")).descriptor()},//  +-F
+            {BTNavigatorToken,6,7,BTFileNode(rootFile.subfile("E - sequence").subfile("G - navigator")).descriptor()},//  |-G
         };
-
         BTShapeStream groundTruth = BTShapeStream (
                                         groundTruth_data,
                                         groundTruth_data+sizeof(groundTruth_data)/sizeof(BTShapeToken)
@@ -70,6 +71,7 @@ namespace Steel
             return false;
         }
 
+        shapeMan.clearCachedStreams();
         Debug::log("test_BTStateShapes(): passed").endl();
         return true;
     }

@@ -1,5 +1,5 @@
 
-#include "tests/test_BTrees.h"
+#include "tests/utests_BTrees.h"
 #include <BTModelManager.h>
 #include <tools/StringUtils.h>
 #include <tools/File.h>
@@ -29,6 +29,7 @@ namespace Steel
             Debug::error(reader.getFormattedErrorMessages()).endl();
             return false;
         }
+        // instanciate it
         ModelId mid=btModelMan->fromSingleJson(root);
         if(mid==INVALID_ID)
         {

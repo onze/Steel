@@ -7,8 +7,7 @@ namespace Steel
 {
 
 
-    BTNavigator::BTNavigator():
-        mState(READY)
+    BTNavigator::BTNavigator(const Steel::BTShapeToken& token) :BTNode(token)
     {
     }
 
