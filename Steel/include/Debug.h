@@ -154,7 +154,9 @@ namespace Steel
                     {
                         (*this)("BTShapeToken{type: ")(StringUtils::BTShapeTokenTypeToString(token.type));
                         (*this)(", begin: ")(token.begin);
-                        return (*this)(", end: ")(token.end)("}");
+                        (*this)(", end: ")(token.end);
+                        (*this)(", contentFile: ")(token.contentFile);
+                        return (*this)("}");
                     }
 
                     DebugObject &operator()(BTShapeStream* const shapeStream)
