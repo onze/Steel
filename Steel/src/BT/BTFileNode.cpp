@@ -30,6 +30,11 @@ namespace Steel
         mIsGuard=false;
     }
 
+    BTFileNode::BTFileNode(const File &file):File(file)
+    {
+        mIsGuard=false;
+    }
+
     BTFileNode::~BTFileNode()
     {
 
@@ -42,26 +47,39 @@ namespace Steel
         return *this;
     }
 
-    BTShapeTokenType BTFileNode::shapeTokenType()
+    File BTFileNode::descriptor()
     {
         if(exists())
         {
             if(isFile())
             {
-                for (BTShapeTokenType it = (BTShapeTokenType) ((int) _BTFirst + 1); it != _BTLast; it = (BTShapeTokenType) ((int) it + 1))
-                    if(BTShapeTokenTypeAsString[it]==fileName())
-                        return it;
+                return *this;
             }
             else
             {
+                File sub;
                 for (BTShapeTokenType it = (BTShapeTokenType) ((int) _BTFirst + 1); it != _BTLast; it = (BTShapeTokenType) ((int) it + 1))
                 {
                     Ogre::String BTShapeTokenTypeName=BTShapeTokenTypeAsString[it];
-                    if(subfile(BTShapeTokenTypeName).exists())
-                        return it;
+                    sub=subfile(BTShapeTokenTypeName);
+                    if(sub.exists())
+                        return sub;
                 }
             }
         }
+        return subfile(BTShapeTokenTypeAsString[BTUnknownToken]);
+    }
+
+    BTShapeTokenType BTFileNode::shapeTokenType()
+    {
+        File desc=descriptor();
+        if(desc.exists())
+        {
+            for (BTShapeTokenType it = (BTShapeTokenType) ((int) _BTFirst + 1); it != _BTLast; it = (BTShapeTokenType) ((int) it + 1))
+                if(BTShapeTokenTypeAsString[it]==desc.fileName())
+                    return it;
+        }
+        Debug::warning("in BTFileNode::shapeTokenType(): unknown token type for file ")(fullPath()).endl();
         return BTUnknownToken;
     }
 

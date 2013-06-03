@@ -19,6 +19,7 @@ namespace Steel
             BTFileNode(BTFileNode const &o);
             BTFileNode(const char *fullpath);
             BTFileNode(Ogre::String fullpath);
+            BTFileNode(const File &file);
             virtual ~BTFileNode();
             BTFileNode &operator=(BTFileNode const &o);
 
@@ -27,6 +28,9 @@ namespace Steel
              * the file is points to a directory, a lookup for a direct BTShapeToken subfile is done.
              */
             BTShapeTokenType shapeTokenType();
+
+            /// Returns the node's descriptor as a BTFileNode.
+            File descriptor();
 
             /// Returns a vector of all children of the file, in the order they should be processed.
             std::vector<BTFileNode> childNodes();
