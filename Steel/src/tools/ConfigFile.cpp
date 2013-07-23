@@ -4,15 +4,15 @@
 namespace Steel
 {
     const Ogre::String ConfigFile::VERSION="1.0";
-    const Ogre::String ConfigFile::VERSION_ATTRIBUTE_NAME="ConfigFile::version";
+    const Ogre::String ConfigFile::VERSION_ATTRIBUTE_NAME="_version";
 
-    ConfigFile::ConfigFile(File file,bool autoLoad):mFile(file),mSettings(Ogre::NameValuePairList())
+    ConfigFile::ConfigFile(File file,bool autoLoad):mFile(file),mSettings(Json::Value())
     {
         if(autoLoad)
             load();
     }
 
-    ConfigFile::ConfigFile(const ConfigFile& o):mFile(o.mFile),mSettings(o.mSettings.begin(),o.mSettings.end())
+    ConfigFile::ConfigFile(const ConfigFile& o):mFile(o.mFile),mSettings(o.mSettings)
     {
         load();
     }
@@ -46,50 +46,39 @@ namespace Steel
         if(!mFile.exists())
             return;
 
-        Ogre::NameValuePairList settings;
-
-        auto lines=StringUtils::split(mFile.read(),"\n");
-        for(auto it=lines.begin(); it!=lines.end(); ++it)
+        Json::Reader reader;
+        Json::Value settings;
+        if(reader.parse(mFile.read(),settings,true))
         {
-            Ogre::String line=*it;
-            // comment
-            if(line.size()==0 || line.at(0)=='#')
-                continue;
-
-            auto words=StringUtils::split(line,"=");
-            if(words.size()==0)
-                continue;
-
-            Ogre::String key=words[0],value="true";
-            if(words.size()>1)
-                value=StringUtils::join(words,"=",1);
-            Ogre::StringUtil::trim(key);
-            Ogre::StringUtil::trim(value);
-            settings.insert(Ogre::NameValuePairList::value_type(key,value));
+            // can't debug
+            //Debug::error("in ConfigFile::load(): can't parse configFile ")(mFile).endl();
+            return;
         }
 
         // version control: abort if versions differ
-        auto it_version=settings.find(ConfigFile::VERSION_ATTRIBUTE_NAME);
+        Json::Value version=settings[ConfigFile::VERSION_ATTRIBUTE_NAME];
         bool validVersion=false;
-        if(settings.end()==it_version)
+        if(version.isNull())
         {
-//             Debug::log(*this)("::load(): no "+ConfigFile::VERSION_ATTRIBUTE_NAME+" specified, assuming "+ConfigFile::VERSION).endl();
-            validVersion=true;
+            if(Debug::isInit)
+                Debug::warning(*this)("::load(): no "+ConfigFile::VERSION_ATTRIBUTE_NAME+" specified, assuming "+ConfigFile::VERSION).endl();
         }
-        else if(it_version->second==ConfigFile::VERSION)
+        else if(version.asCString()==ConfigFile::VERSION)
         {
             validVersion=true;
         }
 
         if(validVersion)
         {
-            settings.erase(ConfigFile::VERSION_ATTRIBUTE_NAME);
-            mSettings.insert(settings.begin(),settings.end());
+            mSettings=settings;
         }
         else
         {
-            Debug::log(*this)("::load(): wrong "+ConfigFile::VERSION_ATTRIBUTE_NAME+" \""+it_version->second+"\", expecting \""+ConfigFile::VERSION+"\". ");
-            Debug::log("Loading cancelled.").endl();
+            if(Debug::isInit)
+            {
+                Debug::log(*this)("::load(): wrong "+ConfigFile::VERSION_ATTRIBUTE_NAME+" \""+version.asString()+"\", expecting \""+ConfigFile::VERSION+"\". ");
+                Debug::log("Loading cancelled.").endl();
+            }
         }
     }
 
@@ -101,28 +90,28 @@ namespace Steel
             backup.write(mFile.read(),File::OM_OVERWRITE);
 
         // write settings
-        mFile.write(ConfigFile::VERSION_ATTRIBUTE_NAME+" = "+ConfigFile::VERSION+"\n",File::OM_OVERWRITE);
-        for(auto it=mSettings.begin(); it!=mSettings.end(); ++it)
-        {
-            Ogre::NameValuePairList::value_type pair=*it;
-            mFile.write(pair.first+" = "+pair.second+"\n",File::OM_APPEND);
-        }
-        mFile.write("\n",File::OM_APPEND);
+        mFile.write(mSettings.toStyledString(),File::OM_OVERWRITE);
     }
 
-    ConfigFile& ConfigFile::setSetting(Ogre::String key, Ogre::String value)
+    ConfigFile& ConfigFile::setSetting(Ogre::String key, Ogre::String const &value)
     {
-        mSettings.erase(key);
-        mSettings.insert(std::pair<Ogre::String,Ogre::String>(key,value));
+        mSettings[key]=value;
+        return *this;
+    }
+
+    ConfigFile& ConfigFile::setSetting(Ogre::String key, Json::Value const &value)
+    {
+        mSettings[key]=value;
         return *this;
     }
 
     Ogre::String ConfigFile::getSetting(Ogre::String key)
     {
-        auto it=mSettings.find(key);
-        if(it==mSettings.end())
-            return "";
-        return it->second;
+        if(mSettings.isMember(key))
+        {
+            return mSettings[key].asString();
+        }
+        return "";
     }
 
 }

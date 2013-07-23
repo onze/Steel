@@ -1,6 +1,7 @@
 #ifndef STEEL_CONFIGFILE_H
 #define STEEL_CONFIGFILE_H
 
+#include <json/json.h>
 #include "File.h"
 
 namespace Steel
@@ -21,7 +22,8 @@ namespace Steel
             virtual bool operator==(const ConfigFile& other) const;
 
             Ogre::String getSetting(Ogre::String key);
-            ConfigFile &setSetting(Ogre::String key, Ogre::String value);
+            ConfigFile &setSetting(Ogre::String key, Ogre::String const &value);
+            ConfigFile &setSetting(Ogre::String key, Json::Value const &value);
 
             void load();
             void save();
@@ -38,7 +40,7 @@ namespace Steel
             
         protected:
             File mFile;
-            Ogre::NameValuePairList mSettings;
+            Json::Value mSettings;
     };
 }
 #endif
