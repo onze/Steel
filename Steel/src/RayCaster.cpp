@@ -18,7 +18,7 @@ namespace Steel
 {
 
     RayCaster::RayCaster(Engine *engine):EngineEventListener(),
-        mSceneManager(NULL),mRaySceneQuery(NULL)
+        mEngine(engine),mSceneManager(NULL),mRaySceneQuery(NULL)
     {
         engine->addEngineEventListener(this);
     }
@@ -27,6 +27,11 @@ namespace Steel
     {
         if(NULL!=mSceneManager && NULL!=mRaySceneQuery)
             mSceneManager->destroyQuery(mRaySceneQuery);
+        if(NULL!=mEngine)
+        {
+            mEngine->removeEngineEventListener(this);
+            mEngine=NULL;
+        }
         mRaySceneQuery=NULL;
         mSceneManager=NULL;
     }

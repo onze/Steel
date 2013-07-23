@@ -193,7 +193,7 @@ namespace Steel
                 return mConfig;
             }
 
-        protected:
+        private:
             /// invoke processCommand on all registered commands
             void processAllCommands();
 
@@ -225,15 +225,12 @@ namespace Steel
             InputManager mInputMan;
             std::string mWindowHandle;
             bool mMustAbortMainLoop;
+            bool mIsInMainLoop;
 
-            /**
-             * current level.
-             */
+            /// Current level
             Level *mLevel;
 
-            /**
-             * object that handles all this raycasting thingies.
-             */
+            /// Object that handles all this raycasting thingy.
             RayCaster *mRayCaster;
             UI mUI;
 
@@ -248,7 +245,6 @@ namespace Steel
 
             /// Manages selections of Agents.
             SelectionManager mSelectionMan;
-
     };
 }
 
