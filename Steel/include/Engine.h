@@ -156,6 +156,11 @@ namespace Steel
                 return dataDir().subfile("raw_resources");
             }
 
+            inline File resourcesDir()
+            {
+                return dataDir().subfile("resources");
+            }
+
             inline SelectionManager &selectionMan()
             {
                 return mSelectionMan;
