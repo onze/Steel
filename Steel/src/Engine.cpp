@@ -32,7 +32,7 @@ namespace Steel
 {
 
 Engine::Engine(Ogre::String confFilename)
-        : mRootDir(""), mConfig(confFilename, false), mRoot(NULL), mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(
+        : mRootDir("."), mConfig(confFilename, false), mRoot(NULL), mRenderWindow(NULL), mInputMan(), mMustAbortMainLoop(
                 false), mIsInMainLoop(false), mLevel(NULL), mRayCaster(NULL), mEditMode(false), mCommands(
                 std::list<std::vector<Ogre::String> >()), mSelectionMan(SelectionManager(this))
 {

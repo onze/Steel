@@ -20,6 +20,7 @@ namespace Steel
     class Editor:public UIPanel
     {
         private:
+        static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE;
         public:
             Editor();
             Editor(const Editor& other);
@@ -38,8 +39,22 @@ namespace Steel
             /// called right before the underlying document gets hidden
             virtual void onHide();
 
-            /// Fills dynamic fields with values of dynamic queries. Optional aid helps filling $contect* fields.
-            bool dynamicFillSerialization(Json::Value& root, Steel::AgentId aid=INVALID_ID);
+            /**
+             * Fills dynamic fields with values of dynamic queries. Optional aid helps filling dynamic
+             * fields involving the owner agent. This method is recursive.
+             */
+            bool dynamicFillSerialization(Json::Value& node, Steel::AgentId aid=INVALID_ID);
+
+            /**
+             * Reads the conf to create the lookup table used to resolve dynamic resource locations in
+             * models reference descriptor files.
+             */
+            void setupReferencePathsLookupTable(Ogre::String const &source);
+            /**
+             * Replaces references' special $keys by specific values (paths set in the conf).
+             * The call is recursive (keys can reference other keys).
+             */
+            void resolveReferencePaths(Ogre::String src,Ogre::String &dst);
 
             /**
              * Instanciate a model from its serialization.
@@ -52,11 +67,14 @@ namespace Steel
             /// Instanciate one or many models from a serialization, and returns the AgentId of the agent that controls it.
             bool loadModelsFromSerializations(Json::Value& root,AgentId &aid);
 
+            /// Instanciate models from a .model_refs file content.
+            bool loadModelsReferencesFromSerializations(Json::Value& root, Steel::AgentId& aid);
+
             /**
              * reads an incomplete terrain slot file from the data folder, fills the incomplete parts (i.e.: terrain position),
              * and instanciate it.
              */
-            void loadTerrainSlotFromSerialization(Json::Value &root);
+            bool loadTerrainSlotFromSerialization(Json::Value &root);
 
             /// Finds the agent owning the first OgreModel under the mouse, and returns its id.
             AgentId agentIdUnderMouse();
@@ -67,7 +85,15 @@ namespace Steel
              * If no Id is given, the hit test is made with the main document.**/
             bool hitTest(int x,int y, Rocket::Core::String childId="body");
 
-            /// Preprocess a resource file (fills dynamic values), and instanciate its description if all requirements are satisfied.
+            /**
+             * Preprocess a resource file (fills dynamic values), and instanciate its description if all requirements are satisfied.
+             * - if the file content contains an aid, the resource will be attached to the pointed agent (created if needed).
+             * - if the aid argument is not INVALID_ID, the resource will be attached to the pointed agent (created if needed).
+             * The aid given as argument has precedence over the one in the serialization.
+             * This agentId to which the resource is attached is eventually returned.
+             */
+            bool instanciateResource(Steel::File& file, AgentId &aid);
+            /// Forward call to instanciateResource(Steel::File& file, AgentId &aid), and discards the aid.
             bool instanciateResource(Steel::File& file);
 
             /// make a command out of a Rocket event
@@ -117,6 +143,8 @@ namespace Steel
             bool mIsDraggingFromMenu;
             /// maps tags to set of agents
             std::map<Ogre::String, Selection> mSelectionsTags;
+            /// internal representation of REFERENCE_PATH_LOOKUP_TABLE atribute of the application conf file.
+            std::map<Ogre::String, Ogre::String> mReferencePathsLookupTable;
         private:
     };
 }
