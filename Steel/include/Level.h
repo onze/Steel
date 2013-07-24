@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <list>
 
 #include "steeltypes.h"
 //#include "BTModelManager.h"
