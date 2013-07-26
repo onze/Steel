@@ -130,7 +130,7 @@ namespace Steel
         return defaultValue;
     }
 
-    int ConfigFile::getSettingAsFloat(Ogre::String key, float defaultValue) const
+    float ConfigFile::getSettingAsFloat(Ogre::String key, float defaultValue) const
     {
         if(mSettings.isMember(key))
         {

@@ -26,7 +26,7 @@ namespace Steel
 
             Ogre::String getSetting(Ogre::String key) const;
             int getSettingAsInt(Ogre::String key, int defaultValue) const;
-            int getSettingAsFloat(Ogre::String key, float defaultValue) const;
+            float getSettingAsFloat(Ogre::String key, float defaultValue) const;
             unsigned long getSettingAsUnsignedLong(Ogre::String key, unsigned int defaultValue) const;
 
             ConfigFile &setSetting(Ogre::String key, Ogre::String const &value);
