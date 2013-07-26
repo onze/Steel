@@ -171,25 +171,25 @@ namespace Steel
         // gather it
         value = node["position"];
         if (value.isNull())
-            Debug::error(intro)("invalid field 'position' (skipped).").endl();
+            Debug::error(intro)("position is null: no translation applied.").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node["rotation"];
         if (value.isNull())
-            Debug::warning(intro)("invalid field 'rotation' (skipped).").endl();
+            Debug::warning(intro)("rotation is null: no rotation applied.").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
 
         value = node["scale"];
         if (value.isNull())
-            Debug::warning(intro)("invalid field 'scale' (skipped).").endl();
+            Debug::warning(intro)("scale is null: no scaling applied.").endl();
         else
             scale = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node["entityMeshName"];
         if (value.isNull() && !(allWasFine = false))
-            Debug::error(intro)("invalid field 'entityMeshName' (skipped).").endl();
+            Debug::error(intro)("field 'entityMeshName' is null.").endl();
         else
             meshName = Ogre::String(value.asString());
 
