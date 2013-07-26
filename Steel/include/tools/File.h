@@ -89,7 +89,7 @@ public:
 
     /// return the file content.
     Ogre::String read(bool skiptEmtpyLines = false);
-    bool readInto(Json::Value &root, bool keepComments=true);
+    bool readInto(Json::Value &root, bool keepComments = true);
 
     /// write the given string into the file, replacing what's already in.
     File &write(Ogre::String s, OpenMode mode = OM_APPEND);

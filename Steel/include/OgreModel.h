@@ -12,69 +12,65 @@
 namespace Steel
 {
 
-    class OgreModel: public Model
+class OgreModel: public Model
+{
+public:
+    OgreModel();
+    void init(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale,
+            Ogre::SceneNode *mLevelRoot, Ogre::SceneManager *mSceneManager);
+    OgreModel(const OgreModel &m);
+    OgreModel &operator=(const OgreModel &m);
+    virtual ~OgreModel();
+
+    virtual inline ModelType modelType()
     {
-        public:
-            OgreModel();
-            void init(	Ogre::String meshName,
-                        Ogre::Vector3 pos,
-                        Ogre::Quaternion rot,
-                        Ogre::Vector3 scale,
-                        Ogre::SceneNode *mLevelRoot,
-                        Ogre::SceneManager *mSceneManager);
-            OgreModel(const OgreModel &m);
-            OgreModel &operator=(const OgreModel &m);
-            virtual ~OgreModel();
+        return MT_OGRE;
+    }
 
-            virtual inline ModelType modelType()
-            {
-                return MT_OGRE;
-            }
-            
-            Ogre::Vector3 position() const;
-            Ogre::Quaternion rotation() const;
-            Ogre::Vector3 scale() const;
-            
-            /// Translates the model's scenenode by the given vector.
-            void move(const Ogre::Vector3 &dpos);
-            /// Rotate the model's scenenode by r.x in the x axis, etc.
-            void rotate(const Ogre::Vector3 &r);
-            /// Rotate the model's scenenode by the given quaternion
-            void rotate(const Ogre::Quaternion &q);
-            /// Rescale the model's scenenode by the given factor (current_scale*given_scale).
-            void rescale(const Ogre::Vector3 &scale);
-            
-            void setPosition(const Ogre::Vector3 &pos);
-            void setRotation(const Ogre::Quaternion &rot);
-            void setScale(const Ogre::Vector3 &sca);
-            
-            void setSelected(bool selected);
-            
-            void setNodeAny(Ogre::Any any);
-            
-            /// Not mean to be used.
-            virtual bool fromJson(Json::Value &mode);
-            /// Deserialize itself from the given Json object
-            virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager);
-            /// Serialize itself into the given Json object
-            virtual void toJson(Json::Value &node);
+    Ogre::Vector3 position() const;
+    Ogre::Quaternion rotation() const;
+    Ogre::Vector3 scale() const;
 
-            // getters
-            inline Ogre::Entity* entity()
-            {
-                return mEntity;
-            }
-            inline Ogre::SceneNode* sceneNode()
-            {
-                return mSceneNode;
-            }
+    /// Translates the model's scenenode by the given vector.
+    void move(const Ogre::Vector3 &dpos);
+    /// Rotate the model's scenenode by r.x in the x axis, etc.
+    void rotate(const Ogre::Vector3 &r);
+    /// Rotate the model's scenenode by the given quaternion
+    void rotate(const Ogre::Quaternion &q);
+    /// Rescale the model's scenenode by the given factor (current_scale*given_scale).
+    void rescale(const Ogre::Vector3 &scale);
 
-        protected:
-            virtual void cleanup();
-            Ogre::SceneNode *mSceneNode;
-            Ogre::Entity *mEntity;
-            Ogre::SceneManager *mSceneManager;
-    };
+    void setPosition(const Ogre::Vector3 &pos);
+    void setRotation(const Ogre::Quaternion &rot);
+    void setScale(const Ogre::Vector3 &sca);
+
+    void setSelected(bool selected);
+
+    void setNodeAny(Ogre::Any any);
+
+    /// Not mean to be used.
+    virtual bool fromJson(Json::Value &mode);
+    /// Deserialize itself from the given Json object
+    virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager);
+    /// Serialize itself into the given Json object
+    virtual void toJson(Json::Value &node);
+
+    // getters
+    inline Ogre::Entity* entity()
+    {
+        return mEntity;
+    }
+    inline Ogre::SceneNode* sceneNode()
+    {
+        return mSceneNode;
+    }
+
+protected:
+    virtual void cleanup();
+    Ogre::SceneNode *mSceneNode;
+    Ogre::Entity *mEntity;
+    Ogre::SceneManager *mSceneManager;
+};
 
 }
 

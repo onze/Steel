@@ -8,62 +8,68 @@
 
 namespace Steel
 {
-    class Agent;
-    /**
-     * Base class for models.
-     * Implements reference counting. Subclass is in charge of  everything else.
-     */
-    class Model
+class Agent;
+/**
+ * Base class for models.
+ * Implements reference counting. Subclass is in charge of  everything else.
+ */
+class Model
+{
+public:
+    Model();
+    Model(const Model &m);
+    virtual ~Model();
+
+    virtual Model &operator=(const Model &m);
+    inline void incRef()
     {
-        public:
-            Model();
-            Model(const Model &m);
-            virtual ~Model();
+        ++mRefCount;
+    }
+    inline void decRef()
+    {
+        if (mRefCount > 0)
+        {
+            --mRefCount;
+            if (mRefCount == 0)
+                this->cleanup();
+        }
+    }
+    inline bool isFree()
+    {
+        return mRefCount == 0L;
+    }
 
-            virtual Model &operator=(const Model &m);
-            inline void incRef()
-            {
-                ++mRefCount;
-            }
-            inline void decRef()
-            {
-                if (mRefCount>0)
-                {
-                    --mRefCount;
-                    if(mRefCount == 0)
-                        this->cleanup();
-                }
-            }
-            inline bool isFree()
-            {
-                return mRefCount == 0L;
-            }
+    /// Serialize itself into the given Json object
+    virtual void toJson(Json::Value &object)
+    {
+    }
+    ;
 
-            /// Serialize itself into the given Json object
-            virtual void toJson(Json::Value &object)
-            {};
+    /// Deserialize itself from the given Json object. return true is successful.
+    virtual bool fromJson(Json::Value &object)
+    {
+        return true;
+    }
+    ;
 
-            /// Deserialize itself from the given Json object. return true is successful.
-            virtual bool fromJson(Json::Value &object)
-            {
-                return true;
-            };
+    //getters
+    inline unsigned long refCount()
+    {
+        return mRefCount;
+    }
 
-            //getters
-            inline unsigned long refCount()
-            {
-                return mRefCount;
-            }
+    /// Returns the ModelType associated with this model.
+    virtual ModelType modelType()=0;
 
-            /// Returns the ModelType associated with this model.
-            virtual ModelType modelType()=0;
-
-        protected:
-            /// Called by decRef() when the ref count gets below 0.
-            virtual void cleanup() {};
-            /// Number of agents referencing it.
-            unsigned long mRefCount;
-    };
+protected:
+    /// Called by decRef() when the ref count gets below 0.
+    virtual void cleanup()
+    {
+    }
+    ;
+    /// Number of agents referencing it.
+    unsigned long mRefCount;
+};
 
 }
 

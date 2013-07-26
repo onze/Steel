@@ -3,7 +3,7 @@
 
 namespace Steel
 {
-    bool test_BTrees();
+bool test_BTrees();
 }
 
 #endif

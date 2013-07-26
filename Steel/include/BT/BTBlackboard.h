@@ -7,8 +7,8 @@ namespace Steel
 class BTBlackboard
 {
 public:
-	BTBlackboard();
-	virtual ~BTBlackboard();
+    BTBlackboard();
+    virtual ~BTBlackboard();
 };
 
 }

@@ -3,7 +3,7 @@
 
 namespace Steel
 {
-    bool test_BTShapeStream();
+bool test_BTShapeStream();
 }
 
 #endif

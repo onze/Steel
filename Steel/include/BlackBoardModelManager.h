@@ -8,21 +8,22 @@
 
 namespace Steel
 {
-    class BlackBoardModelManager:public _ModelManager<BlackBoardModel>
+class BlackBoardModelManager: public _ModelManager<BlackBoardModel>
+{
+public:
+    BlackBoardModelManager(Level *level);
+    virtual ~BlackBoardModelManager();
+
+    /// modelType associated with this Manager
+    virtual inline ModelType modelType()
     {
-        public:
-            BlackBoardModelManager(Level *level);
-            virtual ~BlackBoardModelManager();
+        return MT_BLACKBOARD;
+    }
+    ;
 
-            /// modelType associated with this Manager
-            virtual inline ModelType modelType()
-            {
-                return MT_BLACKBOARD;
-            };
+protected:
 
-        protected:
-
-    };
+};
 }
 #endif // BLACKBOARDMODELMANAGER_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

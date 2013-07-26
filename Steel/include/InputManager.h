@@ -11,127 +11,134 @@
 
 namespace Steel
 {
-    class Engine;
-    class UI;
-    /**
-     * owned by the engine. Fed input primarily by the UI (possibly by network/automation tools).
-     */
-    class InputManager:public Ogre::WindowEventListener, OIS::MouseListener, OIS::KeyListener
+class Engine;
+class UI;
+/**
+ * owned by the engine. Fed input primarily by the UI (possibly by network/automation tools).
+ */
+class InputManager: public Ogre::WindowEventListener, OIS::MouseListener, OIS::KeyListener
+{
+public:
+    static const int KEYBOARD = 1 << 0;
+    static const int MOUSE = 1 << 1;
+
+    InputManager();
+    virtual ~InputManager();
+    void init(Engine *engine, UI *ui);
+    void shutdown();
+
+    void grabInput(bool exclusive = true);
+
+    inline bool isKeyDown(OIS::KeyCode key)
     {
-        public:
-            static const int KEYBOARD=1<<0;
-            static const int MOUSE=1<<1;
+        return NULL == mKeyboard ? false : mKeyboard->isKeyDown(key);
+    }
+    inline bool isModifierDown(OIS::Keyboard::Modifier mod)
+    {
+        return NULL == mKeyboard ? false : mKeyboard->isModifierDown(mod);
+    }
 
-            InputManager();
-            virtual ~InputManager();
-            void init(Engine *engine, UI *ui);
-            void shutdown();
+    bool keyPressed(const OIS::KeyEvent& evt);
+    bool keyReleased(const OIS::KeyEvent& evt);
+    bool mouseMoved(const OIS::MouseEvent& evt);
+    bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+    bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 
-            void grabInput(bool exclusive=true);
+    void releaseInput();
+    void resetFrameBasedData();
+    void resetAllData();
 
-            inline bool isKeyDown(OIS::KeyCode key)
-            {
-                return NULL==mKeyboard?false:mKeyboard->isKeyDown(key);
-            }
-            inline bool isModifierDown(OIS::Keyboard::Modifier mod)
-            {
-                return NULL==mKeyboard?false:mKeyboard->isModifierDown(mod);
-            }
+    void update();
 
-            bool keyPressed(const OIS::KeyEvent& evt);
-            bool keyReleased(const OIS::KeyEvent& evt);
-            bool mouseMoved(const OIS::MouseEvent& evt);
-            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+    /**
+     * called by OIS when the window has been resized.
+     */
+    virtual void windowResized(Ogre::RenderWindow* rw);
+    virtual void windowClosed(Ogre::RenderWindow* rw);
 
-            void releaseInput();
-            void resetFrameBasedData();
-            void resetAllData();
+    //getters
+    inline std::list<OIS::KeyCode> &keysPressed()
+    {
+        return mKeysPressed;
+    }
+    ;
+    inline bool hasMouseMoved()
+    {
+        return mHasMouseMoved;
+    }
+    ;
+    inline Ogre::Vector2 &mouseMove()
+    {
+        return mMouseMove;
+    }
+    ;
+    /// Absolute on-screen mouse position, in pixels.
+    inline Ogre::Vector2 &mousePos()
+    {
+        return mMousePos;
+    }
+    ;
+    /// Absolute on-screen mouse position, in pixels.
+    inline Ogre::Vector2 &mousePosAtLastMousePressed()
+    {
+        return mMousePosAtLastMousePressed;
+    }
+    ;
+    inline OIS::Mouse* mouse()
+    {
+        return mMouse;
+    }
+    ;
+    inline OIS::Keyboard* keyboard()
+    {
+        return mKeyboard;
+    }
+    ;
 
-            void update();
+    //setters
+    /// move the mouse to the given window position
+    void setMousePosition(Ogre::Vector2 &pos);
 
-            /**
-             * called by OIS when the window has been resized.
-             */
-            virtual void windowResized(Ogre::RenderWindow* rw);
-            virtual void windowClosed(Ogre::RenderWindow* rw);
+protected:
+    /// save the state of the mouse for later. (currenlty, only position is saved)
+    void pushMouseState();
+    /// load the last saved state of the mouse. (currenlty, only position is restored)
+    void popMouseState();
+    void _grabInput(bool exclusive = true);
+    void _releaseInput();
+    OIS::ParamList getOISparams(bool exclusive);
 
-            //getters
-            inline std::list<OIS::KeyCode> &keysPressed()
-            {
-                return mKeysPressed;
-            };
-            inline bool hasMouseMoved()
-            {
-                return mHasMouseMoved;
-            };
-            inline Ogre::Vector2 &mouseMove()
-            {
-                return mMouseMove;
-            };
-            /// Absolute on-screen mouse position, in pixels.
-            inline Ogre::Vector2 &mousePos()
-            {
-                return mMousePos;
-            };
-            /// Absolute on-screen mouse position, in pixels.
-            inline Ogre::Vector2 &mousePosAtLastMousePressed()
-            {
-                return mMousePosAtLastMousePressed;
-            };
-            inline OIS::Mouse* mouse()
-            {
-                return mMouse;
-            };
-            inline OIS::Keyboard* keyboard()
-            {
-                return mKeyboard;
-            };
+    //not owned
+    Engine *mEngine;
+    UI *mUI;
 
-            //setters
-            /// move the mouse to the given window position
-            void setMousePosition(Ogre::Vector2 &pos);
+    //owned
+    /// create mMouse and mKeyboard according to parameters.
+    OIS::InputManager* mOISInputManager;
+    ///true if the input is grabbed
+    bool mIsInputGrabbed;
+    ///true if the current grab is exclusive
+    bool mIsGrabExclusive;
 
-        protected:
-            /// save the state of the mouse for later. (currenlty, only position is saved)
-            void pushMouseState();
-            /// load the last saved state of the mouse. (currenlty, only position is restored)
-            void popMouseState();
-            void _grabInput(bool exclusive=true);
-            void _releaseInput();
-            OIS::ParamList getOISparams(bool exclusive);
+    ///true as long as a requested delayed grab has not been processed
+    bool mDelayedInputGrabRequested;
+    ///true as long as a requested delayed release has not been processed
+    bool mDelayedInputReleaseRequested;
+    bool mDelayedRequestIsExclusive;
 
-            //not owned
-            Engine *mEngine;
-            UI *mUI;
+    OIS::Mouse* mMouse;
+    OIS::Keyboard* mKeyboard;
 
-            //owned
-            /// create mMouse and mKeyboard according to parameters.
-            OIS::InputManager* mOISInputManager;
-            ///true if the input is grabbed
-            bool mIsInputGrabbed;
-            ///true if the current grab is exclusive
-            bool mIsGrabExclusive;
+    std::list<OIS::KeyCode> mKeysPressed;
+    bool mHasMouseMoved;
+    /// Move since last known position, last known position.
+    Ogre::Vector2 mMouseMove, mMousePos, mLastMouseMove;
 
-            ///true as long as a requested delayed grab has not been processed
-            bool mDelayedInputGrabRequested;
-            ///true as long as a requested delayed release has not been processed
-            bool mDelayedInputReleaseRequested;
-            bool mDelayedRequestIsExclusive;
+    Ogre::Vector2 mMousePosAtLastMousePressed;
 
-            OIS::Mouse* mMouse;
-            OIS::Keyboard* mKeyboard;
-
-            std::list<OIS::KeyCode> mKeysPressed;
-            bool mHasMouseMoved;
-            /// Move since last known position, last known position.
-            Ogre::Vector2 mMouseMove,mMousePos,mLastMouseMove;
-            
-            Ogre::Vector2 mMousePosAtLastMousePressed;
-
-            /// used by push/popMouseState. Store mouse position only.
-            std::list<Ogre::Vector2> mMouseStateStack;
-    };
+    /// used by push/popMouseState. Store mouse position only.
+    std::list<Ogre::Vector2> mMouseStateStack;
+};
 
 }
 

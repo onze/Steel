@@ -8,40 +8,40 @@
 
 namespace Steel
 {
-    class BTNode
+class BTNode
+{
+
+public:
+    BTNode(const Steel::BTShapeToken& token);
+    BTNode(const BTNode& other);
+    virtual ~BTNode();
+    virtual BTNode& operator=(const BTNode& other);
+    virtual bool operator==(const BTNode& other) const;
+
+    /// Sets the node to its original content file settings.
+    virtual bool reset();
+
+    // getters
+    inline unsigned begin()
     {
+        return mToken.begin;
+    }
 
-        public:            
-            BTNode(const Steel::BTShapeToken& token);
-            BTNode(const BTNode& other);
-            virtual ~BTNode();
-            virtual BTNode& operator=(const BTNode& other);
-            virtual bool operator==(const BTNode& other) const;
+    inline unsigned end()
+    {
+        return mToken.end;
+    }
 
-            /// Sets the node to its original content file settings.
-            virtual bool reset();
+protected:
+    static const Ogre::String AGENT_SPEC;
 
-            // getters
-            inline unsigned begin()
-            {
-                return mToken.begin;
-            }
+    /// Actual parsing. Meant to be overloaded by subclasses.
+    virtual bool parseNodeContent(Json::Value &root);
 
-            inline unsigned end()
-            {
-                return mToken.end;
-            }
-
-        protected:
-            static const Ogre::String AGENT_SPEC;
-
-            /// Actual parsing. Meant to be overloaded by subclasses.
-            virtual bool parseNodeContent(Json::Value &root);
-
-            // owned
-            BTState mState;
-            BTShapeToken mToken;
-    };
+    // owned
+    BTState mState;
+    BTShapeToken mToken;
+};
 }
 #endif
 

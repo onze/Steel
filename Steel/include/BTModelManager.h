@@ -9,31 +9,31 @@
 
 namespace Steel
 {
-    class Level;
-    class BTModelManager: public _ModelManager<BTModel>
-    {
-        public:
-            BTModelManager(Level *level,Ogre::String mPath);
-            virtual ~BTModelManager();
+class Level;
+class BTModelManager: public _ModelManager<BTModel>
+{
+public:
+    BTModelManager(Level *level, Ogre::String mPath);
+    virtual ~BTModelManager();
 
-            virtual ModelId fromSingleJson(Json::Value &root);
-            virtual ModelType modelType();
+    virtual ModelId fromSingleJson(Json::Value &root);
+    virtual ModelType modelType();
 
-            /**
-             * Reads the file system at the given directory, build the corresponding BTree,
-             * and returns the id of a BTModel executing it.
-             */
-            ModelId buildFromFile(File &rootFile);
-            
-            /// Main loop iteration. Update each BT model.
-            void update(float timestep);
+    /**
+     * Reads the file system at the given directory, build the corresponding BTree,
+     * and returns the id of a BTModel executing it.
+     */
+    ModelId buildFromFile(File &rootFile);
 
-        protected:
-            // owned
-            BTShapeManager mBTShapeMan;
-            /// Path to BT folder
-            File mBasePath;
-    };
+    /// Main loop iteration. Update each BT model.
+    void update(float timestep);
+
+protected:
+    // owned
+    BTShapeManager mBTShapeMan;
+    /// Path to BT folder
+    File mBasePath;
+};
 
 }
 #endif

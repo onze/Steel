@@ -6,30 +6,29 @@
 namespace Steel
 {
 
-    class BTSequence:public BTNode
+class BTSequence: public BTNode
+{
+public:
+    inline static BTShapeTokenType tokenType()
     {
-        public:
-            inline static BTShapeTokenType tokenType()
-            {
-                return BTSequenceToken;
-            }
+        return BTSequenceToken;
+    }
 
-            BTSequence(BTShapeToken const &token);
-            virtual ~BTSequence();
+    BTSequence(BTShapeToken const &token);
+    virtual ~BTSequence();
 
-            unsigned switchToNextChild();
+    unsigned switchToNextChild();
 
-            inline unsigned currentChildNodeIndex()
-            {
-                return mCurrentChildNodeIndex;
-            }
-
+    inline unsigned currentChildNodeIndex()
+    {
+        return mCurrentChildNodeIndex;
+    }
 
 // 	virtual void onStartRunning();
 // 	virtual void onStopRunning();
-        protected:
-            unsigned mCurrentChildNodeIndex;
-    };
+protected:
+    unsigned mCurrentChildNodeIndex;
+};
 }
 
 #endif

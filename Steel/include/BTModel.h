@@ -10,48 +10,48 @@
 
 namespace Steel
 {
+/**
+ * Instances of this class hold agent-specific data related to BTrees.
+ * One can see them as a blackboard on which
+ * BTNodes can write stuff other nodes could need.
+ * It is like a short&long term memory for an agent.
+ */
+class BTModel: public Model
+{
+public:
+    BTModel();
+    BTModel(const BTModel &m);
+    BTModel &operator=(const BTModel &m);
+    virtual ~BTModel();
+
     /**
-     * Instances of this class hold agent-specific data related to BTrees.
-     * One can see them as a blackboard on which
-     * BTNodes can write stuff other nodes could need.
-     * It is like a short&long term memory for an agent.
+     * Initialize a BTModel from a shapestream:
+     * - creates the states stream matching the shape stream
+     * - do other wonders
      */
-    class BTModel: public Model
-    {
-        public:
-            BTModel();
-            BTModel(const BTModel &m);
-            BTModel &operator=(const BTModel &m);
-            virtual ~BTModel();
+    bool init(BTShapeStream *shapeStream);
 
-            /**
-             * Initialize a BTModel from a shapestream:
-             * - creates the states stream matching the shape stream
-             * - do other wonders
-             */
-            bool init(BTShapeStream *shapeStream);
+    virtual ModelType modelType();
 
-            virtual ModelType modelType();
+    /// Deserialize itself from the given Json object
+    virtual bool fromJson(Json::Value &node);
 
-            /// Deserialize itself from the given Json object
-            virtual bool fromJson(Json::Value &node);
+    /// Serialize itself into the given Json object
+    virtual void toJson(Json::Value &node);
 
-            /// Serialize itself into the given Json object
-            virtual void toJson(Json::Value &node);
+    /// Sets the current shape to the given one.
+    bool switchShapeTo(BTShapeStream* shapeStream);
 
-            /// Sets the current shape to the given one.
-            bool switchShapeTo(BTShapeStream* shapeStream);
-            
-            void update(float timestep);
+    void update(float timestep);
 
-        protected:
-            virtual void cleanup();
+protected:
+    virtual void cleanup();
 
-            // not owned
-            // owned
-            /// states, aligned with the shape stream.
-            BTStateStream mStateStream;
-    };
+    // not owned
+    // owned
+    /// states, aligned with the shape stream.
+    BTStateStream mStateStream;
+};
 
 }
 #endif /* STEEL_BTMODEL_H_ */
