@@ -6,31 +6,31 @@
 
 namespace Steel
 {
-/**
- * Describes a query that can match an agent.
- */
-class AgentSpec
-{
-public:
-    static const Ogre::String TAG;
-
-    AgentSpec();
-    AgentSpec(const AgentSpec& other);
-    virtual ~AgentSpec();
-    virtual AgentSpec& operator=(const AgentSpec& other);
-    virtual bool operator==(const AgentSpec& other) const;
-
-    /// Sets spec according to Json content. Returns false if errors occured.
-    bool parseJson(const Json::Value &value);
-
-    inline Ogre::String tag() const
+    /**
+     * Describes a query that can match an agent.
+     */
+    class AgentSpec
     {
-        return mTag;
-    }
+        public:
+            static const Ogre::String TAG;
 
-private:
-    Ogre::String mTag;
-};
+            AgentSpec();
+            AgentSpec(const AgentSpec& other);
+            virtual ~AgentSpec();
+            virtual AgentSpec& operator=(const AgentSpec& other);
+            virtual bool operator==(const AgentSpec& other) const;
+
+            /// Sets spec according to Json content. Returns false if errors occured.
+            bool parseJson(const Json::Value &value);
+
+            inline Ogre::String tag() const
+            {
+                return mTag;
+            }
+
+        private:
+            Ogre::String mTag;
+    };
 
 }
 

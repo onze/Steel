@@ -78,7 +78,7 @@ namespace Steel
 //
 //        if(validVersion)
 //        {
-            mSettings=settings;
+        mSettings=settings;
 //        }
 //        else
 //        {

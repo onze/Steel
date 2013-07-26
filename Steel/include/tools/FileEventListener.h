@@ -3,12 +3,12 @@
 
 namespace Steel
 {
-class File;
-class FileEventListener
-{
-public:
-    virtual void onFileChangeEvent(File file)=0;
-};
+    class File;
+    class FileEventListener
+    {
+        public:
+            virtual void onFileChangeEvent(File file)=0;
+    };
 }
 
 #endif

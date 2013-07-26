@@ -138,7 +138,7 @@ namespace Steel
 
         mEditMode=false;
         mEngine->addEngineEventListener(this);
-        
+
         //rocket init
         auto orm=Ogre::ResourceGroupManager::getSingletonPtr();
         orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
@@ -288,15 +288,15 @@ namespace Steel
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
         mMainContext->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
-        
+
         if (evt.text >= 32)
             mMainContext->ProcessTextInput((Rocket::Core::word) evt.text);
         else if (keyIdentifier == Rocket::Core::Input::KI_RETURN)
             mMainContext->ProcessTextInput((Rocket::Core::word) '\n');
-        
+
         if(mEditMode)
             mEditor.keyPressed(evt);
-        
+
         return true;
     }
 
@@ -304,12 +304,12 @@ namespace Steel
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
         int keyModifierState=getKeyModifierState();
-        
+
         mMainContext->ProcessKeyUp(keyIdentifier ,keyModifierState);
-        
+
         if(mEditMode)
             mEditor.keyReleased(evt);
-        
+
         return true;
     }
 
@@ -354,7 +354,7 @@ namespace Steel
         }
         return true;
     }
-    
+
     void UI::onLevelUnset(Level *level)
     {
         // stop rendering as long as there is no level->scenemanager to render from
@@ -362,14 +362,14 @@ namespace Steel
         mHUD.hide();
         mEditor.hide();
     }
-    
+
     void UI::onLevelSet(Level *level)
     {
         level->sceneManager()->addRenderQueueListener(this);
         mHUD.show();
         mEditor.show();
     }
-    
+
     void UI::buildKeyMaps()
     {
         mKeyIdentifiers[OIS::KC_UNASSIGNED] = Rocket::Core::Input::KI_UNKNOWN;

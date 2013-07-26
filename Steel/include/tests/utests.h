@@ -3,14 +3,14 @@
 
 namespace Steel
 {
-class Engine;
+    class Engine;
 
-bool startTests(Engine* engine, bool abortOnFail);
-bool test_StringUtils();
-bool test_File();
-bool test_ConfigFile();
+    bool startTests(Engine* engine, bool abortOnFail);
+    bool test_StringUtils();
+    bool test_File();
+    bool test_ConfigFile();
 
-void registerGameplayUTests(Engine *e);
+    void registerGameplayUTests(Engine *e);
 }
 
 #endif

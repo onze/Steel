@@ -4,13 +4,14 @@
 namespace Steel
 {
 
-class BTBlackboard
-{
-public:
-    BTBlackboard();
-    virtual ~BTBlackboard();
-};
+    class BTBlackboard
+    {
+        public:
+            BTBlackboard();
+            virtual ~BTBlackboard();
+    };
 
 }
 
 #endif /* STEEL_BTBLACKBOARD_H_ */
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

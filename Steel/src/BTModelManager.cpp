@@ -73,7 +73,7 @@ namespace Steel
         mModels[mid].init(shapeStream);
         return mid;
     }
-    
+
     void BTModelManager::update(float timestep)
     {
         for (ModelId id = firstId(); id < lastId(); ++id)

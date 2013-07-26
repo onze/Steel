@@ -167,8 +167,8 @@ namespace Steel
     }
 
 // Called by Rocket when it wants to render application-compiled geometry.
-    void RenderInterfaceOgre3D::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, 
-                                                       const Rocket::Core::Vector2f& translation)
+    void RenderInterfaceOgre3D::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry,
+            const Rocket::Core::Vector2f& translation)
     {
         Ogre::Matrix4 transform;
         transform.makeTrans(translation.x, translation.y, 0);
@@ -256,8 +256,8 @@ namespace Steel
     {
         static int texture_id = 1;
 
-        Ogre::DataStreamPtr odsp(new Ogre::MemoryDataStream((void*) source, 
-                                                            source_dimensions.x * source_dimensions.y * sizeof(unsigned int)));
+        Ogre::DataStreamPtr odsp(new Ogre::MemoryDataStream((void*) source,
+                                 source_dimensions.x * source_dimensions.y * sizeof(unsigned int)));
         Ogre::TexturePtr ogre_texture = Ogre::TextureManager::getSingleton().loadRawData(
                                             Rocket::Core::String(16, "%d", texture_id++).CString(),
                                             "UI",

@@ -39,12 +39,12 @@ namespace Steel
         Ogre::String intro=logName()+"::fromSingleJson(): ";
         Json::Value value;
         ModelId mid=newModel();
-        
+
         if(!mModels[mid].fromJson(model))
         {
             mid=INVALID_ID;
         }
-        
+
         return mid;
     }
 
@@ -53,7 +53,7 @@ namespace Steel
         ModelId mid=allocateModel();
         return mid;
     }
-    
+
     //p* as in physics*
     bool PhysicsModelManager::onAgentLinkedToModel(Agent *agent, ModelId pmid)
     {
@@ -64,7 +64,7 @@ namespace Steel
         assert(agent->modelId(MT_PHYSICS)==pmid);
         assert(agent->model(MT_PHYSICS)==pmodel);
 #endif
-        
+
         ModelId omid=agent->ogreModelId();
         if(INVALID_ID==omid)
         {
@@ -73,7 +73,7 @@ namespace Steel
         }
         OgreModel *omodel=mLevel->ogreModelMan()->at(omid);
         pmodel->init(mWorld,omodel);
-        
+
         return true;
     }
 }

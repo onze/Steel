@@ -4,29 +4,29 @@
 
 namespace Ogre
 {
-class SceneNode;
-class SceneManager;
+    class SceneNode;
+    class SceneManager;
 }
 
 namespace Steel
 {
-class Cylinder
-{
-    /**
-     * TODO: Make it the subclass of a common manual object instancer.
-     */
-private:
-    Cylinder();
-    Cylinder(const Cylinder& other);
-    virtual ~Cylinder();
-    virtual Cylinder& operator=(const Cylinder& other);
-    virtual bool operator==(const Cylinder& other) const;
+    class Cylinder
+    {
+            /**
+             * TODO: Make it the subclass of a common manual object instancer.
+             */
+        private:
+            Cylinder();
+            Cylinder(const Cylinder& other);
+            virtual ~Cylinder();
+            virtual Cylinder& operator=(const Cylinder& other);
+            virtual bool operator==(const Cylinder& other) const;
 
-public:
-    static Ogre::MeshPtr getMesh(Ogre::SceneManager *sceneManager, int radius, int height);
-    static Ogre::SceneNode *getSceneNode(Ogre::SceneManager *sceneManager, Ogre::SceneNode *parent, Ogre::String name,
-            int radius, int height);
-};
+        public:
+            static Ogre::MeshPtr getMesh(Ogre::SceneManager *sceneManager, int radius, int height);
+            static Ogre::SceneNode *getSceneNode(Ogre::SceneManager *sceneManager, Ogre::SceneNode *parent, Ogre::String name,
+                                                 int radius, int height);
+    };
 
 }
 

@@ -13,104 +13,104 @@
 
 namespace Steel
 {
-class Engine;
-class InputManager;
-class RenderInterfaceOgre3D;
-/**
- * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
- * Ogre's window is created by the engine, but its events are grabbed in here too.
- */
-class UI: public Rocket::Core::SystemInterface, Ogre::RenderQueueListener, EngineEventListener
-{
-public:
-    typedef std::map<OIS::KeyCode, Rocket::Core::Input::KeyIdentifier> KeyIdentifierMap;
-    UI();
-    UI(const UI& other);
-    virtual ~UI();
-    virtual UI& operator=(const UI& other);
-
-    void init(unsigned int width, unsigned int height, File UIDataDir, InputManager *inputMan,
-            Ogre::RenderWindow *window, Engine *engine);
-
-    /// Gets the number of seconds elapsed since the start of the application.
-    virtual float GetElapsedTime();
-    /// Logs the specified message.
-    virtual bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
-
-    void startEditMode();
-    void stopEditMode();
-
-    //those 4 methods are direcly copied from the libRocket ogre sample
-    /// Called from Ogre before a queue group is rendered.
-    virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
-    /// Called from Ogre after a queue group is rendered.
-    virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation);
-    /// Configures Ogre's rendering system for rendering Rocket.
-    void configureRenderSystem();
-    /// Builds an OpenGL-style orthographic projection matrix.
-    void buildProjectionMatrix(Ogre::Matrix4& matrix);
-    ///maps OIS key codes to Rocket's
-    void buildKeyMaps();
-    int getKeyModifierState();
-
-    //implements the OIS keyListener and mouseListener, as this allows the inputManager to pass them on as they arrive.
-    bool keyPressed(const OIS::KeyEvent& evt);
-    bool keyReleased(const OIS::KeyEvent& evt);
-    bool mouseMoved(const OIS::MouseEvent& evt);
-    bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-    bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-
-    /// called when a new level becomes the current level.
-    void onLevelSet(Level *level);
-    /// called right before a level is unset (becomes not current anymore).
-    void onLevelUnset(Level *level);
-
-    void shutdown();
-
-    void loadConfig(ConfigFile const &config);
-    void saveConfig(ConfigFile &config) const;
-
-    ////getters
-    Editor &editor()
+    class Engine;
+    class InputManager;
+    class RenderInterfaceOgre3D;
+    /**
+     * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
+     * Ogre's window is created by the engine, but its events are grabbed in here too.
+     */
+    class UI: public Rocket::Core::SystemInterface, Ogre::RenderQueueListener, EngineEventListener
     {
-        return mEditor;
-    }
+        public:
+            typedef std::map<OIS::KeyCode, Rocket::Core::Input::KeyIdentifier> KeyIdentifierMap;
+            UI();
+            UI(const UI& other);
+            virtual ~UI();
+            virtual UI& operator=(const UI& other);
 
-    File dataDir()
-    {
-        return mUIDataDir;
-    }
+            void init(unsigned int width, unsigned int height, File UIDataDir, InputManager *inputMan,
+                      Ogre::RenderWindow *window, Engine *engine);
 
-    KeyIdentifierMap &keyIdentifiers()
-    {
-        return mKeyIdentifiers;
-    }
-protected:
-    // not owned
-    InputManager *mInputMan;
-    Ogre::RenderWindow *mWindow;
-    Engine *mEngine;
+            /// Gets the number of seconds elapsed since the start of the application.
+            virtual float GetElapsedTime();
+            /// Logs the specified message.
+            virtual bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
 
-    // owned
-    unsigned int mWidth;
-    unsigned int mHeight;
+            void startEditMode();
+            void stopEditMode();
 
-    /// used to know how long has passed since Engin startup (libRocket has to know)
-    Ogre::Timer mTimer;
-    RenderInterfaceOgre3D *mRocketRenderInterface;
-    Rocket::Core::Context* mMainContext;
+            //those 4 methods are direcly copied from the libRocket ogre sample
+            /// Called from Ogre before a queue group is rendered.
+            virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+            /// Called from Ogre after a queue group is rendered.
+            virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation);
+            /// Configures Ogre's rendering system for rendering Rocket.
+            void configureRenderSystem();
+            /// Builds an OpenGL-style orthographic projection matrix.
+            void buildProjectionMatrix(Ogre::Matrix4& matrix);
+            ///maps OIS key codes to Rocket's
+            void buildKeyMaps();
+            int getKeyModifierState();
 
-    /// maps OIS key codes to rocket ones for input injection into Rocket UI
-    KeyIdentifierMap mKeyIdentifiers;
-    ///editor panel
-    Editor mEditor;
-    ///hud panel
-    HUD mHUD;
-    ///root dir for UI data
-    File mUIDataDir;
-    /// state flag
-    bool mEditMode;
-};
+            //implements the OIS keyListener and mouseListener, as this allows the inputManager to pass them on as they arrive.
+            bool keyPressed(const OIS::KeyEvent& evt);
+            bool keyReleased(const OIS::KeyEvent& evt);
+            bool mouseMoved(const OIS::MouseEvent& evt);
+            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+
+            /// called when a new level becomes the current level.
+            void onLevelSet(Level *level);
+            /// called right before a level is unset (becomes not current anymore).
+            void onLevelUnset(Level *level);
+
+            void shutdown();
+
+            void loadConfig(ConfigFile const &config);
+            void saveConfig(ConfigFile &config) const;
+
+            ////getters
+            Editor &editor()
+            {
+                return mEditor;
+            }
+
+            File dataDir()
+            {
+                return mUIDataDir;
+            }
+
+            KeyIdentifierMap &keyIdentifiers()
+            {
+                return mKeyIdentifiers;
+            }
+        protected:
+            // not owned
+            InputManager *mInputMan;
+            Ogre::RenderWindow *mWindow;
+            Engine *mEngine;
+
+            // owned
+            unsigned int mWidth;
+            unsigned int mHeight;
+
+            /// used to know how long has passed since Engin startup (libRocket has to know)
+            Ogre::Timer mTimer;
+            RenderInterfaceOgre3D *mRocketRenderInterface;
+            Rocket::Core::Context* mMainContext;
+
+            /// maps OIS key codes to rocket ones for input injection into Rocket UI
+            KeyIdentifierMap mKeyIdentifiers;
+            ///editor panel
+            Editor mEditor;
+            ///hud panel
+            HUD mHUD;
+            ///root dir for UI data
+            File mUIDataDir;
+            /// state flag
+            bool mEditMode;
+    };
 }
 
 #endif

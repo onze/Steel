@@ -3,7 +3,8 @@
 
 namespace Steel
 {
-bool test_BTrees();
+    bool test_BTrees();
 }
 
 #endif
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

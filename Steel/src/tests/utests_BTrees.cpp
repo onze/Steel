@@ -36,7 +36,7 @@ namespace Steel
             Debug::error(intro)("Model id is invalid. See above for details.").endl();
             return false;
         }
-        
+
         Debug::log("test_BTrees(): passed").endl();
         return true;
     }

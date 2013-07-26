@@ -149,7 +149,7 @@ namespace Steel
         node["scale"] = StringUtils::toJson(mSceneNode->getScale());
         node["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
     }
-    
+
     bool OgreModel::fromJson(Json::Value &mode)
     {
         Debug::error("OgreModel::fromJson(): wrong deserialization method called.").endl();

@@ -47,7 +47,7 @@ namespace Steel
     {
         return true;
     }
-    
+
     void BTModel::toJson ( Json::Value &node )
     {
 
@@ -57,10 +57,10 @@ namespace Steel
     {
         mStateStream.clear();
     }
-    
+
     void BTModel::update(float timestep)
     {
-        
+
     }
 
 } /* namespace Steel */

@@ -3,7 +3,8 @@
 
 namespace Steel
 {
-bool test_BTStateStream();
+    bool test_BTStateStream();
 }
 
 #endif
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

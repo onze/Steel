@@ -60,10 +60,10 @@ namespace Steel
         if(mAutoReload)
         {
             mDocumentFile.addFileListener(this);
-            
+
             // listen on dependencies changes:
             // all <link> elements *in the body* with the attribute 'reloadonchange' set to true;
-            
+
             Rocket::Core::ElementList links;
             mDocument->GetElementsByTagName(links,"reloadonchange");
             for(auto it=links.begin(); it!=links.end(); ++it)

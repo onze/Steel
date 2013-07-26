@@ -7,41 +7,41 @@
 
 namespace Ogre
 {
-class Camera;
-class PlaneBoundedVolumeListSceneQuery;
+    class Camera;
+    class PlaneBoundedVolumeListSceneQuery;
 }
 
 namespace Steel
 {
-class Engine;
+    class Engine;
 
-/**
- * SelectionBox, implements volume selection.
- * Largely inspired by the 4th Ogre3d tutorial
- * (see http://www.ogre3d.org/tikiwiki/tiki-index.php?page=Intermediate+Tutorial+4 )
- */
-class SelectionBox: public Ogre::ManualObject
-{
+    /**
+     * SelectionBox, implements volume selection.
+     * Largely inspired by the 4th Ogre3d tutorial
+     * (see http://www.ogre3d.org/tikiwiki/tiki-index.php?page=Intermediate+Tutorial+4 )
+     */
+    class SelectionBox: public Ogre::ManualObject
+    {
 
-public:
-    SelectionBox(const Ogre::String name, Engine *engine);
-    virtual ~SelectionBox();
-    virtual bool operator==(const SelectionBox& other) const;
+        public:
+            SelectionBox(const Ogre::String name, Engine *engine);
+            virtual ~SelectionBox();
+            virtual bool operator==(const SelectionBox& other) const;
 
-    void performSelection(std::list<AgentId> &selection, Ogre::Camera *camera);
+            void performSelection(std::list<AgentId> &selection, Ogre::Camera *camera);
 
-    void setCorners(float left, float top, float right, float bottom);
-    void setCorners(const Ogre::Vector2& topLeft, const Ogre::Vector2& bottomRight);
-protected:
-    // not owned
-    Engine *mEngine;
+            void setCorners(float left, float top, float right, float bottom);
+            void setCorners(const Ogre::Vector2& topLeft, const Ogre::Vector2& bottomRight);
+        protected:
+            // not owned
+            Engine *mEngine;
 
-    // owned
-    /// bounding values.
-    float mLeft, mTop, mRight, mBottom;
-    /// used in the selectionBox query
-    Ogre::PlaneBoundedVolumeListSceneQuery *mVolQuery;
-};
+            // owned
+            /// bounding values.
+            float mLeft, mTop, mRight, mBottom;
+            /// used in the selectionBox query
+            Ogre::PlaneBoundedVolumeListSceneQuery *mVolQuery;
+    };
 
 }
 

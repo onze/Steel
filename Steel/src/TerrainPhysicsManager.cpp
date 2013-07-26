@@ -14,7 +14,7 @@
 namespace Steel
 {
     TerrainPhysicsManager::TerrainPhysicsManager(TerrainManager *terrainMan):
-    TerrainManagerEventListener(),Ogre::FrameListener(),
+        TerrainManagerEventListener(),Ogre::FrameListener(),
         mTerrainMan(NULL),mTerrains(std::map<Ogre::Terrain *,TerrainPhysics *>()),
         mWorld(NULL),mSolver(NULL),mDispatcher(NULL),mCollisionConfig(NULL),mBroadphase(NULL),
         mDebugDrawer(NULL)
@@ -124,7 +124,7 @@ namespace Steel
                 break;
         }
     }
-    
+
     TerrainPhysicsManager::TerrainPhysics *TerrainPhysicsManager::getTerrainFor(Ogre::Terrain *ogreTerrain) const
     {
         auto it=mTerrains.find(ogreTerrain);
@@ -176,9 +176,9 @@ namespace Steel
                 localInertia);
         terrain->mBody= new btRigidBody(rbInfo);
         terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
-        
+
         updateHeightmap(ogreTerrain,terrain);
-        
+
         //add the body to the dynamics world
         mWorld->addRigidBody(terrain->mBody);
         return true;
@@ -229,13 +229,13 @@ namespace Steel
         transform.setOrigin(BtOgre::Convert::toBullet(pos));
         transform.setRotation(BtOgre::Convert::toBullet(Ogre::Quaternion::IDENTITY));
         pterrain->mMotionState->setWorldTransform(transform);
-        
+
         // wake up rigbodies in the area
         pterrain->mBody->activate(true);
 //         btVector3 min,max;
 //         pterrain->mBody->getAabb(min,max);
         auto objects=mWorld->getCollisionObjectArray();
-        for(auto i=0;i<objects.size();++i)
+        for(auto i=0; i<objects.size(); ++i)
             objects[i]->activate(true);
 //         mWorld->contactTest(pterrain->mBody->getCollisionShape(),);
     }

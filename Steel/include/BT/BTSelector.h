@@ -7,32 +7,32 @@
 namespace Steel
 {
 
-class BTSelector: public BTNode
-{
-public:
-    BTSelector(BTShapeToken const &token);
-    virtual ~BTSelector();
-
-    // getters
-    inline unsigned begin()
+    class BTSelector: public BTNode
     {
-        return mToken.begin;
-    }
+        public:
+            BTSelector(BTShapeToken const &token);
+            virtual ~BTSelector();
 
-    inline unsigned end()
-    {
-        return mToken.end;
-    }
+            // getters
+            inline unsigned begin()
+            {
+                return mToken.begin;
+            }
 
-    inline unsigned currentChildNodeIndex()
-    {
-        return mCurrentChildNodeIndex;
-    }
-protected:
-    BTState mState;
-    BTShapeToken mToken;
-    unsigned mCurrentChildNodeIndex;
-};
+            inline unsigned end()
+            {
+                return mToken.end;
+            }
+
+            inline unsigned currentChildNodeIndex()
+            {
+                return mCurrentChildNodeIndex;
+            }
+        protected:
+            BTState mState;
+            BTShapeToken mToken;
+            unsigned mCurrentChildNodeIndex;
+    };
 
 }
 

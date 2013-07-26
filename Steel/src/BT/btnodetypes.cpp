@@ -16,7 +16,7 @@ namespace Steel
         "BTNavigator",
         "BTUnknown",
     };
-    
+
     std::vector<Ogre::String> BTShapeTokenTypeAsString = std::vector<Ogre::String> (
                 BTShapeTokenTypeAsString__data,
                 BTShapeTokenTypeAsString__data+sizeof(BTShapeTokenTypeAsString__data)/sizeof(Ogre::String)
