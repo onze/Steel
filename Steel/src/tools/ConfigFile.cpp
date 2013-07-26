@@ -5,7 +5,7 @@
 
 namespace Steel
 {
-    const Ogre::String ConfigFile::VERSION="1.0";
+//    const Ogre::String ConfigFile::VERSION="1.0";
 //    const Ogre::String ConfigFile::VERSION_ATTRIBUTE_NAME="_version";
 
     ConfigFile::ConfigFile(File file,bool autoLoad):mFile(file),mSettings(Json::Value())
