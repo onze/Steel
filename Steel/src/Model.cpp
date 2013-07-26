@@ -16,7 +16,7 @@ namespace Steel
 
     }
 
-    Model::Model(const Model &m)
+    Model::Model(const Model &m):mRefCount(0)
     {
         this->operator =(m);
     }
