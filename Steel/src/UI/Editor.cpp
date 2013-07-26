@@ -27,8 +27,8 @@ const Ogre::String Editor::REFERENCE_PATH_LOOKUP_TABLE = "Editor::referencePaths
 
 Editor::Editor()
         : UIPanel("Editor", "data/ui/current/editor/editor.rml"), mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(
-                NULL), mDataDir(), mMenuTabIndex(1), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false), mSelectionsTags(
-                std::map<Ogre::String, Selection>()), mReferencePathsLookupTable(std::map<Ogre::String, Ogre::String>())
+                NULL), mDataDir(), mMenuTabIndex(1), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false), mReferencePathsLookupTable(
+                std::map<Ogre::String, Ogre::String>())
 {
 #ifdef DEBUG
     mAutoReload=true;
@@ -656,31 +656,11 @@ bool Editor::keyReleased(const OIS::KeyEvent& evt)
         int tagKey = (evt.key - OIS::KC_1 + 1) % 10;
         Ogre::String sKey = Ogre::StringConverter::toString(tagKey);
         if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
-            setSelectionTag(mEngine->selectionMan().selection(), sKey);
+            mEngine->selectionMan().setSelectionTag(sKey);
         else
-            setTaggedSelection(sKey);
+            mEngine->selectionMan().setTaggedSelection(sKey);
     }
     return true;
-}
-
-void Editor::setSelectionTag(const Selection &selection, const Ogre::String &tag)
-{
-    Debug::log("Editor::setSelectionTag(): saving ")(selection)(" under tag ")(tag).endl();
-    mSelectionsTags.erase(tag);
-    if (selection.size())
-        mSelectionsTags.insert(std::pair<Ogre::String, Selection>(tag, selection));
-}
-
-void Editor::setTaggedSelection(const Ogre::String &tag)
-{
-    mEngine->selectionMan().clearSelection();
-    auto it = mSelectionsTags.find(tag);
-    if (it != mSelectionsTags.end())
-    {
-        auto selection = (*it).second;
-        Debug::log("Editor::setTaggedSelection(): selecting ")(selection)(" as tag ")(tag).endl();
-        mEngine->selectionMan().setSelectedAgents(selection);
-    }
 }
 
 bool Editor::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)

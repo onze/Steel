@@ -1,6 +1,9 @@
 #ifndef STEEL_SELECTIONMANAGER_H
 #define STEEL_SELECTIONMANAGER_H
 
+#include <map>
+#include <OgreString.h>
+
 #include "steeltypes.h"
 
 namespace Steel
@@ -71,6 +74,11 @@ namespace Steel
             /// Scale the <i>i</i>th selected agent's model to the <i>i</i>th given factor.
             void setSelectionScales(const std::vector<Ogre::Vector3> &scale);
             
+            /// Saves a Selection under the given tag.
+            void setSelectionTag(const Ogre::String &tag);
+            /// Set tagged agents as selected
+            void setTaggedSelection(const Ogre::String &tag);
+
             inline Selection selection()
             {
                 return mSelection;
@@ -82,6 +90,9 @@ namespace Steel
         // owned
         /// agents currenlty selected
         Selection mSelection;
+
+        /// maps tags to set of agents
+        std::map<Ogre::String, Selection> mSelectionsTags;
     };
 }
 #endif // SELECTIONMANAGER_H

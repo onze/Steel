@@ -118,11 +118,6 @@ namespace Steel
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
 
-            /// Saves a Selection under the given tag.
-            void setSelectionTag(const Selection &selection,const Ogre::String &tag);
-            /// Set tagged agents as selected
-            void setTaggedSelection(const Ogre::String &tag);
-
         protected:
             //not owned
             Engine *mEngine;
@@ -141,8 +136,6 @@ namespace Steel
             bool mDebugEvents;
             /// true during the dragging of a item from the edior's menu.
             bool mIsDraggingFromMenu;
-            /// maps tags to set of agents
-            std::map<Ogre::String, Selection> mSelectionsTags;
             /// internal representation of REFERENCE_PATH_LOOKUP_TABLE atribute of the application conf file.
             std::map<Ogre::String, Ogre::String> mReferencePathsLookupTable;
         private:
