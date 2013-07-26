@@ -768,7 +768,8 @@ namespace Steel
 
     bool Editor::mouseMoved(const OIS::MouseEvent& evt)
     {
-        if (!mIsDraggingFromMenu && !hitTest(evt.state.X.abs, evt.state.Y.abs, "menu"))
+        bool hoveringMenu=hitTest(evt.state.X.abs, evt.state.Y.abs, "menu");
+        if (!mIsDraggingFromMenu && !hoveringMenu)
         {
             mBrush.mouseMoved(evt);
             Rocket::Core::Element *elem;
