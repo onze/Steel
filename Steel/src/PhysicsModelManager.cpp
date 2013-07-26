@@ -55,15 +55,9 @@ namespace Steel
     }
     
     //p* as in physics*
-    bool PhysicsModelManager::onAgentLinkedToModel(AgentId aid, ModelId pmid)
+    bool PhysicsModelManager::onAgentLinkedToModel(Agent *agent, ModelId pmid)
     {
         Ogre::String intro=logName()+"::onLinked(): ";
-        Agent *agent=mLevel->getAgent(aid);
-        if(NULL==agent)
-        {
-            Debug::error(intro)("Can't find agent ")(aid).endl();
-            return false;
-        }
 
         PhysicsModel *pmodel=at(pmid);
 #ifdef DEBUG
@@ -74,7 +68,7 @@ namespace Steel
         ModelId omid=agent->ogreModelId();
         if(INVALID_ID==omid)
         {
-            Debug::error(intro)("Invalid OgreModel id for agent ")(aid).endl();
+            Debug::error(intro)("Invalid OgreModel id for agent ")(agent->id()).endl();
             return false;
         }
         OgreModel *omodel=mLevel->ogreModelMan()->at(omid);

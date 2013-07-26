@@ -30,7 +30,7 @@ namespace Steel
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();
 
-            virtual bool onAgentLinkedToModel(AgentId aid, ModelId mid);
+            bool onAgentLinkedToModel(Agent *agent, ModelId mid);
         protected:
             // not owned
             btDynamicsWorld *mWorld;

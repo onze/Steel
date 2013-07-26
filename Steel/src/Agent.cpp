@@ -55,74 +55,52 @@ namespace Steel
         return *this;
     }
 
-    bool Agent::fromJson(Json::Value &value)
+bool Agent::linkToModel(ModelType mType, ModelId modelId)
+{
+    Ogre::String intro = "Agent::linkToModel(type=" + modelTypesAsString[mType] + ", id="
+            + Ogre::StringConverter::toString(modelId) + "): ";
+    if (!mLevel->modelManager(mType)->isValid(modelId))
     {
-//	Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
-        int nModels=0, nExpected=0;
-        for (ModelType mt_it = (ModelType) ((int) MT_FIRST + 1); mt_it != MT_LAST; mt_it = (ModelType) ((int) mt_it + 1))
-        {
-            Ogre::String mtName=modelTypesAsString[mt_it];
-            Json::Value mTypeValue = value[mtName];
-            // possibly no model of this type
-            if(mTypeValue.isNull())
-                continue;
-            ++nExpected;
-            ModelId modelId = (ModelId) Ogre::StringConverter::parseUnsignedLong(mTypeValue.asString());
-            if(!linkToModel(mt_it, modelId))
-            {
-                Debug::error("Agent::fromJson(): agent ")(mId);
-                Debug::error(" would not link with model<>")(mtName)("> ")(mId)(". Skipping.").endl();
-                continue;
-            }
-            ++nModels;
-        }
-        if(nModels!=nExpected)
-        {
-            Debug::warning("Agent::fromJson(): agent ")(mId)(" linked with (")(nModels)(" models, ");
-            Debug::warning(nExpected)(" were expected. Json string:").endl()(value).endl();
-        }
-        return true;
+        Debug::error(intro)("model ")(modelId)(" is not valid. Aborting.").endl();
+        return false;
     }
 
-    bool Agent::linkToModel(ModelType mType, ModelId modelId)
+    //result.first==iterator placed at location, result.second==successful insertion flag
+    auto result = mModelIds.insert(std::pair<ModelType, ModelId>(mType, modelId));
+    if (!result.second)
     {
-        Ogre::String intro="Agent::linkToModel(type="+modelTypesAsString[mType]+", id="+Ogre::StringConverter::toString(modelId)+"): ";
-        if(!mLevel->modelManager(mType)->isValid(modelId))
-        {
-            Debug::error(intro)("model ")(modelId)(" is not valid. Aborting.").endl();
-            return false;
-        }
-
-        //result.first==iterator placed at location, result.second==successful insertion flag
-        auto result=mModelIds.insert(std::pair<ModelType, ModelId>(mType, modelId));
-        if(!result.second)
-        {
-            Debug::error(intro)("Could not insert model (overwrites are not allowed). Aborting.").endl();
-            return false;
-        }
-
-        mLevel->modelManager(mType)->incRef(modelId);
-        return true;
+        Debug::error(intro)("Could not insert model (overwrites are not allowed). Aborting.").endl();
+        return false;
     }
 
-    void Agent::unlinkFromModel(ModelType mType)
+    mLevel->modelManager(mType)->incRef(modelId);
+    if(!mLevel->modelManager(mType)->onAgentLinkedToModel(this, modelId))
     {
-        auto it=mModelIds.find(mType);
-        if(it!=mModelIds.end())
-        {
-            switch(mType)
-            {
-                case MT_OGRE:
-                    unlinkFromModel(MT_PHYSICS);
-                    break;
-                default:
-                    break;
-            }
-            // general case
-            mLevel->modelManager(mType)->decRef((*it).second);
-            mModelIds.erase(it);
-        }
+        unlinkFromModel(mType);
+        Debug::error(intro)("Agent<->model linking aborted.").endl();
+        return false;
     }
+    return true;
+}
+
+void Agent::unlinkFromModel(ModelType mType)
+{
+    auto it = mModelIds.find(mType);
+    if (it != mModelIds.end())
+    {
+        switch (mType)
+        {
+        case MT_OGRE:
+            unlinkFromModel(MT_PHYSICS);
+            break;
+        default:
+            break;
+        }
+        // general case
+        mLevel->modelManager(mType)->decRef((*it).second);
+        mModelIds.erase(it);
+    }
+}
 
     Model *Agent::model(ModelType mType) const
     {
