@@ -119,7 +119,40 @@ namespace Steel
         return *this;
     }
 
-    Ogre::String ConfigFile::getSetting(Ogre::String key)
+    int ConfigFile::getSettingAsInt(Ogre::String key, int defaultValue) const
+    {
+        if(mSettings.isMember(key))
+        {
+            Json::Value value=mSettings[key];
+            if(value.isConvertibleTo(Json::intValue))
+                return value.asInt();
+        }
+        return defaultValue;
+    }
+
+    int ConfigFile::getSettingAsFloat(Ogre::String key, float defaultValue) const
+    {
+        if(mSettings.isMember(key))
+        {
+            Json::Value value=mSettings[key];
+            if(value.isConvertibleTo(Json::realValue))
+                return value.asFloat();
+        }
+        return defaultValue;
+    }
+
+    unsigned long ConfigFile::getSettingAsUnsignedLong(Ogre::String key, unsigned int defaultValue) const
+    {
+        if(mSettings.isMember(key))
+        {
+            Json::Value value=mSettings[key];
+            if(value.isConvertibleTo(Json::uintValue))
+                return value.asUInt64();
+        }
+        return defaultValue;
+    }
+
+    Ogre::String ConfigFile::getSetting(Ogre::String key) const
     {
         if(mSettings.isMember(key))
         {

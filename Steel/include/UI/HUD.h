@@ -1,8 +1,10 @@
 #ifndef STEEL_HUD_H
 #define STEEL_HUD_H
 
-#include "UI/UIPanel.h"
 #include <OgreFrameListener.h>
+
+#include "UI/UIPanel.h"
+#include "tools/ConfigFile.h"
 
 namespace Steel
 {
@@ -33,6 +35,9 @@ namespace Steel
             
             void showFPS();
             void hideFPS();
+
+            void saveConfig(ConfigFile &config) const;
+            void loadConfig(ConfigFile const &config);
     protected:
         // now owned
         Engine *mEngine;

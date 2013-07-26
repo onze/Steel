@@ -18,7 +18,8 @@
 #include "Agent.h"
 #include "OgreModelManager.h"
 #include "PhysicsModelManager.h"
-#include <BlackBoardModelManager.h>
+#include "BlackBoardModelManager.h"
+#include "tools/JsonUtils.h"
 
 namespace Steel
 {
@@ -65,6 +66,16 @@ void Editor::shutdown()
     mEngine = NULL;
     mUI = NULL;
     mInputMan = NULL;
+}
+
+void Editor::loadConfig(ConfigFile const &config)
+{
+    mBrush.loadConfig(config);
+}
+
+void Editor::saveConfig(ConfigFile &config) const
+{
+    mBrush.saveConfig(config);
 }
 
 void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan)
@@ -173,16 +184,15 @@ bool Editor::dynamicFillSerialization(Json::Value& node, AgentId aid)
         {
             AgentId aid_um = agentIdUnderMouse();
             if (INVALID_ID == aid_um)
+            {
+                Debug::error(intro)("no agent under mouse.").endl();
                 return false;
-            new_svalue = Ogre::StringConverter::toString((unsigned int) aid_um);
+            }
+            new_svalue = Ogre::StringConverter::toString((unsigned long) aid_um);
         }
-        else if (svalue == "$OgreModelUnderMouse")
+        else if (svalue == "$ogreModelUnderMouse")
         {
-            //TODO use ModelIdUnderMouse
-            if (0)
-                ;
-            else
-                new_svalue = Json::Value().asString();
+            new_svalue = Ogre::StringConverter::toString(modelIdUnderMouse(MT_OGRE));
         }
         else if (svalue == "$slotDropPosition")
         {

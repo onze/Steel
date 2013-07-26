@@ -21,7 +21,11 @@ namespace Steel
             virtual ConfigFile& operator=(const ConfigFile& other);
             virtual bool operator==(const ConfigFile& other) const;
 
-            Ogre::String getSetting(Ogre::String key);
+            Ogre::String getSetting(Ogre::String key) const;
+            int getSettingAsInt(Ogre::String key, int defaultValue) const;
+            int getSettingAsFloat(Ogre::String key, float defaultValue) const;
+            unsigned long getSettingAsUnsignedLong(Ogre::String key, unsigned int defaultValue) const;
+
             ConfigFile &setSetting(Ogre::String key, Ogre::String const &value);
             ConfigFile &setSetting(Ogre::String key, Json::Value const &value);
 

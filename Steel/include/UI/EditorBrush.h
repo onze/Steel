@@ -8,7 +8,8 @@
 #include <OgreVector3.h>
 #include <OgreFrameListener.h>
 
-#include <TerrainManager.h>
+#include "tools/ConfigFile.h"
+#include "TerrainManager.h"
 
 namespace Ogre
 {
@@ -34,6 +35,10 @@ namespace Steel
              * - terrain edition
              */
         public:
+            static const Ogre::String MODE;
+            static const Ogre::String TERRA_SCALE;
+            static const Ogre::String TERRA_SCALE_FACTOR;
+
             enum BrushMode {NONE=0,TRANSLATE, ROTATE, SCALE,TERRAFORM };
             EditorBrush();
             EditorBrush(const EditorBrush& other);
@@ -71,6 +76,9 @@ namespace Steel
 
             ///restore the last saved editing mode
             void popMode();
+
+            void loadConfig(ConfigFile const &config);
+            void saveConfig(ConfigFile &config) const;
 
             //getters
             inline BrushMode mode()

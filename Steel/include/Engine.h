@@ -108,7 +108,8 @@ namespace Steel
             /// adds a command that will be executed at the beginning of next frame.
             void registerCommand(Ogre::String rawCommand);
 
-            void reloadConfig();
+            void loadConfig(ConfigFile &config);
+            void saveConfig(ConfigFile &config);
 
             /**
              * Sets the given level as the new one. Returns the previous level, that still needs to be deleted.

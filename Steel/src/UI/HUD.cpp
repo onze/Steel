@@ -30,6 +30,14 @@ namespace Steel
         mUI=NULL;
     }
 
+    void HUD::saveConfig(ConfigFile &config) const
+    {
+    }
+
+    void HUD::loadConfig(ConfigFile const &config)
+    {
+    }
+
     HUD& HUD::operator=(const HUD& other)
     {
         return *this;

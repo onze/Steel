@@ -77,6 +77,8 @@ Level *Engine::setCurrentLevel(Level *newLevel)
     Level *previous = mLevel;
     mLevel = newLevel;
 
+    loadConfig(mConfig);
+
     if (NULL != newLevel)
         fireOnLevelSetEvent();
     return previous;
@@ -239,6 +241,7 @@ int Engine::postWindowingSetup(unsigned int width, unsigned int height)
 
 void Engine::shutdown()
 {
+    saveConfig(mConfig);
     if (mIsInMainLoop && !mMustAbortMainLoop)
     {
         mMustAbortMainLoop = true;
@@ -257,7 +260,6 @@ void Engine::shutdown()
         delete mLevel;
         mLevel = NULL;
     }
-    mConfig.save();
     if (mRenderWindow != NULL)
     {
         delete mRenderWindow;
@@ -521,7 +523,7 @@ bool Engine::processCommand(std::vector<Ogre::String> command)
     }
     else if (command[0] == "reloadConfig")
     {
-        reloadConfig();
+        loadConfig(mConfig);
     }
     else if (command[0] == "set_level")
     {
@@ -578,9 +580,16 @@ void Engine::registerCommand(std::vector<Ogre::String> command)
     mCommands.push_back(command);
 }
 
-void Engine::reloadConfig()
+void Engine::saveConfig(ConfigFile &config)
 {
-    mConfig.load();
+    mUI.saveConfig(config);
+    config.save();
+}
+
+void Engine::loadConfig(ConfigFile &config)
+{
+    config.load();
+    mUI.loadConfig(config);
 }
 
 void Engine::redraw()

@@ -1,4 +1,3 @@
-
 #include <stdexcept>
 #include <list>
 
@@ -22,59 +21,62 @@
 
 namespace Steel
 {
-    Ogre::SceneNode *EditorBrush::sTerraBrushVisual=NULL;
+Ogre::SceneNode *EditorBrush::sTerraBrushVisual = NULL;
 
-    EditorBrush::EditorBrush():Ogre::FrameListener(),
-        mEngine(NULL),mEditor(NULL),
-        mMode(TRANSLATE),mContinuousModeActivated(false),
-        mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),
-        mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
-        mSelectionScaleBeforeTransformation(std::vector<Ogre::Vector3>()),
-        mIsDraggingSelection(false),mIsDraggingSelectionCancelled(false),
-        mTerraScaleFactor(1.1f),mTerraScale(1.f,1.f,1.f),mSelectedTerrainHeight(.0f),mRaiseShape(TerrainManager::RaiseShape::UNIFORM),
-        mModeStack(std::vector<BrushMode>()),mModifiedTerrains(std::set<Ogre::Terrain *>()),
-        mIsSelecting(false),mSelectionBox(NULL)
-    {
-    }
+const Ogre::String EditorBrush::MODE = "EditorBrush::mode";
+const Ogre::String EditorBrush::TERRA_SCALE = "EditorBrush::terraScale";
+const Ogre::String EditorBrush::TERRA_SCALE_FACTOR = "EditorBrush::terraScaleFactor";
 
-    EditorBrush::EditorBrush(const EditorBrush& other)
-    {
-        throw std::runtime_error("EditorBrush::EditorBrush(const EditorBrush&) not implemented");
-    }
+EditorBrush::EditorBrush()
+        : Ogre::FrameListener(), mEngine(NULL), mEditor(NULL), mInputMan(NULL), mMode(TRANSLATE), mContinuousModeActivated(
+                false), mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()), mSelectionRotBeforeTransformation(
+                std::vector<Ogre::Quaternion>()), mSelectionScaleBeforeTransformation(std::vector<Ogre::Vector3>()), mIsDraggingSelection(
+                false), mIsDraggingSelectionCancelled(false), mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(
+                .0f), mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()), mModifiedTerrains(
+                std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(NULL)
+{
+}
+
+EditorBrush::EditorBrush(const EditorBrush& other)
+{
+    throw std::runtime_error("EditorBrush::EditorBrush(const EditorBrush&) not implemented");
+}
 
     EditorBrush::~EditorBrush()
     {
         shutdown();
     }
 
-    EditorBrush& EditorBrush::operator=(const EditorBrush& other)
-    {
-        throw std::runtime_error("EditorBrush::operator=() not implemented");
-        return *this;
-    }
+void EditorBrush::loadConfig(ConfigFile const &config)
+{
+    mTerraScale = Ogre::StringConverter::parseVector3(config.getSetting(EditorBrush::TERRA_SCALE),mTerraScale);
+    mTerraScaleFactor = config.getSettingAsFloat(EditorBrush::TERRA_SCALE_FACTOR,mTerraScaleFactor);
+    setMode((BrushMode) config.getSettingAsUnsignedLong(EditorBrush::MODE, (int) mMode));
+}
 
-    bool EditorBrush::operator==(const EditorBrush& other) const
-    {
-        return false;
-    }
+void EditorBrush::saveConfig(ConfigFile &config) const
+{
+    config.setSetting(EditorBrush::TERRA_SCALE, Ogre::StringConverter::toString(mTerraScale));
+    config.setSetting(EditorBrush::TERRA_SCALE_FACTOR, Ogre::StringConverter::toString(mTerraScaleFactor));
+    config.setSetting(EditorBrush::MODE, mMode);
+}
 
-    void EditorBrush::init(Engine *engine,Editor *editor,InputManager *inputMan)
-    {
-        mEngine=engine;
-        mEditor=editor;
-        mInputMan=inputMan;
-        mIsDraggingSelectionCancelled=mIsDraggingSelection=false;
+EditorBrush& EditorBrush::operator=(const EditorBrush& other)
+{
+    throw std::runtime_error("EditorBrush::operator=() not implemented");
+    return *this;
+}
 
-        mTerraScaleFactor=Ogre::StringConverter::parseReal(mEngine->config().getSetting("EditorBrush::terraScaleFactor"),mTerraScaleFactor);
-        mTerraScale=Ogre::StringConverter::parseVector3(mEngine->config().getSetting("EditorBrush::terraScale"),mTerraScale);
+bool EditorBrush::operator==(const EditorBrush& other) const
+{
+    return false;
+}
 
         setMode(NONE);
     }
 
-    void EditorBrush::shutdown()
-    {
-        mEngine->config().setSetting("EditorBrush::terraScaleFactor",Ogre::StringConverter::toString(mTerraScaleFactor));
-        mEngine->config().setSetting("EditorBrush::terraScale",Ogre::StringConverter::toString(mTerraScale));
+    setMode(NONE);
+}
 
         setMode(NONE);
         if(NULL!=mSelectionBox)

@@ -59,6 +59,18 @@ namespace Steel
         return *this;
     }
 
+    void UI::loadConfig(ConfigFile const &config)
+    {
+        mEditor.loadConfig(config);
+        mHUD.loadConfig(config);
+    }
+
+    void UI::saveConfig(ConfigFile &config) const
+    {
+        mEditor.saveConfig(config);
+        mHUD.saveConfig(config);
+    }
+
     float UI::GetElapsedTime()
     {
         return mTimer.getMilliseconds() * 0.001f;

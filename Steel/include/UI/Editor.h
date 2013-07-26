@@ -8,8 +8,9 @@
 #include <OgreString.h>
 
 #include "steeltypes.h"
-#include "UI/UIPanel.h"
 #include "EditorBrush.h"
+#include "tools/ConfigFile.h"
+#include "UI/UIPanel.h"
 
 namespace Steel
 {
@@ -29,6 +30,9 @@ namespace Steel
 
             virtual void init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan);
             virtual void shutdown();
+
+            void loadConfig(ConfigFile const &config);
+            void saveConfig(ConfigFile &config) const;
 
             Ogre::Vector3 getDropTargetPosition();
             Ogre::Quaternion getDropTargetRotation();
