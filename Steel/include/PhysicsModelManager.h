@@ -16,7 +16,7 @@ namespace Steel
             PhysicsModelManager(Level *level,btDynamicsWorld *world);
             virtual ~PhysicsModelManager();
 
-            virtual inline ModelType modelType()
+            inline ModelType modelType()
             {
                 return MT_PHYSICS;
             };
