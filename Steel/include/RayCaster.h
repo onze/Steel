@@ -29,6 +29,7 @@ namespace Ogre
 namespace Steel
 {
     class Engine;
+
     /**
      * Instances of this class do raycasting.
      * Make sure an Ogre context is ready before instanciating them though.
@@ -58,6 +59,7 @@ namespace Steel
             virtual void onLevelUnset(Level *level);
         protected:
             //not owned
+            Engine *mEngine;
             Ogre::SceneManager *mSceneManager;
             //owned
             Ogre::RaySceneQuery *mRaySceneQuery;
