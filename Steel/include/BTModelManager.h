@@ -24,6 +24,9 @@ namespace Steel
              * and returns the id of a BTModel executing it.
              */
             ModelId buildFromFile(File &rootFile);
+            
+            /// Main loop iteration. Update each BT model.
+            void update(float timestep);
 
         protected:
             // owned

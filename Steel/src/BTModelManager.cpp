@@ -73,6 +73,15 @@ namespace Steel
         mModels[mid].init(shapeStream);
         return mid;
     }
+    
+    void BTModelManager::update(float timestep)
+    {
+        for (ModelId id = firstId(); id < lastId(); ++id)
+        {
+            BTModel *m=&(mModels[id]);
+            m->update(timestep);
+        }
+    }
 
 } /* namespace Steel */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

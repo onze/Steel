@@ -41,6 +41,8 @@ namespace Steel
 
             /// Sets the current shape to the given one.
             bool switchShapeTo(BTShapeStream* shapeStream);
+            
+            void update(float timestep);
 
         protected:
             virtual void cleanup();

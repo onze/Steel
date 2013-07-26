@@ -43,13 +43,11 @@ namespace Steel
         return MT_BT;
     }
 
-/// deserialize itself from the given Json object
     bool BTModel::fromJson ( Json::Value &node )
     {
         return true;
     }
-
-/// serialize itself into the given Json object
+    
     void BTModel::toJson ( Json::Value &node )
     {
 
@@ -58,6 +56,11 @@ namespace Steel
     void BTModel::cleanup()
     {
         mStateStream.clear();
+    }
+    
+    void BTModel::update(float timestep)
+    {
+        
     }
 
 } /* namespace Steel */

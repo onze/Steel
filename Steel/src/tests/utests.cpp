@@ -128,8 +128,10 @@ namespace Steel
         // should those be grabbed from somewhere else ?
         Ogre::String res="resources";
         Ogre::String btrees="BTree models";
+        Ogre::String composites="Model Composites";
         auto ddir=e->dataDir();
-        e->registerCommand("editor.instanciate."+ddir.subfile(res).subfile(btrees).subfile("patrol.model").fullPath());
+        e->registerCommand("editor.instanciate."+ddir.subfile(res).subfile(composites).subfile("patrol.models").fullPath());
+        //e->registerCommand("editor.instanciate."+ddir.subfile(res).subfile(btrees).subfile("patrol.model").fullPath());
     }
 
 }
