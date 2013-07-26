@@ -58,7 +58,7 @@ namespace Steel
              * Replaces references' special $keys by specific values (paths set in the conf).
              * The call is recursive (keys can reference other keys).
              */
-            void resolveReferencePaths(Ogre::String src,Ogre::String &dst);
+            void resolveReferencePaths(Ogre::String const &src, Ogre::String &dst);
 
             /**
              * Instanciate a model from its serialization.

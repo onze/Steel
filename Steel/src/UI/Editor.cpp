@@ -151,7 +151,8 @@ bool Editor::dynamicFillSerialization(Json::Value& node, AgentId aid)
         // dict:: process each value
         for (auto it = node.begin(); it != node.end(); ++it)
         {
-            dynamicFillSerialization(*it, aid);
+            if (!dynamicFillSerialization(*it, aid))
+                return false;
         }
     }
     else
@@ -345,6 +346,13 @@ bool Editor::loadModelsReferencesFromSerializations(Json::Value& root, Steel::Ag
 {
     Ogre::String intro = "Editor::loadModelsReferencesFromSerializations(): ";
 
+    Level *level = mEngine->level();
+    if (level == NULL)
+    {
+        Debug::error(intro)("no level to instanciate stuff in.").endl();
+        return false;
+    }
+
     Json::Value models = root["models"];
     if (models.isNull())
     {
@@ -357,27 +365,94 @@ bool Editor::loadModelsReferencesFromSerializations(Json::Value& root, Steel::Ag
         return false;
     }
 
+    bool revertAgent = false;
     for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
     {
-        Json::Value model_content = *it;
-        Json::Value value = model_content["path"];
-        if (value.isNull())
+        Json::Value refNode = *it, modelNode;
+
+        // if path is there, it's a reference
+        if (refNode.isMember("path"))
         {
-            Debug::error(intro)("missing \"path\" attribute. Skipping reference.").endl();
-            continue;
+            Json::Value pathValue = refNode["path"];
+            if (!pathValue.isString())
+            {
+                Debug::warning(intro)("Could not read reference path \"")(refNode["path"].toStyledString())(
+                        "\" as string. Aborting");
+                revertAgent = true;
+                break;
+            }
+            // load the referee
+            Ogre::String path = "";
+            resolveReferencePaths(pathValue.asString(), path);
+            File file = mEngine->resourcesDir().subfile(path);
+            if (!file.readInto(modelNode, false))
+            {
+                Debug::warning(intro)("Could not read reference path \"")(path)("\". Aborting.");
+                revertAgent = true;
+                break;
+            }
+
+            // possibly add attributes overrides
+            if (refNode.isMember("overrides"))
+            {
+                Json::Value overrides = refNode["overrides"];
+                if (!overrides.isObject())
+                {
+                    Debug::error(intro)("invalid overrides:")(overrides)(". Aborting").endl();
+                    revertAgent = true;
+                    break;
+                }
+                // actual overrides
+                JsonUtils::updateObjectWithOverrides(overrides, modelNode);
+            }
+
         }
 
-        Ogre::String path;
-        resolveReferencePaths(value.asString(), path);
-        path=mEngine->resourcesDir().subfile(path).fullPath();
-        File file(path);
-        if (!instanciateResource(file, aid))
+        if (INVALID_ID == aid)
         {
-            Debug::error(intro)("Could not resolve path \"")(path)("\". Skipping reference.").endl();
-            continue;
+            Json::Value value = modelNode["modelType"];
+            if (value.isNull() || !value.isString() || value.asString() != modelTypesAsString[MT_OGRE])
+            {
+                Debug::error(intro)("serialization is not starting with a model of type MT_OGRE. Aborted.").endl();
+                revertAgent = true;
+                break;
+            }
         }
+
+        // should be done here too, as we may have newly loaded data
+        if (!dynamicFillSerialization(modelNode, aid))
+        {
+            revertAgent = true;
+            break;
+        }
+
+        if (!loadModelFromSerialization(modelNode, aid))
+        {
+            Debug::error(intro)("could not load models. Aborting.").endl();
+            revertAgent = true;
+            break;
+        }
+
+//        Ogre::String path;
+//        resolveReferencePaths(value.asString(), path);
+//        path = mEngine->resourcesDir().subfile(path).fullPath();
+//        File file(path);
+//        if (!instanciateResource(file, aid))
+//        {
+//            Debug::error(intro)("Could not resolve path \"")(path)("\". Skipping reference.").endl();
+//            continue;
+//        }
     }
 
+    if (revertAgent)
+    {
+        if (INVALID_ID != aid)
+        {
+            level->deleteAgent(aid);
+            aid = INVALID_ID;
+        }
+        return false;
+    }
     return true;
 }
 
@@ -416,14 +491,17 @@ void Editor::setupReferencePathsLookupTable(Ogre::String const& source)
     }
 }
 
-void Editor::resolveReferencePaths(Ogre::String src, Ogre::String &dst)
+void Editor::resolveReferencePaths(Ogre::String const &src, Ogre::String &dst)
 {
+    dst.assign(src);
     while (true)
     {
-        Ogre::String save = dst;
+        Ogre::String save(dst);
         for (auto it = mReferencePathsLookupTable.begin(); it != mReferencePathsLookupTable.end(); ++it)
         {
-            dst = Ogre::StringUtil::replaceAll(src, it->first, it->second);
+            Ogre::String what = (*it).first;
+            Ogre::String withWhat = (*it).second;
+            dst.assign(Ogre::StringUtil::replaceAll(dst, what, withWhat));
         }
         if (save == dst)
             break;
@@ -444,18 +522,18 @@ bool Editor::loadModelsFromSerializations(Json::Value& root, Steel::AgentId& aid
     Json::Value node = root["models"];
     if (!node.isArray() || node.isNull())
     {
-        Debug::warning(intro)("\"models\" attribute is not valid.").endl();
+        Debug::warning(intro)("\"models\" attribute is not valid (expecting a non-empty array).").endl();
         return false;
     }
 
     // instanciate all models
     for (Json::ValueIterator it = node.begin(); it != node.end(); ++it)
     {
-        Json::Value model_node = *it;
+        Json::Value modelNode = *it;
 
         if (INVALID_ID == aid)
         {
-            Json::Value value = model_node["modelType"];
+            Json::Value value = modelNode["modelType"];
             if (value.isNull() || value.asCString() != modelTypesAsString[MT_OGRE])
             {
                 Debug::error("serialization is not starting with an OgreModel as modelType. Aborted.").endl();
@@ -463,7 +541,7 @@ bool Editor::loadModelsFromSerializations(Json::Value& root, Steel::AgentId& aid
             }
         }
 
-        if (!loadModelFromSerialization(model_node, aid))
+        if (!loadModelFromSerialization(modelNode, aid))
         {
             Debug::error(intro)("could not load models. Aborting.").endl();
             return false;
