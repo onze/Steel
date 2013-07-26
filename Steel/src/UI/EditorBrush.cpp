@@ -28,12 +28,15 @@ namespace Steel
     const Ogre::String EditorBrush::TERRA_SCALE_FACTOR = "EditorBrush::terraScaleFactor";
 
     EditorBrush::EditorBrush()
-        : Ogre::FrameListener(), mEngine(NULL), mEditor(NULL), mInputMan(NULL), mMode(TRANSLATE), mContinuousModeActivated(
-            false), mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()), mSelectionRotBeforeTransformation(
-                std::vector<Ogre::Quaternion>()), mSelectionScaleBeforeTransformation(std::vector<Ogre::Vector3>()), mIsDraggingSelection(
-                    false), mIsDraggingSelectionCancelled(false), mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(
-                        .0f), mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()), mModifiedTerrains(
-                            std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(NULL)
+        : Ogre::FrameListener(), mEngine(NULL), mEditor(NULL), mInputMan(NULL),
+          mMode(TRANSLATE), mContinuousModeActivated(false),
+          mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),
+          mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
+          mSelectionScaleBeforeTransformation(std::vector<Ogre::Vector3>()),
+          mIsDraggingSelection(false), mIsDraggingSelectionCancelled(false),
+          mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(.0f),
+          mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()),
+          mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(NULL)
     {
     }
 
@@ -273,6 +276,7 @@ namespace Steel
             {
                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                 {
+                    checkTerraScaleFactorValue();
                     // height
                     if (evt.state.Z.rel > 0)
                         mTerraScale.y *= mTerraScaleFactor;
@@ -281,6 +285,7 @@ namespace Steel
                 }
                 else if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
                 {
+                    checkTerraScaleFactorValue();
                     //surface
                     if (evt.state.Z.rel > 0)
                     {
@@ -411,6 +416,15 @@ namespace Steel
         } //end of if(evt.state.buttonDown(OIS::MB_Left))
         // not used
         return true;
+    }
+    
+    void EditorBrush::checkTerraScaleFactorValue()
+    {
+        if(Ogre::Math::Abs(mTerraScaleFactor-1.f)<0.001)
+        {
+            Debug::warning("EditorBrush::TerraScaleFactor value is very close to 1 (");
+            Debug::warning(mTerraScaleFactor)("). Terraforming might prove hard. Set it to x>1.1 in the conf.").endl();
+        }
     }
 
     bool EditorBrush::mousePlaneProjection(const Ogre::Plane &plane, float x, float y, Ogre::Vector3 &pos)

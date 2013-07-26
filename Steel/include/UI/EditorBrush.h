@@ -106,6 +106,9 @@ namespace Steel
             }
 
         protected:
+            /// Warns, in case some values make using the brush impossible.
+            void checkTerraScaleFactorValue();
+            
             //not owned
             Engine *mEngine;
             Editor *mEditor;
