@@ -3,7 +3,7 @@
 
 #include <string>
 #include <list>
-
+#include <algorithm>
 #include <OIS.h>
 #include <OgreVector2.h>
 
@@ -31,7 +31,7 @@ namespace Steel
 
             inline bool isKeyDown(OIS::KeyCode key)
             {
-                return NULL == mKeyboard ? false : mKeyboard->isKeyDown(key);
+                return mKeysPressed.end()!=std::find(mKeysPressed.begin(),mKeysPressed.end(),key);
             }
             inline bool isModifierDown(OIS::Keyboard::Modifier mod)
             {
