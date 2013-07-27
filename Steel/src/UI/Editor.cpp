@@ -321,8 +321,19 @@ namespace Steel
             // will end up pointing to the agent owning all created models
             Ogre::String aid_s = "";
             if (!root.isArray() && !root["aid"].isNull())
+            {
                 aid_s = root["aid"].asCString();
-            aid = Ogre::StringConverter::parseUnsignedLong(aid_s, INVALID_ID);
+                aid = Ogre::StringConverter::parseUnsignedLong(aid_s, INVALID_ID);
+            }
+            else
+            {
+                Level *level=mEngine->level();
+                if(NULL==level)
+                {
+                    Debug::error(intro)("no level to create agent.").endl();
+                }
+                aid=level->newAgent();
+            }
         }
 
         Ogre::String instancitationType = file.extension();
@@ -571,7 +582,7 @@ namespace Steel
 
         Ogre::String modelTypeString = value.asString();
 
-// this is used to know it the agent should be deleted upon failure of the method
+        // this is used to know it the agent should be deleted upon failure of the method
         bool fresh_aid = INVALID_ID == aid;
         if (fresh_aid)
         {
@@ -584,7 +595,7 @@ namespace Steel
             Debug::log(intro)("created agent ")(aid).endl();
         }
 
-// ask the right manager to load this model
+        // ask the right manager to load this model
         ModelType modelType = MT_FIRST;
         if (modelTypeString == "MT_OGRE")
             modelType = MT_OGRE;
@@ -600,15 +611,21 @@ namespace Steel
             return false;
         }
 
-// check if the agent is already linked to such a model
-        if (INVALID_ID != level->getAgent(aid)->modelId(modelType))
+        // check if the agent is already linked to such a model
+        Agent *agent=level->getAgent(aid);
+        if(NULL==agent)
+        {
+            Debug::log(intro)("could not retrieve agent for id ")(aid).endl();
+            return false;
+        }
+        if (INVALID_ID != agent->modelId(modelType))
         {
             Debug::error(intro)("cannot create a second ")(modelTypeString)(" Model to agent ")(aid);
             Debug::error(". Skipping ")(modelTypeString)(" Model instanciation.").endl();
             return true; // skipped, not aborted
         }
 
-// try to instanciate the model
+        // try to instanciate the model
         intro.append("in ").append(modelTypeString).append(" type: ");
         auto manager = level->modelManager(modelType);
         if (NULL == manager)
@@ -630,7 +647,7 @@ namespace Steel
         }
         else
             Debug::log("new ")(modelTypeString)(" Model with id ")(mid).endl();
-//TODO add visual notification in the UI
+        //TODO add visual notification in the UI
         return true;
     }
 
