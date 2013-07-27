@@ -44,6 +44,11 @@ namespace Steel
     Editor::~Editor()
     {
         shutdown();
+        if (NULL != mFSResources)
+        {
+            delete mFSResources;
+            mFSResources = NULL;
+        }
     }
 
     Editor& Editor::operator=(const Editor& other)
@@ -57,15 +62,16 @@ namespace Steel
         UIPanel::shutdown();
         mBrush.shutdown();
 
-        if (NULL != mFSResources)
-        {
-            delete mFSResources;
-            mFSResources = NULL;
-        }
-
-        mEngine = NULL;
-        mUI = NULL;
-        mInputMan = NULL;
+        // when this panel is reloaded, it calls Editor::shutdown but UIPanel::init, 
+        // so those 4 pointers aren't set back to meaningful values -> donbt delete them
+//         if (NULL != mFSResources)
+//         {
+//             delete mFSResources;
+//             mFSResources = NULL;
+//         }
+//         mEngine = NULL;
+//         mUI = NULL;
+//         mInputMan = NULL;
     }
 
     void Editor::loadConfig(ConfigFile const &config)
