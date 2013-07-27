@@ -73,7 +73,10 @@ namespace Steel
         }
         OgreModel *omodel=mLevel->ogreModelMan()->at(omid);
         pmodel->init(mWorld,omodel);
-
+        
+        // stop the physics simulation in case the agent is selected
+        pmodel->setSelected(agent->isSelected());
+        
         return true;
     }
 }

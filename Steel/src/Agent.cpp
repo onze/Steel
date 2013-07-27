@@ -22,7 +22,7 @@ namespace Steel
     AgentId Agent::sNextId = 0;
 
     Agent::Agent(Level *level)
-        : mId(Agent::getNextId()), mLevel(level)
+        : mId(Agent::getNextId()), mLevel(level),mIsSelected(false)
     {
         mModelIds = std::map<ModelType, ModelId>();
     }
@@ -34,8 +34,8 @@ namespace Steel
         mModelIds.clear();
     }
 
-    Agent::Agent(const Agent &t)
-        : mId(t.mId), mLevel(t.mLevel), mModelIds(t.mModelIds)
+    Agent::Agent(const Agent &o)
+        : mId(o.mId), mLevel(o.mLevel), mModelIds(o.mModelIds),mIsSelected(o.mIsSelected)
     {
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
         {
@@ -43,11 +43,12 @@ namespace Steel
         }
     }
 
-    Agent &Agent::operator=(const Agent &t)
+    Agent &Agent::operator=(const Agent &o)
     {
-        mId = t.mId;
-        mLevel = t.mLevel;
-        mModelIds = t.mModelIds;
+        mId = o.mId;
+        mLevel = o.mLevel;
+        mModelIds = o.mModelIds;
+        mIsSelected=o.mIsSelected;
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
         {
             mLevel->modelManager(it->first)->at(it->second)->incRef();
@@ -150,21 +151,14 @@ namespace Steel
     void Agent::setSelected(bool selected)
     {
         OgreModel *om = ogreModel();
-        if (om != NULL)
+        if (NULL!=om)
             om->setSelected(selected);
-        PhysicsModel *pmodel = physicsModel();
-        if (NULL != pmodel)
-        {
-            if (selected)
-            {
-                pmodel->pushState();
-                pmodel->toKinematics();
-            }
-            else
-            {
-                pmodel->popState();
-            }
-        }
+
+        PhysicsModel *pm = physicsModel();
+        if(NULL!=pm)
+            pm->setSelected(selected);
+
+        mIsSelected=selected;
     }
 
     Json::Value Agent::toJson()

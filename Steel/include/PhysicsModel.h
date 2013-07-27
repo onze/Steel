@@ -42,6 +42,8 @@ namespace Steel
 
             void rescale(const Ogre::Vector3 &sca);
             void setScale(const Ogre::Vector3 &sca);
+
+            void setSelected(bool selected);
         protected:
             virtual void cleanup();
             //not owned

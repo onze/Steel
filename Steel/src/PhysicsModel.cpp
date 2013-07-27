@@ -191,5 +191,18 @@ namespace Steel
         mBody->getCollisionShape()->setLocalScaling(BtOgre::Convert::toBullet(sca));
     }
 
+    void PhysicsModel::setSelected(bool selected)
+    {
+        if (selected)
+        {
+            pushState();
+            toKinematics();
+        }
+        else
+        {
+            popState();
+        }
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
