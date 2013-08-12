@@ -18,7 +18,7 @@ namespace Steel
             /// Protocol version number.
             static const Ogre::String VERSION;
 
-            ConfigFile(Steel::File file, bool autoLoad = true);
+            ConfigFile(Steel::File file);
             ConfigFile(const ConfigFile& other);
             virtual ~ConfigFile();
             virtual ConfigFile& operator=(const ConfigFile& other);
@@ -46,6 +46,7 @@ namespace Steel
             }
 
         protected:
+            Json::Value &settings();
             File mFile;
             Json::Value mSettings;
     };

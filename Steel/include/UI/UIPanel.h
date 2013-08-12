@@ -42,12 +42,12 @@ namespace Steel
             {
                 return mContext;
             }
-            /// Process the incoming events from mContext.
+            /// Process the incoming events from mContext
             virtual void ProcessEvent(Rocket::Core::Event& event);
 
-            /// Gets notified when the main document file is modified.
+            /// Gets notified when the main document file is modified
             virtual void onFileChangeEvent(File file);
-            /// reload Rocket files and update context content.
+            /// reload Rocket files and update context content
             void reloadContent();
 
             // getters
@@ -61,6 +61,7 @@ namespace Steel
             }
 
         protected:
+            
             ///not owned
             ///owned
             /// screen size, in pixels.

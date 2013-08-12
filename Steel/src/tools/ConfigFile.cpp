@@ -8,10 +8,11 @@ namespace Steel
 //    const Ogre::String ConfigFile::VERSION="1.0";
 //    const Ogre::String ConfigFile::VERSION_ATTRIBUTE_NAME="_version";
 
-    ConfigFile::ConfigFile(File file,bool autoLoad):mFile(file),mSettings(Json::Value())
+    ConfigFile::ConfigFile(File file)
+        :mFile(file),mSettings(Json::Value())
     {
-        if(autoLoad)
-            load();
+        mSettings=Json::objectValue;
+        load();
     }
 
     ConfigFile::ConfigFile(const ConfigFile& o):mFile(o.mFile),mSettings(o.mSettings)
@@ -121,6 +122,8 @@ namespace Steel
 
     int ConfigFile::getSettingAsInt(Ogre::String key, int defaultValue) const
     {
+        if(mSettings.size()==0)
+            return defaultValue;
         if(mSettings.isMember(key))
         {
             Json::Value value=mSettings[key];
@@ -167,3 +170,4 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
