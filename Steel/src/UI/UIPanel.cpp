@@ -117,6 +117,7 @@ namespace Steel
         mDependencies.clear();
         if(NULL!=mDocument)
         {
+            mDocumentFile.removeFileListener(this);
             mDocument->GetContext()->UnloadDocument(mDocument);
             mDocument->RemoveReference();
             mDocument=NULL;
