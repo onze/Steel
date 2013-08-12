@@ -33,11 +33,12 @@
 namespace Steel
 {
 
-    Level::Level(Engine *engine, File path, Ogre::String name)
-        : TerrainManagerEventListener(), mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name), mBackgroundColor(
-            Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL), mAgents(std::map<AgentId, Agent *>()), mOgreModelMan(
-                NULL), mPhysicsModelMan(NULL), mBlackBoardModelMan(NULL), mBTModelMan(NULL), mTerrainMan(), mCamera(
-                    NULL), mMainLight(NULL)
+    Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
+        mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name),
+        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL),
+        mAgents(std::map<AgentId, Agent *>()),
+        mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBlackBoardModelMan(NULL), mBTModelMan(NULL), mTerrainMan(),
+        mCamera(NULL), mMainLight(NULL)
     {
         Debug::log(logName() + "()").endl();
         if (!mPath.exists())
