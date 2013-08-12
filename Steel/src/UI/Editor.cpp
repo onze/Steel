@@ -3,6 +3,7 @@
 #include <Rocket/Controls/ElementFormControlInput.h>
 #include <Rocket/Controls/ElementTabSet.h>
 #include <Rocket/Controls/ElementFormControlSelect.h>
+#include <Rocket/Controls/ElementFormControlTextArea.h>
 #include <Rocket/Core/Event.h>
 #include <Rocket/Debugger.h>
 #include <Rocket/Core/Element.h>
@@ -62,7 +63,7 @@ namespace Steel
         UIPanel::shutdown();
         mBrush.shutdown();
 
-        // when this panel is reloaded, it calls Editor::shutdown but UIPanel::init, 
+        // when this panel is reloaded, it calls Editor::shutdown but UIPanel::init,
         // so those 4 pointers aren't set back to meaningful values -> donbt delete them
 //         if (NULL != mFSResources)
 //         {
@@ -870,110 +871,138 @@ namespace Steel
         mBrush.onHide();
     }
 
-    void Editor::ProcessEvent(Rocket::Core::Event &evt)
+    void Editor::ProcessEvent(Rocket::Core::Event &event)
     {
         if (!isVisible())
             return;
 // create the command
         Rocket::Core::Element *elem = NULL;
 // in case of drag&drop, elem points to the element being dragged
-        if (evt == "dragdrop")
+        if (event == "dragdrop")
         {
             // ok in stable, not in dev
-            //             elem= static_cast<Rocket::Core::Element *>(evt.GetParameter< void * >("drag_element", NULL));
-            Rocket::Core::ElementReference *ref = static_cast<Rocket::Core::ElementReference *>(evt.GetParameter<void *>(
+            //             elem= static_cast<Rocket::Core::Element *>(event.GetParameter< void * >("drag_element", NULL));
+            Rocket::Core::ElementReference *ref = static_cast<Rocket::Core::ElementReference *>(event.GetParameter<void *>(
                     "drag_element", NULL));
             elem = **ref;
             mIsDraggingFromMenu = false;
         }
-        else if (evt == "dragstart")
+        else if (event == "dragstart")
             mIsDraggingFromMenu = true;
         else
-            elem = evt.GetTargetElement();
+            elem = event.GetTargetElement();
 
         if (elem == NULL)
         {
             if (mDebugEvents)
-                Debug::log("Editor::ProcessEvent(): no target element for event of type ")(evt.GetType()).endl();
+                Debug::log("Editor::ProcessEvent(): no target element for event of type ")(event.GetType()).endl();
             return;
         }
 
-        auto etype = evt.GetType();
+        auto etype = event.GetType();
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + etype, "NoValue").CString();
-
         if (event_value == "NoValue")
         {
-            if (mDebugEvents && elem->GetId() != "")
-                Debug::warning("Editor::ProcessEvent(): no event_value for event of type ")(evt.GetType())(
-                    " with elem of id ")(elem->GetId()).endl();
-            return;
-        }
-
-        Ogre::String raw_commmand = "";
-        if (evt == "dragdrop")
-        {
-            if (elem->GetId() == mFSResources->GetDataSourceName())
+            if(elem->GetId() != "")
             {
-                raw_commmand = "instanciate.";
-                File file = File(event_value);
-                if (!file.exists())
+                if (mDebugEvents)
                 {
-                    Debug::error("Editor::ProcessEvent(): file not found: ")(file).endl();
-                    return;
+                    Debug::warning("Editor::ProcessEvent(): no event_value for event of type ");
+                    Debug::warning(event.GetType())(" with elem of id ")(elem->GetId()).endl();
                 }
-                raw_commmand += file.fullPath();
-            }
-            else
-            {
-                Debug::warning("Editor::ProcessEvent() unknown element source for event of type: ")(evt.GetType());
-                Debug::warning(" value: ")(event_value).endl();
                 return;
             }
         }
-        else if (evt == "click")
+
+        if(etype=="change")
+            processChangeEvent(event,elem);
+        else if(etype=="click")
+            processClickEvent(event,elem);
+        else if(etype=="dragdrop")
+            processDragDropEvent(event,elem);
+        else if(etype=="submit")
+            processSubmitEvent(event,elem);
+        else
+            Debug::log("Editor::ProcessEvent(): unknown event ot type:")(event.GetType())(" and value: ")(event_value).endl();
+        return;
+    }
+
+    void Editor::processSubmitEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
+    {
+        Debug::log("Editor::processSubmitEvent(): type:")(event.GetType());
+        Debug::log(" and value: ")(elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString());
+        Debug::log.endl();
+    }
+
+    void Editor::processClickEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
+    {
+        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
+        Ogre::String raw_commmand = event_value;
+        if (raw_commmand == "engine.set_level")
         {
-            raw_commmand = event_value;
-            if (raw_commmand == "engine.set_level")
+            auto inputField = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
+            if (inputField == NULL)
             {
-                auto inputField = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
-                if (inputField == NULL)
-                {
-                    Debug::error(
-                        "Editor::ProcessEvent(): can't find level name input field with id=\"level_name\". Aborted.").endl();
-                    return;
-                }
-                Ogre::String levelName = inputField->GetValue().CString();
-                if (levelName == "")
-                {
-                    Debug::error("Editor::ProcessEvent(): can't create a level with not name. Aborted.").endl();
-                    return;
-                }
-                raw_commmand += "." + levelName;
+                Debug::error(
+                    "Editor::ProcessEvent(): can't find level name input field with id=\"level_name\". Aborted.").endl();
+                return;
             }
+            Ogre::String levelName = inputField->GetValue().CString();
+            if (levelName == "")
+            {
+                Debug::error("Editor::ProcessEvent(): can't create a level with not name. Aborted.").endl();
+                return;
+            }
+            raw_commmand += "." + levelName;
         }
-        else if (evt == "change")
+        //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" raw_commmand:")(raw_commmand).endl();
+        if (raw_commmand.size())
+            processCommand(raw_commmand);
+    }
+
+    void Editor::processChangeEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
+    {
+        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
+        Ogre::String raw_commmand = event_value;
+        if (raw_commmand == "editorbrush.terrabrush.distribution")
         {
-            raw_commmand = event_value;
-            if (raw_commmand == "editorbrush.terrabrush.distribution")
+            Rocket::Controls::ElementFormControlSelect *form = static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
+            auto optionId = form->GetSelection();
+            if (optionId > -1)
             {
-                Rocket::Controls::ElementFormControlSelect *form =
-                    static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
-                auto optionId = form->GetSelection();
-                if (optionId > -1)
-                {
-                    raw_commmand += ".";
-                    raw_commmand += form->GetValue().CString();
-                }
-                else
-                    return;
+                raw_commmand += ".";
+                raw_commmand += form->GetValue().CString();
             }
+            else
+                return;
+        }
+        //         Debug::log("Editor::processChangeEvent() event type:")(event.GetType())(" raw_commmand:")(raw_commmand).endl();
+        if (raw_commmand.size())
+            processCommand(raw_commmand);
+    }
+
+    void Editor::processDragDropEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
+    {
+        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
+        Ogre::String raw_commmand = "";
+        if (elem->GetId() == mFSResources->GetDataSourceName())
+        {
+            raw_commmand = "instanciate.";
+            File file = File(event_value);
+            if (!file.exists())
+            {
+                Debug::error("Editor::ProcessEvent(): file not found: ")(file).endl();
+                return;
+            }
+            raw_commmand += file.fullPath();
         }
         else
         {
-            Debug::log("Editor::ProcessEvent(): unknown event ot type:")(evt.GetType())(" and value: ")(event_value).endl();
+            Debug::warning("Editor::ProcessDragDropEvent() unknown element source for event of type: ")(event.GetType());
+            Debug::warning(" value: ")(event_value).endl();
             return;
         }
-//         Debug::log("Editor::ProcessEvent() event type:")(evt.GetType())(" raw_commmand:")(raw_commmand).endl();
+        //         Debug::log("Editor::processDragDropEvent() event type:")(event.GetType())(" raw_commmand:")(raw_commmand).endl();
         if (raw_commmand.size())
             processCommand(raw_commmand);
     }

@@ -100,7 +100,7 @@ namespace Steel
             /// Forward call to instanciateResource(Steel::File& file, AgentId &aid), and discards the aid.
             bool instanciateResource(Steel::File& file);
 
-            /// make a command out of a Rocket event
+            /// take a rocket event and dispatch it to process*Event
             void ProcessEvent(Rocket::Core::Event& event);
             ///general command processing method. dispatches the work to other process
             void processCommand(Ogre::String rawCommand);
@@ -123,6 +123,15 @@ namespace Steel
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
 
         protected:
+            /// make a command out of a Rocket event. 
+            void processSubmitEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
+            /// make a command out of a Rocket event. 
+            void processClickEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
+            /// make a command out of a Rocket event. 
+            void processChangeEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
+            /// make a command out of a Rocket event. 
+            void processDragDropEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
+            
             //not owned
             Engine *mEngine;
             UI *mUI;
