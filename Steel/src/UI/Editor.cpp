@@ -28,9 +28,9 @@ namespace Steel
     const Ogre::String Editor::REFERENCE_PATH_LOOKUP_TABLE = "Editor::referencePathsLookupTable";
 
     Editor::Editor()
-        : UIPanel("Editor", "data/ui/current/editor/editor.rml"), mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(
-            NULL), mDataDir(), mMenuTabIndex(1), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false), mReferencePathsLookupTable(
-                std::map<Ogre::String, Ogre::String>())
+        : UIPanel("Editor", "data/ui/current/editor/editor.rml"), mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(NULL),
+          mDataDir(), mMenuTabIndex(1), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
+          mReferencePathsLookupTable(std::map<Ogre::String, Ogre::String>())
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -819,36 +819,56 @@ namespace Steel
 
     void Editor::onShow()
     {
+        Ogre::String intro="Editor::onShow(): ";
         mBrush.onShow();
-// (re)load state
-// active menu tab
+        // (re)load state
+        // active menu tab
         auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
         if (elem == NULL)
             return;
-        elem->SetActiveTab(Ogre::StringConverter::parseInt(mEngine->config().getSetting("Editor::menuTabIndex"), 0));
+        elem->SetActiveTab(mEngine->config().getSettingAsInt("Editor::menuTabIndex", 0));
 
+
+        // ## reconnect to document
+
+        // data sources
         mFSResources->refresh(mDocument);
+
+        // events
         mDocument->AddEventListener("click", this);
         mDocument->AddEventListener("dragstart", this);
         mDocument->AddEventListener("dragdrop", this);
         mDocument->AddEventListener("change", this);
         mDocument->AddEventListener("submit", this);
 
+        // form settings (can't be set through rml apparently)
+        auto selection_serialization = static_cast<Rocket::Controls::ElementFormControlTextArea *>(mDocument->GetElementById("selection_serialization"));
+        if(NULL!=selection_serialization)
+        {
+            // uh ? dk. Let's say 20 pix per character...
+            //int n=elem->GetClientWidth()/20;
+            selection_serialization->SetNumColumns(100);
+            selection_serialization->SetNumRows(30);
+        }
+        else
+        {
+            Debug::warning(intro)("cannot find Rocket::Controls::ElementFormControlTextArea with id \"selection_serialization\".");
+            Debug::warning("Editing models is not gonna be possible.").endl();
+        }
+
+        // debugger
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
 
-// set brush shape
-        auto select_form = static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById(
-                               "editor_select_terrabrush_shape"));
+        // set brush shape
+        auto select_form = static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById("editor_select_terrabrush_shape"));
         if (select_form != NULL and select_form->GetNumOptions() > 0)
         {
             int index = select_form->GetSelection();
             if (index < 0)
                 select_form->SetSelection(0);
             else
-                processCommand(
-                    Ogre::String("editorbrush.terrabrush.distribution.")
-                    + select_form->GetOption(index)->GetValue().CString());
+                processCommand(Ogre::String("editorbrush.terrabrush.distribution.")+ select_form->GetOption(index)->GetValue().CString());
         }
     }
 
