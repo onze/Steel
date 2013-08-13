@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <BT/btnodetypes.h>
+#include "BTNode.h"
 
 namespace Steel
 {
@@ -20,9 +21,17 @@ namespace Steel
             bool init(BTShapeStream *shapeStream);
 
             /// Returns the type of token at the given index, in depth-first order.
-            BTShapeTokenType tokenTypeAt(size_t index);
+            BTShapeTokenType tokenTypeAt(BTStateIndex index);
 
-            void *stateAt(size_t index);
+            /// Returns the token at the given index, in depth-first order.
+            BTShapeToken tokenAt(BTStateIndex index);
+
+            /// Returns the BTNode subclass at the given index. Returns NULL if index is invalid.
+            BTNode* stateAt(BTStateIndex index);
+            void *rootState()
+            {
+                return stateAt(0UL);
+            }
 
             /// Returns true if the stream contains no state.
             bool empty();
@@ -31,6 +40,10 @@ namespace Steel
             void clear();
 
             Ogre::String debugName();
+            BTShapeStream * const shapeStream()
+            {
+                return mShapeStream;
+            }
 
         protected:
             /// Allocate states according to the given shape.
@@ -39,17 +52,14 @@ namespace Steel
             size_t sizeOfState(Steel::BTShapeTokenType token);
 
             // not owned
-            /// The shape (contains nodes indices).
+            /// The shape (as tokens).
             BTShapeStream *mShapeStream;
 
             // owned
-//             /// Tells what token type is at what index
-//             std::vector<BTShapeTokenType> mTokenTypes;
-
             /// Tells the offset of each state
             std::vector<size_t> mStateOffsets;
 
-            /// Raw states storage.
+            /// Raw BTState storage.
             void *mData;
 
             /// total size of mData
