@@ -13,6 +13,7 @@
 
 #include "steeltypes.h"
 #include "BT/btnodetypes.h"
+#include "BT/BTNode.h"
 #include "tools/StringUtils.h"
 
 namespace Steel
@@ -61,10 +62,15 @@ namespace Steel
                         mPost = post;
                     }
 
+                    /// Empty call. Allows build-safe typos.
+                    DebugObject &operator()()
+                    {
+                        return *this;
+                    }
+
                     /**
                      * equivalent to myDebugObject.log(Ogre::String msg)
                      */
-
                     DebugObject &operator()(const Ogre::Degree msg)
                     {
                         return (*this)(Ogre::StringConverter::toString(msg.valueDegrees())+"deg");
@@ -168,6 +174,24 @@ namespace Steel
                         return *this;
                     }
 
+                    DebugObject &operator()(BTNode* const node)
+                    {
+                        if(NULL==node)
+                        {
+                            (*this)("BTNode{ // NULL pointer !}");
+                        }
+                        else
+                        {
+                            this->operator()("BTNode{").endl().indent();
+                            (*this)("begin:")(node->begin())(", ").endl();
+                            (*this)("end:")(node->end())(", ").endl();
+                            (*this)("state:")(node->state())(", ").endl();
+                            (*this)("token:")(node->token())(", ").endl();
+                            this->operator()("}").unIndent();
+                        }
+                        return *this;
+                    }
+
                     DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list)
                     {
                         this->operator()("list[");
@@ -229,6 +253,14 @@ namespace Steel
 //                                 this->operator()(", ");
                         }
                         this->operator()("]");
+                        return *this;
+                    }
+                    
+                    /// Print the parameter between quotes.
+                    template<class T>
+                    DebugObject &quotes(T const &o)
+                    {
+                        (*this)("\"")(o)("\"");
                         return *this;
                     }
 
