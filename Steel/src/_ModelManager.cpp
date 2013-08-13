@@ -82,10 +82,19 @@ namespace Steel
             id = (ModelId) mModels.size();
             mModels.push_back(M());
         }
-// 	mModels[id].incRef();
         return id;
     }
 
+    template<class M>
+    void _ModelManager<M>::deallocateModel(ModelId id)
+    {
+        mModels[id].cleanup();
+        mModelsFreeList.push_back(id);
+#ifdef DEBUG
+        assert(mModels[id].isFree());
+#endif
+    }
+    
     template<class M>
     void _ModelManager<M>::clear()
     {

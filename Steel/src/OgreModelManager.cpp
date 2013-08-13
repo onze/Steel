@@ -40,12 +40,11 @@ namespace Steel
         Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(model["position"].asString());
         Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(model["rotation"].asString());
         ModelId id = newModel(meshName, pos, rot);
-        //get values for load
-        //incRef(id);
         int loadingOk=mModels[id].fromJson(model, mLevelRoot, mSceneManager);
         //TODO discard, quarantine, repair ?
         if(!loadingOk)
         {
+            deallocateModel(id);
             id=INVALID_ID;
         }
         return id;

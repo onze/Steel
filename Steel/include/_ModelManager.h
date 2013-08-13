@@ -18,10 +18,7 @@ namespace Steel
     class _ModelManager: public ModelManager
     {
         private:
-            _ModelManager()
-            {
-            }
-            ;
+            _ModelManager(){}
 
         public:
             _ModelManager(Level *level);
@@ -85,6 +82,11 @@ namespace Steel
              * The allocated model has a refCount of one. Call decRef on it to release it.
              */
             ModelId allocateModel();
+
+            /**
+             * Cleans up the model and marks it as allocable.
+             */
+            void deallocateModel(ModelId id);
 
             // not owned
             Level *mLevel;
