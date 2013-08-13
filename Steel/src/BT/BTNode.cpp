@@ -32,6 +32,11 @@ namespace Steel
         return false;
     }
 
+    BTState BTNode::state()
+    {
+        return mState;
+    }
+
     bool BTNode::reset()
     {
         Ogre::String intro="BTNode::reset(): ";
@@ -67,6 +72,25 @@ namespace Steel
     {
         return true;
     }
+    
+    BTStateIndex BTNode::firstChildIndex()
+    {
+        return mToken.begin+1;
+    }
 
+    BTStateIndex BTNode::nodeSkippedTo()
+    {
+        return (BTStateIndex)end();
+    }
+
+    void BTNode::childReturned(BTState state)
+    {
+        mState=state;
+    }
+
+    void BTNode::onParentNotified()
+    {
+        mState=READY;
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

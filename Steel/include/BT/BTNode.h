@@ -3,8 +3,8 @@
 
 #include <json/json.h>
 
-#include <BT/btnodetypes.h>
-#include <AgentSpec.h>
+#include "BT/btnodetypes.h"
+#include "AgentSpec.h"
 
 namespace Steel
 {
@@ -22,15 +22,53 @@ namespace Steel
             virtual bool reset();
 
             // getters
-            inline unsigned begin()
+            inline const unsigned begin()
             {
                 return mToken.begin;
             }
 
-            inline unsigned end()
+            inline const unsigned end()
             {
                 return mToken.end;
             }
+
+            inline const BTShapeToken token() const
+            {
+                return mToken;
+            }
+
+            /// Current state of the node. Can be overwritten by subclasses if needed.
+            virtual BTState state();
+            
+            BTStateIndex firstChildIndex();
+            
+            ////////////
+            // interface in contact to BTModel
+            /**
+             * Called as long as the node shows itself as READY.
+             */
+            virtual void run(float timestep) {};
+
+            /**
+             * Returns what's the next node to run. Defaults to parent node.
+             * Meant to be overwritten.
+             */
+            virtual BTStateIndex nodeSkippedTo();
+
+            /**
+             * Tells the node what state its currently running child just returned.
+             * Defaults to updating the node's state.
+             * Meant to be overwritten.
+             */
+            virtual void childReturned(BTState state);
+            
+            /**
+             * Called after run, once the parent has been notified of the node's state.
+             * Defaults to resetting the state to READY;
+             * Can typically be used to reset the node's state.
+             */
+            virtual void onParentNotified();
+            ////////////
 
         protected:
             static const Ogre::String AGENT_SPEC;
