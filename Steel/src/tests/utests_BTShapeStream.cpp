@@ -38,12 +38,12 @@ namespace Steel
 
         BTShapeToken groundTruth_data[] =
         {
-            {BTSequenceToken,0,7,BTFileNode(rootFile).descriptor()},//A
-            {BTSequenceToken,1,4,BTFileNode(rootFile.subfile("B - sequence")).descriptor()},//+-B
-            {BTFinderToken,2,3,BTFileNode(rootFile.subfile("B - sequence").subfile("C - finder")).descriptor()},//| +-C
+            {BTSequenceToken,0,7,BTFileNode(rootFile).descriptor()},                                                  //A
+            {BTSequenceToken,1,4,BTFileNode(rootFile.subfile("B - sequence")).descriptor()},                          //+-B
+            {BTFinderToken,2,3,BTFileNode(rootFile.subfile("B - sequence").subfile("C - finder")).descriptor()},      //| +-C
             {BTNavigatorToken,3,4,BTFileNode(rootFile.subfile("B - sequence").subfile("D - navigator")).descriptor()},//| |-D
-            {BTSequenceToken,4,7,BTFileNode(rootFile.subfile("E - sequence")).descriptor()},//+-E
-            {BTFinderToken,5,6,BTFileNode(rootFile.subfile("E - sequence").subfile("F - finder")).descriptor()},//  +-F
+            {BTSequenceToken,4,7,BTFileNode(rootFile.subfile("E - sequence")).descriptor()},                          //+-E
+            {BTFinderToken,5,6,BTFileNode(rootFile.subfile("E - sequence").subfile("F - finder")).descriptor()},      //  +-F
             {BTNavigatorToken,6,7,BTFileNode(rootFile.subfile("E - sequence").subfile("G - navigator")).descriptor()},//  |-G
         };
         BTShapeStream groundTruth = BTShapeStream (
