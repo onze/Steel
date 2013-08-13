@@ -453,14 +453,15 @@ namespace Steel
         fileData[fileLength] = '\0';
         Ogre::String rawContent(fileData);
 
-        if (skiptEmtpyLines)
+        if(skiptEmtpyLines)
         {
             auto lines = StringUtils::split(rawContent, StringUtils::LINE_SEP);
             decltype(lines) filteredLines(lines.size());
             auto it = std::copy_if(lines.begin(), lines.end(), filteredLines.begin(), [](Ogre::String line)
             {
                 auto _line=line;
-                Ogre::StringUtil::trim(_line);
+                if(_line.length()>0)
+                    Ogre::StringUtil::trim(_line);
                 return _line.length()>0;
             });
             filteredLines.resize(std::distance(filteredLines.begin(), it));
@@ -471,7 +472,7 @@ namespace Steel
 
     bool File::readInto(Json::Value &root, bool keepComments)
     {
-        Ogre::String intro = "in File::read(): ";
+        Ogre::String intro = "in File::readInto(): ";
         if (!exists())
         {
             Ogre::String msg = "Could not open :" + fullPath() + ": file not found.";
