@@ -1,6 +1,7 @@
 #ifndef STEEL_BTMODEL_H_
 #define STEEL_BTMODEL_H_
 
+#include <stack>
 #include <json/json.h>
 
 #include "BT/btnodetypes.h"
@@ -42,15 +43,20 @@ namespace Steel
             /// Sets the current shape to the given one.
             bool switchShapeTo(BTShapeStream* shapeStream);
 
+            /// Runs the tree until its end or a node yields RUNNING.
             void update(float timestep);
 
-        protected:
             virtual void cleanup();
+        protected:
 
             // not owned
             // owned
             /// states, aligned with the shape stream.
             BTStateStream mStateStream;
+            
+            /// Index of the currently running node, within the StateStream.
+            BTStateIndex mCurrentStateIndex;
+            std::stack<BTStateIndex> mStatesStack;
     };
 
 }

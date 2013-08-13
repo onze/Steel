@@ -70,7 +70,12 @@ namespace Steel
 
         // make it build the state stream
         ModelId mid=allocateModel();
-        mModels[mid].init(shapeStream);
+        if(!mModels[mid].init(shapeStream))
+        {
+            Debug::error(intro)("could not init model. Deallocating it.").endl();
+            deallocateModel(mid);
+            mid=INVALID_ID;
+        }
         return mid;
     }
 
@@ -79,6 +84,8 @@ namespace Steel
         for (ModelId id = firstId(); id < lastId(); ++id)
         {
             BTModel *m=&(mModels[id]);
+            if(m->isFree())
+                continue;
             m->update(timestep);
         }
     }
