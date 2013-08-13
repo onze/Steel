@@ -8,6 +8,14 @@ namespace Steel
 
     class BTSequence: public BTNode
     {
+        private:
+            /**
+             * Max number of times a loop through children is initiated.
+             * Defaults to 0, meaning an undefinitely.
+             * If set, after the limit is reached, freezes its state to its last value.
+             */
+            static const char *MAX_LOOPS_ATTRIBUTE;
+            
         public:
             inline static BTShapeTokenType tokenType()
             {
@@ -17,17 +25,22 @@ namespace Steel
             BTSequence(BTShapeToken const &token);
             virtual ~BTSequence();
 
-            unsigned switchToNextChild();
+            BTStateIndex nodeSkippedTo();
+            void childReturned(BTState state);
+            void onParentNotified();
 
-            inline unsigned currentChildNodeIndex()
+            inline BTStateIndex currentChildNodeIndex()
             {
                 return mCurrentChildNodeIndex;
             }
 
-// 	virtual void onStartRunning();
-// 	virtual void onStopRunning();
-        protected:
-            unsigned mCurrentChildNodeIndex;
+            bool parseNodeContent(Json::Value &root);
+
+        private:
+            BTStateIndex switchToNextChild();
+            BTStateIndex mCurrentChildNodeIndex;
+            unsigned mNLoops;
+            unsigned mMaxLoops;
     };
 }
 
