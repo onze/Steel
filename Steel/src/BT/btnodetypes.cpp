@@ -10,11 +10,13 @@ namespace Steel
     {
         "BTSequence",
         "BTSelector",
-        "BTDecorator",
-        "BTCounter",
+//         "BTDecorator",
+//         "BTCounter",
         "BTFinder",
         "BTNavigator",
-        "BTUnknown",
+        "BTSignalListener",
+        "BTDebugPrinter",
+        "BTUnknown"
     };
 
     std::vector<Ogre::String> BTShapeTokenTypeAsString = std::vector<Ogre::String> (

@@ -16,10 +16,10 @@ namespace Steel
     typedef unsigned long ModelId;
     typedef std::list<AgentId> Selection;
 
-/// invalid Model/Agent id.
+    /// invalid Model/Agent id.
     const unsigned long INVALID_ID = ULONG_MAX;
 
-/// ModelType and modelTypesAsString need to stay in sync, and the usable enum values need to stay contiguous starting at 0.
+    /// ModelType and modelTypesAsString need to stay in sync, and the usable enum values need to stay contiguous starting at 0.
     enum ModelType
     {
         //MT_FIRST should stay first
@@ -36,9 +36,11 @@ namespace Steel
         MT_LAST
     };
 
-/// Maps a ModelType to its string representation.
+    /// Maps a ModelType to its string representation.
     extern std::vector<Ogre::String> modelTypesAsString;
 
+    typedef unsigned long Signal;
+    const Signal INVALID_SIGNAL=ULONG_MAX;
 }
 
 #endif
