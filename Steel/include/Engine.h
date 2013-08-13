@@ -1,5 +1,5 @@
-#ifndef STEEL_ENGINE_H_
-#define STEEL_ENGINE_H_
+#ifndef STEEL_ENGINE_H
+#define STEEL_ENGINE_H
 
 #include <string>
 #include <list>
