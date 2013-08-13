@@ -44,8 +44,8 @@ namespace Steel
             void setScale(const Ogre::Vector3 &sca);
 
             void setSelected(bool selected);
-        protected:
             virtual void cleanup();
+        protected:
             //not owned
             btDynamicsWorld *mWorld;
             //owned

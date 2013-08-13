@@ -21,6 +21,7 @@ namespace Steel
             virtual ~Model();
 
             virtual Model &operator=(const Model &m);
+
             inline void incRef()
             {
                 ++mRefCount;
@@ -61,12 +62,12 @@ namespace Steel
             /// Returns the ModelType associated with this model.
             virtual ModelType modelType()=0;
 
-        protected:
-            /// Called by decRef() when the ref count gets below 0.
+            /// Cleans any model specific data. SHould not be called directly, except by dedicated manager.
             virtual void cleanup()
             {
             }
-            ;
+        protected:
+
             /// Number of agents referencing it.
             unsigned long mRefCount;
     };

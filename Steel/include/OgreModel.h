@@ -65,8 +65,8 @@ namespace Steel
                 return mSceneNode;
             }
 
-        protected:
             virtual void cleanup();
+        protected:
             Ogre::SceneNode *mSceneNode;
             Ogre::Entity *mEntity;
             Ogre::SceneManager *mSceneManager;
