@@ -298,7 +298,7 @@ namespace Steel
 
     bool Editor::instanciateResource(File &file, AgentId &aid)
     {
-        Ogre::String intro = "Editor::instanciateResource(" + file.fullPath() + "): ";
+        static Ogre::String intro = "Editor::instanciateResource(" + file.fullPath() + "): ";
         if (!file.exists())
         {
             Debug::error(intro)("file not found: ")(file).endl();
@@ -367,7 +367,7 @@ namespace Steel
         Level *level = mEngine->level();
         if (level == NULL)
         {
-            Debug::error(intro)("no level to instanciate stuff in.").endl();
+            Debug::error(intro)("no level to instanciate models.").endl();
             return false;
         }
 
@@ -389,13 +389,14 @@ namespace Steel
             Json::Value refNode = *it, modelNode;
 
             // if path is there, it's a reference
-            if (refNode.isMember("path"))
+            bool hasPathMember=refNode.isMember("path");
+            if (hasPathMember)
             {
                 Json::Value pathValue = refNode["path"];
                 if (!pathValue.isString())
                 {
-                    Debug::warning(intro)("Could not read reference path \"")(refNode["path"].toStyledString())(
-                        "\" as string. Aborting");
+                    Debug::warning(intro)("Could not read reference path \"")
+                    (refNode["path"].toStyledString())("\" as string. Aborting").endl();
                     revertAgent = true;
                     break;
                 }
@@ -593,6 +594,7 @@ namespace Steel
         bool fresh_aid = INVALID_ID == aid;
         if (fresh_aid)
         {
+            //TODO #OPT: Agent *agent=level->newAgent(aid);
             aid = level->newAgent();
             if (INVALID_ID == aid)
             {
@@ -627,8 +629,8 @@ namespace Steel
         }
         if (INVALID_ID != agent->modelId(modelType))
         {
-            Debug::error(intro)("cannot create a second ")(modelTypeString)(" Model to agent ")(aid);
-            Debug::error(". Skipping ")(modelTypeString)(" Model instanciation.").endl();
+            Debug::error(intro)("cannot create a second ")(modelTypeString)(" Model to agent ")
+            (aid)(". Skipping ")(modelTypeString)(" Model instanciation.").endl();
             return true; // skipped, not aborted
         }
 
@@ -637,17 +639,24 @@ namespace Steel
         auto manager = level->modelManager(modelType);
         if (NULL == manager)
         {
-            Debug::error(intro)("could not find proper manager for modelType ")(modelTypeString)(". ");
-            Debug::error("Aborting.").endl();
+            Debug::error(intro)("could not find proper manager for modelType ")
+            (modelTypeString)(". ")("Aborting.").endl();
             return false;
         }
 
         ModelId mid = manager->fromSingleJson(root);
+        if(INVALID_ID == mid)
+        {
+            Debug::error(intro)("could not build model from serialization:")
+            (root)("Aborting.").endl();
+            return false;
+        }
+        
         if (!level->linkAgentToModel(aid, modelType, mid))
         {
             level->modelManager(modelType)->decRef(mid);
-            Debug::error(intro)("could not link agent ")(aid)(" to  ")(modelTypeString)(" Model ");
-            Debug::error(mid)(". Model released. Aborted.").endl();
+            Debug::error(intro)("could not link agent ")(aid)(" to  ")(modelTypeString)(" Model ")
+            (mid)(". Model released. Aborted.").endl();
             if (fresh_aid)
                 level->deleteAgent(aid);
             return false;
@@ -957,8 +966,8 @@ namespace Steel
     void Editor::processClickEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
     {
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
-        Ogre::String raw_commmand = event_value;
-        if (raw_commmand == "engine.set_level")
+        Ogre::String rawCommand = event_value;
+        if (rawCommand == "engine.set_level")
         {
             auto inputField = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
             if (inputField == NULL)
@@ -973,48 +982,48 @@ namespace Steel
                 Debug::error("Editor::ProcessEvent(): can't create a level with not name. Aborted.").endl();
                 return;
             }
-            raw_commmand += "." + levelName;
+            rawCommand += "." + levelName;
         }
-        //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" raw_commmand:")(raw_commmand).endl();
-        if (raw_commmand.size())
-            processCommand(raw_commmand);
+        //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
+        if (rawCommand.size())
+            processCommand(rawCommand);
     }
 
     void Editor::processChangeEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
     {
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
-        Ogre::String raw_commmand = event_value;
-        if (raw_commmand == "editorbrush.terrabrush.distribution")
+        Ogre::String rawCommand = event_value;
+        if (rawCommand == "editorbrush.terrabrush.distribution")
         {
             Rocket::Controls::ElementFormControlSelect *form = static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
             auto optionId = form->GetSelection();
             if (optionId > -1)
             {
-                raw_commmand += ".";
-                raw_commmand += form->GetValue().CString();
+                rawCommand += ".";
+                rawCommand += form->GetValue().CString();
             }
             else
                 return;
         }
-        //         Debug::log("Editor::processChangeEvent() event type:")(event.GetType())(" raw_commmand:")(raw_commmand).endl();
-        if (raw_commmand.size())
-            processCommand(raw_commmand);
+        //         Debug::log("Editor::processChangeEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
+        if (rawCommand.size())
+            processCommand(rawCommand);
     }
 
     void Editor::processDragDropEvent(Rocket::Core::Event& event, Rocket::Core::Element* elem)
     {
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
-        Ogre::String raw_commmand = "";
+        Ogre::String rawCommand = "";
         if (elem->GetId() == mFSResources->GetDataSourceName())
         {
-            raw_commmand = "instanciate.";
+            rawCommand = "instanciate.";
             File file = File(event_value);
             if (!file.exists())
             {
                 Debug::error("Editor::ProcessEvent(): file not found: ")(file).endl();
                 return;
             }
-            raw_commmand += file.fullPath();
+            rawCommand += file.fullPath();
         }
         else
         {
@@ -1022,13 +1031,15 @@ namespace Steel
             Debug::warning(" value: ")(event_value).endl();
             return;
         }
-        //         Debug::log("Editor::processDragDropEvent() event type:")(event.GetType())(" raw_commmand:")(raw_commmand).endl();
-        if (raw_commmand.size())
-            processCommand(raw_commmand);
+        //         Debug::log("Editor::processDragDropEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
+        if (rawCommand.size())
+            processCommand(rawCommand);
     }
 
     void Editor::processCommand(Ogre::String rawCommand)
     {
+        if("NoValue" == rawCommand)
+            return;
         Debug::log("Editor::processCommand(raw=")(rawCommand)(")").endl();
         processCommand(StringUtils::split(std::string(rawCommand), std::string(".")));
     }
