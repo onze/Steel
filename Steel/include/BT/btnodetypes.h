@@ -6,8 +6,23 @@
 
 namespace Steel
 {
+    /// BTNodes state values.
+    enum BTState
+    {
+        // Should stay first enum value
+        _FIRST = -1,
+        
+        READY,
+        RUNNING,
+        SUCCESS,
+        FAILURE,
+        SKIPT_TO
+    };
 
-/// tells the type of processing a node does.
+    /// Allows for slow lookup. Aligned on BTShapeTokenType.
+    extern std::vector<Ogre::String> BTStateAsString;
+
+    /// tells the type of processing a node does.
     enum BTShapeTokenType
     {
         // Should stay first enum value
@@ -15,25 +30,36 @@ namespace Steel
 
         BTSequenceToken,
         BTSelectorToken,
-        BTDecoratorToken,
-        BTCounterToken,
+//         BTDecoratorToken,
+//         BTCounterToken,
         BTFinderToken,
         BTNavigatorToken,
+        BTSignalListenerToken,
+        BTDebugPrinterToken,
+        
         BTUnknownToken,
 
         // Should stay last value
         _BTLast
     };
 
-/// Holds shape information
+    /// Allows for slow lookup. Aligned on BTShapeTokenType.
+    extern std::vector<Ogre::String> BTShapeTokenTypeAsString;
+
+    /// Index within a BTStateStream.
+    typedef size_t BTStateIndex;
+
+    /// Holds shape information
     class BTShapeToken
     {
         public:
+            //BTShapeToken():type(BTUnknownToken),begin(0UL),end(0UL),contentFile(""){}
+
             BTShapeTokenType type;
             /// node index of the token
-            unsigned begin;
+            BTStateIndex begin;
             /// node index of the next token (last child's +1)
-            unsigned end;
+            BTStateIndex end;
             /// path to file with parameters
             Ogre::String contentFile;
 
@@ -47,17 +73,8 @@ namespace Steel
      * that's shared amongst all models using this shape.*/
     typedef std::vector<BTShapeToken> BTShapeStream;
 
-/// Shapes storage structure
+    /// Shapes storage structure
     typedef std::map<Ogre::String, BTShapeStream> BTShapeStreamMap;
-
-/// Allows for slow lookup
-    extern std::vector<Ogre::String> BTShapeTokenTypeAsString;
-
-/// BTNodes state values.
-    enum BTState
-    {
-        FAILURE = 1 << 3, READY = 1 << 0, RUNNING = 1 << 1, SUCCESS = 1 << 2,
-    };
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 
