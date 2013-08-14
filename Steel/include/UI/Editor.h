@@ -22,6 +22,7 @@ namespace Steel
     {
         private:
             static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE;
+            static const Ogre::String MENU_TAB_INDEX_SETTING;
         public:
             Editor();
             Editor(const Editor& other);
@@ -123,15 +124,17 @@ namespace Steel
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
 
         protected:
-            /// make a command out of a Rocket event. 
+            /// make a command out of a Rocket event.
             void processSubmitEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
-            /// make a command out of a Rocket event. 
+            /// make a command out of a Rocket event.
             void processClickEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
-            /// make a command out of a Rocket event. 
+            /// make a command out of a Rocket event.
             void processChangeEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
-            /// make a command out of a Rocket event. 
+            /// make a command out of a Rocket event.
             void processDragDropEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
-            
+
+            void saveMenuTabIndexSetting(ConfigFile &config) const;
+
             //not owned
             Engine *mEngine;
             UI *mUI;
@@ -141,8 +144,6 @@ namespace Steel
             /// resources available (for levels, models, BTs, etc)
             FileSystemDataSource *mFSResources;
             File mDataDir;
-            /// last active tab in the main editor menu (default to 0)
-            int mMenuTabIndex;
             /// handles mouse props wrt mEditMode
             EditorBrush mBrush;
             /// If set to true, will print all events with empty "value" attribute for elements whose "id" attribute is set.

@@ -25,11 +25,12 @@ namespace Steel
 {
 
     const Ogre::String Editor::REFERENCE_PATH_LOOKUP_TABLE = "Editor::referencePathsLookupTable";
+    const Ogre::String Editor::MENU_TAB_INDEX_SETTING = "Editor::menuTabIndex";
 
-    Editor::Editor()
-        : UIPanel("Editor", "data/ui/current/editor/editor.rml"), mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(NULL),
-          mDataDir(), mMenuTabIndex(1), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
-          mReferencePathsLookupTable(std::map<Ogre::String, Ogre::String>())
+    Editor::Editor():UIPanel("Editor", "data/ui/current/editor/editor.rml"),
+        mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(NULL),
+        mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
+        mReferencePathsLookupTable(std::map<Ogre::String, Ogre::String>())
     {
 #ifdef DEBUG
         mAutoReload=true;
@@ -82,6 +83,21 @@ namespace Steel
     void Editor::saveConfig(ConfigFile &config) const
     {
         mBrush.saveConfig(config);
+        saveMenuTabIndexSetting(config);
+    }
+
+    void Editor::saveMenuTabIndexSetting(ConfigFile &config) const
+    {
+        // save state
+        if(NULL!=mDocument)
+        {
+            auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
+            if (NULL != elem)
+            {
+                int tabNo=elem->GetActiveTab();
+                config.setSetting(Editor::MENU_TAB_INDEX_SETTING, Ogre::StringConverter::toString(tabNo));
+            }
+        }
     }
 
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan)
@@ -648,7 +664,7 @@ namespace Steel
             (root)("Aborting.").endl();
             return false;
         }
-        
+
         if (!level->linkAgentToModel(aid, modelType, mid))
         {
             level->modelManager(modelType)->decRef(mid);
@@ -753,6 +769,7 @@ namespace Steel
                 {
                     if (level != NULL)
                         level->save();
+                    mEngine->saveConfig(mEngine->config());
                 }
                 else
                     mBrush.setMode(EditorBrush::SCALE);
@@ -830,9 +847,11 @@ namespace Steel
         // (re)load state
         // active menu tab
         auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
-        if (elem == NULL)
-            return;
-        elem->SetActiveTab(mEngine->config().getSettingAsInt("Editor::menuTabIndex", 0));
+        if (NULL!=elem)
+        {
+            int tabNo=mEngine->config().getSettingAsInt(Editor::MENU_TAB_INDEX_SETTING, 0);
+            elem->SetActiveTab(tabNo);
+        }
 
 
         // ## reconnect to document
@@ -886,13 +905,7 @@ namespace Steel
             mDocument->RemoveEventListener("dragdrop", this);
             mDocument->RemoveEventListener("change", this);
             mDocument->RemoveEventListener("submit", this);
-            // save state
-            auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
-            if (NULL != elem)
-            {
-                mMenuTabIndex = elem->GetActiveTab();
-                mEngine->config().setSetting("Editor::menuTabIndex", Ogre::StringConverter::toString(mMenuTabIndex));
-            }
+            saveMenuTabIndexSetting(mEngine->config());
         }
         mBrush.onHide();
     }
