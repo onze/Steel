@@ -5,7 +5,12 @@
 
 namespace Steel
 {
-
+    /**
+     * A BTSequence runs its children one after the other until one of them returns FAILURE.
+     * The sequence returns the same state as its last running child.
+     * Its descriptor can contain parameters, see the following keys' docstrings for details:
+     * - MAX_LOOPS_ATTRIBUTE
+     */
     class BTSequence: public BTNode
     {
         private:
