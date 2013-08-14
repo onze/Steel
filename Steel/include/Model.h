@@ -44,14 +44,12 @@ namespace Steel
             virtual void toJson(Json::Value &object)
             {
             }
-            ;
 
             /// Deserialize itself from the given Json object. return true is successful.
             virtual bool fromJson(Json::Value &object)
             {
                 return true;
             }
-            ;
 
             //getters
             inline unsigned long refCount()

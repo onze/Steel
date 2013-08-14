@@ -19,7 +19,6 @@
 #include "Agent.h"
 #include "OgreModelManager.h"
 #include "PhysicsModelManager.h"
-#include "BlackBoardModelManager.h"
 #include "tools/JsonUtils.h"
 
 namespace Steel
@@ -612,8 +611,6 @@ namespace Steel
             modelType = MT_BT;
         else if (modelTypeString == "MT_PHYSICS")
             modelType = MT_PHYSICS;
-        else if (modelTypeString == "MT_BLACKBOARD")
-            modelType = MT_BLACKBOARD;
         else
         {
             Debug::warning(intro)("Unknown model type: ")(modelTypeString).endl();

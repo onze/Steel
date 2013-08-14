@@ -150,11 +150,6 @@ namespace Steel
                 return mBTModelMan;
             }
 
-            inline BlackBoardModelManager *blackBoardModelMan()
-            {
-                return mBlackBoardModelMan;
-            }
-
         protected:
             /// name used in debug output
             Ogre::String logName();
@@ -189,9 +184,6 @@ namespace Steel
 
             /// responsible for PhysicsModel instances.
             PhysicsModelManager *mPhysicsModelMan;
-
-            /// Responsible for BlackBoardModel instances
-            BlackBoardModelManager *mBlackBoardModelMan;
 
             /// Responsible for BTModel instances
             BTModelManager *mBTModelMan;

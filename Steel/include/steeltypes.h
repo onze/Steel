@@ -30,7 +30,6 @@ namespace Steel
         MT_OGRE,
         MT_PHYSICS,
         MT_BT,
-        MT_BLACKBOARD,
 
         //MT_LAST should stay last (to enable looping).
         MT_LAST

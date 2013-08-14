@@ -5,7 +5,6 @@
 #include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "Debug.h"
-#include "BlackBoardModel.h"
 #include "tests/utests_BTrees.h"
 #include "tests/utests_BTShapeStream.h"
 #include "tests/utests_BTStateStream.h"
@@ -95,21 +94,12 @@ namespace Steel
         return true;
     }
 
-    bool test_BlackBoardModel()
-    {
-        BlackBoardModel m;
-        //         m.set;
-        Debug::log("test_BlackBoardModel(): passed").endl();
-        return true;
-    }
-
     bool startTests(Engine *engine,bool abortOnFail)
     {
         bool passed=true;
         if(!(passed&=test_StringUtils()) && abortOnFail)return false;
         if(!(passed&=test_File()) && abortOnFail)return false;
         if(!(passed&=test_ConfigFile()) && abortOnFail)return false;
-        if(!(passed&=test_BlackBoardModel()) && abortOnFail)return false;
         if(!(passed&=test_BTShapeStream()) && abortOnFail)return false;
         if(!(passed&=test_BTStateStream()) && abortOnFail)return false;
         if(!(passed&=test_BTrees()) && abortOnFail)return false;

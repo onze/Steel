@@ -9,7 +9,6 @@ namespace Steel
         "MT_OGRE",
         "MT_PHYSICS",
         "MT_BT",
-        "MT_BLACKBOARD",
     };
 
     std::vector<Ogre::String> modelTypesAsString = std::vector<Ogre::String> (

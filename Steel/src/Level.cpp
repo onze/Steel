@@ -28,7 +28,6 @@
 #include "tools/StringUtils.h"
 #include "PhysicsModelManager.h"
 #include "TerrainPhysicsManager.h"
-#include "BlackBoardModelManager.h"
 
 namespace Steel
 {
@@ -37,7 +36,7 @@ namespace Steel
         mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name),
         mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL),
         mAgents(std::map<AgentId, Agent *>()),
-        mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBlackBoardModelMan(NULL), mBTModelMan(NULL), mTerrainMan(),
+        mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(),
         mCamera(NULL), mMainLight(NULL)
     {
         Debug::log(logName() + "()").endl();
@@ -73,8 +72,7 @@ namespace Steel
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
-        mBlackBoardModelMan = new BlackBoardModelManager(this);
-
+        
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
 
@@ -94,10 +92,6 @@ namespace Steel
         mBTModelMan->clear();
         delete mBTModelMan;
         mBTModelMan = NULL;
-
-        mBlackBoardModelMan->clear();
-        delete mBlackBoardModelMan;
-        mBlackBoardModelMan = NULL;
 
         Ogre::RenderWindow *window = mEngine->renderWindow();
         if (mSceneManager != NULL)
@@ -216,9 +210,6 @@ namespace Steel
                 break;
             case MT_PHYSICS:
                 mm = mPhysicsModelMan;
-                break;
-            case MT_BLACKBOARD:
-                mm = mBlackBoardModelMan;
                 break;
             case MT_BT:
                 mm = mBTModelMan;

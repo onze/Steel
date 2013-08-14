@@ -94,7 +94,7 @@ namespace Steel
         assert(mModels[id].isFree());
 #endif
     }
-    
+
     template<class M>
     void _ModelManager<M>::clear()
     {
