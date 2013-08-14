@@ -2,31 +2,31 @@
  *
  */
 
-#include "BT/BTDebugPrinter.h"
+#include "BT/BTDebug.h"
 #include <Debug.h>
 
 namespace Steel
 {
-    const char *BTDebugPrinter::TEXT_ATTRIBUTE="text";
+    const char *BTDebug::TEXT_ATTRIBUTE="text";
 
-    BTDebugPrinter::BTDebugPrinter(BTShapeToken const &token):BTNode(token),
+    BTDebug::BTDebug(BTShapeToken const &token):BTNode(token),
         mDebugText("no debug text set !")
     {
 
     }
 
-    BTDebugPrinter::~BTDebugPrinter()
+    BTDebug::~BTDebug()
     {
 
     }
 
-    void BTDebugPrinter::run(float timestep)
+    void BTDebug::run(float timestep)
     {
-        Debug::log("BTDebugPrinter<")(reinterpret_cast<unsigned long>(this))("> >> \"")(mDebugText)("\"").endl();
+        Debug::log("BTDebug<")(reinterpret_cast<unsigned long>(this))("> >> \"")(mDebugText)("\"").endl();
         mState=SUCCESS;
     }
 
-    bool BTDebugPrinter::parseNodeContent(Json::Value &root)
+    bool BTDebug::parseNodeContent(Json::Value &root)
     {
         if(root.isMember(TEXT_ATTRIBUTE))
         {

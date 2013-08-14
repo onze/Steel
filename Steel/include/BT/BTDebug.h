@@ -10,22 +10,22 @@ namespace Steel
     /**
      * This node prints whatever content was set at build time. It is always sucessful.
      */
-    class BTDebugPrinter:public BTNode
+    class BTDebug:public BTNode
     {
     public:
         static const char *TEXT_ATTRIBUTE;
         
         inline static BTShapeTokenType tokenType()
         {
-            return BTDebugPrinterToken;
+            return BTDebugToken;
         }
-        BTDebugPrinter(BTShapeToken const &token);
+        BTDebug(BTShapeToken const &token);
         
         void run(float timestep);
         
     private:
         bool parseNodeContent(Json::Value &root);
-        virtual ~BTDebugPrinter();
+        virtual ~BTDebug();
         
         Ogre::String mDebugText;
     };
