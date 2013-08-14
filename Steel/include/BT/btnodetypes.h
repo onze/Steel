@@ -35,7 +35,7 @@ namespace Steel
         BTFinderToken,
         BTNavigatorToken,
         BTSignalListenerToken,
-        BTDebugPrinterToken,
+        BTDebugToken,
         
         BTUnknownToken,
 
