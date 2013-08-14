@@ -12,12 +12,12 @@ namespace Steel
         public:
             inline void emit(const Signal signal, bool anonymous = false)
             {
-                SignalManager::instance()->emit(signal, anonymous ? NULL : this);
+                SignalManager::instance().emit(signal, anonymous ? NULL : this);
             }
 
             inline void emit(const Ogre::String& signal, bool anonymous = false)
             {
-                SignalManager::instance()->emit(signal, anonymous ? NULL : this);
+                SignalManager::instance().emit(signal, anonymous ? NULL : this);
             }
     };
 }

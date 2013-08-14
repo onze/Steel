@@ -13,11 +13,11 @@ namespace Steel
     class TagManager
     {
         public:
-            inline static TagManager *instance()
+            inline static TagManager &instance()
             {
                 if(NULL==TagManager::sInstance)
                     TagManager::sInstance=new TagManager();
-                return TagManager::sInstance;
+                return *TagManager::sInstance;
             }
 
             TagManager();

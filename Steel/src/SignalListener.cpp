@@ -20,15 +20,15 @@ namespace Steel
     
     void SignalListener::registerSignal(const Ogre::String& signal)
     {
-        registerSignal(SignalManager::instance()->toSignal(signal));
+        registerSignal(SignalManager::instance().toSignal(signal));
     }
 
     void SignalListener::registerSignal(const Signal signal)
     {
-        SignalManager::instance()->registerListener(signal, this);
+        SignalManager::instance().registerListener(signal, this);
         mRegisteredSignals.push_back(signal);
 #ifdef DEBUG
-        mRegisteredSignalStrings.push_back(SignalManager::instance()->fromSignal(signal));
+        mRegisteredSignalStrings.push_back(SignalManager::instance().fromSignal(signal));
 #endif
     }
 

@@ -16,11 +16,11 @@ namespace Steel
     class SignalManager
     {
         public:
-            inline static SignalManager *instance()
+            inline static SignalManager &instance()
             {
                 if(NULL==SignalManager::sInstance)
                     SignalManager::sInstance=new SignalManager();
-                return SignalManager::sInstance;
+                return *SignalManager::sInstance;
             }
 
             SignalManager();
