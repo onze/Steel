@@ -120,6 +120,21 @@ namespace Steel
         return *this;
     }
 
+    int ConfigFile::getSettingAsBool(Ogre::String key, bool defaultValue) const
+    {
+        if(mSettings.size()==0)
+            return defaultValue;
+        if(mSettings.isMember(key))
+        {
+            Json::Value value=mSettings[key];
+            if(value.isString())
+                return Ogre::StringConverter::parseBool(value.asString(),defaultValue);
+            if(value.isBool())
+                return value.asBool();
+        }
+        return defaultValue;
+    }
+
     int ConfigFile::getSettingAsInt(Ogre::String key, int defaultValue) const
     {
         if(mSettings.size()==0)
@@ -127,7 +142,9 @@ namespace Steel
         if(mSettings.isMember(key))
         {
             Json::Value value=mSettings[key];
-            if(value.isConvertibleTo(Json::intValue))
+            if(value.isString())
+                return Ogre::StringConverter::parseInt(value.asString(),defaultValue);
+            if(value.isIntegral())
                 return value.asInt();
         }
         return defaultValue;
@@ -138,18 +155,22 @@ namespace Steel
         if(mSettings.isMember(key))
         {
             Json::Value value=mSettings[key];
-            if(value.isConvertibleTo(Json::realValue))
+            if(value.isString())
+                return Ogre::StringConverter::parseReal(value.asString(),defaultValue);
+            if(value.isNumeric())
                 return value.asFloat();
         }
         return defaultValue;
     }
 
-    unsigned long ConfigFile::getSettingAsUnsignedLong(Ogre::String key, unsigned int defaultValue) const
+    unsigned long ConfigFile::getSettingAsUnsignedLong(Ogre::String key, long unsigned int defaultValue) const
     {
         if(mSettings.isMember(key))
         {
             Json::Value value=mSettings[key];
-            if(value.isConvertibleTo(Json::uintValue))
+            if(value.isString())
+                return Ogre::StringConverter::parseUnsignedLong(value.asString(),defaultValue);
+            if(value.isIntegral())
                 return value.asUInt64();
         }
         return defaultValue;
@@ -160,7 +181,7 @@ namespace Steel
         if(mSettings.isMember(key))
         {
             Json::Value value=mSettings[key];
-            if(value.isConvertibleTo(Json::stringValue))
+            if(value.isString())
                 return value.asString();
             else
                 return value.toStyledString();
