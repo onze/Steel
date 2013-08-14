@@ -7,7 +7,7 @@
 // #include "BT/BTCounter.h"
 #include "BT/BTFinder.h"
 #include "BT/BTNavigator.h"
-#include "BT/BTDebugPrinter.h"
+#include "BT/BTDebug.h"
 #include "BT/BTSignalListener.h"
 
 namespace Steel
@@ -128,8 +128,8 @@ namespace Steel
             case BTSignalListenerToken:
                 node=new((BTSignalListener *)(base+offset)) BTSignalListener(token);
                 break;
-            case BTDebugPrinterToken:
-                node=new((BTDebugPrinter *)(base+offset)) BTDebugPrinter(token);
+            case BTDebugToken:
+                node=new((BTDebug *)(base+offset)) BTDebug(token);
                 break;
             case _BTFirst:
             case _BTLast:
@@ -152,7 +152,7 @@ namespace Steel
             case BTFinderToken:             return sizeof(BTFinder);
             case BTNavigatorToken:          return sizeof(BTNavigator);
             case BTSignalListenerToken:     return sizeof(BTSignalListener);
-            case BTDebugPrinterToken:       return sizeof(BTDebugPrinter);
+            case BTDebugToken:              return sizeof(BTDebug);
             case _BTFirst:
             case _BTLast:
             case BTUnknownToken:

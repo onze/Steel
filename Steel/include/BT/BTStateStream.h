@@ -8,9 +8,13 @@
 
 namespace Steel
 {
+    /**
+     * A BTStateStream contains a vector of BTNode subclasses. 
+     * It builds from s shapeStream, and grants access to its states like a regular vector,
+     * despite holding instances of differents classes.
+     */
     class BTStateStream
     {
-
         public:
             BTStateStream();
             BTStateStream(const BTStateStream& other);
