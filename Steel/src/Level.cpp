@@ -26,6 +26,7 @@
 #include "OgreModelManager.h"
 #include "tools/OgreUtils.h"
 #include "tools/StringUtils.h"
+#include <tools/JsonUtils.h>
 #include "PhysicsModelManager.h"
 #include "TerrainPhysicsManager.h"
 
@@ -323,7 +324,7 @@ namespace Steel
         Json::Value root;
         root["name"] = mName;
 
-        root["backgroundColor"] = StringUtils::toJson(mBackgroundColor);
+        root["backgroundColor"] = JsonUtils::toJson(mBackgroundColor);
 
         root["camera"] = mCamera->toJson();
         root["terrain"] = mTerrainMan.toJson();
@@ -462,10 +463,10 @@ namespace Steel
     void Level::update(float timestep)
     {
         mTerrainMan.update(timestep);
+        // assume mTerrainMan's btWorld has been updated
+        mPhysicsModelMan->update(timestep);
         // actually needed ?
         //mOgreModelMan.update(timestep);
-        // physics is updated through teh terrainManager anyways
-        //mPhysicsModelMan.update(timestep);
         mBTModelMan->update(timestep);
     }
 

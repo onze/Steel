@@ -7,8 +7,8 @@
 
 #include "OgreModel.h"
 #include "Debug.h"
-#include <tools/StringUtils.h>
 #include <tools/OgreUtils.h>
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
@@ -144,15 +144,16 @@ namespace Steel
             return;
         }
         //TODO: use abbreviated keys for release
-        node["position"] = StringUtils::toJson(mSceneNode->getPosition());
-        node["rotation"] = StringUtils::toJson(mSceneNode->getOrientation());
-        node["scale"] = StringUtils::toJson(mSceneNode->getScale());
+        node["position"] = JsonUtils::toJson(mSceneNode->getPosition());
+        node["rotation"] = JsonUtils::toJson(mSceneNode->getOrientation());
+        node["scale"] = JsonUtils::toJson(mSceneNode->getScale());
         node["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
     }
 
     bool OgreModel::fromJson(Json::Value &mode)
     {
         Debug::error("OgreModel::fromJson(): wrong deserialization method called.").endl();
+        // TODO: implement this method for inplace modification
         return false;
     }
 

@@ -73,20 +73,6 @@ namespace Steel
                 }
                 return res;
             }
-
-            /// serialize the value into a Json::Value object.
-            template<class T>
-            inline static Json::Value toJson(T const &value)
-            {
-                return Json::Value(Ogre::StringConverter::toString(value).c_str());
-            }
-
-            /// serialize the value into a Json::Value object.
-            inline static Json::Value toJson(std::string const &value)
-            {
-                return Json::Value(value.c_str());
-            }
-
             static Ogre::String BTShapeTokenTypeToString(BTShapeTokenType type);
     };
 }

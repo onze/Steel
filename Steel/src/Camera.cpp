@@ -17,7 +17,7 @@
 #include "Camera.h"
 #include "Level.h"
 #include "Debug.h"
-#include <tools/StringUtils.h>
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
@@ -92,8 +92,8 @@ namespace Steel
     Json::Value Camera::toJson()
     {
         Json::Value value;
-        value["position"] = StringUtils::toJson(mCameraNode->getPosition());
-        value["rotation"] = StringUtils::toJson(mCameraNode->getOrientation());
+        value["position"] = JsonUtils::toJson(mCameraNode->getPosition());
+        value["rotation"] = JsonUtils::toJson(mCameraNode->getOrientation());
         return value;
     }
 

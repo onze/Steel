@@ -7,6 +7,7 @@
 #include <Agent.h>
 #include <OgreModel.h>
 #include <tools/StringUtils.h>
+#include <tools/JsonUtils.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 
@@ -104,17 +105,27 @@ namespace Steel
     {
         if (NULL != mWorld && mBody != NULL)
         {
+            if(NULL!=mGhostObject)
+            {
+                mWorld->removeCollisionObject(mGhostObject);
+                delete mGhostObject;
+                mGhostObject = NULL;
+            }
+            
             mWorld->removeRigidBody(mBody);
+            delete mBody;
             mBody = NULL;
+            
             mWorld = NULL;
         }
     }
 
     void PhysicsModel::toJson(Json::Value &root)
     {
-        root[PhysicsModel::MASS_ATTRIBUTE] = StringUtils::toJson(mMass);
-        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = StringUtils::toJson(mShape);
-        root[PhysicsModel::GHOST_ATTRIBUTE] = StringUtils::toJson(mIsGhost);
+        root[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
+        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(mShape);
+        root[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
+        root[PhysicsModel::EMIT_ON_ANY_TAG_ATTRIBUTE] = JsonUtils::toJson(mEmitOnAnyTag);
     }
 
     BoundingShape PhysicsModel::BBoxShapeFromString(Ogre::String &shape)

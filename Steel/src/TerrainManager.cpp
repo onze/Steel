@@ -14,7 +14,7 @@
 
 #include <Debug.h>
 #include <TerrainManagerEventListener.h>
-#include <tools/StringUtils.h>
+#include <tools/JsonUtils.h>
 #include <TerrainPhysicsManager.h>
 
 namespace Steel
@@ -165,16 +165,16 @@ namespace Steel
         // general level settings
         // "levelLight", as defined in Level::Level
         Ogre::Light *light = mSceneManager->getLight("levelLight");
-        root["ambientLight"] = StringUtils::toJson(mSceneManager->getAmbientLight());
-        root["lightDir"] = StringUtils::toJson(light->getDirection());
-        root["diffuseColor"] = StringUtils::toJson(light->getDiffuseColour());
-        root["specularColor"] = StringUtils::toJson(light->getSpecularColour());
+        root["ambientLight"] = JsonUtils::toJson(mSceneManager->getAmbientLight());
+        root["lightDir"] = JsonUtils::toJson(light->getDirection());
+        root["diffuseColor"] = JsonUtils::toJson(light->getDiffuseColour());
+        root["specularColor"] = JsonUtils::toJson(light->getSpecularColour());
 
         // defaults terrain data
         Json::Value defaultsValue;
         Ogre::Terrain::ImportData& defaults = mTerrainGroup->getDefaultImportSettings();
-        defaultsValue["terrainSize"] = StringUtils::toJson(defaults.terrainSize);
-        defaultsValue["worldSize"] = StringUtils::toJson(defaults.worldSize);
+        defaultsValue["terrainSize"] = JsonUtils::toJson(defaults.terrainSize);
+        defaultsValue["worldSize"] = JsonUtils::toJson(defaults.worldSize);
 
         for (auto it = defaults.layerList.begin(); it != defaults.layerList.end(); ++it)
         {
@@ -202,15 +202,14 @@ namespace Steel
                 continue;
             }
             Json::Value terrainValue;
-            terrainValue["slotPosition"] = StringUtils::toJson(
-                                               Ogre::Vector2(static_cast<float>(slot->x), static_cast<float>(slot->y)));
+            terrainValue["slotPosition"] = JsonUtils::toJson(Ogre::Vector2(static_cast<float>(slot->x), static_cast<float>(slot->y)));
 
             Ogre::String heightmapPath = "";
             saveTerrainHeightmapAs(slot->x, slot->y, terrain, heightmapPath);
             terrainValue["heightmapPath"] = heightmapPath;
 
-            terrainValue["size"] = StringUtils::toJson(terrain->getSize());
-            terrainValue["worldSize"] = StringUtils::toJson(terrain->getWorldSize());
+            terrainValue["size"] = JsonUtils::toJson(terrain->getSize());
+            terrainValue["worldSize"] = JsonUtils::toJson(terrain->getWorldSize());
 
             serializeLayerList(terrain, terrainValue["layerList"]);
 
@@ -282,8 +281,7 @@ namespace Steel
             layerValue["worldSize"] = terrain->getLayerWorldSize(layerIndex);
             Ogre::TerrainLayerSamplerList samplers = terrain->getLayerDeclaration().samplers;
             for (unsigned int samplerIndex = 0; samplerIndex < samplers.size(); ++samplerIndex)
-                layerValue["textureNames"].append(
-                    StringUtils::toJson(terrain->getLayerTextureName(layerIndex, samplerIndex)));
+                layerValue["textureNames"].append(JsonUtils::toJson(terrain->getLayerTextureName(layerIndex, samplerIndex)));
             layerListValue.append(layerValue);
         }
     }
