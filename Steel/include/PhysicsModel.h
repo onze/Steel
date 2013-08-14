@@ -11,9 +11,24 @@ class btDynamicsWorld;
 namespace Steel
 {
     class OgreModel;
+    /**
+     * Physic representation of an OgreModel (can't work without it as of now)
+     */
     class PhysicsModel: public Model
     {
         public:
+            /// The object's mass
+            static const Ogre::String MASS_ATTRIBUTE;
+            /// The shape of the model bounding box. Value should be one of BBOX_SHAPE_NAME_*
+            static const Ogre::String BBOX_SHAPE_ATTRIBUTE;
+            /// If true, collision with other objects does not affect them (ie hitbox).
+            static const Ogre::String GHOST_ATTRIBUTE;
+
+            static const Ogre::String BBOX_SHAPE_NAME_BOX;
+            static const Ogre::String BBOX_SHAPE_NAME_CONVEXHULL;
+            static const Ogre::String BBOX_SHAPE_NAME_SPHERE;
+            static const Ogre::String BBOX_SHAPE_NAME_TRIMESH;
+
             PhysicsModel();
             PhysicsModel(const PhysicsModel& o);
             void init(btDynamicsWorld *world, OgreModel *omodel);
@@ -46,14 +61,22 @@ namespace Steel
             void setSelected(bool selected);
             virtual void cleanup();
         protected:
+            /// Maps a bounding shape string to its enum value. Defaults to sphere.
+            BoundingShape BBoxShapeFromString(Ogre::String &shape);
+
             //not owned
             btDynamicsWorld *mWorld;
+
             //owned
             btRigidBody* mBody;
             Ogre::Real mMass;
             bool mIsKinematics;
             /// kinematics/rigidBody states stack
             std::stack<bool> mStates;
+            /// Shape of the physic model representing the graphic model.
+            BoundingShape mShape;
+            /// See GHOST_ATTRIBUTE docstring.
+            bool mIsGhost;
     };
 }
 #endif // STEEL_PHYSICSMODEL_H

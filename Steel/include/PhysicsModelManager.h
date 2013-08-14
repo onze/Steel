@@ -1,11 +1,13 @@
 #ifndef STEEL_PHYSICSMODELMANAGER_H
 #define STEEL_PHYSICSMODELMANAGER_H
 
+class btCollisionObjectWrapper;
 class btDynamicsWorld;
 
 #include "steeltypes.h"
 #include "_ModelManager.h"
 #include "PhysicsModel.h"
+#include <BulletCollision/NarrowPhaseCollision/btManifoldPoint.h>
 
 namespace Steel
 {
@@ -27,6 +29,7 @@ namespace Steel
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();
 
+            /// Callback used to sync a PhysicsModel to its OgreModel upon linkage.
             bool onAgentLinkedToModel(Agent *agent, ModelId mid);
         protected:
             // not owned

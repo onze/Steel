@@ -26,6 +26,7 @@ namespace Steel
         mCollisionConfig = new btDefaultCollisionConfiguration();
         mDispatcher = new btCollisionDispatcher(mCollisionConfig);
         mSolver = new btSequentialImpulseConstraintSolver();
+        
 
         mWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfig);
         mWorld->setGravity(btVector3(0,-9.8,0));
@@ -232,12 +233,9 @@ namespace Steel
 
         // wake up rigbodies in the area
         pterrain->mBody->activate(true);
-//         btVector3 min,max;
-//         pterrain->mBody->getAabb(min,max);
         auto objects=mWorld->getCollisionObjectArray();
         for(auto i=0; i<objects.size(); ++i)
             objects[i]->activate(true);
-//         mWorld->contactTest(pterrain->mBody->getCollisionShape(),);
     }
     bool TerrainPhysicsManager::removeTerrainFor(Ogre::Terrain *ogreTerrain)
     {
@@ -271,7 +269,7 @@ namespace Steel
     void TerrainPhysicsManager::update(float timestep)
     {
         if(NULL!=mWorld)
-            mWorld->stepSimulation(timestep,7);
+            mWorld->stepSimulation(timestep, 10);
     }
 
     bool TerrainPhysicsManager::frameRenderingQueued(const Ogre::FrameEvent &evt)

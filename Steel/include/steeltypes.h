@@ -40,6 +40,15 @@ namespace Steel
 
     typedef unsigned long Signal;
     const Signal INVALID_SIGNAL=ULONG_MAX;
+    
+    /// Shape of the physic enveloppe of an OgreModel
+    enum BoundingShape
+    {
+        BS_BOX=0,
+        BS_SPHERE,
+        BS_CONVEXHULL, 
+        BS_TRIMESH,
+    };
 }
 
 #endif

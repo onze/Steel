@@ -12,8 +12,18 @@
 
 namespace Steel
 {
-    PhysicsModel::PhysicsModel()
-        : Model(), mWorld(NULL), mBody(NULL), mMass(.0f), mIsKinematics(false), mStates(std::stack<bool>())
+    const Ogre::String PhysicsModel::MASS_ATTRIBUTE="mass";
+    const Ogre::String PhysicsModel::BBOX_SHAPE_ATTRIBUTE="shape";
+    const Ogre::String PhysicsModel::GHOST_ATTRIBUTE="ghost";
+
+    const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_BOX="box";
+    const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_CONVEXHULL="convexHull";
+    const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_SPHERE="sphere";
+    const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_TRIMESH="trimesh";
+
+    PhysicsModel::PhysicsModel(): Model(),
+        mWorld(NULL), mBody(NULL),
+        mMass(.0f), mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE), mIsGhost(false)
     {
 
     }
@@ -34,19 +44,35 @@ namespace Steel
         }
         // Create shape
         BtOgre::StaticMeshToShapeConverter converter(omodel->entity());
-        btConvexHullShape *mShape = converter.createConvex();
-        // You can also just use btSphereShape(1.2) or something.
-//         btSphereShape *mShape = converter.createSphere();1
 
-//Calculate inertia.
+        btCollisionShape *shape=NULL;
+        switch(mShape)
+        {
+            case BS_BOX:
+                shape=converter.createBox();
+                break;
+            case BS_CONVEXHULL:
+                shape=converter.createConvex();
+                break;
+            case BS_SPHERE:
+                shape=converter.createSphere();
+                break;
+            case BS_TRIMESH:
+                shape=converter.createTrimesh();
+        }
+
+        //Calculate inertia.
         btVector3 inertia;
-        mShape->calculateLocalInertia(mMass, inertia);
+        shape->calculateLocalInertia(mMass, inertia);
 
         //Create BtOgre MotionState (connects Ogre and Bullet).
         BtOgre::RigidBodyState *state = new BtOgre::RigidBodyState(omodel->sceneNode());
 
         //Create the Body.
-        mBody = new btRigidBody(mMass, state, mShape, inertia);
+        mBody = new btRigidBody(mMass, state, shape, inertia);
+        if(mIsGhost)
+            mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+        mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
         world->addRigidBody(mBody);
     }
 
@@ -63,6 +89,8 @@ namespace Steel
         mMass = o.mMass;
         mIsKinematics = o.mIsKinematics;
         mStates = o.mStates;
+        mShape = o.mShape;
+        mIsGhost = o.mIsGhost;
         return *this;
     }
 
@@ -84,7 +112,24 @@ namespace Steel
 
     void PhysicsModel::toJson(Json::Value &root)
     {
-        root["mass"] = StringUtils::toJson(mMass);
+        root[PhysicsModel::MASS_ATTRIBUTE] = StringUtils::toJson(mMass);
+        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = StringUtils::toJson(mShape);
+        root[PhysicsModel::GHOST_ATTRIBUTE] = StringUtils::toJson(mIsGhost);
+    }
+
+    BoundingShape PhysicsModel::BBoxShapeFromString(Ogre::String &shape)
+    {
+        if(shape==PhysicsModel::BBOX_SHAPE_NAME_BOX)
+            return BS_BOX;
+        if(shape==PhysicsModel::BBOX_SHAPE_NAME_CONVEXHULL)
+            return BS_CONVEXHULL;
+        if(shape==PhysicsModel::BBOX_SHAPE_NAME_SPHERE)
+            return BS_SPHERE;
+        if(shape==PhysicsModel::BBOX_SHAPE_NAME_TRIMESH)
+            return BS_TRIMESH;
+        Debug::error("in PhysicsModel::BBoxShapeFromString(): unknown value ").quotes(shape)
+        (". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
+        return BS_SPHERE;
     }
 
     bool PhysicsModel::fromJson(Json::Value &root)
@@ -92,13 +137,31 @@ namespace Steel
         Json::Value value;
         bool allWasFine = true;
 
-        // gather it
-        value = root["mass"];
-        if (value.isNull() && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): invalid field 'mass' (skipped).").endl();
+        // MASS
+        value = root[PhysicsModel::MASS_ATTRIBUTE];
+        if ((value.isNull() || !value.isString()) && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(" (skipped).").endl();
         else
             mMass = Ogre::StringConverter::parseReal(value.asString(), 0.f);
 
+        // SHAPE
+        value = root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE];
+        if ((!value.isNull() && !value.isString()) && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::BBOX_SHAPE_ATTRIBUTE)("  (skipped).").endl();
+        else
+        {
+            Ogre::String svalue=value.asString();
+            mShape = BBoxShapeFromString(svalue);
+        }
+
+        // GHOST
+        value = root[PhysicsModel::GHOST_ATTRIBUTE];
+        if ((!value.isNull() && !value.isString()) && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::GHOST_ATTRIBUTE)("  (skipped).").endl();
+        else
+            mIsGhost = Ogre::StringConverter::parseBool(value.asString(), false);
+
+        // final check
         if (!allWasFine)
         {
             Debug::error("json was:").endl()(root.toStyledString()).endl();
@@ -144,7 +207,7 @@ namespace Steel
     void PhysicsModel::toRigidBody()
     {
         mWorld->removeRigidBody(mBody);
-        mBody->setActivationState(ACTIVE_TAG);
+        mBody->forceActivationState(ACTIVE_TAG);
         mBody->setCollisionFlags(mBody->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
         mIsKinematics = false;
         mWorld->addRigidBody(mBody);
