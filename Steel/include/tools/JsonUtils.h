@@ -20,6 +20,12 @@ namespace Steel
             }
             
             /// serialize the value into a Json::Value object.
+            inline static Json::Value toJson(std::string const &value)
+            {
+                return Json::Value(value.c_str());
+            }
+            
+            /// serialize the value into a Json::Value object.
             template<class T>
             inline static Json::Value toJson(std::set<T> const &container)
             {
@@ -27,12 +33,6 @@ namespace Steel
                 for(auto t:container)
                     value.append(Ogre::StringConverter::toString(t).c_str());
                 return value;
-            }
-            
-            /// serialize the value into a Json::Value object.
-            inline static Json::Value toJson(std::string const &value)
-            {
-                return Json::Value(value.c_str());
             }
             
         private:

@@ -2,8 +2,8 @@
 #define STEEL_PHYSICSMODEL_H
 
 #include <stack>
-#include <BulletDynamics/Dynamics/btRigidBody.h>
 
+#include "steeltypes.h"
 #include "Model.h"
 
 class btDynamicsWorld;
@@ -23,6 +23,8 @@ namespace Steel
             static const Ogre::String BBOX_SHAPE_ATTRIBUTE;
             /// If true, collision with other objects does not affect them (ie hitbox).
             static const Ogre::String GHOST_ATTRIBUTE;
+            /// Ghost models will emit their signal(s) iff the colliding agent has one of those
+            static const Ogre::String EMIT_ON_ANY_TAG_ATTRIBUTE;
 
             static const Ogre::String BBOX_SHAPE_NAME_BOX;
             static const Ogre::String BBOX_SHAPE_NAME_CONVEXHULL;
@@ -77,6 +79,8 @@ namespace Steel
             BoundingShape mShape;
             /// See GHOST_ATTRIBUTE docstring.
             bool mIsGhost;
+            /// Tags the ghost object will emit upon valid collision
+            std::set<Tag> mEmitOnAnyTag;
     };
 }
 #endif // STEEL_PHYSICSMODEL_H

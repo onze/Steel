@@ -2,20 +2,22 @@
 
 #include <btBulletCollisionCommon.h>
 #include <OgreEntity.h>
-
-#include "steeltypes.h"
-#include <Agent.h>
-#include <OgreModel.h>
-#include <tools/StringUtils.h>
-#include <tools/JsonUtils.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
+
+#include "steeltypes.h"
+#include "Agent.h"
+#include "OgreModel.h"
+#include "tools/StringUtils.h"
+#include "tools/JsonUtils.h"
+#include "TagManager.h"
 
 namespace Steel
 {
     const Ogre::String PhysicsModel::MASS_ATTRIBUTE="mass";
     const Ogre::String PhysicsModel::BBOX_SHAPE_ATTRIBUTE="shape";
     const Ogre::String PhysicsModel::GHOST_ATTRIBUTE="ghost";
+    const Ogre::String PhysicsModel::EMIT_ON_ANY_TAG_ATTRIBUTE= "emitOnAnyTag";
 
     const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_BOX="box";
     const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_CONVEXHULL="convexHull";
@@ -24,7 +26,8 @@ namespace Steel
 
     PhysicsModel::PhysicsModel(): Model(),
         mWorld(NULL), mBody(NULL),
-        mMass(.0f), mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE), mIsGhost(false)
+        mMass(.0f), mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE),
+        mIsGhost(false),mGhostObject(NULL),mEmitOnAnyTag(std::set<Tag>())
     {
 
     }
@@ -111,21 +114,14 @@ namespace Steel
                 delete mGhostObject;
                 mGhostObject = NULL;
             }
-            
+
             mWorld->removeRigidBody(mBody);
             delete mBody;
             mBody = NULL;
-            
+
             mWorld = NULL;
         }
-    }
-
-    void PhysicsModel::toJson(Json::Value &root)
-    {
-        root[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
-        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(mShape);
-        root[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
-        root[PhysicsModel::EMIT_ON_ANY_TAG_ATTRIBUTE] = JsonUtils::toJson(mEmitOnAnyTag);
+        mEmitOnAnyTag.clear();
     }
 
     BoundingShape PhysicsModel::BBoxShapeFromString(Ogre::String &shape)
@@ -143,6 +139,14 @@ namespace Steel
         return BS_SPHERE;
     }
 
+    void PhysicsModel::toJson(Json::Value &root)
+    {
+        root[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
+        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(mShape);
+        root[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
+        root[PhysicsModel::EMIT_ON_ANY_TAG_ATTRIBUTE] = JsonUtils::toJson(mEmitOnAnyTag);
+    }
+
     bool PhysicsModel::fromJson(Json::Value &root)
     {
         Json::Value value;
@@ -151,13 +155,13 @@ namespace Steel
         // MASS
         value = root[PhysicsModel::MASS_ATTRIBUTE];
         if ((value.isNull() || !value.isString()) && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): invalid field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(" (skipped).").endl();
+            Debug::error("in PhysicsModel::fromJson(): invalid field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(". Aborting.").endl();
         else
             mMass = Ogre::StringConverter::parseReal(value.asString(), 0.f);
 
         // SHAPE
         value = root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE];
-        if ((!value.isNull() && !value.isString()) && !(allWasFine = false))
+        if ((!value.isNull() && !value.isString()))
             Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::BBOX_SHAPE_ATTRIBUTE)("  (skipped).").endl();
         else
         {
@@ -168,9 +172,33 @@ namespace Steel
         // GHOST
         value = root[PhysicsModel::GHOST_ATTRIBUTE];
         if ((!value.isNull() && !value.isString()) && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::GHOST_ATTRIBUTE)("  (skipped).").endl();
+            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::GHOST_ATTRIBUTE)(". Aborting.").endl();
         else
             mIsGhost = Ogre::StringConverter::parseBool(value.asString(), false);
+
+        // EMIT_ON_ANY_TAG_ATTRIBUTE
+        value = root[PhysicsModel::EMIT_ON_ANY_TAG_ATTRIBUTE];
+        if ((!value.isNull() && !value.isArray()) && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::EMIT_ON_ANY_TAG_ATTRIBUTE)(". Aborting.").endl();
+        else
+        {
+            for(auto it=value.begin();it!=value.end();++it)
+            {
+                Json::Value v=*it;
+                if(!v.isIntegral() && !(allWasFine = false))
+                {
+                    Debug::error("in PhysicsModel::fromJson(): invalid tag ")(v).endl();
+                    break;
+                }
+                Tag tag=TagManager::instance()->toTag(value.asString());
+                if(INVALID_TAG==tag && !(allWasFine = false))
+                {
+                    Debug::error("in PhysicsModel::fromJson(): invalid tag ")(tag)(" / ").quotes(value.asString()).endl();
+                    break;
+                }
+                mEmitOnAnyTag.insert(tag);
+            }
+        }
 
         // final check
         if (!allWasFine)

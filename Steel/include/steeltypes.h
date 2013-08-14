@@ -37,9 +37,12 @@ namespace Steel
 
     /// Maps a ModelType to its string representation.
     extern std::vector<Ogre::String> modelTypesAsString;
-
+    
     typedef unsigned long Signal;
     const Signal INVALID_SIGNAL=ULONG_MAX;
+    
+    typedef unsigned long Tag;
+    const Signal INVALID_TAG=ULONG_MAX;
     
     /// Shape of the physic enveloppe of an OgreModel
     enum BoundingShape
