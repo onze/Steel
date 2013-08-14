@@ -31,6 +31,7 @@
 namespace Steel
 {
     const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT="Engine::nonEditModeGrabsInput";
+    const Ogre::String Engine::COLORED_DEBUG="Engine::coloredDebug";
 
     Engine::Engine(Ogre::String confFilename)
         : mRootDir("."), mConfig(confFilename),
@@ -134,7 +135,9 @@ namespace Steel
                                   Ogre::LogListener *logListener)
     {
         std::cout << "Engine::preWindowingSetup()" << std::endl;
-        Debug::init(defaultLog, logListener);
+        mConfig.load();
+        
+        Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG,true));
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
         mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), "");
@@ -144,7 +147,6 @@ namespace Steel
         Ogre::ConfigFile cf;
         cf.load("resources.cfg");
 
-        mConfig.load();
 
         // Go through all sections & settings in the file
         Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();

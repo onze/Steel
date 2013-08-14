@@ -319,7 +319,7 @@ namespace Steel
             static bool isInit;
 
             /// Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
-            static void init(Ogre::String defaultLogName, Ogre::LogListener *logListener)
+            static void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors=true)
             {
                 Ogre::LogManager *olm = new Ogre::LogManager();
                 Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, true, false);
@@ -333,6 +333,7 @@ namespace Steel
                     wlog->addListener(logListener);
                 warning = DebugObject(wlog);
                 //yellow
+                if(useColors)
                 warning.setColors("\033[1;33m", "\033[1;m");
 
                 Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);
@@ -340,7 +341,9 @@ namespace Steel
                     elog->addListener(logListener);
                 error = DebugObject(elog);
                 //red
-                error.setColors("\033[1;31m", "\033[1;m");
+                if(useColors)
+                    error.setColors("\033[1;31m", "\033[1;m");
+                
                 Debug::isInit=true;
             }
 
