@@ -15,7 +15,7 @@ namespace Steel
         "BTFinder",
         "BTNavigator",
         "BTSignalListener",
-        "BTDebugPrinter",
+        "BTDebug",
         "BTUnknown"
     };
 

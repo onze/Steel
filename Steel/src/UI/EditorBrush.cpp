@@ -54,14 +54,14 @@ namespace Steel
     {
         mTerraScale = Ogre::StringConverter::parseVector3(config.getSetting(EditorBrush::TERRA_SCALE),mTerraScale);
         mTerraScaleFactor = config.getSettingAsFloat(EditorBrush::TERRA_SCALE_FACTOR,mTerraScaleFactor);
-        setMode((BrushMode) config.getSettingAsUnsignedLong(EditorBrush::MODE, (int) mMode));
+        setMode((BrushMode) config.getSettingAsUnsignedLong(EditorBrush::MODE, (unsigned long) mMode));
     }
 
     void EditorBrush::saveConfig(ConfigFile &config) const
     {
         config.setSetting(EditorBrush::TERRA_SCALE, Ogre::StringConverter::toString(mTerraScale));
         config.setSetting(EditorBrush::TERRA_SCALE_FACTOR, Ogre::StringConverter::toString(mTerraScaleFactor));
-        config.setSetting(EditorBrush::MODE, mMode);
+        config.setSetting(EditorBrush::MODE, Ogre::StringConverter::toString(mMode));
     }
 
     EditorBrush& EditorBrush::operator=(const EditorBrush& other)
