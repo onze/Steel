@@ -23,13 +23,14 @@
 #include "Debug.h"
 #include "RayCaster.h"
 #include "tools/File.h"
-#include <tools/StringUtils.h>
-#include <tools/OgreUtils.h>
+#include "tools/StringUtils.h"
+#include "tools/OgreUtils.h"
 #include "tests/utests.h"
-#include <EngineEventListener.h>
+#include "EngineEventListener.h"
 
 namespace Steel
 {
+    const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT="Engine::nonEditModeGrabsInput";
 
     Engine::Engine(Ogre::String confFilename)
         : mRootDir("."), mConfig(confFilename),
@@ -221,7 +222,7 @@ namespace Steel
         mInputMan.init(this, &mUI);
 
         Debug::log.unIndent();
-        
+
         // engine ready.
         // unit testing
         if (Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
@@ -306,7 +307,7 @@ namespace Steel
 //         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 //         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Btree models/patrol.model");
 //         mUI.editor().processCommand("instanciate./media/a0/cpp/1210/usmb/install_dir/data/resources/Model composites/utest_sequence.model_refs");
-        
+
         const double ms2us = 1000.;
 
         Ogre::Timer timer;
@@ -648,7 +649,7 @@ namespace Steel
 //         Debug::log("Engine::stopEditMode()").endl();
         mEditMode = false;
         mUI.stopEditMode();
-        mInputMan.grabInput(true);
+        mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT,true));
     }
 
 }

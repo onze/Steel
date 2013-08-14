@@ -28,6 +28,8 @@ namespace Steel
     class Engine
     {
         public:
+            static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
+            
             class Stats
             {
                 public:
