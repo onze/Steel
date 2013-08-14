@@ -12,10 +12,11 @@
 namespace Steel
 {
     /**
-     * Instances of this class hold agent-specific data related to BTrees.
+     * Instances of this class hold agent-specific data related to their BTree.
      * One can see them as a blackboard on which
-     * BTNodes can write stuff other nodes could need.
+     * BTNode subclasses can write stuff other nodes could need.
      * It is like a short&long term memory for an agent.
+     * An agent's BTModel is also responsible for running the Btree it holds.
      */
     class BTModel: public Model
     {
