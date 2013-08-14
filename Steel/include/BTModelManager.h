@@ -16,14 +16,14 @@ namespace Steel
             BTModelManager(Level *level, Ogre::String mPath);
             virtual ~BTModelManager();
 
-            virtual ModelId fromSingleJson(Json::Value &root);
+            bool fromSingleJson(Json::Value &root, ModelId &id);
             virtual ModelType modelType();
 
             /**
              * Reads the file system at the given directory, build the corresponding BTree,
              * and returns the id of a BTModel executing it.
              */
-            ModelId buildFromFile(File &rootFile);
+            bool buildFromFile(Steel::File& rootFile, Steel::ModelId& id);
 
             /// Main loop iteration. Update each BT model.
             void update(float timestep);

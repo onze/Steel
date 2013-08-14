@@ -48,7 +48,7 @@ namespace Steel
             /// Initialize new models according to data in the json serialization.
             virtual std::vector<ModelId> fromJson(Json::Value &models);
             /// Initializea single new model according to data in the json serialization.
-            virtual ModelId fromSingleJson(Json::Value &model);
+            virtual bool fromSingleJson(Json::Value &model, ModelId &id);
 
             /// Dump all models' json representation into the given object.
             void toJson(Json::Value &object);

@@ -27,7 +27,7 @@ namespace Steel
         // TODO Auto-generated destructor stub
     }
 
-    ModelId OgreModelManager::fromSingleJson(Json::Value &model)
+    bool OgreModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
         //TODO: add safety
         // get values for init
@@ -39,15 +39,16 @@ namespace Steel
 
         Ogre::Vector3 pos = Ogre::StringConverter::parseVector3(model["position"].asString());
         Ogre::Quaternion rot = Ogre::StringConverter::parseQuaternion(model["rotation"].asString());
-        ModelId id = newModel(meshName, pos, rot);
+        id = newModel(meshName, pos, rot);
         int loadingOk=mModels[id].fromJson(model, mLevelRoot, mSceneManager);
         //TODO discard, quarantine, repair ?
         if(!loadingOk)
         {
             deallocateModel(id);
             id=INVALID_ID;
+            return false;
         }
-        return id;
+        return true;
     }
 
     ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)

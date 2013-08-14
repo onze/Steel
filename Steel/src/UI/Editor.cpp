@@ -641,8 +641,8 @@ namespace Steel
             return false;
         }
 
-        ModelId mid = manager->fromSingleJson(root);
-        if(INVALID_ID == mid)
+        ModelId mid = INVALID_ID;
+        if(!manager->fromSingleJson(root, mid) || INVALID_ID == mid)
         {
             Debug::error(intro)("could not build model from serialization:")
             (root)("Aborting.").endl();

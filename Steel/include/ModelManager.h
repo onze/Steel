@@ -27,11 +27,11 @@ namespace Steel
             virtual void decRef(ModelId id)=0;
             virtual bool isValid(ModelId id)=0;
             /// Triggered by the level after an agent linked itself to an owned model
-            virtual bool onAgentLinkedToModel(Agent *agent, ModelId mid)=0;
+            virtual bool onAgentLinkedToModel(Agent *agent, ModelId id)=0;
 
             virtual std::vector<ModelId> fromJson(Json::Value &models)=0;
             /// Meant to be reimplemented by subclass when models use extra params in their M::fromJson
-            virtual ModelId fromSingleJson(Json::Value &models)=0;
+            virtual bool fromSingleJson(Json::Value &model, ModelId &id)=0;
             virtual void toJson(Json::Value &object)=0;
     };
 

@@ -221,6 +221,8 @@ namespace Steel
         mInputMan.init(this, &mUI);
 
         Debug::log.unIndent();
+        
+        // engine ready.
         // unit testing
         if (Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
         {

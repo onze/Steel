@@ -25,21 +25,22 @@ namespace Steel
         return MT_BT;
     }
 
-    ModelId BTModelManager::fromSingleJson(Json::Value &root)
+    bool BTModelManager::fromSingleJson(Json::Value &root, ModelId &id)
     {
+        id=INVALID_ID;
         Json::Value value;
         Ogre::String intro="in BTModelManager::fromSingleJson():\n"+root.toStyledString()+"\n";
         if(root.isNull())
         {
             Debug::error(intro)("Empty root. Aborting.").endl();
-            return INVALID_ID;
+            return false;
         }
 
         value=root["rootPath"];
         if(value.isNull())
         {
             Debug::error(intro)("unknown rootPath. Aborting.").endl();
-            return INVALID_ID;
+            return false;
         }
 
         Ogre::String rootPath=value.asString();
@@ -47,14 +48,14 @@ namespace Steel
         if(!rootFile.exists())
         {
             Debug::error(intro)("rootFile ")(rootFile)(" not found. Aborting.").endl();
-            return INVALID_ID;
+            return false;
         }
 
-        ModelId mid=buildFromFile(rootFile);
-        return mid;
+        return buildFromFile(rootFile, id);
+        return true;
     }
 
-    ModelId BTModelManager::buildFromFile(File &rootFile)
+    bool BTModelManager::buildFromFile(File &rootFile, ModelId &id)
     {
         Ogre::String intro="in BTModelManager::buildFromFile("+rootFile.fullPath()+"): ";
 
@@ -64,19 +65,19 @@ namespace Steel
         {
             Debug::error(intro)("could not generate a BT shape root node ")(rootFile);
             Debug::error(", see above for details. Aborting.").endl();
-            return INVALID_ID;
+            return false;
         }
         assert(NULL!=shapeStream);
 
         // make it build the state stream
-        ModelId mid=allocateModel();
-        if(!mModels[mid].init(shapeStream))
+        id=allocateModel();
+        if(!mModels[id].init(shapeStream))
         {
             Debug::error(intro)("could not init model. Deallocating it.").endl();
-            deallocateModel(mid);
-            mid=INVALID_ID;
+            deallocateModel(id);
+            id=INVALID_ID;
         }
-        return mid;
+        return true;
     }
 
     void BTModelManager::update(float timestep)

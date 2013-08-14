@@ -20,13 +20,9 @@ namespace Steel
             {
                 return MT_PHYSICS;
             }
-            ;
-
-            /// Batched call to fromSingleJson.
-            std::vector<ModelId> fromJson(Json::Value &models);
 
             /// Initialize a new PhysicsModel according to data in the json serialization.
-            ModelId fromSingleJson(Json::Value &model);
+            bool fromSingleJson(Json::Value &model, ModelId &id);
 
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();

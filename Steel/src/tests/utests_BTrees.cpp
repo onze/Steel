@@ -30,8 +30,8 @@ namespace Steel
             return false;
         }
         // instanciate it
-        ModelId mid=btModelMan->fromSingleJson(root);
-        if(mid==INVALID_ID)
+        ModelId mid=INVALID_ID;
+        if(!btModelMan->fromSingleJson(root, mid) || mid==INVALID_ID)
         {
             Debug::error(intro)("Model id is invalid. See above for details.").endl();
             return false;

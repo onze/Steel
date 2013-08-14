@@ -21,31 +21,19 @@ namespace Steel
         mWorld=NULL;
     }
 
-    std::vector<ModelId> PhysicsModelManager::fromJson(Json::Value &models)
-    {
-        Debug::log(logName()+"::fromJson()")(models).endl();
-        std::vector<ModelId> ids;
-        for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
-        {
-            //TODO: implement id remapping, so that we stay in a low id range
-            Json::Value value = *it;
-            ids.push_back(fromSingleJson(value));
-        }
-        return ids;
-    }
-
-    ModelId PhysicsModelManager::fromSingleJson(Json::Value &model)
+    bool PhysicsModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
         Ogre::String intro=logName()+"::fromSingleJson(): ";
         Json::Value value;
-        ModelId mid=newModel();
+        id=newModel();
 
-        if(!mModels[mid].fromJson(model))
+        if(!mModels[id].fromJson(model))
         {
-            mid=INVALID_ID;
+            deallocateModel(id);
+            id=INVALID_ID;
+            return false;
         }
-
-        return mid;
+        return true;
     }
 
     ModelId PhysicsModelManager::newModel()

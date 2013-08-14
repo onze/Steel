@@ -125,17 +125,19 @@ namespace Steel
         for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
         {
             //TODO: implement id remapping, so that we stay in a low id range
-            //TODO: put fool proof conditions under #ifdef DEBUG
             Json::Value value = *it;
-            ids.push_back(fromSingleJson(value));
+            ModelId mid=INVALID_ID;
+            if(!fromSingleJson(value,mid))
+                Debug::error("could not deserialize model.").endl();
+            ids.push_back(mid);
         }
         return ids;
     }
 
     template<class M>
-    ModelId _ModelManager<M>::fromSingleJson(Json::Value &value)
+    bool _ModelManager<M>::fromSingleJson(Json::Value &value, ModelId &id)
     {
-        ModelId id = allocateModel();
+        id = allocateModel();
         //get values for load
         //incRef(id);
         int loadingOk = mModels[id].fromJson(value);
@@ -144,8 +146,9 @@ namespace Steel
         {
             decRef(id);
             id = INVALID_ID;
+            return false;
         }
-        return id;
+        return true;
     }
 
     template<class M>
