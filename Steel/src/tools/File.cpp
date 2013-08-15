@@ -399,7 +399,7 @@ namespace Steel
 
         std::vector<std::string> files;
         Poco::File(fullPath()).list(files);
-        ;
+        
         std::list<File> nodes;
         for (auto it = files.begin(); it != files.end(); ++it)
         {
@@ -472,7 +472,7 @@ namespace Steel
 
     bool File::readInto(Json::Value &root, bool keepComments)
     {
-        Ogre::String intro = "in File::readInto(): ";
+        Ogre::String intro = "in File<"+fullPath()+">::readInto(): ";
         if (!exists())
         {
             Ogre::String msg = "Could not open :" + fullPath() + ": file not found.";
