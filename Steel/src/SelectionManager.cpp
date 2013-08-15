@@ -54,6 +54,7 @@ namespace Steel
             return;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
             mEngine->level()->deleteAgent(*it);
+        mSelection.clear();
     }
 
     void SelectionManager::rotateSelection(Ogre::Vector3 rotation)
@@ -172,6 +173,7 @@ namespace Steel
             mSelection.push_back(agent->id());
             agent->setSelected(true);
         }
+        Debug::log("Selected agents: ")(mSelection).endl();
     }
 
     void SelectionManager::removeFromSelection(const Selection &selection)
@@ -240,7 +242,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mEngine->level()->getAgent(*it);
-            if (agent == NULL)
+            if (NULL == agent)
                 continue;
             agent->move(dpos);
         }

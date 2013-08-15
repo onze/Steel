@@ -23,6 +23,7 @@ namespace Steel
         // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=16731#p16731
         // Use the btDbvtBroadphase instead of btAxisSweep3 to increase performance of adding/removing to the world
         mBroadphase = new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024);
+//         mBroadphase=new btDbvtBroadphase();
         mCollisionConfig = new btDefaultCollisionConfiguration();
         mDispatcher = new btCollisionDispatcher(mCollisionConfig);
         mSolver = new btSequentialImpulseConstraintSolver();
