@@ -102,7 +102,7 @@ namespace Steel
             btSequentialImpulseConstraintSolver *mSolver;
             btCollisionDispatcher *mDispatcher;
             btDefaultCollisionConfiguration *mCollisionConfig;
-            btAxisSweep3 *mBroadphase;
+            btBroadphaseInterface *mBroadphase;
             BtOgre::DebugDrawer *mDebugDrawer;
 
     };
