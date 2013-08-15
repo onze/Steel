@@ -53,8 +53,9 @@ namespace Steel
 
     Signal SignalManager::toSignal(const Ogre::String& signal)
     {
-        auto it=mSignalsMap.find(signal);
         Signal returnedValue=INVALID_SIGNAL;
+        
+        auto it=mSignalsMap.find(signal);
         if(mSignalsMap.end()==it)
         {
             mSignalsMap[signal]=returnedValue=mNextSignal;

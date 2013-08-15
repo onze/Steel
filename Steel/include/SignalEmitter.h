@@ -5,6 +5,7 @@
 
 #include "steeltypes.h"
 #include "SignalManager.h"
+#include "Debug.h"
 namespace Steel
 {
     class SignalEmitter
@@ -12,12 +13,13 @@ namespace Steel
         public:
             inline void emit(const Signal signal, bool anonymous = false)
             {
+                Debug::log("SignalEmitter::emit(")(signal)("/").quotes(SignalManager::instance().fromSignal(signal))(")").endl();
                 SignalManager::instance().emit(signal, anonymous ? NULL : this);
             }
 
             inline void emit(const Ogre::String& signal, bool anonymous = false)
             {
-                SignalManager::instance().emit(signal, anonymous ? NULL : this);
+                emit(SignalManager::instance().toSignal(signal),anonymous);
             }
     };
 }
