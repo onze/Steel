@@ -131,7 +131,7 @@ namespace Steel
 
     AgentId Editor::agentIdUnderMouse()
     {
-        auto selection = Selection();
+        Selection selection;
         mEngine->pickAgents(selection, mInputMan->mousePos().x, mInputMan->mousePos().y);
 
         AgentId aid = INVALID_ID;
@@ -142,14 +142,17 @@ namespace Steel
 
     ModelId Editor::modelIdUnderMouse(ModelType mType)
     {
-        Ogre::String intro = "Editor::ModelIdUnderMouse(mType=" + modelTypesAsString[mType] + ")";
+        static const Ogre::String intro = "in Editor::ModelIdUnderMouse(mType=" + modelTypesAsString[mType] + "): ";
 
         ModelId mid = INVALID_ID;
         AgentId aid = agentIdUnderMouse();
 
+        if(INVALID_ID == aid)
+            return INVALID_ID;
+
         Agent *agent = mEngine->level()->getAgent(aid);
         if (NULL == agent)
-            Debug::error(intro)("Can't find agent ")(aid).endl();
+            Debug::error(intro)("can't find agent ")(aid).endl();
         else
             mid = agent->modelId(mType);
         return mid;
@@ -157,7 +160,7 @@ namespace Steel
 
     bool Editor::dynamicFillSerialization(Json::Value& node, AgentId aid)
     {
-        Ogre::String intro = "Editor::dynamicFillSerialization(): ";
+        static const Ogre::String intro = "in Editor::dynamicFillSerialization(): ";
 
         if (node.isArray())
         {
@@ -182,51 +185,72 @@ namespace Steel
             Ogre::String svalue, new_svalue;
             svalue = new_svalue = node.asString();
 
-            if (INVALID_ID != aid)
-            {
-                Level *level = mEngine->level();
-                if (NULL == level)
-                {
-                    Debug::error(intro)("no level to create agent from. Aborting.").endl();
-                    return false;
-                }
-                auto agent = level->getAgent(aid);
-                if (svalue == "$agentOgreModel")
-                    new_svalue = Ogre::StringConverter::toString(agent->ogreModelId());
-                else if (svalue == "$agentPhysicsModel")
-                    new_svalue = Ogre::StringConverter::toString(agent->physicsModelId());
-            }
 
             if (svalue.at(0) != '$')
                 new_svalue = svalue;
-            else if (svalue == "$dropTargetPosition")
-                new_svalue = Ogre::StringConverter::toString(getDropTargetPosition());
-            else if (svalue == "$dropTargetRotation")
-                new_svalue = Ogre::StringConverter::toString(getDropTargetRotation());
-            else if (svalue == "$agentUnderMouse")
+            else
             {
-                AgentId aid_um = agentIdUnderMouse();
-                if (INVALID_ID == aid_um)
+                auto agent = mEngine->level()->getAgent(aid);
+
+                if(svalue == "$agentOgreModel")
                 {
-                    Debug::error(intro)("no agent under mouse.").endl();
-                    return false;
+                    if(NULL==agent)
+                        new_svalue=Ogre::StringConverter::toString(INVALID_ID);
+                    else
+                        new_svalue = Ogre::StringConverter::toString(agent->ogreModelId());
                 }
-                new_svalue = Ogre::StringConverter::toString((unsigned long) aid_um);
-            }
-            else if (svalue == "$ogreModelUnderMouse")
-            {
-                new_svalue = Ogre::StringConverter::toString(modelIdUnderMouse(MT_OGRE));
-            }
-            else if (svalue == "$slotDropPosition")
-            {
-                auto slotPosition = getSlotDropPosition();
-                // drops farther than 5km away are forbidden
-                if (slotPosition.length() > 5000)
+                else if(svalue == "$agentPhysicsModel")
                 {
-                    Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborted.").endl();
-                    return false;
+                    if(NULL==agent)
+                        new_svalue=Ogre::StringConverter::toString(INVALID_ID);
+                    else
+                        new_svalue = Ogre::StringConverter::toString(agent->physicsModelId());
                 }
-                new_svalue = Ogre::StringConverter::toString(slotPosition);
+                else if(svalue == "$agentUnderMouse")
+                {
+                    if(NULL==agent)
+                    {
+                        AgentId aid_um=agentIdUnderMouse();
+                        if(INVALID_ID == aid_um)
+                        {
+                            Debug::error(intro)("no agent under mouse.").endl();
+                            return false;
+                        }
+                        new_svalue=Ogre::StringConverter::toString(aid_um);
+                    }
+                    else
+                        new_svalue = Ogre::StringConverter::toString((unsigned long) aid);
+                }
+                else if(svalue == "$dropTargetPosition")
+                    new_svalue = Ogre::StringConverter::toString(getDropTargetPosition());
+                else if(svalue == "$dropTargetRotation")
+                    new_svalue = Ogre::StringConverter::toString(getDropTargetRotation());
+                else if(svalue == "$ogreModelUnderMouse")
+                {
+                    if(NULL==agent)
+                    {
+                        ModelId mid_um=modelIdUnderMouse(MT_OGRE);
+                        if(INVALID_ID == mid_um)
+                        {
+                            Debug::error(intro)("no OgreModel under mouse.").endl();
+                            return false;
+                        }
+                        new_svalue=Ogre::StringConverter::toString(mid_um);
+                    }
+                    else
+                        new_svalue = Ogre::StringConverter::toString(agent->ogreModelId());
+                }
+                else if(svalue == "$slotDropPosition")
+                {
+                    auto slotPosition = getSlotDropPosition();
+                    // drops farther than 5km away are forbidden
+                    if(slotPosition.length() > 5000)
+                    {
+                        Debug::error(intro)("slot drop position is invalid (>10km away):")(slotPosition)(". Aborted.").endl();
+                        return false;
+                    }
+                    new_svalue = Ogre::StringConverter::toString(slotPosition);
+                }
             }
             node = new_svalue.c_str();
         }
@@ -675,7 +699,7 @@ namespace Steel
             return false;
         }
         else
-            Debug::log("new ")(modelTypeString)(" Model with id ")(mid).endl();
+            Debug::log("new ")(modelTypeString)(" Model with id ")(mid)(" linked to agent ")(aid).endl();
         //TODO add visual notification in the UI
         return true;
     }
@@ -784,7 +808,7 @@ namespace Steel
                 break;
         }
 
-// numeric key pressed: handles tagging (keys: 1,2,3,...,0)
+        // numeric key pressed: handles tagging (keys: 1,2,3,...,0)
         if (NULL != mEngine && evt.key >= OIS::KC_1 && evt.key <= OIS::KC_0)
         {
             // OIS::KC_0 is the highest; the modulo makes it 0
