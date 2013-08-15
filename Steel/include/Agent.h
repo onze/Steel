@@ -110,6 +110,11 @@ namespace Steel
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
+            
+            std::set<Tag> const &tags()
+            {
+                return mTags;
+            }
 
         private:
             //static stuff
@@ -121,7 +126,6 @@ namespace Steel
                     throw "Steel::Agent::sNextId has reached ULONG_MAX.";
                 return sNextId++;
             }
-            ;
             //end of static stuff
 
             /// Unique id.
@@ -134,6 +138,8 @@ namespace Steel
 
             /// state flag
             bool mIsSelected;
+            
+            std::set<Tag> mTags;
     };
 
 }
