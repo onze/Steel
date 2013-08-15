@@ -24,15 +24,14 @@ namespace Steel
      * given by confFileName(). The file is written via a ConfigFile instance (key=value pairs), and contains:
      * - expand = {true, false}: whether the folder node should appear expanded or collapsed
      */
-    class FileSystemDataSource:
-        public Rocket::Controls::DataSource, Rocket::Core::EventListener, Rocket::Controls::DataFormatter
+    class FileSystemDataSource: public Rocket::Controls::DataSource, Rocket::Core::EventListener, Rocket::Controls::DataFormatter
     {
         private:
-            FileSystemDataSource()
-            {
-            }
-            ;
+            FileSystemDataSource() {}
         public:
+            /// Whether the node should appear expanded when first displayed.
+            static const Ogre::String EXPAND_ATTRIBUTE;
+
             FileSystemDataSource(Ogre::String datasourceName, File rootDir);
             FileSystemDataSource(const FileSystemDataSource& other);
             virtual ~FileSystemDataSource();
@@ -40,8 +39,7 @@ namespace Steel
             virtual bool operator==(const FileSystemDataSource& other) const;
 
             void localizeDatagridBody(Rocket::Core::Element *docRoot);
-            /** When building the tree, a record is kept of each row matching a folder that contains a
-             config file with the attribute expand=true; This method expand all such rows.*/
+            /** This method expand all rows which have saved such a setting in their ConfigFile.*/
             void expandRows();
 
             //inherited from DataSource
@@ -57,10 +55,12 @@ namespace Steel
              * @param[in] row_index The index of the desired row.
              * @param[in] columns The list of desired columns within the row.
              **/
-            virtual void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index,
+            virtual void GetRow(Rocket::Core::StringList& row, 
+                                const Rocket::Core::String& table, 
+                                int row_index,
                                 const Rocket::Core::StringList& columns);
             /**
-             * the function is passed in the name of a table, and it returns
+             * The function is passed in the name of a table, and it returns
              * how many rows are currently in that
              */
             virtual int GetNumRows(const Rocket::Core::String& table);
@@ -92,3 +92,4 @@ namespace Steel
 
 #endif // STEEL_FILESYSTEMDATASOURCE_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

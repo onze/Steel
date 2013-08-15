@@ -1,17 +1,19 @@
-#include "UI/FileSystemDataSource.h"
-
 #include <list>
+#include <algorithm>
 
-#include <Debug.h>
-#include <tools/StringUtils.h>
-#include <tools/ConfigFile.h>
 #include <OgreConfigFile.h>
 #include <Rocket/Controls/ElementDataGridRow.h>
 #include <Rocket/Controls/ElementDataGrid.h>
 #include <Rocket/Controls/ElementDataGridExpandButton.h>
 
+#include "UI/FileSystemDataSource.h"
+#include <Debug.h>
+#include <tools/StringUtils.h>
+#include <tools/ConfigFile.h>
+
 namespace Steel
 {
+    const Ogre::String FileSystemDataSource::EXPAND_ATTRIBUTE = "expand";
 
     FileSystemDataSource::FileSystemDataSource(Ogre::String datasourceName,File rootDir):
         Rocket::Controls::DataSource(datasourceName.c_str()),
@@ -64,7 +66,9 @@ namespace Steel
         File cwd=(table=="$root")?mRootDir:table.CString();
 //         Debug::log("table: ")(cwd).endl();
 
-        File subfile=cwd.ls(File::ANY)[row_index];
+        auto subfiles=cwd.ls(File::ANY);
+        std::sort(subfiles.begin(),subfiles.end());
+        File subfile=subfiles[row_index];
 //         Debug::log("subfile: ")(subfile).endl();
 
         for(auto it=columns.begin(); it<columns.end(); ++it)
@@ -170,12 +174,12 @@ namespace Steel
                 formatted_data+="<regular_inode/>";
 
             formatted_data += "<spacer/>";
-            formatted_data+=filename;
+            formatted_data += filename;
         }
         else
         {
             formatted_data += "<resourceitem>";
-            formatted_data+="??";
+            formatted_data += "??";
         }
         formatted_data += "</resourceitem>";
 //         Debug::log(" as: ")(formatted_data).endl();
@@ -260,16 +264,17 @@ namespace Steel
             if(elem==mDatagrid)
             {
                 Debug::error(intro)(event.GetTargetElement()->GetTagName())(" element has no Datagrid parent. Aborting.").endl();
-                return;
+                break;
             }
         }
-
-        auto parentRow=static_cast<Rocket::Controls::ElementDataGridRow *>(elem);
-
-        // save setting
-        ConfigFile cf(file.subfile(confFileName()));
-        cf.setSetting("expand",Ogre::StringConverter::toString(parentRow->IsRowExpanded()));
-        cf.save();
+        if(elem!=mDatagrid)
+        {
+            auto parentRow=static_cast<Rocket::Controls::ElementDataGridRow *>(elem);
+            // save setting
+            ConfigFile cf(file.subfile(confFileName()));
+            cf.setSetting(FileSystemDataSource::EXPAND_ATTRIBUTE,Ogre::StringConverter::toString(parentRow->IsRowExpanded()));
+            cf.save();
+        }
     }
 
     void FileSystemDataSource::expandRows()
@@ -280,6 +285,7 @@ namespace Steel
         // iterate through rows
         Rocket::Core::ElementList rows;
         mDatagrid->GetElementsByTagName(rows,"datagridrow");
+        
         for(auto it=rows.begin(); it!=rows.end(); ++it)
         {
             // get to the resourceitem fullpath value...
@@ -290,13 +296,14 @@ namespace Steel
                 continue;
             Rocket::Core::ElementList elems;
             cells[0]->GetElementsByTagName(elems,"resourceitem");
+            
             if(elems.size()==0)
                 continue;
             // if it exists
             auto fullpath=elems[0]->GetAttribute<Rocket::Core::String>("fullpath","");
             // and we want to expand it
             ConfigFile cf(File(fullpath.CString()).subfile(confFileName()));
-            if(Ogre::StringConverter::parseBool(cf.getSetting("expand"),false))
+            if(cf.getSettingAsBool(FileSystemDataSource::EXPAND_ATTRIBUTE,false))
             {
                 row->ExpandRow();
                 // don't forget to also expand the button
