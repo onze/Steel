@@ -31,8 +31,15 @@ namespace Steel
 
             /// Callback used to sync a PhysicsModel to its OgreModel upon linkage.
             bool onAgentLinkedToModel(Agent *agent, ModelId mid);
+
+            void update(float timestep);
+            inline Level *level()
+            {
+                return mLevel;
+            }
         protected:
             // not owned
+            Level *mLevel;
             btDynamicsWorld *mWorld;
             //owned
     };

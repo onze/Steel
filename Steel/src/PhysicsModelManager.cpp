@@ -1,24 +1,32 @@
 #include "PhysicsModelManager.h"
 
 #include "BulletDynamics/Dynamics/btDynamicsWorld.h"
+#include "BulletCollision/CollisionDispatch/btGhostObject.h"
 
 #include "Level.h"
 #include <OgreModel.h>
 #include <Agent.h>
 #include <OgreModelManager.h>
 
+
+extern ContactAddedCallback gContactAddedCallback;
+extern ContactDestroyedCallback gContactDestroyedCallback;
+
 namespace Steel
 {
-    PhysicsModelManager::PhysicsModelManager(Level * level,btDynamicsWorld* world):
-        _ModelManager<PhysicsModel>(level),
-        mWorld(NULL)
+    PhysicsModelManager::PhysicsModelManager(Level * level,btDynamicsWorld* world):_ModelManager<PhysicsModel>(level),
+        mLevel(level), mWorld(NULL)
     {
         mWorld=world;
+
+        // allows for ghost functionality (hitbox/triggers)
+        mWorld->getPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
     }
 
     PhysicsModelManager::~PhysicsModelManager()
     {
         mWorld=NULL;
+        mLevel=NULL;
     }
 
     bool PhysicsModelManager::fromSingleJson(Json::Value &model, ModelId &id)
@@ -61,14 +69,20 @@ namespace Steel
         }
         OgreModel *omodel=mLevel->ogreModelMan()->at(omid);
         pmodel->init(mWorld,omodel);
-        
+        pmodel->setUserPointer(agent);
+
         // stop the physics simulation in case the agent is selected
         pmodel->setSelected(agent->isSelected());
-        
+
         return true;
     }
+
+    void PhysicsModelManager::update(float timestep)
+    {
+        // TODO: OPT: use an update list, updated upon model init/cleanup ?
+        for(auto &model:mModels)
+            model.update(timestep, this);
+    }
 }
-
-
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
