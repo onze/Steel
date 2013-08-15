@@ -2,19 +2,25 @@
 #define STEEL_PHYSICSMODEL_H
 
 #include <stack>
+#include <map>
 
 #include "steeltypes.h"
 #include "Model.h"
+#include "SignalEmitter.h"
 
 class btDynamicsWorld;
+class btPairCachingGhostObject;
+class btRigidBody;
 
 namespace Steel
 {
+    class PhysicsModelManager;
     class OgreModel;
+    class Agent;
     /**
      * Physic representation of an OgreModel (can't work without it as of now)
      */
-    class PhysicsModel: public Model
+    class PhysicsModel: public Model, SignalEmitter
     {
         public:
             /// The object's mass
@@ -24,7 +30,7 @@ namespace Steel
             /// If true, collision with other objects does not affect them (ie hitbox).
             static const Ogre::String GHOST_ATTRIBUTE;
             /// Ghost models will emit their signal(s) iff the colliding agent has one of those
-            static const Ogre::String EMIT_ON_ANY_TAG_ATTRIBUTE;
+            static const Ogre::String EMIT_ON_TAG_ATTRIBUTE;
 
             static const Ogre::String BBOX_SHAPE_NAME_BOX;
             static const Ogre::String BBOX_SHAPE_NAME_CONVEXHULL;
@@ -34,17 +40,17 @@ namespace Steel
             PhysicsModel();
             PhysicsModel(const PhysicsModel& o);
             void init(btDynamicsWorld *world, OgreModel *omodel);
-            virtual PhysicsModel& operator=(const PhysicsModel& other);
+            PhysicsModel& operator=(const PhysicsModel& other);
             virtual ~PhysicsModel();
-            virtual inline ModelType modelType()
+            inline ModelType modelType()
             {
                 return MT_PHYSICS;
             }
 
             ///serialize itself into the given Json object
-            virtual void toJson(Json::Value &object);
+            void toJson(Json::Value &object);
             ///deserialize itself from the given Json object. return true is successful.
-            virtual bool fromJson(Json::Value &object);
+            bool fromJson(Json::Value &object);
 
             void pushState();
             /** Set the current state to the top of the states stack. Returns the current
@@ -61,8 +67,19 @@ namespace Steel
             void setScale(const Ogre::Vector3 &sca);
 
             void setSelected(bool selected);
-            virtual void cleanup();
+            void cleanup();
+            
+            void update(float timestep, PhysicsModelManager *manager);
+            void setUserPointer(Agent* agent);
         protected:
+            /// Dispatches signals upon valid collisions.
+            void collisionCheck(PhysicsModelManager *manager);
+            
+            /// Removes the model's rigidbody from the world, as well as its ghostObject, if any.
+            void removeFromWorld();
+            /// Puts back the model's rigidbody from the world, as well as its ghostObject, if any.
+            void addToWorld();
+            
             /// Maps a bounding shape string to its enum value. Defaults to sphere.
             BoundingShape BBoxShapeFromString(Ogre::String &shape);
 
@@ -77,10 +94,15 @@ namespace Steel
             std::stack<bool> mStates;
             /// Shape of the physic model representing the graphic model.
             BoundingShape mShape;
+            
             /// See GHOST_ATTRIBUTE docstring.
             bool mIsGhost;
-            /// Tags the ghost object will emit upon valid collision
-            std::set<Tag> mEmitOnAnyTag;
+            /// Bullet ghost object
+            btPairCachingGhostObject *mGhostObject;
+            /// See EMIT_ON_TAG_ATTRIBUTE docstring
+            std::map<Tag,std::set<Signal>> mEmitOnTag;
+            /// other agents currently colliding with this one
+            std::set<AgentId> mCollidingAgents;
     };
 }
 #endif // STEEL_PHYSICSMODEL_H
