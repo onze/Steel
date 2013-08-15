@@ -4,6 +4,9 @@
 #include <json/json.h>
 #include <OgreString.h>
 #include <OgreStringConverter.h>
+#include <steeltypes.h>
+#include <SignalManager.h>
+#include <TagManager.h>
 
 namespace Steel
 {
@@ -14,24 +17,34 @@ namespace Steel
             
             /// serialize the value into a Json::Value object.
             template<class T>
-            inline static Json::Value toJson(T const &value)
+            static Json::Value toJson(T const &value)
             {
                 return Json::Value(Ogre::StringConverter::toString(value).c_str());
             }
             
             /// serialize the value into a Json::Value object.
-            inline static Json::Value toJson(std::string const &value)
+            static Json::Value toJson(std::string const &value)
             {
                 return Json::Value(value.c_str());
             }
             
             /// serialize the value into a Json::Value object.
             template<class T>
-            inline static Json::Value toJson(std::set<T> const &container)
+            static Json::Value toJson(std::set<T> const &container)
             {
                 Json::Value value;
-                for(auto t:container)
+                for(auto const &t:container)
                     value.append(Ogre::StringConverter::toString(t).c_str());
+                return value;
+            }
+            
+            /// serialize the value into a Json::Value object.
+            template<class K, class V>
+            static Json::Value toJson(std::map<K,V> const &container)
+            {
+                Json::Value value;
+                for(auto const &item:container)
+                    value[Ogre::StringConverter::toString(item.first).c_str()]=toJson(item.second);
                 return value;
             }
             
