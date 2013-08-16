@@ -47,7 +47,7 @@ namespace Steel
             /**
              * Called as long as the node shows itself as READY.
              */
-            virtual void run(float timestep) {};
+            virtual void run(float timestep);
 
             /**
              * Returns what's the next node to run. Defaults to parent node.

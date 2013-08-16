@@ -77,10 +77,15 @@ namespace Steel
     {
         return mToken.begin+1;
     }
+    
+    void BTNode::run(float timestep)
+    {
+        mState = SKIPT_TO;
+    }
 
     BTStateIndex BTNode::nodeSkippedTo()
     {
-        return (BTStateIndex)end();
+        return firstChildIndex();
     }
 
     void BTNode::childReturned(BTState state)
