@@ -46,18 +46,18 @@ namespace Steel
             {BTFinderToken,5,6,BTFileNode(rootFile.subfile("E - sequence").subfile("F - finder")).descriptor()},      //  +-F
             {BTNavigatorToken,6,7,BTFileNode(rootFile.subfile("E - sequence").subfile("G - navigator")).descriptor()},//  |-G
         };
-        BTShapeStream groundTruth = BTShapeStream (
-                                        groundTruth_data,
-                                        groundTruth_data+sizeof(groundTruth_data)/sizeof(BTShapeToken)
-                                    );
+        BTShapeStream groundTruth;
+        groundTruth.mName = streamId;
+        groundTruth.mData = BTShapeStreamData(groundTruth_data,
+                                              groundTruth_data+sizeof(groundTruth_data)/sizeof(BTShapeToken));
 //         BTShapeStream groundTruth;
 //         groundTruth.push_back({BTSequenceToken,0,7});
-        std::pair<BTShapeStream::iterator,BTShapeStream::iterator> mismatch;
+        std::pair<BTShapeStreamData::iterator,BTShapeStreamData::iterator> mismatch;
 
         // using default comparison:
-        mismatch = std::mismatch (stream->begin(), stream->end(), groundTruth.begin());
+        mismatch = std::mismatch (stream->mData.begin(), stream->mData.end(), groundTruth.mData.begin());
 
-        if(mismatch.first!=stream->end())
+        if(mismatch.first!=stream->mData.end())
         {
             Debug::error(intro)("BTShapeStream mismatch with groundTruth:").endl();
             Debug::error("streamId: ")(streamId).endl();

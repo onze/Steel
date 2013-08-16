@@ -3,9 +3,11 @@
 
 #include "BTModel.h"
 #include "BT/BTNode.h"
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
+    const char *BTModel::SHAPE_NAME_ATTRIBUTE="rootPath";
 
     BTModel::BTModel():mStateStream(),mCurrentStateIndex(0),mStatesStack(std::stack<BTStateIndex>())
     {
@@ -13,9 +15,7 @@ namespace Steel
 
     BTModel::BTModel (const BTModel &o)
     {
-        mStateStream=o.mStateStream;
-        mCurrentStateIndex=o.mCurrentStateIndex;
-        mStatesStack=o.mStatesStack;
+        this->operator=(o);
     }
 
     BTModel::~BTModel()
@@ -24,9 +24,16 @@ namespace Steel
 
     BTModel &BTModel::operator=(const BTModel &o)
     {
-        mStateStream=o.mStateStream;
-        mCurrentStateIndex=o.mCurrentStateIndex;
-        mStatesStack=o.mStatesStack;
+        if(this==&o)
+            return *this;
+        if(!isFree())
+            cleanup();
+        if(!o.isFree())
+        {
+            mStateStream=o.mStateStream;
+            mCurrentStateIndex=o.mCurrentStateIndex;
+            mStatesStack=o.mStatesStack;
+        }
         return *this;
     }
 
@@ -55,12 +62,22 @@ namespace Steel
 
     bool BTModel::fromJson(Json::Value &node)
     {
+        // building a BTModel requires structures that only the manager can access.
+        throw std::runtime_error("BTModel::fromJson is not meant to be called. Use the BTModelManager.");
         return true;
     }
 
     void BTModel::toJson(Json::Value &node)
     {
-
+        static const Ogre::String intro="in BTModel::toJson(): ";
+        BTShapeStream *st=mStateStream.shapeStream();
+        if(NULL==st)
+        {
+            Debug::error(intro)("stateStream's has no shapeStream !").endl();
+            node[BTModel::SHAPE_NAME_ATTRIBUTE]=Json::Value::null;
+        }
+        else
+            node[BTModel::SHAPE_NAME_ATTRIBUTE]=JsonUtils::toJson(st->mName);
     }
 
     void BTModel::cleanup()
@@ -102,7 +119,7 @@ namespace Steel
                     continue;
                 case SKIPT_TO:
                     newIndex=node->nodeSkippedTo();
-                    
+
                     if(node->begin()==newIndex)
                     {
                         Debug::error(intro)("node #")(mCurrentStateIndex)(" with token ")(token)

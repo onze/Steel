@@ -9,6 +9,7 @@
 #include "BT/BTNavigator.h"
 #include "BT/BTDebug.h"
 #include "BT/BTSignalListener.h"
+#include <BT/BTShapeManager.h>
 
 namespace Steel
 {
@@ -20,9 +21,9 @@ namespace Steel
 
     }
 
-    BTStateStream::BTStateStream(const BTStateStream& other)
+    BTStateStream::BTStateStream(const BTStateStream& o)
     {
-
+        this->operator=(o);
     }
 
     BTStateStream::~BTStateStream()
@@ -30,28 +31,16 @@ namespace Steel
         clear();
     }
 
-    BTStateStream& BTStateStream::operator=(const BTStateStream& other)
+    BTStateStream& BTStateStream::operator=(const BTStateStream& o)
     {
+        clear();
+        buildFromShapeStream(o.mShapeStream);
         return *this;
-    }
-
-    bool BTStateStream::operator==(const BTStateStream& other) const
-    {
-        return false;
-    }
-
-    void BTStateStream::clear()
-    {
-        mStateOffsets.clear();
-        if(NULL!=mData)
-            ::operator delete(mData);
-        mData=NULL;
-        mShapeStream=NULL;
     }
 
     bool BTStateStream::empty()
     {
-        return NULL==mShapeStream?true:mShapeStream->size()==0;
+        return NULL==mShapeStream?true:mShapeStream->mData.size()==0;
     }
 
     Ogre::String BTStateStream::debugName()
@@ -69,10 +58,17 @@ namespace Steel
         static const Ogre::String intro= "in BTStateStream::buildFromShapeStream(): ";
         if(!empty())
             clear();
+        
+        if(NULL == shapeStream)
+        {
+            Debug::warning(intro)("trying to build from NULL shapeStream. Aborting.").endl();
+            return false;
+        }
+        
         mShapeStream=shapeStream;
         // determine states indices and total size of the stream
         mDataSize=0;
-        for(auto it=shapeStream->begin(); it!=shapeStream->end(); ++it)
+        for(auto it=shapeStream->mData.begin(); it!=shapeStream->mData.end(); ++it)
         {
             BTShapeToken token=*it;
             size_t tokenSize=sizeOfState(token.type);
@@ -89,9 +85,9 @@ namespace Steel
         mData=::operator new(mDataSize);
 
         // initialize states
-        for(size_t i=0; i<mShapeStream->size(); ++i)
+        for(size_t i=0; i<mShapeStream->mData.size(); ++i)
         {
-            BTShapeToken token=mShapeStream->at(i);
+            BTShapeToken token=mShapeStream->mData.at(i);
             if(!placeStateAt(mStateOffsets[i], token))
             {
                 Debug::error(intro)("can't place state of type ")(token.type)
@@ -103,7 +99,7 @@ namespace Steel
     }
 
     // offset from the beginning of the memory allocated for states
-    bool BTStateStream::placeStateAt(BTStateIndex _offset, BTShapeToken &token)
+    bool BTStateStream::placeStateAt(BTStateOffset _offset, BTShapeToken &token)
     {
         size_t offset=(size_t)_offset;
         assert(offset<mDataSize);
@@ -140,18 +136,23 @@ namespace Steel
         node->reset();
         return true;
     }
-    
+
     size_t BTStateStream::sizeOfState(BTShapeTokenType tokenType)
     {
         switch(tokenType)
         {
-            // TOKEN                                      CLASS
-            case BTSequenceToken:           return sizeof(BTSequence);
-            case BTSelectorToken:           return sizeof(BTSelector);
-            case BTFinderToken:             return sizeof(BTFinder);
-            case BTNavigatorToken:          return sizeof(BTNavigator);
-            case BTSignalListenerToken:     return sizeof(BTSignalListener);
-            case BTDebugToken:              return sizeof(BTDebug);
+            case BTSequenceToken:
+                return sizeof(BTSequence);
+            case BTSelectorToken:
+                return sizeof(BTSelector);
+            case BTFinderToken:
+                return sizeof(BTFinder);
+            case BTNavigatorToken:
+                return sizeof(BTNavigator);
+            case BTSignalListenerToken:
+                return sizeof(BTSignalListener);
+            case BTDebugToken:
+                return sizeof(BTDebug);
             case _BTFirst:
             case _BTLast:
             case BTUnknownToken:
@@ -161,9 +162,50 @@ namespace Steel
         return 0;
     }
 
+    void BTStateStream::clear()
+    {
+        for(BTStateIndex i=0; i<mStateOffsets.size(); ++i)
+        {
+            BTShapeToken token=tokenAt(i);
+            size_t base=(size_t) mData;
+            BTStateOffset offset=mStateOffsets.at(i);
+            switch(token.type)
+            {
+                case BTSequenceToken:
+                    ((BTSequence *)(base+offset))->~BTSequence();
+                    break;
+                case BTSelectorToken:
+                    ((BTSelector *)(base+offset))->~BTSelector();
+                    break;
+                case BTFinderToken:
+                    ((BTFinder *)(base+offset))->~BTFinder();
+                    break;
+                case BTNavigatorToken:
+                    ((BTNavigator *)(base+offset))->~BTNavigator();
+                    break;
+                case BTSignalListenerToken:
+                    ((BTSignalListener *)(base+offset))->~BTSignalListener();
+                    break;
+                case BTDebugToken:
+                    ((BTDebug *)(base+offset))->~BTDebug();
+                    break;
+                case _BTFirst:
+                case _BTLast:
+                case BTUnknownToken:
+                    Debug::error("BTStateStream::clear(): unknown BTShapeTokenType for token: ")(token).endl();
+                    break;
+            }
+        }
+        mStateOffsets.clear();
+        if(NULL!=mData)
+            ::operator delete(mData);
+        mData=NULL;
+        mShapeStream=NULL;
+    }
+
     BTNode* BTStateStream::stateAt(BTStateIndex index)
     {
-        if(index>mShapeStream->size())
+        if(index>mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::stateAt(")(index)("): ")(debugName())(" index out of range.").endl();
             return NULL;
@@ -174,23 +216,23 @@ namespace Steel
 
     BTShapeTokenType BTStateStream::tokenTypeAt(BTStateIndex index)
     {
-        if(index>=mShapeStream->size())
+        if(index>=mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenTypeAt(")(index)("): ")(debugName())(" index out of range.").endl();
             return BTUnknownToken;
         }
-        return mShapeStream->at((size_t)index).type;
+        return mShapeStream->mData.at((size_t)index).type;
     }
-    
+
     BTShapeToken BTStateStream::tokenAt(BTStateIndex index)
     {
-        if(index>=mShapeStream->size())
+        if(index>=mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" index out of range.").endl();
             return {BTUnknownToken,0UL,0UL,""};
             //return BTShapeToken();
         }
-        return mShapeStream->at((size_t)index);
+        return mShapeStream->mData.at((size_t)index);
     }
 
 }

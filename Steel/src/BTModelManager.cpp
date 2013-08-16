@@ -36,10 +36,10 @@ namespace Steel
             return false;
         }
 
-        value=root["rootPath"];
+        value=root[BTModel::SHAPE_NAME_ATTRIBUTE];
         if(value.isNull())
         {
-            Debug::error(intro)("unknown rootPath. Aborting.").endl();
+            Debug::error(intro)("unknown BTModel ")(BTModel::SHAPE_NAME_ATTRIBUTE)(" ").quotes(value)(". Aborting.").endl();
             return false;
         }
 
@@ -52,7 +52,6 @@ namespace Steel
         }
 
         return buildFromFile(rootFile, id);
-        return true;
     }
 
     bool BTModelManager::buildFromFile(File &rootFile, ModelId &id)
@@ -61,7 +60,7 @@ namespace Steel
 
         // get the stream
         BTShapeStream *shapeStream=NULL;
-        if(!mBTShapeMan.buildShapeStream(rootFile.fileName(),rootFile,shapeStream))
+        if(!mBTShapeMan.buildShapeStream(rootFile.fileName(), rootFile, shapeStream))
         {
             Debug::error(intro)("could not generate a BT shape root node ")(rootFile);
             Debug::error(", see above for details. Aborting.").endl();

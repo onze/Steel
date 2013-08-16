@@ -33,19 +33,28 @@ namespace Steel
         return false;
     }
 
-    bool BTShapeManager::buildShapeStream(Ogre::String streamId,
+    BTShapeStream *BTShapeManager::getBTShapeStream(Ogre::String streamName)
+    {
+        // already built ?
+        auto it=mStreamMap.find(streamName);
+        if(mStreamMap.end()!=it)
+        {
+            return &(*it).second;
+        }
+        return NULL;
+    }
+
+    bool BTShapeManager::buildShapeStream(Ogre::String streamName,
                                           Steel::File &rootFile,
                                           BTShapeStream *&streamPtr)
     {
         BTShapeStreamMap::iterator it;
         // already built ?
-        if(mStreamMap.end()!=(it=mStreamMap.find(streamId)))
-        {
-            streamPtr=&(*it).second;
+        if(NULL != (streamPtr=getBTShapeStream(streamName)))
             return true;
-        }
 
         BTShapeStream stream;
+        stream.mName=streamName;
         // walk the file hierarchy depth first, using the fringe as buffer.
         std::list<BTFileNode> fringe;
         fringe.push_front(BTFileNode(true));
@@ -66,13 +75,13 @@ namespace Steel
                 // popped back to root ?
                 if(stack.size()==0)
                     break;
-                stream[stack.top()].end=currentIndex;
+                stream.mData[stack.top()].end=currentIndex;
                 stack.pop();
                 continue;
             }
 
             // push the token to the stream
-            stream.push_back( {file.shapeTokenType(),currentIndex,0,file.descriptor().fullPath()});
+            stream.mData.push_back( {file.shapeTokenType(),currentIndex,0,file.descriptor().fullPath()});
 
             // add childNodes to fringe for them to be processed next.
             std::vector<BTFileNode> childNodes=file.childNodes();
@@ -81,8 +90,8 @@ namespace Steel
             ++currentIndex;
         }
 
-        mStreamMap[streamId]=stream;
-        streamPtr=&(mStreamMap[streamId]);
+        mStreamMap[streamName]=stream;
+        streamPtr=&(mStreamMap[streamName]);
         return true;
     }
 

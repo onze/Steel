@@ -128,7 +128,6 @@ namespace Steel
     template<class M>
     std::vector<ModelId> _ModelManager<M>::fromJson(Json::Value &models)
     {
-        Debug::log(logName() + "::fromJson()")(models).endl();
         std::vector<ModelId> ids;
         for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
         {
@@ -136,7 +135,7 @@ namespace Steel
             Json::Value value = *it;
             ModelId mid=INVALID_ID;
             if(!fromSingleJson(value,mid))
-                Debug::error("could not deserialize model.").endl();
+                Debug::error(logName())("could not deserialize model ")(mid).endl();
             ids.push_back(mid);
         }
         return ids;

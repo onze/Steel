@@ -168,7 +168,7 @@ namespace Steel
                     DebugObject &operator()(BTShapeStream* const shapeStream)
                     {
                         this->operator()("BTShapeStream[").endl().indent();
-                        for(auto it=shapeStream->begin(); it!=shapeStream->end(); ++it)
+                        for(auto it=shapeStream->mData.begin(); it!=shapeStream->mData.end(); ++it)
                             (*this)(*it)(", ").endl();
                         this->operator()("]").unIndent();
                         return *this;

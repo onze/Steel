@@ -20,7 +20,6 @@ namespace Steel
             BTStateStream(const BTStateStream& other);
             virtual ~BTStateStream();
             virtual BTStateStream& operator=(const BTStateStream& other);
-            virtual bool operator==(const BTStateStream& other) const;
 
             bool init(BTShapeStream *shapeStream);
 

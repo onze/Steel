@@ -11,7 +11,7 @@ namespace Steel
     {
         // Should stay first enum value
         _FIRST = -1,
-        
+
         READY,
         RUNNING,
         SUCCESS,
@@ -36,7 +36,7 @@ namespace Steel
         BTNavigatorToken,
         BTSignalListenerToken,
         BTDebugToken,
-        
+
         BTUnknownToken,
 
         // Should stay last value
@@ -48,6 +48,8 @@ namespace Steel
 
     /// Index within a BTStateStream.
     typedef size_t BTStateIndex;
+    /// Memory offset within a BTStateStream.mData
+    typedef size_t BTStateOffset;
 
     /// Holds shape information
     class BTShapeToken
@@ -71,7 +73,14 @@ namespace Steel
 
     /** Flatten BTree (the tree shape). This is the abstract part of a tree,
      * that's shared amongst all models using this shape.*/
-    typedef std::vector<BTShapeToken> BTShapeStream;
+    typedef std::vector<BTShapeToken> BTShapeStreamData;
+
+    class BTShapeStream
+    {
+        public:
+            Ogre::String mName;
+            BTShapeStreamData mData;
+    };
 
     /// Shapes storage structure
     typedef std::map<Ogre::String, BTShapeStream> BTShapeStreamMap;

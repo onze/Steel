@@ -428,7 +428,7 @@ namespace Steel
 
         for (Json::ValueIterator it = dict.begin(); it != dict.end(); ++it)
         {
-            AgentId aid=Ogre::StringConverter::parseUnsignedLong(it.key().asString());
+            AgentId aid=Ogre::StringConverter::parseUnsignedLong(it.key().asString(),INVALID_ID);
             assert(aid!=INVALID_ID);
             if(!mAgentMan->isIdFree(aid))
             {
