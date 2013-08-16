@@ -29,13 +29,6 @@ namespace Steel
         return mNextFreeId++;
     }
 
-    AgentId AgentManager::newAgent()
-    {
-        Agent *t = new Agent(getFreeAgentId(),mLevel);
-        mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
-        return t->id();
-    }
-
     void AgentManager::makeSureIdCantBeTaken(AgentId id)
     {
         mFreeList.remove(id);
@@ -49,6 +42,13 @@ namespace Steel
     {
         return std::find(mFreeList.begin(), mFreeList.end(),id)!=mFreeList.end() || id>=mNextFreeId;
     }
+    
+    AgentId AgentManager::newAgent()
+    {
+        Agent *t = new Agent(getFreeAgentId(),mLevel);
+        mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
+        return t->id();
+    }
 
     Agent *AgentManager::newAgent(AgentId &id)
     {
@@ -58,6 +58,7 @@ namespace Steel
         {
             makeSureIdCantBeTaken(id);
             t = new Agent(id, mLevel);
+            mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
         }
         return t;
     }

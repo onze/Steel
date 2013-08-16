@@ -22,7 +22,7 @@ namespace Steel
             ~AgentManager();
             
             AgentId getFreeAgentId();
-            bool isIdFree(AgentId id); const
+            bool isIdFree(AgentId id) const; 
             void makeSureIdCantBeTaken(AgentId id);
 
             /// Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
