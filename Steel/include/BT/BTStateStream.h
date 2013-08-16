@@ -51,7 +51,7 @@ namespace Steel
 
         protected:
             /// Allocate states according to the given shape.
-            bool builFromShapeStream(BTShapeStream *shapeStream);
+            bool buildFromShapeStream(BTShapeStream *shapeStream);
             bool placeStateAt(size_t offset, BTShapeToken &token);
             size_t sizeOfState(Steel::BTShapeTokenType token);
 

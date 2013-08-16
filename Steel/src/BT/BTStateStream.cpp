@@ -61,12 +61,12 @@ namespace Steel
 
     bool BTStateStream::init(BTShapeStream *shapeStream)
     {
-        return builFromShapeStream(shapeStream);
+        return buildFromShapeStream(shapeStream);
     }
 
-    bool BTStateStream::builFromShapeStream(BTShapeStream *shapeStream)
+    bool BTStateStream::buildFromShapeStream(BTShapeStream *shapeStream)
     {
-        static const Ogre::String intro= "in BTStateStream::builFromShapeStream(): ";
+        static const Ogre::String intro= "in BTStateStream::buildFromShapeStream(): ";
         if(!empty())
             clear();
         mShapeStream=shapeStream;
@@ -78,8 +78,7 @@ namespace Steel
             size_t tokenSize=sizeOfState(token.type);
             if(tokenSize==0)
             {
-                Debug::error(intro)("got size 0 for token type ")(token.type)
-                (" (")(BTShapeTokenTypeAsString[token.type])(")").endl();
+                Debug::error(intro)("got size 0 for token ")(token).endl();
                 return false;
             }
             mStateOffsets.push_back(mDataSize);
