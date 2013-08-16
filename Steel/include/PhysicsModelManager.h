@@ -33,6 +33,7 @@ namespace Steel
             bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 
             void update(float timestep);
+            
             inline Level *level()
             {
                 return mLevel;

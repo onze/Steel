@@ -27,6 +27,7 @@
 #include "tools/OgreUtils.h"
 #include "tests/utests.h"
 #include "EngineEventListener.h"
+#include "SelectionManager.h"
 
 namespace Steel
 {
@@ -37,7 +38,7 @@ namespace Steel
         : mRootDir("."), mConfig(confFilename),
           mRoot(NULL), mRenderWindow(NULL), mInputMan(),
           mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(NULL), mRayCaster(NULL), mEditMode(false),
-          mCommands(std::list<std::vector<Ogre::String> >()), mSelectionMan(SelectionManager(this))
+          mCommands(std::list<std::vector<Ogre::String> >())
     {
         mRootDir = File::getCurrentDirectory();
         mConfig = ConfigFile(mRootDir.subfile(mConfig.file().fileName()));
@@ -73,9 +74,11 @@ namespace Steel
             return mLevel;
         }
         if (NULL != mLevel)
+        {
             fireOnLevelUnsetEvent();
-
-        mSelectionMan.clearSelection();
+            // TODO: tell the level it is unset, instead of doing stuff it knows better about
+            mLevel->selectionMan()->clearSelection();
+        }
 
         Level *previous = mLevel;
         mLevel = newLevel;
@@ -136,7 +139,7 @@ namespace Steel
     {
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         mConfig.load();
-        
+
         Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG,true));
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
@@ -334,6 +337,8 @@ namespace Steel
 
             if (NULL != mLevel)
                 mLevel->update(float(timer.getMilliseconds() - graphicsStart) / 1000.f);
+            else
+                SignalManager::instance().fireEmittedSignals();
 
             graphicsStart = timer.getMilliseconds();
             mStats.lastEngineDuration = static_cast<double>(graphicsStart - engineStart);

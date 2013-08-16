@@ -16,6 +16,7 @@
 #include "SignalManager.h"
 #include <PhysicsModelManager.h>
 #include <Level.h>
+#include <AgentManager.h>
 
 namespace Steel
 {
@@ -239,7 +240,7 @@ namespace Steel
                 std::set<Tag> tagsMet;
                 for(auto const &it:newlyColliding)
                 {
-                    Agent *agent=manager->level()->getAgent(it);
+                    Agent *agent=manager->level()->agentMan()->getAgent(it);
                     if(NULL==agent)
                         continue;
                     tagsMet.insert(agent->tags().begin(),agent->tags().end());
@@ -336,22 +337,45 @@ namespace Steel
         return BS_SPHERE;
     }
 
+    Ogre::String PhysicsModel::StringShapeFromBBox(BoundingShape &shape)
+    {
+        if(shape==BS_BOX)
+            return PhysicsModel::BBOX_SHAPE_NAME_BOX;
+        if(shape==BS_CONVEXHULL)
+            return PhysicsModel::BBOX_SHAPE_NAME_CONVEXHULL;
+        if(shape==BS_SPHERE)
+            return PhysicsModel::BBOX_SHAPE_NAME_SPHERE;
+        if(shape==BS_TRIMESH)
+            return PhysicsModel::BBOX_SHAPE_NAME_TRIMESH;
+        Debug::error("in PhysicsModel::StringShapeFromBBox(): unknown value ").quotes(shape)
+        (". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
+        return PhysicsModel::BBOX_SHAPE_NAME_SPHERE;
+    }
+
     void PhysicsModel::toJson(Json::Value &root)
     {
         root[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
-        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(mShape);
-        root[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
+        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(StringShapeFromBBox(mShape));
+        if(mIsGhost)
+            root[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
 
-        // tags and signals need to be remapped to their string values
-        Json::Value mapValue;
-        for(auto const &item:mEmitOnTag)
+        if(mEmitOnTag.size())
         {
-            Json::Value signalsValue;
-            for(Signal const &signal:item.second)
-                signalsValue.append(SignalManager::instance().fromSignal(signal).c_str());
-            mapValue[TagManager::instance().fromTag(item.first).c_str()]=signalsValue;
+            // tags and signals need to be remapped to their string values
+            Json::Value mapValue;
+            for(auto const &item:mEmitOnTag)
+            {
+                if(item.second.size())
+                {
+                    Json::Value signalsValue;
+                    for(Signal const &signal:item.second)
+                        signalsValue.append(SignalManager::instance().fromSignal(signal).c_str());
+                    mapValue[TagManager::instance().fromTag(item.first).c_str()]=signalsValue;
+                }
+            }
+            if(mapValue.size())
+                root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE] = mapValue;
         }
-        root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE] = mapValue;
     }
 
     bool PhysicsModel::fromJson(Json::Value &root)

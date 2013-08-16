@@ -26,9 +26,11 @@
 #include "OgreModelManager.h"
 #include "tools/OgreUtils.h"
 #include "tools/StringUtils.h"
-#include <tools/JsonUtils.h>
+#include "tools/JsonUtils.h"
 #include "PhysicsModelManager.h"
 #include "TerrainPhysicsManager.h"
+#include "AgentManager.h"
+#include "SelectionManager.h"
 
 namespace Steel
 {
@@ -36,8 +38,7 @@ namespace Steel
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
         mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name),
         mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL),
-        mAgents(std::map<AgentId, Agent *>()),
-        mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(),
+        mAgentMan(NULL), mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(), mSelectionMan(NULL),
         mCamera(NULL), mMainLight(NULL)
     {
         Debug::log(logName() + "()").endl();
@@ -67,12 +68,14 @@ namespace Steel
         mCamera->cam()->setAspectRatio(aspectRatio);
 
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
-        mAgents = std::map<AgentId, Agent *>();
         mTerrainMan.init(mName + ".terrainManager", path.subfile(mName), mSceneManager);
-
+        
+        mSelectionMan = new SelectionManager(this);
+        mAgentMan=new AgentManager(this);
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
+        mSelectionMan = new SelectionManager(this);
         
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
@@ -110,16 +113,6 @@ namespace Steel
         mViewport = NULL;
     }
 
-    void Level::deleteAgent(AgentId id)
-    {
-        Debug::log(logName() + ".deleteAgent() id: ")(id).endl();
-        std::map<AgentId, Agent *>::iterator it = mAgents.find(id);
-        if (it == mAgents.end())
-            return;
-        delete (*it).second;
-        mAgents.erase(it);
-    }
-
     bool Level::linkAgentToModel(AgentId aid, ModelType mType, ModelId mid)
     {
         Ogre::String intro = "Level::linkAgentToModel(): ";
@@ -128,7 +121,7 @@ namespace Steel
             Debug::error(intro)("aid ")(aid)(" does not exist.").endl();
             return false;
         }
-        Agent *agent = getAgent(aid);
+        Agent *agent = mAgentMan->getAgent(aid);
 
         ModelManager *mm = modelManager(mType);
         if (mm == NULL)
@@ -178,6 +171,11 @@ namespace Steel
         mTerrainMan.addTerrainManagerEventListener(this);
         if (!deserialize(s))
         {
+            mAgentMan->deleteAllAgents();
+            mBTModelMan->clear();
+            mPhysicsModelMan->clear();
+            mOgreModelMan->clear();
+            
             mTerrainMan.removeTerrainManagerEventListener(this);
             Debug::warning(logName() + ".load(): error deserializing saved file.");
             return false;
@@ -227,15 +225,6 @@ namespace Steel
         return mm;
     }
 
-    AgentId Level::newAgent()
-    {
-
-        Agent *t = new Agent(this);
-        //	Debug::log(" with id:")(t->id()).endl();
-        mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
-        return t->id();
-    }
-
     ModelId Level::newOgreModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
     {
         Debug::log(logName() + ".newOgreModel(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot).endl();
@@ -254,20 +243,10 @@ namespace Steel
             mTerrainMan.removeTerrainManagerEventListener(this);
     }
 
-    Agent *Level::getAgent(AgentId id)
-    {
-        std::map<AgentId, Agent *>::iterator it = mAgents.find(id);
-        if (it == mAgents.end())
-            return NULL;
-        return it->second;
-    }
-
     void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
     {
-        //         Debug::log(logName()+".getAgentsIdsFromSceneNodes()").endl();
         //retrieving models
         ModelId id;
-        //	Debug::log("adding ids:");
         std::list<ModelId> models = std::list<ModelId>();
         for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
         {
@@ -277,15 +256,14 @@ namespace Steel
             id = any.get<ModelId>();
             if (!mOgreModelMan->isValid(id))
                 continue;
-            //		Debug::log("scenenode: ")((*it)->getName())("-> model id: ")(id)(", ");
             models.push_back(id);
         }
-        //	Debug::log.endl()("then mapping models to agents: ");
 
         //retrieving agents
         Agent *t;
         ModelId modelId;
-        for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
+        // TODO: remove direct access
+        for (std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
         {
             t = (*it_agents).second;
             modelId = t->ogreModelId();
@@ -293,7 +271,6 @@ namespace Steel
                 if (mOgreModelMan->isValid(modelId) && modelId == (*it_models))
                     selection.push_back(t->id());
         }
-        //	Debug::log("done.");
     }
 
     bool Level::isOver(void)
@@ -332,7 +309,7 @@ namespace Steel
         // serialise agents
         Debug::log("processing agents...").endl().indent();
         Json::Value agents;
-        for (std::map<AgentId, Agent *>::iterator it_agents = mAgents.begin(); it_agents != mAgents.end(); ++it_agents)
+        for (std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
         {
             AgentId aid = (*it_agents).first;
             Agent *agent = (*it_agents).second;
@@ -383,9 +360,16 @@ namespace Steel
 
         // get level info
         value = root["name"];
-        assert(!value.isNull());
-        // we load the right level
-        assert(mName==value.asString());
+        if(value.isNull())
+        {
+            Debug::error("level name is null. Aborting.").endl();
+            return false;
+        }
+        if(mName!=value.asString())
+        {
+            Debug::error("level name ").quotes(mName)(" does not match loaded data's ").quotes(value.asString())(" . Aborting.").endl();
+            return false;
+        }
 
         value = root["backgroundColor"];
         if (value.isNull())
@@ -444,15 +428,20 @@ namespace Steel
 
         for (Json::ValueIterator it = dict.begin(); it != dict.end(); ++it)
         {
-            //TODO: remap ids to lowest range
-            AgentId aid = newAgent();
+            AgentId aid=Ogre::StringConverter::parseUnsignedLong(it.key().asString());
             assert(aid!=INVALID_ID);
-            Agent *agent = getAgent(aid);
+            if(!mAgentMan->isIdFree(aid))
+            {
+                Debug::error("AgentId ")(aid)(" could not be used: id is not free.").endl();
+                return false;
+            }
+            Agent *agent = mAgentMan->newAgent(aid);
+            assert(NULL!=agent);
             agent->fromJson(*it);
             if (agent->modelsIds().size() == 0)
             {
                 Debug::warning("deleting agent ")(aid)(" with 0 models.").endl();
-                deleteAgent(aid);
+                mAgentMan->deleteAgent(aid);
             }
         }
         Debug::log("agents done").endl();
@@ -465,6 +454,7 @@ namespace Steel
         mTerrainMan.update(timestep);
         // assume mTerrainMan's btWorld has been updated
         mPhysicsModelMan->update(timestep);
+        SignalManager::instance().fireEmittedSignals();
         // actually needed ?
         //mOgreModelMan.update(timestep);
         mBTModelMan->update(timestep);

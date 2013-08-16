@@ -27,17 +27,23 @@ namespace Steel
     class Agent
     {
         public:
-            Agent(Level *level);
+            Agent(AgentId id, Level *level);
             virtual ~Agent();
             Agent(const Agent &t);
             /// shallow copy
             Agent &operator=(const Agent &);
 
-            //getter
             inline AgentId id()
             {
                 return mId;
             }
+            inline bool isFree()
+            {
+                return mId==INVALID_ID;
+            }
+            
+            void init(AgentId id);
+            void cleanup();
 
             /// Setup new Agent according to data in the json serialization.
             bool fromJson(Json::Value &models);
@@ -110,24 +116,13 @@ namespace Steel
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
-            
+
             std::set<Tag> const &tags()
             {
                 return mTags;
             }
 
         private:
-            //static stuff
-            static AgentId sNextId;
-
-            static inline AgentId getNextId()
-            {
-                if (sNextId == ULONG_MAX)
-                    throw "Steel::Agent::sNextId has reached ULONG_MAX.";
-                return sNextId++;
-            }
-            //end of static stuff
-
             /// Unique id.
             AgentId mId;
 
@@ -138,7 +133,7 @@ namespace Steel
 
             /// state flag
             bool mIsSelected;
-            
+
             std::set<Tag> mTags;
     };
 

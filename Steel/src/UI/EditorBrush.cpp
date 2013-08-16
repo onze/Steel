@@ -16,6 +16,7 @@
 #include <tools/Cylinder.h>
 #include <tools/OgreUtils.h>
 #include <Agent.h>
+#include <SelectionManager.h>
 #include <OgreManualObject.h>
 #include <OgreMeshManager.h>
 
@@ -99,6 +100,7 @@ namespace Steel
     bool EditorBrush::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         mContinuousModeActivated = false;
+        SelectionManager *selectionMan=mEngine->level()->selectionMan();
         switch (mMode)
         {
             case TRANSLATE:
@@ -111,35 +113,35 @@ namespace Steel
                         std::list<ModelId> selection;
                         auto mPos = mInputMan->mousePos();
                         mEngine->pickAgents(selection, mPos.x, mPos.y);
-
+                        
                         // click on nothing
                         if (selection.size() == 0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                            mEngine->selectionMan().clearSelection();
-                        else if (mEngine->selectionMan().hasSelection())
+                            mEngine->level()->selectionMan()->clearSelection();
+                        else if (selectionMan->hasSelection())
                         {
                             // clicked a new agent
-                            if (mEngine->selectionMan().isSelected(selection.front()))
+                            if (selectionMan->isSelected(selection.front()))
                             {
                                 if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                                    mEngine->selectionMan().removeFromSelection(selection);
+                                    selectionMan->removeFromSelection(selection);
                             }
                             else
-                                mEngine->selectionMan().setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
+                                selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
                         }
                         else
                         {
-                            mEngine->selectionMan().setSelectedAgents(selection);
-                            //Debug::log("EditorBrush::mousePressed(): selection position: ")(mEngine->selectionMan().selectionPosition()).endl();
+                            selectionMan->setSelectedAgents(selection);
+                            //Debug::log("EditorBrush::mousePressed(): selection position: ")(selectionMan->selectionPosition()).endl();
                         }
 
-                        if (mEngine->selectionMan().hasSelection())
+                        if (selectionMan->hasSelection())
                         {
                             mIsDraggingSelection = true;
                             // saved so that we know what to reset properties to
                             //TODO: save complete serialisations
-                            mSelectionPosBeforeTransformation = mEngine->selectionMan().selectionPositions();
-                            mSelectionRotBeforeTransformation = mEngine->selectionMan().selectionRotations();
-                            mSelectionScaleBeforeTransformation = mEngine->selectionMan().selectionScales();
+                            mSelectionPosBeforeTransformation = selectionMan->selectionPositions();
+                            mSelectionRotBeforeTransformation = selectionMan->selectionRotations();
+                            mSelectionScaleBeforeTransformation = selectionMan->selectionScales();
                         }
                         else
                         {
@@ -155,9 +157,9 @@ namespace Steel
                         if (mIsDraggingSelection)
                         {
                             mIsDraggingSelectionCancelled = true;
-                            mEngine->selectionMan().setSelectionPositions(mSelectionPosBeforeTransformation);
-                            mEngine->selectionMan().setSelectionRotations(mSelectionRotBeforeTransformation);
-                            mEngine->selectionMan().setSelectionScales(mSelectionScaleBeforeTransformation);
+                            selectionMan->setSelectionPositions(mSelectionPosBeforeTransformation);
+                            selectionMan->setSelectionRotations(mSelectionRotBeforeTransformation);
+                            selectionMan->setSelectionScales(mSelectionScaleBeforeTransformation);
                         }
                         break;
                     default:
@@ -195,6 +197,7 @@ namespace Steel
 
     bool EditorBrush::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
+        SelectionManager *selectionMan=mEngine->level()->selectionMan();
         switch (mMode)
         {
             case TRANSLATE:
@@ -211,7 +214,7 @@ namespace Steel
                         std::list<AgentId> selection;
                         mSelectionBox->performSelection(selection, mEngine->level()->camera()->cam());
                         if (selection.size() > 0)
-                            mEngine->selectionMan().setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
+                            selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
                         mSelectionBox->setVisible(false);
                         mIsSelecting = false;
                     }
@@ -219,8 +222,8 @@ namespace Steel
                     {
                         mIsDraggingSelection = false;
                         mIsDraggingSelectionCancelled = false;
-                        mSelectionPosBeforeTransformation = mEngine->selectionMan().selectionPositions();
-                        mSelectionRotBeforeTransformation = mEngine->selectionMan().selectionRotations();
+                        mSelectionPosBeforeTransformation = selectionMan->selectionPositions();
+                        mSelectionRotBeforeTransformation = selectionMan->selectionRotations();
                     }
                 }
                 break;
@@ -260,6 +263,7 @@ namespace Steel
 
     bool EditorBrush::mouseMoved(const OIS::MouseEvent& evt)
     {
+        SelectionManager *selectionMan=mEngine->level()->selectionMan();
         Ogre::Real x = float(evt.state.X.abs);
         Ogre::Real y = float(evt.state.Y.abs);
         Ogre::Real _x = x - float(evt.state.X.rel);
@@ -314,13 +318,13 @@ namespace Steel
         {
             if (mIsDraggingSelection)
             {
-                if (mEngine->selectionMan().hasSelection())
+                if (selectionMan->hasSelection())
                 {
                     std::list<ModelId> selection;
                     mEngine->pickAgents(selection, evt.state.X.abs, evt.state.Y.abs);
                     if (mIsDraggingSelectionCancelled)
                         return true;
-                    Ogre::Vector3 selectionPos = mEngine->selectionMan().selectionPosition();
+                    Ogre::Vector3 selectionPos = selectionMan->selectionPosition();
                     Ogre::Vector3 src, dst;
                     Ogre::Vector3 camPos = mEngine->level()->camera()->camNode()->getPosition();
                     // wall facing the camera, placed between cam and selection
@@ -337,7 +341,7 @@ namespace Steel
                                 if (mousePlaneProjection(vPlane, _x / w, _y / h, src)
                                         && mousePlaneProjection(vPlane, x / w, y / h, dst))
                                 {
-                                    mEngine->selectionMan().moveSelection(Ogre::Vector3(.0f, (dst - src).y, .0f));
+                                    selectionMan->moveSelection(Ogre::Vector3(.0f, (dst - src).y, .0f));
                                 }
                             }
                             else
@@ -347,7 +351,7 @@ namespace Steel
                                 {
                                     auto dpos = dst - src;
                                     dpos.y = .0f;
-                                    mEngine->selectionMan().moveSelection(dpos);
+                                    selectionMan->moveSelection(dpos);
                                 }
                             }
                         }
@@ -363,7 +367,7 @@ namespace Steel
                                     src -= selectionPos;
                                     dst -= selectionPos;
                                     Ogre::Radian r = src.angleBetween(dst);
-                                    mEngine->selectionMan().rotateSelectionRotationAroundCenter(r, src.crossProduct(dst));
+                                    selectionMan->rotateSelectionRotationAroundCenter(r, src.crossProduct(dst));
                                 }
                             }
                             else
@@ -376,10 +380,10 @@ namespace Steel
                                     // take the angle between them, in the direction given by the sign of their crossProduct (cw/ccw)
                                     Ogre::Radian r = src.angleBetween(dst) * Ogre::Math::Sign(src.crossProduct(dst).y);
                                     // rotate selection around Y on its center of the same amount
-                                    mEngine->selectionMan().rotateSelectionRotationAroundCenter(r, Ogre::Vector3::UNIT_Y);
+                                    selectionMan->rotateSelectionRotationAroundCenter(r, Ogre::Vector3::UNIT_Y);
                                     //// simple heuristic - early ages
                                     //Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
-                                    //mEngine->selectionMan().rotateSelection(r);
+                                    //selectionMan->rotateSelection(r);
                                 }
                             }
                         }
@@ -391,10 +395,10 @@ namespace Steel
                             {
                                 Ogre::Real factor = selectionPos.distance(dst) / selectionPos.distance(src);
                                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
-                                    mEngine->selectionMan().expandSelection(
+                                    selectionMan->expandSelection(
                                         selectionPos.distance(dst) - selectionPos.distance(src));
                                 else
-                                    mEngine->selectionMan().rescaleSelection(Ogre::Vector3(factor, factor, factor));
+                                    selectionMan->rescaleSelection(Ogre::Vector3(factor, factor, factor));
                             }
                         }
                         break;
@@ -405,7 +409,7 @@ namespace Steel
                         default:
                             break;
                     } //end of switch (mMode)
-                } //end of if(mEngine->selectionMan().hasSelection())
+                } //end of if(selectionMan->hasSelection())
             } // end of if(mIsDraggingSelection)
             if (mIsSelecting)
             {

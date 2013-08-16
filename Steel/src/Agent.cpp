@@ -20,58 +20,67 @@
 namespace Steel
 {
 
-    AgentId Agent::sNextId = 0;
-
-    Agent::Agent(Level *level)
-        : mId(Agent::getNextId()), mLevel(level),mIsSelected(false),mTags(std::set<Tag>())
+    Agent::Agent(AgentId id, Steel::Level* level): mId(id), mLevel(level),
+        mModelIds(std::map<ModelType, ModelId>()),mIsSelected(false),mTags(std::set<Tag>())
     {
-        mModelIds = std::map<ModelType, ModelId>();
         mTags.insert(TagManager::instance().toTag("test"));
     }
 
     Agent::~Agent()
     {
+        cleanup();
+    }
+
+    void Agent::cleanup()
+    {
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
             mLevel->modelManager(it->first)->decRef(it->second);
+        mLevel=NULL;
         mModelIds.clear();
         mTags.clear();
+        mId=INVALID_ID;
     }
 
     Agent::Agent(const Agent &o)
-    : mId(o.mId), mLevel(o.mLevel), mModelIds(o.mModelIds),mIsSelected(o.mIsSelected),mTags(o.mTags)
+        : mId(o.mId), mLevel(o.mLevel), mModelIds(o.mModelIds), mIsSelected(o.mIsSelected), mTags(o.mTags)
     {
-        if(this==&o)
+        if(this == &o)
             return;
-
-        for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
-        {
-            linkToModel(it->first,it->second);
-//             mLevel->modelManager(it->first)->at(it->second)->incRef();
-        }
+        this->operator=(o);
     }
 
     Agent &Agent::operator=(const Agent &o)
     {
         if(this==&o)
             return *this;
+        bool wasInUse=INVALID_ID!=mId;
 
         mId = o.mId;
+        bool isInUse=INVALID_ID!=mId;
         mLevel = o.mLevel;
 
-        for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
+        if(wasInUse)
         {
-            unlinkFromModel(it->first);
-//             mLevel->modelManager(it->first)->at(it->second)->decRef();
+            for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
+                unlinkFromModel(it->first);
         }
-        mModelIds = o.mModelIds;
-        for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
+        else
         {
-            linkToModel(it->first,it->second);
-//             mLevel->modelManager(it->first)->at(it->second)->incRef();
+            assert(mModelIds.size()==0);
         }
 
-        mIsSelected=o.mIsSelected;
+        mModelIds = o.mModelIds;
+        if(isInUse)
+        {
+            for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
+                linkToModel(it->first,it->second);
+        }
+        
         mTags=o.mTags;
+        if(mIsSelected!=o.mIsSelected)
+        {
+            setSelected(mIsSelected);
+        }
         return *this;
     }
 

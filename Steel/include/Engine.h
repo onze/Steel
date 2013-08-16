@@ -16,7 +16,6 @@
 #include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "UI/UI.h"
-#include "SelectionManager.h"
 
 namespace Steel
 {
@@ -157,11 +156,6 @@ namespace Steel
                 return dataDir().subfile("resources");
             }
 
-            inline SelectionManager &selectionMan()
-            {
-                return mSelectionMan;
-            }
-
             inline std::string &windowHandle()
             {
                 return mWindowHandle;
@@ -240,9 +234,6 @@ namespace Steel
 
             /// Called back about engine events.
             std::set<EngineEventListener *> mListeners;
-
-            /// Manages selections of Agents.
-            SelectionManager mSelectionMan;
     };
 }
 

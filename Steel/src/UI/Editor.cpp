@@ -20,6 +20,8 @@
 #include "OgreModelManager.h"
 #include "PhysicsModelManager.h"
 #include "tools/JsonUtils.h"
+#include <AgentManager.h>
+#include <SelectionManager.h>
 
 namespace Steel
 {
@@ -149,8 +151,8 @@ namespace Steel
 
         if(INVALID_ID == aid)
             return INVALID_ID;
-
-        Agent *agent = mEngine->level()->getAgent(aid);
+   
+        Agent *agent = mEngine->level()->agentMan()->getAgent(aid);
         if (NULL == agent)
             Debug::error(intro)("can't find agent ")(aid).endl();
         else
@@ -190,7 +192,7 @@ namespace Steel
                 new_svalue = svalue;
             else
             {
-                auto agent = mEngine->level()->getAgent(aid);
+                auto agent = mEngine->level()->agentMan()->getAgent(aid);
 
                 if(svalue == "$agentOgreModel")
                 {
@@ -378,7 +380,7 @@ namespace Steel
                 {
                     Debug::error(intro)("no level to create agent.").endl();
                 }
-                aid=level->newAgent();
+                aid=mEngine->level()->agentMan()->newAgent();
             }
         }
 
@@ -506,7 +508,7 @@ namespace Steel
         {
             if (INVALID_ID != aid)
             {
-                level->deleteAgent(aid);
+                mEngine->level()->agentMan()->deleteAgent(aid);
                 aid = INVALID_ID;
             }
             return false;
@@ -633,8 +635,7 @@ namespace Steel
         bool fresh_aid = INVALID_ID == aid;
         if (fresh_aid)
         {
-            //TODO #OPT: Agent *agent=level->newAgent(aid);
-            aid = level->newAgent();
+            aid = mEngine->level()->agentMan()->newAgent();
             if (INVALID_ID == aid)
             {
                 Debug::error(intro)("could not create an agent to link the model to. Aborted.").endl();
@@ -658,7 +659,7 @@ namespace Steel
         }
 
         // check if the agent is already linked to such a model
-        Agent *agent=level->getAgent(aid);
+        Agent *agent=mEngine->level()->agentMan()->getAgent(aid);
         if(NULL==agent)
         {
             Debug::log(intro)("could not retrieve agent for id ")(aid).endl();
@@ -695,7 +696,7 @@ namespace Steel
             Debug::error(intro)("could not link agent ")(aid)(" to  ")(modelTypeString)(" Model ")
             (mid)(". Model released. Aborted.").endl();
             if (fresh_aid)
-                level->deleteAgent(aid);
+                mEngine->level()->agentMan()->deleteAgent(aid);
             return false;
         }
         else
@@ -716,7 +717,7 @@ namespace Steel
         }
 //      Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
         Steel::ModelId mid = level->newOgreModel(meshFile.fileName(), pos, rot);
-        AgentId aid = level->newAgent();
+        AgentId aid = mEngine->level()->agentMan()->newAgent();
         if (!level->linkAgentToModel(aid, MT_OGRE, mid))
         {
             Debug::error(intro + "): could not level->linkAgentToModel(")(aid)(", MT_OGRE, ")(mid)(")").endl();
@@ -773,6 +774,7 @@ namespace Steel
 
     bool Editor::keyReleased(const OIS::KeyEvent& evt)
     {
+        SelectionManager *selectionMan=mEngine->level()->selectionMan();
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
         mContext->ProcessKeyUp(keyIdentifier, mUI->getKeyModifierState());
         Level *level = mEngine->level();
@@ -802,7 +804,7 @@ namespace Steel
                 mBrush.setMode(EditorBrush::TRANSLATE);
                 break;
             case OIS::KC_DELETE:
-                mEngine->selectionMan().deleteSelection();
+                selectionMan->deleteSelection();
                 break;
             default:
                 break;
@@ -815,9 +817,9 @@ namespace Steel
             int tagKey = (evt.key - OIS::KC_1 + 1) % 10;
             Ogre::String sKey = Ogre::StringConverter::toString(tagKey);
             if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                mEngine->selectionMan().setSelectionTag(sKey);
+                selectionMan->setSelectionTag(sKey);
             else
-                mEngine->selectionMan().setTaggedSelection(sKey);
+                selectionMan->setTaggedSelection(sKey);
         }
         return true;
     }

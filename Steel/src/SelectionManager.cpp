@@ -4,18 +4,18 @@
 #include "Engine.h"
 #include <tools/OgreUtils.h>
 #include "Level.h"
+#include <AgentManager.h>
 
 namespace Steel
 {
 
-    SelectionManager::SelectionManager(Engine *engine)
-        : mSelection(Selection()), mSelectionsTags(std::map<Ogre::String, Selection>())
+    SelectionManager::SelectionManager(Level *level)
+        : mLevel(level), mSelection(Selection()), mSelectionsTags(std::map<Ogre::String, Selection>())
     {
-        mEngine = engine;
     }
 
     SelectionManager::SelectionManager(const SelectionManager& o)
-        : mEngine(o.mEngine), mSelection(o.mSelection), mSelectionsTags(o.mSelectionsTags)
+        : mLevel(o.mLevel), mSelection(o.mSelection), mSelectionsTags(o.mSelectionsTags)
     {
 
     }
@@ -40,7 +40,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->setSelected(false);
@@ -53,7 +53,7 @@ namespace Steel
         if (!hasSelection())
             return;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
-            mEngine->level()->deleteAgent(*it);
+            mLevel->agentMan()->deleteAgent(*it);
         mSelection.clear();
     }
 
@@ -63,7 +63,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->rotate(rotation);
@@ -85,7 +85,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             pos.push_back(agent->position());
@@ -101,7 +101,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             rots.push_back(agent->rotation());
@@ -117,7 +117,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             scales.push_back(agent->scale());
@@ -131,7 +131,7 @@ namespace Steel
             return Ogre::Quaternion::IDENTITY;
 
         AgentId aid = mSelection.front();
-        Agent *agent = mEngine->level()->getAgent(aid);
+        Agent *agent = mLevel->agentMan()->getAgent(aid);
         if (agent == NULL)
         {
             Debug::error("SelectionManager::selectionOrientationFromCenter(): selection's first item (agent ")(aid)(
@@ -151,7 +151,7 @@ namespace Steel
         ;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             rots.push_back(mean.getRotationTo(agent->position(), Ogre::Vector3::UNIT_Z));
@@ -167,7 +167,7 @@ namespace Steel
         //process actual selections
         for (Selection::iterator it = selection.begin(); it != selection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (NULL == agent)
                 continue;
             mSelection.push_back(agent->id());
@@ -190,7 +190,7 @@ namespace Steel
                     break;
                 mSelection.erase(it);
 
-                auto agent = mEngine->level()->getAgent(aid);
+                auto agent = mLevel->agentMan()->getAgent(aid);
                 if (NULL == agent)
                     continue;
                 agent->setSelected(false);
@@ -211,7 +211,7 @@ namespace Steel
         Ogre::Vector3 diff = pos - OgreUtils::mean(selectionPositions());
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->move(diff);
@@ -227,7 +227,7 @@ namespace Steel
         auto it_pos = pos.begin();
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->setPosition(*(it_pos++));
@@ -241,7 +241,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (NULL == agent)
                 continue;
             agent->move(dpos);
@@ -257,7 +257,7 @@ namespace Steel
         auto it_pos = dpos.begin();
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->move(*(it_pos++));
@@ -272,7 +272,7 @@ namespace Steel
         auto center = selectionPosition();
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->move((agent->position() - center).normalisedCopy() * dpos);
@@ -288,7 +288,7 @@ namespace Steel
         auto it_rot = rots.begin();
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->setRotation(*(it_rot++));
@@ -305,7 +305,7 @@ namespace Steel
         auto plane = Ogre::Plane(axis, center);
         if (mSelection.size() == 1)
         {
-            agent = mEngine->level()->getAgent(mSelection.front());
+            agent = mLevel->agentMan()->getAgent(mSelection.front());
             if (agent == NULL)
                 return;
             agent->rotate(rotation);
@@ -314,7 +314,7 @@ namespace Steel
         {
             for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
             {
-                agent = mEngine->level()->getAgent(*it);
+                agent = mLevel->agentMan()->getAgent(*it);
                 if (agent == NULL)
                     continue;;
 
@@ -337,7 +337,7 @@ namespace Steel
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->rescale(scale);
@@ -354,7 +354,7 @@ namespace Steel
         auto it_sca = scales.begin();
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
-            agent = mEngine->level()->getAgent(*it);
+            agent = mLevel->agentMan()->getAgent(*it);
             if (agent == NULL)
                 continue;
             agent->setScale(*(it_sca++));

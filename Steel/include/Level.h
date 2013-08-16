@@ -1,7 +1,6 @@
 #ifndef STEEL_LEVEL_H_
 #define STEEL_LEVEL_H_
 
-#include <map>
 #include <memory>
 #include <list>
 
@@ -17,10 +16,12 @@ namespace Steel
     class Engine;
     class Agent;
     class Camera;
+    class AgentManager;
     class ModelManager;
     class OgreModelManager;
     class PhysicsModelManager;
     class BlackBoardModelManager;
+    class SelectionManager;
 
     class Level: public TerrainManagerEventListener
     {
@@ -34,13 +35,8 @@ namespace Steel
             Level(Engine *engine, File path, Ogre::String name);
             virtual ~Level();
 
-            void deleteAgent(AgentId id);
-
             /// Read properties in the given string and set them where they should.
             bool deserialize(Ogre::String &s);
-
-            /// Returns a pointer to the agent whose id's given, or NULL if there's no such agent.
-            Agent *getAgent(AgentId id);
 
             /// Ffills the list of AgentId with agents that own nodes in the the given list.
             void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<AgentId> &selection);
@@ -61,9 +57,6 @@ namespace Steel
              */
             bool load();
 
-            /// Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
-            AgentId newAgent();
-
             /**
              * creates a new instance of Agent.
              * name: name of the mesh to use
@@ -71,18 +64,14 @@ namespace Steel
              * rot: rotation of the node
              * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
              */
-            ModelId newOgreModel(Ogre::String name, Ogre::Vector3 pos = Ogre::Vector3::ZERO, Ogre::Quaternion rot =
-                                     Ogre::Quaternion::IDENTITY);
-
-//             ModelId newPhysicsModel()=0;
+            ModelId newOgreModel(Ogre::String name, 
+                                 Ogre::Vector3 pos = Ogre::Vector3::ZERO, 
+                                 Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
 
             virtual void onTerrainEvent(TerrainManager::LoadingState state);
 
             /// execute a serialized command
             void processCommand(std::vector<Ogre::String> command);
-
-            /// Loads behavior trees available for this  level.
-//	void loadBTrees();
 
             /**
              * save a seralization string into a file that can be loaded and read back with a call to load.
@@ -149,8 +138,18 @@ namespace Steel
             {
                 return mBTModelMan;
             }
+            
+            inline AgentManager *agentMan()
+            {
+                return mAgentMan;
+            }
+            
+            inline SelectionManager *selectionMan()
+            {
+                return mSelectionMan;
+            }
 
-        protected:
+        private:
             /// name used in debug output
             Ogre::String logName();
 
@@ -175,21 +174,14 @@ namespace Steel
 
             /// root node of the level. All level-dependant entities are its children.
             Ogre::SceneNode *mLevelRoot;
-
-            /// agent container.
-            std::map<AgentId, Agent *> mAgents;
-
-            /// responsible for OgreModel instances.
+            
+            //managers
+            AgentManager *mAgentMan;
             OgreModelManager *mOgreModelMan;
-
-            /// responsible for PhysicsModel instances.
             PhysicsModelManager *mPhysicsModelMan;
-
-            /// Responsible for BTModel instances
             BTModelManager *mBTModelMan;
-
-            /// Eases terrain manipulation
             TerrainManager mTerrainMan;
+            SelectionManager *mSelectionMan;
 
             /// Main camera
             Camera *mCamera;

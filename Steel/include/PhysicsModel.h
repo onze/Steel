@@ -17,6 +17,7 @@ namespace Steel
     class PhysicsModelManager;
     class OgreModel;
     class Agent;
+    class Level;
     /**
      * Physic representation of an OgreModel (can't work without it as of now)
      */
@@ -82,6 +83,7 @@ namespace Steel
             
             /// Maps a bounding shape string to its enum value. Defaults to sphere.
             BoundingShape BBoxShapeFromString(Ogre::String &shape);
+            Ogre::String StringShapeFromBBox(BoundingShape &shape);
 
             //not owned
             btDynamicsWorld *mWorld;
