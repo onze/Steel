@@ -88,8 +88,11 @@ namespace Steel
     template<class M>
     void _ModelManager<M>::deallocateModel(ModelId id)
     {
-        mModels[id].cleanup();
-        mModelsFreeList.push_back(id);
+        if(!mModels[id].isFree())
+        {
+            mModels[id].cleanup();
+            mModelsFreeList.push_back(id);
+        }
 #ifdef DEBUG
         assert(mModels[id].isFree());
 #endif
@@ -98,6 +101,11 @@ namespace Steel
     template<class M>
     void _ModelManager<M>::clear()
     {
+        // deallocate all models
+        for(Model &model:mModels)
+            if(!model.isFree())
+                model.cleanup();
+        // remove space
         mModels.clear();
         mModelsFreeList.clear();
     }
@@ -192,7 +200,6 @@ namespace Steel
         // no problem with that
         return true;
     }
-    ;
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

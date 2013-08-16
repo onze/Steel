@@ -23,7 +23,6 @@ namespace Steel
 
     Model::~Model()
     {
-
     }
 
     Model &Model::operator=(const Model &m)
