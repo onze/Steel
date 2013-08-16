@@ -27,6 +27,7 @@ namespace Steel
             virtual ~SignalManager();
             
             void registerListener(const Signal signal, SignalListener* listener);
+            void unregisterListener(const Signal signal, SignalListener* listener);
             
             /// Registers the signal to be fired before next frame (recommended).
             void emit(const Signal signal, SignalEmitter* src=NULL);

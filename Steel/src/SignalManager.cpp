@@ -29,12 +29,16 @@ namespace Steel
 
     void SignalManager::fireEmittedSignals()
     {
-        auto copy=mEmittedSignals;
-        while(copy.size())
+        if(mEmittedSignals.size())
         {
-            auto kv=copy.begin();
-            fire(kv->first,kv->second);
-            copy.erase(kv);
+            decltype(mEmittedSignals) copy(mEmittedSignals.begin(),mEmittedSignals.end());
+            mEmittedSignals.clear();
+            while(copy.size())
+            {
+                auto kv=copy.begin();
+                fire(kv->first, kv->second);
+                copy.erase(kv);
+            }
         }
     }
 
@@ -43,7 +47,7 @@ namespace Steel
         std::map<Signal, std::set<SignalListener*>>::iterator it=mListeners.find(signal);
         if(mListeners.end()==it)
             return;
-        
+
         std::set<SignalListener*> listeners(it->second);
         for(auto& listener: listeners)
         {
@@ -54,7 +58,7 @@ namespace Steel
     Signal SignalManager::toSignal(const Ogre::String& signal)
     {
         Signal returnedValue=INVALID_SIGNAL;
-        
+
         auto it=mSignalsMap.find(signal);
         if(mSignalsMap.end()==it)
         {
@@ -106,6 +110,17 @@ namespace Steel
             mListeners[signal]=std::set<SignalListener*>();
         }
         mListeners.find(signal)->second.insert(listener);
+    }
+
+    void SignalManager::unregisterListener(const Signal signal, SignalListener* listener)
+    {
+        if(NULL==listener)
+            return;
+        auto signal_it=mListeners.find(signal);
+        if(mListeners.end()!=signal_it)
+        {
+            mListeners[signal].erase(listener);
+        }
     }
 
 }

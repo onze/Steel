@@ -1,7 +1,7 @@
 #ifndef STEEL_SIGNALLISTENER_H
 #define STEEL_SIGNALLISTENER_H
 
-#include <vector>
+#include <set>
 #include <OgreString.h>
 
 #include "steeltypes.h"
@@ -23,6 +23,8 @@ namespace Steel
             
             /// Unregisters calls to onSignal for the given signal.
             void unregisterSignal(Signal signal);
+            /// Unregisters from all registered signals.
+            void unregisterAllSignals();
 
             /// Triggered when the listened signal is fired.
             virtual void onSignal(Signal signal, SignalEmitter* src)=0;
@@ -34,10 +36,10 @@ namespace Steel
             void _onSignal(Signal signal, SignalEmitter* src);
         private:
             /// Signals the instance is currently listening to.
-            std::vector<Signal> mRegisteredSignals;
+            std::set<Signal> mRegisteredSignals;
 
 #ifdef DEBUG
-            mutable std::vector<Ogre::String> mRegisteredSignalStrings;
+            mutable std::set<Ogre::String> mRegisteredSignalStrings;
 #endif
     };
 }

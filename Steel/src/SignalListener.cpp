@@ -7,15 +7,16 @@ namespace Steel
 {
 
     SignalListener::SignalListener()
-        : mRegisteredSignals(std::vector<Signal>())
+        : mRegisteredSignals(std::set<Signal>())
 #ifdef DEBUG
-        , mRegisteredSignalStrings(std::vector<Ogre::String>())
+        , mRegisteredSignalStrings(std::set<Ogre::String>())
 #endif
     {
     }
 
     SignalListener::~SignalListener()
     {
+        unregisterAllSignals();
     }
     
     void SignalListener::registerSignal(const Ogre::String& signal)
@@ -26,15 +27,26 @@ namespace Steel
     void SignalListener::registerSignal(const Signal signal)
     {
         SignalManager::instance().registerListener(signal, this);
-        mRegisteredSignals.push_back(signal);
+        mRegisteredSignals.insert(signal);
 #ifdef DEBUG
-        mRegisteredSignalStrings.push_back(SignalManager::instance().fromSignal(signal));
+        mRegisteredSignalStrings.insert(SignalManager::instance().fromSignal(signal));
 #endif
     }
 
     void SignalListener::unregisterSignal(Signal signal)
     {
-
+        int found=mRegisteredSignals.erase(signal);
+        if(found)
+        {
+            mRegisteredSignalStrings.erase(SignalManager::instance().fromSignal(signal));
+            SignalManager::instance().unregisterListener(signal,this);
+        }
+    }
+    
+    void SignalListener::unregisterAllSignals()
+    {
+        while(mRegisteredSignals.size())
+            unregisterSignal(*(mRegisteredSignals.begin()));
     }
 
     void SignalListener::_onSignal(Signal signal, SignalEmitter* src)
