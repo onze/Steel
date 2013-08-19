@@ -48,6 +48,12 @@ namespace Steel
                 return value;
             }
             
+            static bool asBool(Json::Value const &value, bool defaultValue);
+            static bool asInt(Json::Value const &value, int defaultValue);
+            static float asFloat(Json::Value const &value, float defaultValue);
+            static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue);
+            
+            
         private:
             /// Copies src keys to dst keys.
             static void updateObject(Json::Value const &src, Json::Value &dst, bool overrideDuplicates, bool warnOnDuplicates);

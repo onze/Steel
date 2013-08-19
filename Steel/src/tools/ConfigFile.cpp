@@ -2,6 +2,7 @@
 
 #include "tools/ConfigFile.h"
 #include <tools/StringUtils.h>
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
@@ -120,63 +121,43 @@ namespace Steel
         return *this;
     }
 
-    int ConfigFile::getSettingAsBool(Ogre::String key, bool defaultValue) const
+    int ConfigFile::getSettingAsBool(const Ogre::String& key, bool defaultValue) const
     {
         if(mSettings.size()==0)
             return defaultValue;
         if(mSettings.isMember(key))
-        {
-            Json::Value value=mSettings[key];
-            if(value.isString())
-                return Ogre::StringConverter::parseBool(value.asString(),defaultValue);
-            if(value.isBool())
-                return value.asBool();
-        }
+            return JsonUtils::asBool(mSettings[key], defaultValue);
         return defaultValue;
     }
 
-    int ConfigFile::getSettingAsInt(Ogre::String key, int defaultValue) const
+    int ConfigFile::getSettingAsInt(const Ogre::String& key, int defaultValue) const
     {
         if(mSettings.size()==0)
             return defaultValue;
         if(mSettings.isMember(key))
-        {
-            Json::Value value=mSettings[key];
-            if(value.isString())
-                return Ogre::StringConverter::parseInt(value.asString(),defaultValue);
-            if(value.isIntegral())
-                return value.asInt();
-        }
+            return JsonUtils::asInt(mSettings[key], defaultValue);
         return defaultValue;
     }
 
-    float ConfigFile::getSettingAsFloat(Ogre::String key, float defaultValue) const
+    float ConfigFile::getSettingAsFloat(const Ogre::String& key, float defaultValue) const
     {
+        if(mSettings.size()==0)
+            return defaultValue;
         if(mSettings.isMember(key))
-        {
-            Json::Value value=mSettings[key];
-            if(value.isString())
-                return Ogre::StringConverter::parseReal(value.asString(),defaultValue);
-            if(value.isNumeric())
-                return value.asFloat();
-        }
+            return JsonUtils::asFloat(mSettings[key], defaultValue);
         return defaultValue;
     }
 
-    unsigned long ConfigFile::getSettingAsUnsignedLong(Ogre::String key, long unsigned int defaultValue) const
+    unsigned long ConfigFile::getSettingAsUnsignedLong(const Ogre::String& key, long unsigned int defaultValue) const
     {
+        if(mSettings.size()==0)
+            return defaultValue;
         if(mSettings.isMember(key))
-        {
-            Json::Value value=mSettings[key];
-            if(value.isString())
-                return Ogre::StringConverter::parseUnsignedLong(value.asString(),defaultValue);
-            if(value.isIntegral())
-                return value.asUInt64();
-        }
+            return JsonUtils::asUnsignedLong(mSettings[key], defaultValue);
         return defaultValue;
     }
 
-    Ogre::String ConfigFile::getSetting(Ogre::String key) const
+    Ogre::String ConfigFile::getSetting(const Ogre::String& key, const Ogre::String& defaultValue) const
     {
         if(mSettings.isMember(key))
         {
@@ -186,7 +167,7 @@ namespace Steel
             else
                 return value.toStyledString();
         }
-        return "";
+        return defaultValue;
     }
 
 }
