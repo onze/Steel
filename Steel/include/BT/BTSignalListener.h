@@ -20,6 +20,8 @@ namespace Steel
         public:
             /// Name of the attribute listing signals the node listens to.
             static const char* SIGNALS_ATTRIBUTE;
+            /// If true, node will pause the tree until a signal is received
+            static const char* NON_BLOCKING_ATTRIBUTE;
 
             inline static BTShapeTokenType tokenType()
             {
@@ -30,13 +32,21 @@ namespace Steel
             virtual ~BTSignalListener();
             
             // SignalListener interface
-            virtual void onSignal(Signal signal, SignalEmitter* src);
+            void onSignal(Signal signal, SignalEmitter* src);
             
-            BTState state();
+            void onParentNotified();
 
         private:
+            /// Next run will execute child.
+            void switchOpened();
+            /// Will wait for a signal before opening.
+            void switchClosed();
             /// See BTNode::parseNodeContent.
             virtual bool parseNodeContent(Json::Value &root);
+            //owned
+            bool mSignalReceived;
+            /// See NON_BLOCKING_ATTRIBUTE
+            bool mIsNonBlocking;
     };
 }
 

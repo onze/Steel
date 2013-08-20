@@ -87,6 +87,7 @@ namespace Steel
 
     void BTModel::update(float timestep)
     {
+        bool debug=false;
         static const Ogre::String intro="in BTModel::update(): ";
         BTStateIndex prevStateIndex=mCurrentStateIndex;
         BTStateIndex newIndex=mCurrentStateIndex;
@@ -115,6 +116,8 @@ namespace Steel
             switch(nodeState)
             {
                 case READY:
+                    if(debug)
+                        Debug::log("running ")(BTShapeTokenTypeAsString[token.type])(" #")(token.begin).endl();
                     node->run(timestep);
                     continue;
                 case SKIPT_TO:
@@ -129,6 +132,9 @@ namespace Steel
                         mCurrentStateIndex=0;
                         return;
                     }
+                    
+                    if(debug)
+                        Debug::log("skipping to  #")(newIndex).endl();
                     // visiting a child or a sibling
                     if(newIndex<node->end())
                         mStatesStack.push(mCurrentStateIndex);
@@ -139,7 +145,9 @@ namespace Steel
                     continue;
                 case FAILURE:
                 case SUCCESS:
-
+                    
+                    if(debug)
+                        Debug::log(nodeState==SUCCESS?"SUCCESS":"FAILURE")(" from ")(BTShapeTokenTypeAsString[token.type])(" #")(token.begin).endl();
                     // root's success
                     if(0==mStatesStack.size())
                     {
@@ -149,7 +157,7 @@ namespace Steel
                     }
 
                     parent=mStateStream.stateAt(mStatesStack.top());
-                    parent->childReturned(nodeState);
+                    parent->childReturned(node, nodeState);
                     node->onParentNotified();
                     // give control back to parent
                     mCurrentStateIndex=mStatesStack.top();

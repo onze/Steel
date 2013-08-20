@@ -20,12 +20,12 @@ namespace Steel
             return BTDebugToken;
         }
         BTDebug(BTShapeToken const &token);
+        virtual ~BTDebug();
         
         void run(float timestep);
         
     private:
         bool parseNodeContent(Json::Value &root);
-        virtual ~BTDebug();
         
         Ogre::String mDebugText;
     };
