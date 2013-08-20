@@ -41,6 +41,7 @@ namespace Steel
             virtual BTState state();
             
             BTStateIndex firstChildIndex();
+            BTStateIndex lastChildIndex();
             
             ////////////
             // interface in contact to BTModel
@@ -60,7 +61,7 @@ namespace Steel
              * Defaults to updating the node's state.
              * Meant to be overwritten.
              */
-            virtual void childReturned(BTState state);
+            virtual void childReturned(BTNode const * const node, BTState state);
             
             /**
              * Called after run, once the parent has been notified of the node's state.

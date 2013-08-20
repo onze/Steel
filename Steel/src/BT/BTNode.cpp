@@ -78,6 +78,11 @@ namespace Steel
         return mToken.begin+1;
     }
     
+    BTStateIndex BTNode::lastChildIndex()
+    {
+        return mToken.end-1;
+    }
+    
     void BTNode::run(float timestep)
     {
         mState = SKIPT_TO;
@@ -88,7 +93,7 @@ namespace Steel
         return firstChildIndex();
     }
 
-    void BTNode::childReturned(BTState state)
+    void BTNode::childReturned(BTNode const * const child, BTState state)
     {
         mState=state;
     }

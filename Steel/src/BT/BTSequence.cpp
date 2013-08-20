@@ -45,9 +45,10 @@ namespace Steel
         return true;
     }
 
-    BTStateIndex BTSequence::switchToNextChild()
+    BTStateIndex BTSequence::switchToNextChild(BTNode const * const child)
     {
-        if(mToken.end==++mCurrentChildNodeIndex)
+        mCurrentChildNodeIndex=child->token().end;
+        if(mCurrentChildNodeIndex==mToken.end)
             mCurrentChildNodeIndex=firstChildIndex();
         return mCurrentChildNodeIndex;
     }
@@ -57,22 +58,22 @@ namespace Steel
         return mCurrentChildNodeIndex;
     }
 
-    void BTSequence::childReturned(BTState state)
+    void BTSequence::childReturned(BTNode const * const node, Steel::BTState state)
     {
         // child
         switch(state)
         {
             case SUCCESS:
-                // it was the last child -> overall success
-                if(mToken.end-1==mCurrentChildNodeIndex)
+                switchToNextChild(node);
+                // back to first child -> overall success
+                if(firstChildIndex()==mCurrentChildNodeIndex)
                 {
                     mState = SUCCESS;
                 }
                 else
                 {
-                    mState=SKIPT_TO;
+                    mState = SKIPT_TO;
                 }
-                switchToNextChild();
                 break;
             case FAILURE:
                 mCurrentChildNodeIndex=firstChildIndex();
@@ -87,71 +88,21 @@ namespace Steel
 
     void BTSequence::onParentNotified()
     {
-        if(mMaxLoops==mNLoops)
-            return;
         ++mNLoops;
+        // limited number of loops
         if(mMaxLoops>0)
         {
-            if(mMaxLoops>mNLoops)
-                mState=SKIPT_TO;
+            // max reached
+            if(mMaxLoops<=mNLoops)
+                return;
+            mState=SKIPT_TO;
         }
         else
+        {
+            // simple case
             mState=SKIPT_TO;
+        }
     }
-
-    /*
-     BT*Node::BTState BTSequence::run()
-     {
-         if (mState == READY)
-             onStartRunning();
-         std::cout << "BTSequence::run()" << std::endl;
-
-         BTState state;
-         while (it != mChildren.end())
-         {
-             state = (*it)->run();
-             switch (state)
-             {
-                 case RUNNING:
-                     return RUNNING;
-                 case READY:
-                 case SUCCESS:
-                     ++it;
-                     continue;
-                 case FAILURE:
-                     mState = READY;
-                     return FAILURE;
-                 case ERROR:
-                     std::cout << "ERROR !" << std::endl;
-                     break;
-         }
-         }
-         onStopRunning();
-         if (it == mChildren.end())
-             return SUCCESS;
-         std::cout << "in BTSequence::run(): bad code path: not all children have been consumed, "
-         << "yet we're not looping on them" << std::endl;
-         assert(false);
-         return FAILURE;
-     }
-     */
-
-    /*
-    void BTSequence::onStartRunning()
-    {
-    	std::cout << "BTSequence::onStartRunning()" << std::endl;
-    	it = mChildren.begin();
-    	mState = RUNNING;
-    }
-
-    void BTSequence::onStopRunning()
-    {
-    	std::cout << "BTSequence::onStopRunning()" << std::endl;
-    	mState = READY;
-    }
-    */
-
-
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

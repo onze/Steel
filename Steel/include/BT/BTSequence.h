@@ -31,7 +31,7 @@ namespace Steel
             virtual ~BTSequence();
 
             BTStateIndex nodeSkippedTo();
-            void childReturned(BTState state);
+            void childReturned(BTNode const * const node, Steel::BTState state);
             void onParentNotified();
 
             inline BTStateIndex currentChildNodeIndex()
@@ -42,7 +42,8 @@ namespace Steel
             bool parseNodeContent(Json::Value &root);
 
         private:
-            BTStateIndex switchToNextChild();
+            /// Loops currentChildNodeIndex() through children indices
+            BTStateIndex switchToNextChild(const Steel::BTNode*const child);
             BTStateIndex mCurrentChildNodeIndex;
             unsigned mNLoops;
             unsigned mMaxLoops;
