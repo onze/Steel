@@ -36,15 +36,13 @@ namespace Steel
 
     OgreModel::OgreModel(const OgreModel &m)
     {
-//	Debug::log("OgreModel::OgreModel(const OgreModel &m)").endl();
         Model::operator=(m);
         (*this) = m;
     }
 
     OgreModel &OgreModel::operator=(const OgreModel &m)
     {
-        Model::operator =(m);
-//	Debug::log("OgreModel::operator=(const OgreModel &m)").endl();
+        Model::operator=(m);
         mEntity = m.mEntity;
         mSceneNode = m.mSceneNode;
         mSceneManager=m.mSceneManager;
@@ -53,12 +51,10 @@ namespace Steel
 
     OgreModel::~OgreModel()
     {
-//	Debug::log("OgreModel::~OgreModel()").endl();
     }
 
     void OgreModel::cleanup()
     {
-//         Debug::log("OgreModel::cleanup()").endl();
         if (mEntity != NULL)
         {
             mEntity->detachFromParent();
@@ -109,9 +105,9 @@ namespace Steel
         mSceneNode->rotate(q,Ogre::Node::TS_WORLD);
     }
 
-    void OgreModel::setNodeAny(Ogre::Any any)
+    void OgreModel::setNodeAny(Steel::AgentId aid)
     {
-        mSceneNode->getUserObjectBindings().setUserAny(any);
+        mSceneNode->getUserObjectBindings().setUserAny(Ogre::Any(aid));
     }
 
     void OgreModel::setPosition(const Ogre::Vector3 &pos)
@@ -221,7 +217,6 @@ namespace Steel
             Ogre::Any any = mSceneNode->getUserAny();
             cleanup();
             init(meshName, pos, rot, scale, levelRoot, sceneManager);
-            setNodeAny(any);
         }
         else
         {

@@ -12,6 +12,7 @@
 #include "Debug.h"
 #include "OgreModelManager.h"
 #include "tools/OgreUtils.h"
+#include <Agent.h>
 
 namespace Steel
 {
@@ -55,10 +56,14 @@ namespace Steel
     {
         ModelId id = allocateModel();
         mModels[id].init(meshName, pos, rot, Ogre::Vector3::UNIT_SCALE, mLevelRoot, mSceneManager);
-        mModels[id].setNodeAny(Ogre::Any(id));
         return id;
     }
-
+    
+    bool OgreModelManager::onAgentLinkedToModel(Agent *agent, ModelId id)
+    {
+        mModels[id].setNodeAny(agent->id());
+        return true;
+    }
 }
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

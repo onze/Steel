@@ -39,7 +39,7 @@ namespace Steel
             bool deserialize(Ogre::String &s);
 
             /// Ffills the list of AgentId with agents that own nodes in the the given list.
-            void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<AgentId> &selection);
+            void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *>& nodes, Selection& selection);
 
             /// Returns the name of the json file that contains this level's properies.
             File getSavefile();

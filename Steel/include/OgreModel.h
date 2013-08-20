@@ -45,8 +45,9 @@ namespace Steel
             void setScale(const Ogre::Vector3 &sca);
 
             void setSelected(bool selected);
-
-            void setNodeAny(Ogre::Any any);
+            
+            /// Used to store the owner agent.
+            void setNodeAny(AgentId aid);
 
             /// Not mean to be used.
             virtual bool fromJson(Json::Value &mode);

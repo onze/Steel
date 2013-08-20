@@ -28,6 +28,10 @@ namespace Steel
 
             /// Initialize a new OgreModel and returns its identifier.
             ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
+            
+            /// Callback used to sync a PhysicsModel to its OgreModel upon linkage.
+            bool onAgentLinkedToModel(Agent *agent, ModelId id);
+            
             ///////////////////////////////////////////////////////////
             //getters
             inline Ogre::SceneManager *sceneManager()
@@ -39,7 +43,6 @@ namespace Steel
             {
                 return MT_OGRE;
             }
-            ;
 
         protected:
             Ogre::SceneManager *mSceneManager;

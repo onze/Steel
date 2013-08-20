@@ -69,14 +69,14 @@ namespace Steel
 
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
         mTerrainMan.init(mName + ".terrainManager", path.subfile(mName), mSceneManager);
-        
+
         mSelectionMan = new SelectionManager(this);
         mAgentMan=new AgentManager(this);
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
         mSelectionMan = new SelectionManager(this);
-        
+
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
 
@@ -175,7 +175,7 @@ namespace Steel
             mBTModelMan->clear();
             mPhysicsModelMan->clear();
             mOgreModelMan->clear();
-            
+
             mTerrainMan.removeTerrainManagerEventListener(this);
             Debug::warning(logName() + ".load(): error deserializing saved file.");
             return false;
@@ -243,35 +243,42 @@ namespace Steel
             mTerrainMan.removeTerrainManagerEventListener(this);
     }
 
-    void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, std::list<ModelId> &selection)
+    void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, Selection &selection)
     {
-        //retrieving models
-        ModelId id;
-        std::list<ModelId> models = std::list<ModelId>();
+        static const Ogre::String intro="in Level::getAgentsIdsFromSceneNodes(): ";
         for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
         {
             auto any = (*it)->getUserObjectBindings().getUserAny();
             if (any.isEmpty())
                 continue;
-            id = any.get<ModelId>();
-            if (!mOgreModelMan->isValid(id))
-                continue;
-            models.push_back(id);
-        }
-
-        //retrieving agents
-        Agent *t;
-        ModelId modelId;
-        // TODO: remove direct access
-        for (std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
-        {
-            t = (*it_agents).second;
-            modelId = t->ogreModelId();
-            for (std::list<ModelId>::iterator it_models = models.begin(); it_models != models.end(); ++it_models)
-                if (mOgreModelMan->isValid(modelId) && modelId == (*it_models))
-                    selection.push_back(t->id());
+            AgentId aid = any.get<AgentId>();
+            if(mAgentMan->isIdFree(aid))
+            {
+                Debug::warning(intro)("found sceneNode with invalid agentId ")(aid)(". Deleting it.").endl();
+                OgreUtils::destroySceneNode(*it);
+            }
+            else
+            {
+                selection.push_back(aid);
+            }
         }
     }
+    
+//     void Level::getAgentFromModelIds(std::list<>)
+//     {
+//         //retrieving agents
+//         Agent *t;
+//         ModelId modelId;
+//         // TODO: remove direct access
+//         for (std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
+//         {
+//             t = (*it_agents).second;
+//             modelId = t->ogreModelId();
+//             for (std::list<ModelId>::iterator it_models = models.begin(); it_models != models.end(); ++it_models)
+//                 if (mOgreModelMan->isValid(modelId) && modelId == (*it_models))
+//                     selection.push_back(t->id());
+//         }
+//     }
 
     bool Level::isOver(void)
     {
