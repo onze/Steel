@@ -20,17 +20,19 @@
 namespace Steel
 {
 
-    TerrainManager::TerrainManager()
-        : Ogre::FrameListener(), mSceneManager(NULL), mResourceGroupName("TerrainManager-defaultResourceGroup-name"), mLoadingState(
-            INIT), mListeners(std::set<TerrainManagerEventListener *>()), mTerrainGlobals(NULL), mTerrainGroup(
-                NULL), mTerrainsImported(false), mPath(""), mTerrainPhysicsMan(NULL)
+    TerrainManager::TerrainManager():Ogre::FrameListener(), 
+    mSceneManager(NULL), mResourceGroupName("TerrainManager-defaultResourceGroup-name"), 
+    mLoadingState(INIT), mListeners(std::set<TerrainManagerEventListener *>()), 
+    mTerrainGlobals(NULL), mTerrainGroup(NULL), mTerrainsImported(false),
+    mPath(""), mTerrainPhysicsMan(NULL)
     {
     }
 
-    TerrainManager::TerrainManager(const TerrainManager& o)
-        : mSceneManager(o.mSceneManager), mResourceGroupName(o.mResourceGroupName), mLoadingState(o.mLoadingState), mListeners(
-            o.mListeners), mTerrainGlobals(o.mTerrainGlobals), mTerrainGroup(o.mTerrainGroup), mTerrainsImported(
-                o.mTerrainsImported), mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan)
+    TerrainManager::TerrainManager(const TerrainManager& o):
+    mSceneManager(o.mSceneManager), mResourceGroupName(o.mResourceGroupName), 
+    mLoadingState(o.mLoadingState), mListeners(o.mListeners), 
+    mTerrainGlobals(o.mTerrainGlobals), mTerrainGroup(o.mTerrainGroup), mTerrainsImported(o.mTerrainsImported), 
+    mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan)
     {
     }
 
@@ -131,8 +133,10 @@ namespace Steel
         mTerrainGlobals = Ogre::TerrainGlobalOptions::getSingletonPtr();
         if (NULL == mTerrainGlobals)
             mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
-        mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneManager, Ogre::Terrain::ALIGN_X_Z, DEFAULT_TERRAIN_SIZE,
-                        DEFAULT_WORLD_SIZE);
+        mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneManager, 
+                                                    Ogre::Terrain::ALIGN_X_Z, 
+                                                    DEFAULT_TERRAIN_SIZE,
+                                                    DEFAULT_WORLD_SIZE);
 
         auto rgm = Ogre::ResourceGroupManager::getSingletonPtr();
         rgm->createResourceGroup(resourceGroupName);
@@ -181,8 +185,7 @@ namespace Steel
             Ogre::Terrain::LayerInstance layer = *it;
             Json::Value layerValue;
             layerValue["worldSize"] = layer.worldSize;
-            for (auto it_textureNames = layer.textureNames.begin(); it_textureNames != layer.textureNames.end();
-                    ++it_textureNames)
+            for (auto it_textureNames = layer.textureNames.begin(); it_textureNames != layer.textureNames.end();++it_textureNames)
                 layerValue["textureNames"].append(Json::Value((*it_textureNames).c_str()));
             defaultsValue["layerList"].append(layerValue);
         }
@@ -234,8 +237,7 @@ namespace Steel
         // make it an image for easy saving
         Ogre::Image img;
         img.loadRawData(streamPtr, side, side, 1, Ogre::PixelFormat::PF_SHORT_L);
-        Ogre::String filename = "heightmap_" + Ogre::StringConverter::toString(x) + "_" + Ogre::StringConverter::toString(y)
-                                + ".png";
+        Ogre::String filename = "heightmap_" + Ogre::StringConverter::toString(x) + "_" + Ogre::StringConverter::toString(y) + ".png";
         heightmapPath = mPath.subfile(filename).fullPath();
         img.save(heightmapPath);
     }
@@ -490,8 +492,8 @@ namespace Steel
         updateTerrains();
     }
 
-    TerrainManager::TerrainSlotData TerrainManager::terrainSlotFromJson(Json::Value &terrainSlotValue,
-            TerrainManager::TerrainSlotData &terrainSlot)
+    TerrainManager::TerrainSlotData TerrainManager::terrainSlotFromJson(Json::Value &terrainSlotValue, 
+                                                                        TerrainManager::TerrainSlotData &terrainSlot)
     {
         auto slotPosition = Ogre::StringConverter::parseVector2(terrainSlotValue["slotPosition"].asString(),
                             Ogre::Vector2(FLT_MAX, FLT_MAX));
@@ -511,8 +513,9 @@ namespace Steel
         return terrainSlot;
     }
 
-    void TerrainManager::build(Ogre::ColourValue ambient, Ogre::Vector3 lightDir, Ogre::ColourValue diffuseColor,
-                               Ogre::ColourValue specularColor, Ogre::Terrain::ImportData defaultImp, std::list<TerrainSlotData> &terrainSlots)
+    void TerrainManager::build(Ogre::ColourValue ambient, Ogre::Vector3 lightDir, 
+                               Ogre::ColourValue diffuseColor, Ogre::ColourValue specularColor, 
+                               Ogre::Terrain::ImportData defaultImp, std::list<TerrainSlotData> &terrainSlots)
     {
 
         mLoadingState = INIT;
@@ -841,21 +844,24 @@ namespace Steel
         return terrains;
     }
 
-    TerrainManager::TerrainSlotData::TerrainSlotData()
-        : slot_x(LONG_MAX), slot_y(LONG_MAX), heightmapPath(""), size(TerrainManager::DEFAULT_TERRAIN_SIZE), worldSize(
-            TerrainManager::DEFAULT_WORLD_SIZE), layerList(Ogre::Terrain::LayerInstanceList())
+    TerrainManager::TerrainSlotData::TerrainSlotData():
+    slot_x(LONG_MAX), slot_y(LONG_MAX), 
+    heightmapPath(""), size(TerrainManager::DEFAULT_TERRAIN_SIZE), 
+    worldSize(TerrainManager::DEFAULT_WORLD_SIZE), layerList(Ogre::Terrain::LayerInstanceList())
     {
     }
 
-    TerrainManager::TerrainSlotData::TerrainSlotData(long x, long y)
-        : slot_x(x), slot_y(y), heightmapPath(""), size(TerrainManager::DEFAULT_TERRAIN_SIZE), worldSize(
-            TerrainManager::DEFAULT_WORLD_SIZE), layerList(Ogre::Terrain::LayerInstanceList())
+    TerrainManager::TerrainSlotData::TerrainSlotData(long x, long y):
+    slot_x(x), slot_y(y), 
+    heightmapPath(""), size(TerrainManager::DEFAULT_TERRAIN_SIZE), 
+    worldSize(TerrainManager::DEFAULT_WORLD_SIZE), layerList(Ogre::Terrain::LayerInstanceList())
     {
     }
 
-    TerrainManager::TerrainSlotData::TerrainSlotData(const TerrainManager::TerrainSlotData &o)
-        : slot_x(o.slot_x), slot_y(o.slot_y), heightmapPath(o.heightmapPath), size(o.size), worldSize(o.worldSize), layerList(
-            o.layerList)
+    TerrainManager::TerrainSlotData::TerrainSlotData(const TerrainManager::TerrainSlotData &o):
+    slot_x(o.slot_x), slot_y(o.slot_y), 
+    heightmapPath(o.heightmapPath), size(o.size), 
+    worldSize(o.worldSize), layerList(o.layerList)
     {
     }
 
