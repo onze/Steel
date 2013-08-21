@@ -52,6 +52,7 @@ namespace Steel
             static bool asInt(Json::Value const &value, int defaultValue);
             static float asFloat(Json::Value const &value, float defaultValue);
             static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue);
+            static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue);
             
             
         private:

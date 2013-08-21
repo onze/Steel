@@ -4,7 +4,7 @@
 
 namespace Steel
 {
-    const Ogre::String BTNode::AGENT_SPEC="agentSpec";
+    const char *BTNode::AGENT_SPEC_ATTRIBUTE="agentSpec";
 
     BTNode::BTNode(BTShapeToken const &token):
         mState(READY),mToken(token)

@@ -225,18 +225,6 @@ namespace Steel
         return mm;
     }
 
-    ModelId Level::newOgreModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)
-    {
-        Debug::log(logName() + ".newOgreModel(): meshName: ")(meshName)(" pos:")(pos)(" rot: ")(rot).endl();
-
-#ifdef DEBUG
-        assert(mSceneManager);
-        assert(mLevelRoot);
-#endif
-        ModelId mid = mOgreModelMan->newModel(meshName, pos, rot);
-        return mid;
-    }
-
     void Level::onTerrainEvent(TerrainManager::LoadingState state)
     {
         if (state == mTerrainMan.READY)

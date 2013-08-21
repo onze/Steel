@@ -57,17 +57,6 @@ namespace Steel
              */
             bool load();
 
-            /**
-             * creates a new instance of Agent.
-             * name: name of the mesh to use
-             * pos: position of the node
-             * rot: rotation of the node
-             * involvesNewResources: if false (default), needed resources are assumed to be declared to Ogre::ResourceManager.
-             */
-            ModelId newOgreModel(Ogre::String name, 
-                                 Ogre::Vector3 pos = Ogre::Vector3::ZERO, 
-                                 Ogre::Quaternion rot = Ogre::Quaternion::IDENTITY);
-
             virtual void onTerrainEvent(TerrainManager::LoadingState state);
 
             /// execute a serialized command

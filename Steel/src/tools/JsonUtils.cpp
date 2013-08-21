@@ -41,7 +41,6 @@ namespace Steel
 
     bool JsonUtils::asInt(const Json::Value& value, int defaultValue)
     {
-
         if(value.isString())
             return Ogre::StringConverter::parseInt(value.asString(),defaultValue);
         if(value.isIntegral())
@@ -64,6 +63,13 @@ namespace Steel
             return Ogre::StringConverter::parseUnsignedLong(value.asString(),defaultValue);
         if(value.isIntegral())
             return value.asUInt64();
+        return defaultValue;
+    }
+    
+    Ogre::String JsonUtils::asString(Json::Value const &value, const Ogre::String &defaultValue)
+    {
+        if(value.isString())
+            return value.asString();
         return defaultValue;
     }
 

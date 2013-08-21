@@ -151,7 +151,7 @@ namespace Steel
 
         if(INVALID_ID == aid)
             return INVALID_ID;
-   
+
         Agent *agent = mEngine->level()->agentMan()->getAgent(aid);
         if (NULL == agent)
             Debug::error(intro)("can't find agent ")(aid).endl();
@@ -716,7 +716,7 @@ namespace Steel
             return INVALID_ID;
         }
 //      Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-        Steel::ModelId mid = level->newOgreModel(meshFile.fileName(), pos, rot);
+        Steel::ModelId mid = level->ogreModelMan()->newModel(meshFile.fileName(), pos, rot);
         AgentId aid = mEngine->level()->agentMan()->newAgent();
         if (!level->linkAgentToModel(aid, MT_OGRE, mid))
         {

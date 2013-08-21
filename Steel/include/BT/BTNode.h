@@ -72,7 +72,7 @@ namespace Steel
             ////////////
 
         protected:
-            static const Ogre::String AGENT_SPEC;
+            static const char * AGENT_SPEC_ATTRIBUTE;
 
             /// Actual parsing. Meant to be overloaded by subclasses.
             virtual bool parseNodeContent(Json::Value &root);
