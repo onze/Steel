@@ -88,7 +88,8 @@ namespace Steel
             /// Called by Ogre once per frame
             bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 
-            /** return the coordinate at which the given ray intersect the terrain.
+            /**
+             * Returns the coordinate at which the given ray intersects the terrain.
              * the pointer of Terrain is always NULL, since this is implementation specific.
              */
             Ogre::TerrainGroup::RayResult intersectRay(const Ogre::Ray& ray);

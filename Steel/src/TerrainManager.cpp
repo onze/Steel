@@ -137,7 +137,6 @@ namespace Steel
                                                     Ogre::Terrain::ALIGN_X_Z, 
                                                     DEFAULT_TERRAIN_SIZE,
                                                     DEFAULT_WORLD_SIZE);
-
         auto rgm = Ogre::ResourceGroupManager::getSingletonPtr();
         rgm->createResourceGroup(resourceGroupName);
         rgm->addResourceLocation(path.fullPath(), "FileSystem", resourceGroupName);
@@ -149,7 +148,7 @@ namespace Steel
             buildPath.mkdir();
         mTerrainGroup->setFilenameConvention(buildPath.subfile("terrain").fullPath(), Ogre::String("terrain"));
         mTerrainGroup->setOrigin(Ogre::Vector3::ZERO);
-
+        
         mTerrainPhysicsMan = new TerrainPhysicsManager(this);
 
         // default terrain

@@ -27,7 +27,7 @@ namespace Steel
         mCollisionConfig = new btDefaultCollisionConfiguration();
         mDispatcher = new btCollisionDispatcher(mCollisionConfig);
         mSolver = new btSequentialImpulseConstraintSolver();
-        
+
 
         mWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfig);
         mWorld->setGravity(btVector3(0,-9.8,0));
@@ -108,11 +108,6 @@ namespace Steel
         {
             Ogre::Root::getSingletonPtr()->addFrameListener(this);
             Debug::log("TerrainPhysicsManager::setDebugDraw(true)").endl();
-        }
-        else
-        {
-            Ogre::Root::getSingletonPtr()->removeFrameListener(this);
-            Debug::log("TerrainPhysicsManager::setDebugDraw(false)").endl();
         }
     }
 
@@ -276,7 +271,14 @@ namespace Steel
     bool TerrainPhysicsManager::frameRenderingQueued(const Ogre::FrameEvent &evt)
     {
         if(NULL!=mDebugDrawer)
+        {
             mDebugDrawer->step();
+            if(!mDebugDrawer->getDebugMode())
+            {
+                Ogre::Root::getSingletonPtr()->removeFrameListener(this);
+                Debug::log("TerrainPhysicsManager::setDebugDraw(false)").endl();
+            }
+        }
         return true;
     }
 
