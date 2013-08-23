@@ -100,7 +100,7 @@ namespace Steel
             if (!linkToModel(mt_it, modelId))
             {
                 Debug::error("Agent::fromJson(): agent ")(mId);
-                Debug::error(" would not link with model<>")(mtName)("> ")(mId)(". Skipping.").endl();
+                Debug::error(" would not link with model<")(mtName)("> ")(mId)(". Skipping.").endl();
                 continue;
             }
             ++nModels;
