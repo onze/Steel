@@ -172,7 +172,10 @@ namespace Steel
                 terrain->mTerrainShape,
                 localInertia);
         terrain->mBody= new btRigidBody(rbInfo);
-        terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+        {
+            auto flags= btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT;
+            terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | flags);
+        }
 
         updateHeightmap(ogreTerrain,terrain);
 
