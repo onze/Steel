@@ -16,8 +16,11 @@ namespace Steel
     {
         public:
             OgreModel();
-            void init(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale,
-                      Ogre::SceneNode *mLevelRoot, Ogre::SceneManager *mSceneManager);
+            bool init(Ogre::String meshName, 
+                      Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale, 
+                      Ogre::SceneNode* levelRoot, 
+                      Ogre::SceneManager* sceneManager,
+                      Ogre::String const &resourceGroupName);
             OgreModel(const OgreModel &m);
             OgreModel &operator=(const OgreModel &m);
             virtual ~OgreModel();
@@ -52,7 +55,10 @@ namespace Steel
             /// Not mean to be used.
             virtual bool fromJson(Json::Value &mode);
             /// Deserialize itself from the given Json object
-            virtual bool fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager);
+            virtual bool fromJson(Json::Value &node, 
+                                  Ogre::SceneNode *levelRoot, 
+                                  Ogre::SceneManager *sceneManager, 
+                                  Ogre::String const &resourceGroupName);
             /// Serialize itself into the given Json object
             virtual void toJson(Json::Value &node);
 

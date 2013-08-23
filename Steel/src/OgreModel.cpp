@@ -19,19 +19,27 @@ namespace Steel
     {
 
     }
-    void OgreModel::init(Ogre::String meshName,
-                         Ogre::Vector3 pos,
-                         Ogre::Quaternion rot,
-                         Ogre::Vector3 scale,
+    
+    bool OgreModel::init(Ogre::String meshName,
+                         Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale,
                          Ogre::SceneNode *levelRoot,
-                         Ogre::SceneManager *sceneManager)
+                         Ogre::SceneManager *sceneManager,
+                         Ogre::String const &resourceGroupName
+                        )
     {
         mSceneManager=sceneManager;
+        // handle
+        Ogre::ResourceGroupManager *rgm=Ogre::ResourceGroupManager::getSingletonPtr();
+        
+        if(!rgm->resourceExists(resourceGroupName,meshName))
+            rgm->declareResource(meshName, "FileSystem", resourceGroupName);
+        
         mEntity = sceneManager->createEntity(meshName);
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
         mSceneNode->setInheritScale(false);
         mSceneNode->setScale(scale);
+        return true;
     }
 
     OgreModel::OgreModel(const OgreModel &m)
@@ -153,7 +161,10 @@ namespace Steel
         return false;
     }
 
-    bool OgreModel::fromJson(Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager)
+    bool OgreModel::fromJson(Json::Value& node, 
+                             Ogre::SceneNode* levelRoot, 
+                             Ogre::SceneManager* sceneManager, 
+                             const Ogre::String& resourceGroupName)
     {
         Ogre::String intro="in OgreModel::fromJson(): ";
         // data to gather
@@ -214,9 +225,15 @@ namespace Steel
                 Debug::error(intro)("new mesh name is not valid:")(meshName).endl();
                 return false;
             }
-            Ogre::Any any = mSceneNode->getUserAny();
+            Ogre::Any any;
+            if(NULL!=mSceneNode)
+                any = mSceneNode->getUserAny();
             cleanup();
-            init(meshName, pos, rot, scale, levelRoot, sceneManager);
+            if(!init(meshName, pos, rot, scale, levelRoot, sceneManager, resourceGroupName))
+            {
+                return false;
+            }
+            mSceneNode->setUserAny(any);
         }
         else
         {
