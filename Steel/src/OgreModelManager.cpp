@@ -17,11 +17,33 @@
 
 namespace Steel
 {
+    const Ogre::String OgreModelManager::MISSING_MATERIAL_NAME="_missing_material_";
+    
     OgreModelManager::OgreModelManager(Level *level,Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot) :
-        _ModelManager<OgreModel>(level),
+    _ModelManager<OgreModel>(level),
         mSceneManager(sceneManager), mLevelRoot(levelRoot)
     {
-
+        // defining default material
+        Ogre::MaterialManager *mm=Ogre::MaterialManager::getSingletonPtr();
+        if(!mm->resourceExists(OgreModelManager::MISSING_MATERIAL_NAME))
+        {
+            Ogre::MaterialPtr mat=mm->create(OgreModelManager::MISSING_MATERIAL_NAME,level->name(),true);
+            Ogre::Technique *tech=mat->getTechnique(0);
+            Ogre::Pass *pass=tech->getPass(0);
+            pass->setIlluminationStage(Ogre::IlluminationStage::IS_AMBIENT);
+            
+            pass->setColourWriteEnabled(true);
+            pass->setDepthCheckEnabled(true);
+            pass->setDepthWriteEnabled(false);
+            
+            pass->setLightingEnabled(true);
+            pass->setSceneBlending(Ogre::SceneBlendType::SBT_TRANSPARENT_ALPHA);
+            
+            pass->setAmbient(Ogre::ColourValue::White);
+            pass->setDiffuse(1.,1.,1.,.75);
+            pass->setSpecular(Ogre::ColourValue::White);
+            
+        }
     }
 
     OgreModelManager::~OgreModelManager()

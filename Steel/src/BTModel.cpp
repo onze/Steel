@@ -60,6 +60,7 @@ namespace Steel
         return MT_BT;
     }
 
+    
     bool BTModel::fromJson(Json::Value &node)
     {
         // building a BTModel requires structures that only the manager can access.

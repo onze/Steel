@@ -20,6 +20,9 @@ namespace Steel
     class OgreModelManager: public _ModelManager<OgreModel>
     {
         public:
+            /// Default material name. This name is set by blender's OgreExporter to meshes with no material.
+            static const Ogre::String MISSING_MATERIAL_NAME;
+            
             OgreModelManager(Level *level, Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
             virtual ~OgreModelManager();
 
@@ -28,10 +31,10 @@ namespace Steel
 
             /// Initialize a new OgreModel and returns its identifier.
             ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
-            
+
             /// Callback used to sync a PhysicsModel to its OgreModel upon linkage.
             bool onAgentLinkedToModel(Agent *agent, ModelId id);
-            
+
             ///////////////////////////////////////////////////////////
             //getters
             inline Ogre::SceneManager *sceneManager()
