@@ -28,6 +28,8 @@ namespace Steel
 
     const Ogre::String Editor::REFERENCE_PATH_LOOKUP_TABLE = "Editor::referencePathsLookupTable";
     const Ogre::String Editor::MENU_TAB_INDEX_SETTING = "Editor::menuTabIndex";
+    
+    const char *Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE = "$cancelDynamicFilling";
 
     Editor::Editor():UIPanel("Editor", "data/ui/current/editor/editor.rml"),
         mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(NULL),
@@ -175,6 +177,8 @@ namespace Steel
         }
         else if (node.isObject())
         {
+            if(JsonUtils::asBool(node[Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE], false))
+                return true;
             // dict:: process each value
             for (auto it = node.begin(); it != node.end(); ++it)
             {

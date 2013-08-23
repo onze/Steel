@@ -123,7 +123,10 @@ namespace Steel
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
 
-        protected:
+        private:
+            /// If found and set to true in an object of a model serialization, values of the object skip their way through dynamicFillSerialization.
+            static const char *DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE;
+            
             /// make a command out of a Rocket event.
             void processSubmitEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
             /// make a command out of a Rocket event.
@@ -152,7 +155,6 @@ namespace Steel
             bool mIsDraggingFromMenu;
             /// internal representation of REFERENCE_PATH_LOOKUP_TABLE atribute of the application conf file.
             std::map<Ogre::String, Ogre::String> mReferencePathsLookupTable;
-        private:
     };
 }
 #endif // STEEL_EDITOR_H
