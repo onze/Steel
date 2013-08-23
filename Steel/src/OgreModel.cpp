@@ -9,9 +9,13 @@
 #include "Debug.h"
 #include <tools/OgreUtils.h>
 #include <tools/JsonUtils.h>
+#include <OgreSubEntity.h>
 
 namespace Steel
 {
+    const Ogre::String OgreModel::MISSING_MATERIAL_NAME="_missing_material_";
+    const Ogre::String OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE="materialOverride";
+
 
     OgreModel::OgreModel() :
         Model(),
@@ -19,7 +23,7 @@ namespace Steel
     {
 
     }
-    
+
     bool OgreModel::init(Ogre::String meshName,
                          Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale,
                          Ogre::SceneNode *levelRoot,
@@ -30,12 +34,12 @@ namespace Steel
         mSceneManager=sceneManager;
         // handle
         Ogre::ResourceGroupManager *rgm=Ogre::ResourceGroupManager::getSingletonPtr();
-        
+
         if(!rgm->resourceExists(resourceGroupName,meshName))
             rgm->declareResource(meshName, "FileSystem", resourceGroupName);
-        
+
         mEntity = sceneManager->createEntity(meshName);
-            
+
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
         mSceneNode->setInheritScale(false);
@@ -162,9 +166,9 @@ namespace Steel
         return false;
     }
 
-    bool OgreModel::fromJson(Json::Value& node, 
-                             Ogre::SceneNode* levelRoot, 
-                             Ogre::SceneManager* sceneManager, 
+    bool OgreModel::fromJson(Json::Value& node,
+                             Ogre::SceneNode* levelRoot,
+                             Ogre::SceneManager* sceneManager,
                              const Ogre::String& resourceGroupName)
     {
         Ogre::String intro="in OgreModel::fromJson(): ";
@@ -201,6 +205,13 @@ namespace Steel
             Debug::error(intro)("field 'entityMeshName' is null.").endl();
         else
             meshName = Ogre::String(value.asString());
+
+        value = node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE];
+        Ogre::String materialName="";
+        if (value.isNull())
+            Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
+        else
+            materialName = Ogre::String(value.asString());
 
         if (!allWasFine)
         {
@@ -242,7 +253,24 @@ namespace Steel
             setRotation(rot);
             setScale(scale);
         }
+
+        if(""!=materialName)
+        {
+            setMaterial(materialName);
+        }
         return true;
+    }
+    
+    void OgreModel::setMaterial(Ogre::String resName)
+    {
+        Ogre::MaterialManager *mm=Ogre::MaterialManager::getSingletonPtr();
+        Ogre::MaterialPtr mat;
+        if(!mm->resourceExists(resName))
+        {
+            Debug::error("in OgreModel::setMaterial(): material ").quotes(resName)(" does not exist. Using default.").endl();
+            resName=OgreModel::MISSING_MATERIAL_NAME;
+        }
+        mEntity->setMaterial(mm->getByName(resName));
     }
 
 }

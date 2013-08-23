@@ -15,10 +15,15 @@ namespace Steel
     class OgreModel: public Model
     {
         public:
+            /// Default material name. This name is set by blender's OgreExporter to meshes with no material.
+            static const Ogre::String MISSING_MATERIAL_NAME;
+            /// Attribute used to set a mesh model (overrites the material the mesh originally links to).
+            static const Ogre::String MATERIAL_OVERRIDE_ATTRIBUTE;
+
             OgreModel();
-            bool init(Ogre::String meshName, 
-                      Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale, 
-                      Ogre::SceneNode* levelRoot, 
+            bool init(Ogre::String meshName,
+                      Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale,
+                      Ogre::SceneNode* levelRoot,
                       Ogre::SceneManager* sceneManager,
                       Ogre::String const &resourceGroupName);
             OgreModel(const OgreModel &m);
@@ -48,19 +53,22 @@ namespace Steel
             void setScale(const Ogre::Vector3 &sca);
 
             void setSelected(bool selected);
-            
+
             /// Used to store the owner agent.
             void setNodeAny(AgentId aid);
 
             /// Not mean to be used.
             virtual bool fromJson(Json::Value &mode);
             /// Deserialize itself from the given Json object
-            virtual bool fromJson(Json::Value &node, 
-                                  Ogre::SceneNode *levelRoot, 
-                                  Ogre::SceneManager *sceneManager, 
+            virtual bool fromJson(Json::Value &node,
+                                  Ogre::SceneNode *levelRoot,
+                                  Ogre::SceneManager *sceneManager,
                                   Ogre::String const &resourceGroupName);
             /// Serialize itself into the given Json object
             virtual void toJson(Json::Value &node);
+
+            /// Dynamically change the material used by the underlying model.
+            void setMaterial(Ogre::String resName);
 
             // getters
             inline Ogre::Entity* entity()

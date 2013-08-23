@@ -16,18 +16,16 @@
 #include <Level.h>
 
 namespace Steel
-{
-    const Ogre::String OgreModelManager::MISSING_MATERIAL_NAME="_missing_material_";
-    
+{   
     OgreModelManager::OgreModelManager(Level *level,Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot) :
     _ModelManager<OgreModel>(level),
         mSceneManager(sceneManager), mLevelRoot(levelRoot)
     {
         // defining default material
         Ogre::MaterialManager *mm=Ogre::MaterialManager::getSingletonPtr();
-        if(!mm->resourceExists(OgreModelManager::MISSING_MATERIAL_NAME))
+        if(!mm->resourceExists(OgreModel::MISSING_MATERIAL_NAME))
         {
-            Ogre::MaterialPtr mat=mm->create(OgreModelManager::MISSING_MATERIAL_NAME,level->name(),true);
+            Ogre::MaterialPtr mat=mm->create(OgreModel::MISSING_MATERIAL_NAME,level->name(),true);
             Ogre::Technique *tech=mat->getTechnique(0);
             Ogre::Pass *pass=tech->getPass(0);
             pass->setIlluminationStage(Ogre::IlluminationStage::IS_AMBIENT);

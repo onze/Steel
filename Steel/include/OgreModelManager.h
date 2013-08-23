@@ -20,8 +20,6 @@ namespace Steel
     class OgreModelManager: public _ModelManager<OgreModel>
     {
         public:
-            /// Default material name. This name is set by blender's OgreExporter to meshes with no material.
-            static const Ogre::String MISSING_MATERIAL_NAME;
             
             OgreModelManager(Level *level, Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
             virtual ~OgreModelManager();
