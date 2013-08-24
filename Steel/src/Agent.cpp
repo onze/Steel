@@ -19,6 +19,7 @@
 
 namespace Steel
 {
+    const char *Agent::TAGS_ATTRIBUTES="tags";
 
     Agent::Agent(AgentId id, Steel::Level* level): mId(id), mLevel(level),
         mModelIds(std::map<ModelType, ModelId>()),mIsSelected(false),mTags(std::set<Tag>())
@@ -110,6 +111,12 @@ namespace Steel
             Debug::warning("Agent::fromJson(): agent ")(mId)(" linked with (")(nModels)(" models, ");
             Debug::warning(nExpected)(" were expected. Json string:").endl()(value).endl();
         }
+        
+        // tags
+        std::list<Ogre::String> stringTags=JsonUtils::asStringsList(value[Agent::TAGS_ATTRIBUTES]);
+        std::list<Tag> tags=TagManager::instance().toTags(stringTags);
+        mTags.clear();
+        mTags.insert(tags.begin(),tags.end());
         return true;
     }
 
@@ -191,16 +198,18 @@ namespace Steel
 
     Json::Value Agent::toJson()
     {
-//	Debug::log("Agent<")(mId)("> with ")(mModelIds.size())(" mTypes:").endl();
         Json::Value root;
-        // add the agent's model ids to its json representation
+        
+        // model ids
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
         {
             ModelType mt = (*it).first;
-//		Debug::log("model type:")(modelTypesAsString[mt]).endl();
             ModelId mid = (*it).second;
             root[modelTypesAsString[mt]] = JsonUtils::toJson(mid);
         }
+        
+        // tags
+        root[Agent::TAGS_ATTRIBUTES]=JsonUtils::toJson(TagManager::instance().fromTags(mTags));
         return root;
     }
 

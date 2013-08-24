@@ -27,6 +27,8 @@ namespace Steel
     class Agent
     {
         public:
+            static const char *TAGS_ATTRIBUTES;
+
             Agent(AgentId id, Level *level);
             virtual ~Agent();
             Agent(const Agent &t);
@@ -41,7 +43,7 @@ namespace Steel
             {
                 return mId==INVALID_ID;
             }
-            
+
             void init(AgentId id);
             void cleanup();
 
@@ -116,6 +118,16 @@ namespace Steel
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
+
+            inline void tag(Tag tag)
+            {
+                mTags.insert(tag);
+            }
+            
+            inline void untag(Tag tag)
+            {
+                mTags.erase(tag);
+            }
 
             std::set<Tag> const &tags()
             {
