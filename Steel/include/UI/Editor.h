@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 #include <OIS.h>
 #include <OgreString.h>
@@ -11,18 +12,27 @@
 #include "EditorBrush.h"
 #include "tools/ConfigFile.h"
 #include "UI/UIPanel.h"
+#include "SelectionManager.h"
+#include "EngineEventListener.h"
 
 namespace Steel
 {
     class FileSystemDataSource;
-    class Engine;
     class UI;
     class InputManager;
-    class Editor: public UIPanel
+    class Engine;
+    class Editor: public UIPanel, SelectionManager::Listener, EngineEventListener
     {
         private:
-            static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE;
+            /// Reference lookup table setting name 
+            static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE_SETTING;
+            /// Editor menu tab index setting name
             static const Ogre::String MENU_TAB_INDEX_SETTING;
+            
+            /// Name of the UI Editor element that contains tags elements.
+            static const char *SELECTION_TAG_INFO_BOX;
+            /// Name of the UI Editor element that displays a tag.
+            static const char *AGENT_TAG_ITEM_NAME;
         public:
             Editor();
             Editor(const Editor& other);
@@ -122,7 +132,14 @@ namespace Steel
 
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
-
+            
+            /// SelectionManager::Listener interface
+            void onSelectionChanged(Selection &selection);
+            
+            /// called when a new level becomes the current level.
+            virtual void onLevelSet(Level *level);
+            /// called right before a level is unset (becomes not current anymore).
+            virtual void onLevelUnset(Level *level);
         private:
             /// If found and set to true in an object of a model serialization, values of the object skip their way through dynamicFillSerialization.
             static const char *DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE;
@@ -136,6 +153,7 @@ namespace Steel
             /// make a command out of a Rocket event.
             void processDragDropEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
 
+            void populateSelectionTagWidget(std::set<Tag> tags);
             void saveMenuTabIndexSetting(ConfigFile &config) const;
 
             //not owned

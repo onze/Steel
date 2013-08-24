@@ -26,10 +26,13 @@
 namespace Steel
 {
 
-    const Ogre::String Editor::REFERENCE_PATH_LOOKUP_TABLE = "Editor::referencePathsLookupTable";
+    const Ogre::String Editor::REFERENCE_PATH_LOOKUP_TABLE_SETTING = "Editor::referencePathsLookupTable";
     const Ogre::String Editor::MENU_TAB_INDEX_SETTING = "Editor::menuTabIndex";
-    
+
     const char *Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE = "$cancelDynamicFilling";
+
+    const char *Editor::SELECTION_TAG_INFO_BOX="selectionTagsInfoBox";
+    const char *Editor::AGENT_TAG_ITEM_NAME="agentTagItem";
 
     Editor::Editor():UIPanel("Editor", "data/ui/current/editor/editor.rml"),
         mEngine(NULL), mUI(NULL), mInputMan(NULL), mFSResources(NULL),
@@ -66,6 +69,14 @@ namespace Steel
     {
         UIPanel::shutdown();
         mBrush.shutdown();
+        mEngine->removeEngineEventListener(this);
+        if(NULL!=mEngine->level())
+        {
+            if(NULL!=mEngine->level()->selectionMan())
+            {
+                mEngine->level()->selectionMan()->removeListener(this);
+            }
+        }
 
         // when this panel is reloaded, it calls Editor::shutdown but UIPanel::init,
         // so those 4 pointers aren't set back to meaningful values -> donbt delete them
@@ -119,7 +130,7 @@ namespace Steel
         //resGroupMan->addResourceLocation(mDataDir.subfile("images").fullPath(), "FileSystem", "UI",true);
         //resGroupMan->declareResource("inode-directory.png","Texture","UI");
 
-        setupReferencePathsLookupTable(mEngine->config().getSetting(Editor::REFERENCE_PATH_LOOKUP_TABLE));
+        setupReferencePathsLookupTable(mEngine->config().getSetting(Editor::REFERENCE_PATH_LOOKUP_TABLE_SETTING));
         mFSResources = new FileSystemDataSource("resources", engine->rootDir().subfile("data").subfile("resources"));
         UIPanel::init(width, height);
         mFSResources->localizeDatagridBody(mDocument);
@@ -131,6 +142,17 @@ namespace Steel
             //             elem->AddEventListener("submit",this);
         }
         mBrush.init(engine, this, mInputMan);
+        mEngine->addEngineEventListener(this);
+    }
+
+    void Editor::onLevelSet(Level *level)
+    {
+        level->selectionMan()->addListener(this);
+    }
+
+    void Editor::onLevelUnset(Level *level)
+    {
+        level->selectionMan()->removeListener(this);
     }
 
     AgentId Editor::agentIdUnderMouse()
@@ -786,12 +808,13 @@ namespace Steel
         switch (evt.key)
         {
             case OIS::KC_H:
-                mBrush.setMode(EditorBrush::TERRAFORM);
+                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                    mBrush.setMode(EditorBrush::TERRAFORM);
                 break;
             case OIS::KC_R:
                 if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
                     reloadContent();
-                else
+                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::ROTATE);
                 break;
             case OIS::KC_S:
@@ -801,11 +824,12 @@ namespace Steel
                         level->save();
                     mEngine->saveConfig(mEngine->config());
                 }
-                else
-                    mBrush.setMode(EditorBrush::SCALE);
+                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                        mBrush.setMode(EditorBrush::SCALE);
                 break;
             case OIS::KC_T:
-                mBrush.setMode(EditorBrush::TRANSLATE);
+                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                    mBrush.setMode(EditorBrush::TRANSLATE);
                 break;
             case OIS::KC_DELETE:
                 selectionMan->deleteSelection();
@@ -925,6 +949,39 @@ namespace Steel
         mBrush.onHide();
     }
 
+    void Editor::onSelectionChanged(Selection &selection)
+    {
+        auto allTags=mEngine->level()->selectionMan()->tagsUnion();
+        populateSelectionTagWidget(allTags);
+    }
+
+    void Editor::populateSelectionTagWidget(std::set<Tag> tags)
+    {
+        static const Ogre::String intro="in Editor::populateSelectionTagWidget(): ";
+
+        if(NULL==mDocument)
+            return;
+
+        Rocket::Core::Element *elem=mDocument->GetElementById(Editor::SELECTION_TAG_INFO_BOX);
+        if(NULL==elem)
+        {
+            Debug::error(intro)("child ").quotes("selectionTagsInfoBox")("not found. Aborting.").endl();
+            return;
+        }
+
+        // Emtpy it
+        while(NULL!=elem->GetFirstChild())
+            elem->RemoveChild(elem->GetFirstChild());
+
+        // Repopulate it
+        for(auto const &it:tags)
+        {
+            Rocket::Core::Element *child=mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
+            child->SetInnerRML(TagManager::instance().fromTag(it).c_str());
+            elem->AppendChild(child);
+        }
+    }
+
     void Editor::ProcessEvent(Rocket::Core::Event &event)
     {
         if (!isVisible())
@@ -1034,7 +1091,7 @@ namespace Steel
         {
             Rocket::Controls::ElementFormControlTextArea *form = static_cast<Rocket::Controls::ElementFormControlTextArea *>(elem);
             Ogre::String content=form->GetValue().CString();
-            
+
             bool isLineBreak=event.GetParameter<bool>("linebreak", false);
             if(isLineBreak)
             {
@@ -1158,7 +1215,7 @@ namespace Steel
                 Agent *agent=mEngine->level()->agentMan()->getAgent(aid);
                 agent->tag(tag);
             }
-            
+
         }
         else
             Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
@@ -1168,7 +1225,7 @@ namespace Steel
     {
         if (command.size() == 0)
             return;
-        
+
         if(command[0] == "resourceGroupsInfos")
             OgreUtils::resourceGroupsInfos();
         else if(command[0] == "switch_debug_events")
