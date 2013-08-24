@@ -363,7 +363,7 @@ namespace Steel
 
     void SelectionManager::setSelectionTag(const Ogre::String &tag)
     {
-        Debug::log("SelectionManager::setSelectionTag(): saving ")(mSelection)(" under tag ")(tag).endl();
+        Debug::log("SelectionManager::setSelectionTag(): tagging ")(mSelection)(" as ")(tag).endl();
         mSelectionsTags.erase(tag);
         if (mSelection.size())
             mSelectionsTags.insert(std::pair<Ogre::String, Selection>(tag, mSelection));

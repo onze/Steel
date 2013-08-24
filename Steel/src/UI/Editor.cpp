@@ -896,21 +896,6 @@ namespace Steel
         mDocument->AddEventListener("change", this);
         mDocument->AddEventListener("submit", this);
 
-        // form settings (can't be set through rml apparently)
-        auto selection_serialization = static_cast<Rocket::Controls::ElementFormControlTextArea *>(mDocument->GetElementById("selection_serialization"));
-        if(NULL!=selection_serialization)
-        {
-            // uh ? dk. Let's say 20 pix per character...
-            //int n=elem->GetClientWidth()/20;
-            selection_serialization->SetNumColumns(100);
-            selection_serialization->SetNumRows(30);
-        }
-        else
-        {
-            Debug::warning(intro)("cannot find Rocket::Controls::ElementFormControlTextArea with id \"selection_serialization\".");
-            Debug::warning("Editing models is not gonna be possible.").endl();
-        }
-
         // debugger
         Rocket::Debugger::SetContext(mContext);
         Rocket::Debugger::SetVisible(true);
@@ -976,8 +961,8 @@ namespace Steel
             {
                 if (mDebugEvents)
                 {
-                    Debug::warning("Editor::ProcessEvent(): no event_value for event of type ");
-                    Debug::warning(event.GetType())(" with elem of id ")(elem->GetId()).endl();
+                    Debug::warning("Editor::ProcessEvent(): no event_value for event of type ")
+                    (event.GetType())(" with elem of id ")(elem->GetId()).endl();
                 }
                 return;
             }
@@ -1033,7 +1018,7 @@ namespace Steel
     {
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
         Ogre::String rawCommand = event_value;
-        if (rawCommand == "editorbrush.terrabrush.distribution")
+        if(rawCommand == "editorbrush.terrabrush.distribution")
         {
             Rocket::Controls::ElementFormControlSelect *form = static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
             auto optionId = form->GetSelection();
@@ -1044,6 +1029,29 @@ namespace Steel
             }
             else
                 return;
+        }
+        else if(rawCommand == "selection.tag.set")
+        {
+            Rocket::Controls::ElementFormControlTextArea *form = static_cast<Rocket::Controls::ElementFormControlTextArea *>(elem);
+            Ogre::String content=form->GetValue().CString();
+            
+            bool isLineBreak=event.GetParameter<bool>("linebreak", false);
+            if(isLineBreak)
+            {
+                rawCommand += ".";
+                rawCommand += content;
+            }
+            else
+            {
+                if(mDebugEvents)
+                {
+                    Debug::log("in Editor::processChangeEvent(): ")
+                    ("rawCommand: ").quotes(rawCommand)
+                    (", event_value: ").quotes(event_value)
+                    (" does not end with a new line. Skipping.").endl();
+                }
+                return;
+            }
         }
         //         Debug::log("Editor::processChangeEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
         if (rawCommand.size())
@@ -1091,8 +1099,17 @@ namespace Steel
         if (command[0] == "editor")
         {
             command.erase(command.begin());
-            if (command[0] == "hide")
+            if (command.size() == 0)
+                Debug::warning(intro)("no command given.").endl();
+            else if(command[0] == "hide")
                 mEngine->stopEditMode();
+            else if(command[0] == "options")
+            {
+                command.erase(command.begin());
+                processOptionCommand(command);
+            }
+            else
+                Debug::warning(intro)("unkown command.").endl();
         }
         else if (command[0] == "editorbrush")
         {
@@ -1125,17 +1142,16 @@ namespace Steel
                 Debug::warning(command)("\". Aborted.").endl();
             }
         }
-        else if (command[0] == "options")
+        else if (StringUtils::join(command,".",0,-1) == "selection.tag.set")
         {
-            intro += "options: ";
             command.erase(command.begin());
-            if (command.size() == 0)
-                Debug::warning(intro)("no option given.").endl();
-            else
-                processOptionCommand(command);
+            if(command.size()==0)
+            {
+                Debug::error(intro)("no tag set").endl();
+                return;
+            }
+            mEngine->level()->selectionMan()->setSelectionTag(StringUtils::join(command,"."));
         }
-        else if (command[0] == "resourceGroupsInfos")
-            OgreUtils::resourceGroupsInfos();
         else
             Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
     }
@@ -1144,7 +1160,10 @@ namespace Steel
     {
         if (command.size() == 0)
             return;
-        if (command[0] == "switch_debug_events")
+        
+        if(command[0] == "resourceGroupsInfos")
+            OgreUtils::resourceGroupsInfos();
+        else if(command[0] == "switch_debug_events")
         {
             mDebugEvents = !mDebugEvents;
             Debug::log("flag DebugEvent ")(mDebugEvents ? "activated" : "deactivated").endl();
