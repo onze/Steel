@@ -8,23 +8,12 @@ namespace Steel
     class EngineEventListener
     {
         public:
-            EngineEventListener()
-            {
-            }
-
-            virtual ~EngineEventListener()
-            {
-            }
 
             /// called when a new level becomes the current level.
-            virtual void onLevelSet(Level *level)
-            {
-            }
+            virtual void onLevelSet(Level *level)=0;
 
             /// called right before a level is unset (becomes not current anymore).
-            virtual void onLevelUnset(Level *level)
-            {
-            }
+            virtual void onLevelUnset(Level *level)=0;
     };
 }
 
