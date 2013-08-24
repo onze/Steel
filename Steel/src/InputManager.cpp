@@ -228,10 +228,14 @@ namespace Steel
     bool InputManager::keyReleased(const OIS::KeyEvent& evt)
     {
 //	cout << "InputManager::keyReleased()" << endl;
+        if(!isKeyDown(evt.key))
+            return true;
+        
         mKeysPressed.remove_if(equals(evt.key));
 
         mEngine->keyReleased(evt);
         mUI->keyReleased(evt);
+        
         return true;
     }
 

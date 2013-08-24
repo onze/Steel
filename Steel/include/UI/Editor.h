@@ -39,7 +39,11 @@ namespace Steel
             virtual ~Editor();
             virtual Editor& operator=(const Editor& other);
 
-            virtual void init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan);
+            void init(unsigned int width, unsigned int height, Engine *engine=NULL, UI *ui=NULL, InputManager *inputMan=NULL);
+        protected:
+            // this init should not be called from outside, since it does not have all necessary parameters. It is called upon UIPanel::reload though.
+            virtual void init(unsigned int width, unsigned int height);
+        public:
             virtual void shutdown();
 
             void loadConfig(ConfigFile const &config);
@@ -132,10 +136,10 @@ namespace Steel
 
             /// create an OgreModel from a mesh file
             Steel::AgentId instanciateFromMeshFile(Steel::File& meshFile, Ogre::Vector3& pos, Ogre::Quaternion& rot);
-            
+
             /// SelectionManager::Listener interface
             void onSelectionChanged(Selection &selection);
-            
+
             /// called when a new level becomes the current level.
             virtual void onLevelSet(Level *level);
             /// called right before a level is unset (becomes not current anymore).
@@ -143,7 +147,7 @@ namespace Steel
         private:
             /// If found and set to true in an object of a model serialization, values of the object skip their way through dynamicFillSerialization.
             static const char *DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE;
-            
+
             /// make a command out of a Rocket event.
             void processSubmitEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
             /// make a command out of a Rocket event.

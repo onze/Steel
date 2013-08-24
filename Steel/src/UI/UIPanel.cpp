@@ -99,12 +99,16 @@ namespace Steel
         // save state
         bool shown=mDocument->IsVisible();
         Rocket::Core::Vector2i dims=mContext->GetDimensions();
-        shutdown();
-        Rocket::Core::StyleSheetFactory::ClearStyleSheetCache();
-        // load state
-        init(dims.x,dims.y);
+        
         if(shown)
-            show();
+            this->hide();
+        this->shutdown();
+        Rocket::Core::StyleSheetFactory::ClearStyleSheetCache();
+        
+        // load state
+        this->init(dims.x,dims.y);
+        if(shown)
+            this->show();
     }
 
     void UIPanel::shutdown()

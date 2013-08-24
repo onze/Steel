@@ -65,31 +65,6 @@ namespace Steel
         return *this;
     }
 
-    void Editor::shutdown()
-    {
-        UIPanel::shutdown();
-        mBrush.shutdown();
-        mEngine->removeEngineEventListener(this);
-        if(NULL!=mEngine->level())
-        {
-            if(NULL!=mEngine->level()->selectionMan())
-            {
-                mEngine->level()->selectionMan()->removeListener(this);
-            }
-        }
-
-        // when this panel is reloaded, it calls Editor::shutdown but UIPanel::init,
-        // so those 4 pointers aren't set back to meaningful values -> donbt delete them
-//         if (NULL != mFSResources)
-//         {
-//             delete mFSResources;
-//             mFSResources = NULL;
-//         }
-//         mEngine = NULL;
-//         mUI = NULL;
-//         mInputMan = NULL;
-    }
-
     void Editor::loadConfig(ConfigFile const &config)
     {
         mBrush.loadConfig(config);
@@ -115,15 +90,34 @@ namespace Steel
         }
     }
 
+    void Editor::shutdown()
+    {
+        mBrush.shutdown();
+        if(NULL!=mEngine->level())
+        {
+            mEngine->level()->selectionMan()->removeListener(this);
+        }
+        mEngine->removeEngineEventListener(this);
+        UIPanel::shutdown();
+    }
+    
+    void Editor::init(unsigned int width, unsigned int height)
+    {
+        init(width, height, NULL, NULL, NULL);
+    }
+
     void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan)
     {
         Debug::log("Editor::init()").endl();
 
-        mDataDir = ui->dataDir().subfile("editor").fullPath();
-        mEngine = engine;
-        mUI = ui;
-        mInputMan = inputMan;
+        if(NULL!=engine)
+            mEngine = engine;
+        if(NULL!=ui)
+            mUI = ui;
+        if(NULL!=inputMan)
+            mInputMan = inputMan;
 
+        mDataDir = mUI->dataDir().subfile("editor").fullPath();
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         // true is for recursive search. Add to this resources.cfg
         resGroupMan->addResourceLocation(mDataDir.fullPath(), "FileSystem", "UI", true);
@@ -131,7 +125,7 @@ namespace Steel
         //resGroupMan->declareResource("inode-directory.png","Texture","UI");
 
         setupReferencePathsLookupTable(mEngine->config().getSetting(Editor::REFERENCE_PATH_LOOKUP_TABLE_SETTING));
-        mFSResources = new FileSystemDataSource("resources", engine->rootDir().subfile("data").subfile("resources"));
+        mFSResources = new FileSystemDataSource("resources", mEngine->rootDir().subfile("data").subfile("resources"));
         UIPanel::init(width, height);
         mFSResources->localizeDatagridBody(mDocument);
         auto elem = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
@@ -139,10 +133,13 @@ namespace Steel
         {
             elem->SetValue("MyLevel");
             // does not work for some reason
-            //             elem->AddEventListener("submit",this);
+            // elem->AddEventListener("submit",this);
         }
-        mBrush.init(engine, this, mInputMan);
+        mBrush.init(mEngine, this, mInputMan);
+
         mEngine->addEngineEventListener(this);
+        if(NULL!=mEngine->level())
+            mEngine->level()->selectionMan()->addListener(this);
     }
 
     void Editor::onLevelSet(Level *level)
@@ -825,7 +822,7 @@ namespace Steel
                     mEngine->saveConfig(mEngine->config());
                 }
                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
-                        mBrush.setMode(EditorBrush::SCALE);
+                    mBrush.setMode(EditorBrush::SCALE);
                 break;
             case OIS::KC_T:
                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
@@ -838,16 +835,16 @@ namespace Steel
                 break;
         }
 
-        // numeric key pressed: handles tagging (keys: 1,2,3,...,0)
+        // numeric key pressed: handles memoing (keys: 1,2,3,...,0)
         if (NULL != mEngine && evt.key >= OIS::KC_1 && evt.key <= OIS::KC_0)
         {
             // OIS::KC_0 is the highest; the modulo makes it 0
-            int tagKey = (evt.key - OIS::KC_1 + 1) % 10;
-            Tag tag=TagManager::instance().toTag(Ogre::StringConverter::toString(tagKey));
+            int memoKey = (evt.key - OIS::KC_1 + 1) % 10;
+            Ogre::String memo=Ogre::StringConverter::toString(memoKey);
             if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                selectionMan->tagSelection(tag);
+                selectionMan->saveSelectionToMemo(memo);
             else
-                selectionMan->selectTag(tag);
+                selectionMan->selectMemo(memo);
         }
         return true;
     }
@@ -898,6 +895,7 @@ namespace Steel
     {
         Ogre::String intro="Editor::onShow(): ";
         mBrush.onShow();
+        
         // (re)load state
         // active menu tab
         auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
@@ -951,11 +949,20 @@ namespace Steel
 
     void Editor::onSelectionChanged(Selection &selection)
     {
-        auto allTags=mEngine->level()->selectionMan()->tagsUnion();
-        populateSelectionTagWidget(allTags);
+        Debug::log("Editor::onSelectionChanged(): tags: ")(TagManager::instance().fromTags(mEngine->level()->selectionMan()->tagsUnion())).endl();
+        refreshSelectionTagsWidget();
     }
 
-    void Editor::populateSelectionTagWidget(std::set<Tag> tags)
+    void Editor::refreshSelectionTagsWidget()
+    {
+        if(NULL==mEngine->level())
+            return;
+        auto allTags=mEngine->level()->selectionMan()->tagsUnion();
+        auto allTagsStrings=TagManager::instance().fromTags(allTags);
+        populateSelectionTagsWidget(allTagsStrings);
+    }
+
+    void Editor::populateSelectionTagsWidget(std::list<Ogre::String> tags)
     {
         static const Ogre::String intro="in Editor::populateSelectionTagWidget(): ";
 
@@ -977,7 +984,7 @@ namespace Steel
         for(auto const &it:tags)
         {
             Rocket::Core::Element *child=mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
-            child->SetInnerRML(TagManager::instance().fromTag(it).c_str());
+            child->SetInnerRML(it.c_str());
             elem->AppendChild(child);
         }
     }
@@ -1209,13 +1216,11 @@ namespace Steel
                 Debug::error(intro)("no tag set").endl();
                 return;
             }
-            Tag tag=TagManager::instance().toTag(StringUtils::join(command,"."));
-            for(AgentId const &aid:mEngine->level()->selectionMan()->selection())
+            if(NULL!=mEngine->level() && mEngine->level()->selectionMan()->hasSelection())
             {
-                Agent *agent=mEngine->level()->agentMan()->getAgent(aid);
-                agent->tag(tag);
+                mEngine->level()->selectionMan()->tagSelection(TagManager::instance().toTag(StringUtils::join(command,".")));
+                refreshSelectionTagsWidget();
             }
-
         }
         else
             Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
