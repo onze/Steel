@@ -65,7 +65,7 @@ namespace Steel
             return value.asUInt64();
         return defaultValue;
     }
-    
+
     Ogre::String JsonUtils::asString(Json::Value const &value, const Ogre::String &defaultValue)
     {
         if(value.isString())
@@ -73,5 +73,13 @@ namespace Steel
         return defaultValue;
     }
 
+    std::list<Ogre::String> JsonUtils::asStringsList(Json::Value const &value, std::list<Ogre::String> defaultValue)
+    {
+        std::list<Ogre::String> output;
+        if(value.isArray())
+            for(Json::ValueIterator it=value.begin(); it!=value.end(); ++it)
+                output.push_back(asString(*it, ""));
+        return output;
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
