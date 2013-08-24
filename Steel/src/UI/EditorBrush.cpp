@@ -82,13 +82,10 @@ namespace Steel
         mEditor = editor;
         mInputMan = inputMan;
         mIsDraggingSelectionCancelled = mIsDraggingSelection = false;
-
-        setMode(NONE);
     }
 
     void EditorBrush::shutdown()
     {
-        setMode(NONE);
         if (NULL != mSelectionBox)
         {
             OgreUtils::destroySceneNode(mSelectionBox->getParentSceneNode());
