@@ -819,11 +819,11 @@ namespace Steel
         {
             // OIS::KC_0 is the highest; the modulo makes it 0
             int tagKey = (evt.key - OIS::KC_1 + 1) % 10;
-            Ogre::String sKey = Ogre::StringConverter::toString(tagKey);
+            Tag tag=TagManager::instance().toTag(Ogre::StringConverter::toString(tagKey));
             if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                selectionMan->setSelectionTag(sKey);
+                selectionMan->tagSelection(tag);
             else
-                selectionMan->setTaggedSelection(sKey);
+                selectionMan->selectTag(tag);
         }
         return true;
     }
@@ -1145,12 +1145,20 @@ namespace Steel
         else if (StringUtils::join(command,".",0,-1) == "selection.tag.set")
         {
             command.erase(command.begin());
+            command.erase(command.begin());
+            command.erase(command.begin());
             if(command.size()==0)
             {
                 Debug::error(intro)("no tag set").endl();
                 return;
             }
-            mEngine->level()->selectionMan()->setSelectionTag(StringUtils::join(command,"."));
+            Tag tag=TagManager::instance().toTag(StringUtils::join(command,"."));
+            for(AgentId const &aid:mEngine->level()->selectionMan()->selection())
+            {
+                Agent *agent=mEngine->level()->agentMan()->getAgent(aid);
+                agent->tag(tag);
+            }
+            
         }
         else
             Debug::warning(intro)("unknown command: \"")(command)("\".").endl();

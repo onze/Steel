@@ -2,20 +2,21 @@
 
 #include "Agent.h"
 #include "Engine.h"
-#include <tools/OgreUtils.h>
+#include "tools/OgreUtils.h"
 #include "Level.h"
-#include <AgentManager.h>
+#include "AgentManager.h"
+#include "TagManager.h"
 
 namespace Steel
 {
 
     SelectionManager::SelectionManager(Level *level)
-        : mLevel(level), mSelection(Selection()), mSelectionsTags(std::map<Ogre::String, Selection>())
+        : mLevel(level), mSelection(Selection()), mSelectedTags(std::map<Tag, Selection>())
     {
     }
 
     SelectionManager::SelectionManager(const SelectionManager& o)
-        : mLevel(o.mLevel), mSelection(o.mSelection), mSelectionsTags(o.mSelectionsTags)
+        : mLevel(o.mLevel), mSelection(o.mSelection), mSelectedTags(o.mSelectedTags)
     {
 
     }
@@ -30,7 +31,7 @@ namespace Steel
         if (this != &o)
         {
             mSelection = o.mSelection;
-            mSelectionsTags = o.mSelectionsTags;
+            mSelectedTags = o.mSelectedTags;
         }
         return *this;
     }
@@ -361,23 +362,28 @@ namespace Steel
         }
     }
 
-    void SelectionManager::setSelectionTag(const Ogre::String &tag)
+    void SelectionManager::tagSelection(const Tag tag)
     {
-        Debug::log("SelectionManager::setSelectionTag(): tagging ")(mSelection)(" as ")(tag).endl();
-        mSelectionsTags.erase(tag);
+        Debug::log("SelectionManager::setSelectedTag(): tagging agents ")(mSelection)(" as ")(TagManager::instance().fromTag(tag)).endl();
+        mSelectedTags.erase(tag);
         if (mSelection.size())
-            mSelectionsTags.insert(std::pair<Ogre::String, Selection>(tag, mSelection));
+            mSelectedTags.insert(std::pair<Tag, Selection>(tag, mSelection));
     }
 
-    void SelectionManager::setTaggedSelection(const Ogre::String &tag)
+    void SelectionManager::selectTag(const Tag tag)
     {
+        static const Ogre::String intro="in SelectionManager::setTaggedSelection(): ";
         clearSelection();
-        auto it = mSelectionsTags.find(tag);
-        if (it != mSelectionsTags.end())
+        auto it = mSelectedTags.find(tag);
+        if (it != mSelectedTags.end())
         {
             auto selection = (*it).second;
-            Debug::log("SelectionManager::setTaggedSelection(): selecting ")(mSelection)(" as tag ")(tag).endl();
+            Debug::log(intro)("selecting ")(mSelection)(" as tag ")(TagManager::instance().fromTag(tag)).endl();
             setSelectedAgents(selection);
+        }
+        else
+        {
+            Debug::log(intro)(" found no selection under tag ")(TagManager::instance().fromTag(tag)).endl();
         }
     }
 

@@ -75,9 +75,9 @@ namespace Steel
             void setSelectionScales(const std::vector<Ogre::Vector3> &scale);
 
             /// Saves a Selection under the given tag.
-            void setSelectionTag(const Ogre::String &tag);
+            void selectTag(const Tag tag);
             /// Set tagged agents as selected
-            void setTaggedSelection(const Ogre::String &tag);
+            void tagSelection(const Tag tag);
 
             inline Selection selection()
             {
@@ -92,7 +92,7 @@ namespace Steel
             Selection mSelection;
 
             /// maps tags to set of agents
-            std::map<Ogre::String, Selection> mSelectionsTags;
+            std::map<Tag, Selection> mSelectedTags;
     };
 }
 #endif // SELECTIONMANAGER_H
