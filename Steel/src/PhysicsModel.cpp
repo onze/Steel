@@ -107,6 +107,100 @@ namespace Steel
         setUserPointer(NULL);
     }
 
+    bool PhysicsModel::fromJson(Json::Value &root)
+    {
+        Json::Value value;
+        bool allWasFine = true;
+
+        // MASS
+        value = root[PhysicsModel::MASS_ATTRIBUTE];
+        if (value.isNull() && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): missing field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(". Aborting.").endl();
+        if (!value.isString() && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(". Aborting.").endl();
+        else
+            mMass = Ogre::StringConverter::parseReal(value.asString(), 0.f);
+
+        // SHAPE
+        value = root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE];
+        if(value.isNull())
+            Debug::error("in PhysicsModel::fromJson(): missing field  ").quotes(PhysicsModel::BBOX_SHAPE_ATTRIBUTE)("  (skipped).").endl();
+        else if (!value.isString() && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::BBOX_SHAPE_ATTRIBUTE)(". Aborting.").endl();
+        else
+        {
+            Ogre::String svalue=value.asString();
+            mShape = BBoxShapeFromString(svalue);
+        }
+
+        // GHOST
+        value = root[PhysicsModel::GHOST_ATTRIBUTE];
+        if ((!value.isNull() && !value.isString()) && !(allWasFine = false))
+            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::GHOST_ATTRIBUTE)(". Aborting.").endl();
+        else
+            mIsGhost = Ogre::StringConverter::parseBool(value.asString(), false);
+
+        // EMIT_ON_ANY_TAG_ATTRIBUTE
+        value = root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE];
+        if(!mIsGhost && !value.isNull() )
+            Debug::error("in PhysicsModel::fromJson(): unexpected field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Skipped.").endl();
+        else if(mIsGhost)
+        {
+            if ((!value.isNull() && !value.isObject()) && !(allWasFine = false))
+                Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Aborting.").endl();
+            else
+            {
+                bool aborted=false;
+                for(auto const &tagName:value.getMemberNames())
+                {
+                    if(aborted)
+                        break;
+
+                    // get the tag
+                    Tag tag=TagManager::instance().toTag(tagName);
+                    if(INVALID_TAG==tag && !(allWasFine = false))
+                    {
+                        Debug::error("in PhysicsModel::fromJson(): invalid tag ")(tag)(" / ").quotes(tagName).endl();
+                        break;
+                    }
+
+                    // get matching signals
+                    Json::Value signals=value[tagName];
+                    if(!signals.isArray() && !(allWasFine = false))
+                    {
+                        Debug::error("in PhysicsModel::fromJson(): invalid signals for tag ").quotes(tagName).endl();
+                        break;
+                    }
+                    //TODO: clean code when gcc implements map::emplace
+                    if(mEmitOnTag.find(tag)==mEmitOnTag.end())
+                        mEmitOnTag[tag]=std::set<Tag>();
+
+                    for(Json::ValueIterator it=signals.begin(); it!=signals.end(); ++it)
+                    {
+                        Json::Value signal_value=*it;
+                        if(signal_value.isNull() || !signal_value.isString())
+                        {
+                            aborted=true;
+                            Debug::error("in PhysicsModel::fromJson(): invalid signal ").quotes(signal_value.asString())(" for tag ").quotes(tagName).endl();
+                            break;
+                        }
+                        Signal signal=SignalManager::instance().toSignal(signal_value.asString());
+                        mEmitOnTag[tag].insert(signal);
+                    }
+                }
+            }
+        }
+
+        // final check
+        if (!allWasFine)
+        {
+            Debug::error("json was:").endl()(root.toStyledString()).endl();
+            Debug::error("deserialisation aborted.").endl();
+            return false;
+        }
+        return true;
+    }
+
     void PhysicsModel::addToWorld()
     {
         mWorld->addRigidBody(mBody);
@@ -376,100 +470,6 @@ namespace Steel
             if(mapValue.size())
                 root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE] = mapValue;
         }
-    }
-
-    bool PhysicsModel::fromJson(Json::Value &root)
-    {
-        Json::Value value;
-        bool allWasFine = true;
-
-        // MASS
-        value = root[PhysicsModel::MASS_ATTRIBUTE];
-        if (value.isNull() && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): missing field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(". Aborting.").endl();
-        if (!value.isString() && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): invalid field ").quotes(PhysicsModel::MASS_ATTRIBUTE)(". Aborting.").endl();
-        else
-            mMass = Ogre::StringConverter::parseReal(value.asString(), 0.f);
-
-        // SHAPE
-        value = root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE];
-        if(value.isNull())
-            Debug::error("in PhysicsModel::fromJson(): missing field  ").quotes(PhysicsModel::BBOX_SHAPE_ATTRIBUTE)("  (skipped).").endl();
-        else if (!value.isString() && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::BBOX_SHAPE_ATTRIBUTE)(". Aborting.").endl();
-        else
-        {
-            Ogre::String svalue=value.asString();
-            mShape = BBoxShapeFromString(svalue);
-        }
-
-        // GHOST
-        value = root[PhysicsModel::GHOST_ATTRIBUTE];
-        if ((!value.isNull() && !value.isString()) && !(allWasFine = false))
-            Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::GHOST_ATTRIBUTE)(". Aborting.").endl();
-        else
-            mIsGhost = Ogre::StringConverter::parseBool(value.asString(), false);
-
-        // EMIT_ON_ANY_TAG_ATTRIBUTE
-        value = root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE];
-        if(!mIsGhost && !value.isNull() )
-            Debug::error("in PhysicsModel::fromJson(): unexpected field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Skipped.").endl();
-        else if(mIsGhost)
-        {
-            if ((!value.isNull() && !value.isObject()) && !(allWasFine = false))
-                Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Aborting.").endl();
-            else
-            {
-                bool aborted=false;
-                for(auto const &tagName:value.getMemberNames())
-                {
-                    if(aborted)
-                        break;
-
-                    // get the tag
-                    Tag tag=TagManager::instance().toTag(tagName);
-                    if(INVALID_TAG==tag && !(allWasFine = false))
-                    {
-                        Debug::error("in PhysicsModel::fromJson(): invalid tag ")(tag)(" / ").quotes(tagName).endl();
-                        break;
-                    }
-
-                    // get matching signals
-                    Json::Value signals=value[tagName];
-                    if(!signals.isArray() && !(allWasFine = false))
-                    {
-                        Debug::error("in PhysicsModel::fromJson(): invalid signals for tag ").quotes(tagName).endl();
-                        break;
-                    }
-                    //TODO: clean code when gcc implements map::emplace
-                    if(mEmitOnTag.find(tag)==mEmitOnTag.end())
-                        mEmitOnTag[tag]=std::set<Tag>();
-
-                    for(Json::ValueIterator it=signals.begin(); it!=signals.end(); ++it)
-                    {
-                        Json::Value signal_value=*it;
-                        if(signal_value.isNull() || !signal_value.isString())
-                        {
-                            aborted=true;
-                            Debug::error("in PhysicsModel::fromJson(): invalid signal ").quotes(signal_value.asString())(" for tag ").quotes(tagName).endl();
-                            break;
-                        }
-                        Signal signal=SignalManager::instance().toSignal(signal_value.asString());
-                        mEmitOnTag[tag].insert(signal);
-                    }
-                }
-            }
-        }
-
-        // final check
-        if (!allWasFine)
-        {
-            Debug::error("json was:").endl()(root.toStyledString()).endl();
-            Debug::error("deserialisation aborted.").endl();
-            return false;
-        }
-        return true;
     }
 
     void PhysicsModel::setSelected(bool selected)
