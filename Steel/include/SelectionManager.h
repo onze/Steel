@@ -13,6 +13,15 @@ namespace Steel
     {
 
         public:
+            class Listener
+            {
+                public:
+                    virtual void onSelectionChanged(Selection &selection)=0;
+            };
+            void addListener(Listener * listener);
+            void removeListener(Listener * listener);
+            void dispatchSelectionChangedEvent();
+
             SelectionManager(Level *level);
             SelectionManager(const SelectionManager& other);
             virtual ~SelectionManager();
@@ -78,12 +87,17 @@ namespace Steel
             void selectTag(const Tag tag);
             /// Set tagged agents as selected
             void tagSelection(const Tag tag);
+            /// Returns a set of all tags found in the current selection.
+            std::set<Tag> tagsUnion();
 
             inline Selection selection()
             {
                 return mSelection;
             }
         protected:
+            /// Like clearSelection, but gives the option of not warning Listeners about it.
+            void _clearSelection(bool cancelDispatch);
+            
             // not owned
             Level *mLevel;
 
@@ -93,6 +107,9 @@ namespace Steel
 
             /// maps tags to set of agents
             std::map<Tag, Selection> mSelectedTags;
+
+            /// Get notified when selection changes.
+            std::set<Listener *> mListeners;
     };
 }
 #endif // SELECTIONMANAGER_H

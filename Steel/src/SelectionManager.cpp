@@ -18,12 +18,10 @@ namespace Steel
     SelectionManager::SelectionManager(const SelectionManager& o)
         : mLevel(o.mLevel), mSelection(o.mSelection), mSelectedTags(o.mSelectedTags)
     {
-
     }
 
     SelectionManager::~SelectionManager()
     {
-
     }
 
     SelectionManager& SelectionManager::operator=(const SelectionManager& o)
@@ -38,6 +36,11 @@ namespace Steel
 
     void SelectionManager::clearSelection()
     {
+        _clearSelection(false);
+    }
+    
+    void SelectionManager::_clearSelection(bool cancelDispatch)
+    {
         Agent *agent;
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
@@ -47,6 +50,8 @@ namespace Steel
             agent->setSelected(false);
         }
         mSelection.clear();
+        if(!cancelDispatch)
+            dispatchSelectionChangedEvent();
     }
 
     void SelectionManager::deleteSelection()
@@ -175,6 +180,7 @@ namespace Steel
             agent->setSelected(true);
         }
         Debug::log("Selected agents: ")(mSelection).endl();
+        dispatchSelectionChangedEvent();
     }
 
     void SelectionManager::removeFromSelection(const Selection &selection)
@@ -369,6 +375,27 @@ namespace Steel
         if (mSelection.size())
             mSelectedTags.insert(std::pair<Tag, Selection>(tag, mSelection));
     }
+    
+    std::set<Tag> SelectionManager::tagsUnion()
+    {
+        std::set<Tag> tags;
+        if(NULL!=mLevel)
+        {
+            for(auto const aid:mSelection)
+            {
+                if(INVALID_ID==aid)
+                    continue;
+                
+                auto agent=mLevel->agentMan()->getAgent(aid);
+                if(NULL==agent)
+                    continue;
+                
+                auto agentTags=agent->tags();
+                tags.insert(agentTags.begin(), agentTags.end());
+            }
+        }
+        return tags;
+    }
 
     void SelectionManager::selectTag(const Tag tag)
     {
@@ -385,6 +412,23 @@ namespace Steel
         {
             Debug::log(intro)(" found no selection under tag ")(TagManager::instance().fromTag(tag)).endl();
         }
+    }
+
+    void SelectionManager::addListener(Steel::SelectionManager::Listener *listener)
+    {
+        mListeners.insert(listener);
+    }
+
+    void SelectionManager::removeListener(Steel::SelectionManager::Listener *listener)
+    {
+        mListeners.erase(listener);
+    }
+
+    void SelectionManager::dispatchSelectionChangedEvent()
+    {
+        decltype(mListeners) copy(mListeners);
+        for(auto const &listener:copy)
+            listener->onSelectionChanged(mSelection);
     }
 
 }

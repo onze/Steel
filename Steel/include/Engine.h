@@ -48,6 +48,10 @@ namespace Steel
             void addEngineEventListener(EngineEventListener *listener);
             /// Remove the given listener from the set of notified listeners.
             void removeEngineEventListener(EngineEventListener *listener);
+            /// warns all EngineListeners that a new level has been set
+            void fireOnLevelSetEvent();
+            /// warns all EngineListeners that a new level has been set
+            void fireOnLevelUnsetEvent();
 
             inline void abortMainLoop()
             {
@@ -63,11 +67,6 @@ namespace Steel
              */
             void embeddedInit(Ogre::String plugins, std::string windowHandle, unsigned int width, unsigned int height,
                               Ogre::String defaultLog = Ogre::String("ogre_log.log"), Ogre::LogListener *logListener = NULL);
-
-            /// warns all EngineListeners that a new level has been set
-            void fireOnLevelSetEvent();
-            /// warns all EngineListeners that a new level has been set
-            void fireOnLevelUnsetEvent();
 
             /**
              * game-side/standalone init.
