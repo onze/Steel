@@ -1,6 +1,7 @@
 #ifndef STEEL_TAGMANAGER_H
 #define STEEL_TAGMANAGER_H
 
+#include <list>
 #include <map>
 #include <set>
 
@@ -23,10 +24,13 @@ namespace Steel
             TagManager();
             virtual ~TagManager();
 
-            Signal toTag(const Ogre::String& tag);
-#ifdef DEBUG
+            Tag toTag(const Ogre::String& tag);
+            
+            std::list<Tag> toTags(std::list<Ogre::String> tags);
+            
             Ogre::String fromTag(const Tag tag);
-#endif
+            
+            std::list<Ogre::String> fromTags(std::set<Tag>& tags);
 
         private:
             static TagManager *sInstance;

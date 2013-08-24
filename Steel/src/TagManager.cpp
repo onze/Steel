@@ -28,9 +28,7 @@ namespace Steel
         if(mTagsMap.end()==it)
         {
             mTagsMap[tag]=returnedValue=mNextTag;
-#ifdef DEBUG
             mInverseTagsMap[mNextTag]=tag;
-#endif
             ++mNextTag;
         }
         else
@@ -39,8 +37,15 @@ namespace Steel
         }
         return returnedValue;
     }
+    
+    std::list<Tag> TagManager::toTags(std::list<Ogre::String> tags)
+    {
+        std::list<Tag> output;
+        for(auto const &tag:tags)
+            output.push_back(toTag(tag));
+        return output;
+    }
 
-#ifdef DEBUG
     Ogre::String TagManager::fromTag(const Tag tag)
     {
         if(INVALID_TAG == tag)
@@ -56,7 +61,14 @@ namespace Steel
 
         return "unknown tag";
     }
-#endif
+
+    std::list<Ogre::String> TagManager::fromTags(std::set<Tag>& tags)
+    {
+        std::list<Ogre::String> output;
+        for(auto const &tag:tags)
+            output.push_back(fromTag(tag));
+        return output;
+    }
 
 }
 
