@@ -16,6 +16,7 @@ namespace Steel
     class StringUtils
     {
         public:
+            /// Line separator.
             static const Ogre::String LINE_SEP;
 
             /// split a string into parts, delimited by a given separator, not included in the returned resulting vector. Specialized for mixed types.
