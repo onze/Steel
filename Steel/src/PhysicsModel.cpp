@@ -324,7 +324,6 @@ namespace Steel
                 std::set_difference(currentlyCollidingAgents.begin(), currentlyCollidingAgents.end(),
                                     mCollidingAgents.begin(), mCollidingAgents.end(),
                                     std::inserter(newlyColliding, newlyColliding.end()));
-//                 newlyColliding.erase(mCollidingAgents.begin(),mCollidingAgents.end());
             }
             else
             {
@@ -335,12 +334,13 @@ namespace Steel
             {
                 // collect tags
                 std::set<Tag> tagsMet;
-                for(auto const &it:newlyColliding)
+                for(auto const &aid:newlyColliding)
                 {
-                    Agent *agent=manager->level()->agentMan()->getAgent(it);
+                    Agent *agent=manager->level()->agentMan()->getAgent(aid);
                     if(NULL==agent)
                         continue;
-                    tagsMet.insert(agent->tags().begin(),agent->tags().end());
+                    auto _tags=agent->tags();
+                    tagsMet.insert(_tags.begin(),_tags.end());
                 }
 
                 // collect signals
