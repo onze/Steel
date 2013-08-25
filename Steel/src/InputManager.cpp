@@ -31,8 +31,7 @@ class equals
         equals(OIS::KeyCode _v) :
             v(_v)
         {
-        }
-        ;
+        };
         bool operator()(const OIS::KeyCode& value)
         {
             return value == v;

@@ -979,15 +979,32 @@ namespace Steel
 
         // Emtpy it
         while(NULL!=elem->GetFirstChild())
-            elem->RemoveChild(elem->GetFirstChild());
+        {
+            Rocket::Core::Element *child=elem->GetFirstChild();
+            elem->RemoveChild(child);
+        }
 
         // Repopulate it
         for(auto const &it:tags)
         {
             Rocket::Core::Element *child=mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
-            child->SetInnerRML(it.c_str());
+            decorateSelectionTagWidgetItem(child, it.c_str());
             elem->AppendChild(child);
         }
+    }
+
+    void Editor::decorateSelectionTagWidgetItem(Rocket::Core::Element *item, Ogre::String const &tagName)
+    {
+        // default tag button: "tagName [x]"
+        Ogre::String rml=tagName+"<p style=\"margin-left:3px;\" onclick=\"selection.tag.unset.$tagName\">[x]</p>";
+        
+        // try getting the closing button from the data templates
+        Rocket::Core::Element *elemTemplate=mDocument->GetElementById("SelectionTagWidget_AgentItem_Btn");
+        if(NULL!=elemTemplate && elemTemplate->GetNumChildren()>0)
+        {
+            rml=tagName+elemTemplate->GetInnerRML().CString();
+        }
+        item->SetInnerRML(Ogre::StringUtil::replaceAll(rml,"$tagName",tagName).c_str());
     }
 
     void Editor::ProcessEvent(Rocket::Core::Event &event)
@@ -1095,6 +1112,10 @@ namespace Steel
                 }
                 return;
             }
+        }
+        else if(Ogre::StringUtil::startsWith(rawCommand,"selection.tag.unset."))
+        {
+            // valid command, nothing to add
         }
         //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
         if (rawCommand.size())
@@ -1213,7 +1234,7 @@ namespace Steel
         {
             intro += "instanciate: ";
             command.erase(command.begin());
-            if (command.size() < 1)
+            if (command.size() == 0)
             {
                 Debug::error(intro)("command \"")(command);
                 Debug::error("\" contains no file !").endl();
@@ -1230,26 +1251,55 @@ namespace Steel
                 Debug::warning(command)("\". Aborted.").endl();
             }
         }
-        else if (StringUtils::join(command,".",0,3) == "selection.tag.set")
+        else if (StringUtils::join(command,".",0,2) == "selection.tag")
         {
-            command.erase(command.begin());// selection
-            command.erase(command.begin());// tag
-            command.erase(command.begin());// set
-            if(command.size()==0)
+            if (command.size() < 3)
             {
-                Debug::error(intro)("no tag set").endl();
+                Debug::error(intro)("command \"")(command);
+                Debug::error("\" is incomplete").endl();
                 return;
             }
-            if(NULL!=mEngine->level() && mEngine->level()->selectionMan()->hasSelection())
+            command.erase(command.begin());// selection
+            command.erase(command.begin());// tag
+
+
+            if(command[0]=="set")
             {
-                mEngine->level()->selectionMan()->tagSelection(TagManager::instance().toTag(StringUtils::join(command,".")));
-                refreshSelectionTagsWidget();
-                auto form=setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX,"");
-                if(NULL!=form)
+                command.erase(command.begin());// set
+                if(command.size()==0)
                 {
-                    form->Focus();
+                    Debug::error(intro)("no tag to set").endl();
+                    return;
+                }
+                if(NULL!=mEngine->level() && mEngine->level()->selectionMan()->hasSelection())
+                {
+                    mEngine->level()->selectionMan()->tagSelection(TagManager::instance().toTag(StringUtils::join(command,".")));
+                    refreshSelectionTagsWidget();
+                    auto form=setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX,"");
+                    if(NULL!=form)
+                        form->Focus();
                 }
             }
+            else if(command[0]=="unset")
+            {
+
+                command.erase(command.begin());// unset
+                if(command.size()==0)
+                {
+                    Debug::error(intro)("no tag to unset").endl();
+                    return;
+                }
+                if(NULL!=mEngine->level() && mEngine->level()->selectionMan()->hasSelection())
+                {
+                    mEngine->level()->selectionMan()->untagSelection(TagManager::instance().toTag(StringUtils::join(command,".")));
+                    refreshSelectionTagsWidget();
+                    auto form=setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX,"");
+                    if(NULL!=form)
+                        form->Focus();
+                }
+            }
+            else
+                Debug::error(intro)().endl();
         }
         else
             Debug::warning(intro)("unknown command: \"")(command)("\".").endl();

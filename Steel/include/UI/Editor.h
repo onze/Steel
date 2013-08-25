@@ -18,6 +18,10 @@
 
 namespace Rocket
 {
+    namespace Core
+    {
+        class Element;
+    }
     namespace Controls
     {
         class ElementFormControlInput;
@@ -170,6 +174,7 @@ namespace Steel
 
             void refreshSelectionTagsWidget();
             void populateSelectionTagsWidget(std::list< Ogre::String > tags);
+            void decorateSelectionTagWidgetItem(Rocket::Core::Element* item, const Ogre::String& tagName);
             void saveMenuTabIndexSetting(ConfigFile &config) const;
             
             /// Retrieve a libRocket form element element's "value" attribute value.
