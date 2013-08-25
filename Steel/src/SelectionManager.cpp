@@ -400,6 +400,17 @@ namespace Steel
         }
     }
     
+    void SelectionManager::untagSelection(Tag tag)
+    {
+        for(AgentId const &aid:mSelection)
+        {
+            Agent *agent=mLevel->agentMan()->getAgent(aid);
+            if(NULL==agent)
+                continue;
+            agent->untag(tag);
+        }
+    }
+    
     std::set<Tag> SelectionManager::tagsUnion()
     {
         std::set<Tag> tags;

@@ -31,9 +31,13 @@ namespace Steel
             /// split a string into parts, delimited by a given separator, not included in the returned resulting vector. Generic version.
             template<class T>
             static std::vector<T> split(T const &src, T const &sep);
-
+            
             /// join a vector of strings with the given joiner string. See generic header for details. Specialized for mixed&old types.
             static Ogre::String join(std::vector<Ogre::String> const &vec, Ogre::String const &joiner = "", int start = 0,
+                                     int end = INT_MIN);
+            
+            /// join a list of strings with the given joiner string. See generic header for details. Specialized for mixed&old types.
+            static Ogre::String join(std::list<Ogre::String> const &vec, Ogre::String const &joiner = "", int start = 0,
                                      int end = INT_MIN);
 
             /// join a Rocket::Core::StringList with the given joiner string. See generic header for details. Specialized for mixed types.

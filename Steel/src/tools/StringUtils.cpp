@@ -45,11 +45,17 @@ namespace Steel
     {
         return StringUtils::split(Ogre::String(src),Ogre::String(sep));
     }
-
+    
     Ogre::String StringUtils::join(std::vector<Ogre::String> const &vec,Ogre::String const &joiner,int start,int end)
     {
         // force use of the templated version to avoid infinite loop
         // this overload is still usefull though, because many types convert to Ogre::String (especially cont char *)
+        return StringUtils::join<Ogre::String>(vec,joiner,start,end);
+    }
+    
+    Ogre::String StringUtils::join(std::list<Ogre::String> const &list,Ogre::String const &joiner,int start,int end)
+    {
+        std::vector<Ogre::String> vec(list.begin(),list.end());
         return StringUtils::join<Ogre::String>(vec,joiner,start,end);
     }
 

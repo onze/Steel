@@ -94,6 +94,8 @@ namespace Steel
             
             /// Assign tag to all agents in the current selection
             void tagSelection(Tag tag);
+            /// Remove tag from all agents in the current selection
+            void untagSelection(Tag tag);
             /// Returns a set of all tags found in the current selection.
             std::set<Tag> tagsUnion();
 
