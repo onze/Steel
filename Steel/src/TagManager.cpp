@@ -38,7 +38,7 @@ namespace Steel
         return returnedValue;
     }
     
-    std::list<Tag> TagManager::toTags(std::list<Ogre::String> tags)
+    std::list<Tag> TagManager::toTags(std::list< Ogre::String > tags)
     {
         std::list<Tag> output;
         for(auto const &tag:tags)
@@ -46,7 +46,7 @@ namespace Steel
         return output;
     }
 
-    Ogre::String TagManager::fromTag(const Tag tag)
+    Ogre::String TagManager::fromTag(const Steel::Tag tag) const
     {
         if(INVALID_TAG == tag)
         {
@@ -62,7 +62,7 @@ namespace Steel
         return "unknown tag";
     }
 
-    std::list<Ogre::String> TagManager::fromTags(std::set<Tag>& tags)
+    std::list<Ogre::String> TagManager::fromTags(std::set< Steel::Tag > tags) const
     {
         std::list<Ogre::String> output;
         for(auto const &tag:tags)

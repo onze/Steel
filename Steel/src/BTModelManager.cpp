@@ -51,7 +51,18 @@ namespace Steel
             return false;
         }
 
-        return buildFromFile(rootFile, id);
+        if(!buildFromFile(rootFile, id))
+        {
+            return false;
+        }
+
+        // agentTags
+        if(!mModels[id].deserializeTags(root))
+        {
+            Debug::error(intro)("could not deserialize tags. Aborting.").endl();
+            return false;
+        }
+        return true;
     }
 
     bool BTModelManager::buildFromFile(File &rootFile, ModelId &id)

@@ -84,6 +84,7 @@ namespace Steel
     void BTModel::cleanup()
     {
         mStateStream.clear();
+        Model::cleanup();
     }
 
     void BTModel::update(float timestep)

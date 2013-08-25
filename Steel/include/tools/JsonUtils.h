@@ -89,7 +89,12 @@ namespace Steel
             static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue);
             static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue);
 
-            static std::list<Ogre::String> asStringsList(const Json::Value& value, std::list< Ogre::String > defaultValue=std::list<Ogre::String>());
+            static std::list<Ogre::String> asStringsList(const Json::Value& value, 
+                                                         std::list< Ogre::String > defaultValue=std::list< Ogre::String >(), 
+                                                         Ogre::String defaultItemValue="");
+            
+            static std::set<Tag> asTagsSet(const Json::Value& value, 
+                                           const std::set<Tag> defaultValue=std::set<Tag>());
 
 
         private:

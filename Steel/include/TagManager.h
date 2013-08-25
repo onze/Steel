@@ -28,9 +28,9 @@ namespace Steel
             
             std::list<Tag> toTags(std::list<Ogre::String> tags);
             
-            Ogre::String fromTag(const Tag tag);
+            Ogre::String fromTag(const Tag tag) const;
             
-            std::list<Ogre::String> fromTags(std::set<Tag>& tags);
+            std::list<Ogre::String> fromTags(std::set<Tag> tags) const;
 
         private:
             static TagManager *sInstance;

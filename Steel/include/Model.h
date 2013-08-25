@@ -1,6 +1,7 @@
 #ifndef STEEL_MODEL_H_
 #define STEEL_MODEL_H_
 
+#include <set>
 #include <json/json.h>
 
 #include "Debug.h"
@@ -16,6 +17,8 @@ namespace Steel
     class Model
     {
         public:
+            static const char *AGENT_TAGS_ATTRIBUTES;
+            
             Model();
             Model(const Model &m);
             virtual ~Model();
@@ -61,13 +64,22 @@ namespace Steel
             virtual ModelType modelType()=0;
 
             /// Cleans any model specific data. SHould not be called directly, except by dedicated manager.
-            virtual void cleanup()
+            virtual void cleanup();
+
+            inline std::set<Tag> tags()
             {
+                return mTags;
             }
+
+            /// reads tags from serialization. Returns true if all went ok.
+            bool deserializeTags(Json::Value const &value);
         protected:
 
             /// Number of agents referencing it.
             unsigned long mRefCount;
+
+            /// Tags the model delegates t its agents
+            std::set<Tag> mTags;
     };
 
 }

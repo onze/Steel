@@ -28,13 +28,11 @@ namespace Steel
             /// to be overloaded by subclasses that want to start listening to their document events
             virtual void onShow()
             {
-            }
-            ;
+            };
             /// to be overloaded by subclasses that want to stop listening to their document events
             virtual void onHide()
             {
-            }
-            ;
+            };
             /// true when the panel('s main document) is visible
             bool isVisible();
 

@@ -79,6 +79,7 @@ namespace Steel
             OgreUtils::destroySceneNode(mSceneNode);
             mSceneNode = NULL;
         }
+        Model::cleanup();
     }
 
     Ogre::Vector3 OgreModel::position() const
@@ -212,6 +213,9 @@ namespace Steel
             Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
         else
             materialName = Ogre::String(value.asString());
+        
+        // agentTags
+        allWasFine&=deserializeTags(value);
 
         if (!allWasFine)
         {

@@ -22,9 +22,8 @@ namespace Steel
     const char *Agent::TAGS_ATTRIBUTES="tags";
 
     Agent::Agent(AgentId id, Steel::Level* level): mId(id), mLevel(level),
-        mModelIds(std::map<ModelType, ModelId>()),mIsSelected(false),mTags(std::set<Tag>())
+        mModelIds(std::map<ModelType, ModelId>()),mIsSelected(false),mTags(std::map<Tag, unsigned>())
     {
-        mTags.insert(TagManager::instance().toTag("test"));
     }
 
     Agent::~Agent()
@@ -113,11 +112,50 @@ namespace Steel
         }
         
         // tags
-        std::list<Ogre::String> stringTags=JsonUtils::asStringsList(value[Agent::TAGS_ATTRIBUTES]);
-        std::list<Tag> tags=TagManager::instance().toTags(stringTags);
         mTags.clear();
-        mTags.insert(tags.begin(),tags.end());
+        for(auto const &_tag:JsonUtils::asTagsSet(value[Agent::TAGS_ATTRIBUTES]))
+            tag(_tag);
         return true;
+    }
+    
+    void Agent::tag(Tag tag)
+    {
+        std::map<Tag, unsigned>::iterator it=mTags.find(tag);
+        if(mTags.end()==it)
+            mTags.insert(std::pair<Tag, unsigned>(tag,1));
+        else
+            it->second++;
+    }
+    
+    void Agent::tag(std::set<Tag> _tags)
+    {
+        for(auto const &_tag:_tags)
+            tag(_tag);
+    }
+    
+    void Agent::untag(Tag tag)
+    {
+        std::map<Tag, unsigned>::iterator it=mTags.find(tag);
+        if(mTags.end()==it)
+            return;
+        
+        it->second--;
+        if(0==it->second)
+            mTags.erase(it);
+    }
+    
+    void Agent::untag(std::set<Tag> _tags)
+    {
+        for(auto const &_tag:_tags)
+            untag(_tag);
+    }
+    
+    std::set<Tag> Agent::tags() const
+    {
+        std::set<Tag> _tags;
+        for(auto const &it:mTags)
+            _tags.insert(it.first);
+        return _tags;
     }
 
     bool Agent::linkToModel(ModelType mType, ModelId modelId)
@@ -145,6 +183,9 @@ namespace Steel
             Debug::error(intro)("Agent<->model linking aborted.").endl();
             return false;
         }
+        
+        tag(mLevel->modelManager(mType)->modelTags(modelId));
+        
         return true;
     }
 
@@ -153,6 +194,7 @@ namespace Steel
         auto it = mModelIds.find(mType);
         if (it != mModelIds.end())
         {
+            // dependencies first
             switch (mType)
             {
                 case MT_OGRE:
@@ -161,7 +203,7 @@ namespace Steel
                 default:
                     break;
             }
-            // general case
+            untag(mLevel->modelManager(mType)->modelTags((*it).second));
             mLevel->modelManager(mType)->decRef((*it).second);
             mModelIds.erase(it);
         }
@@ -209,7 +251,8 @@ namespace Steel
         }
         
         // tags
-        root[Agent::TAGS_ATTRIBUTES]=JsonUtils::toJson(TagManager::instance().fromTags(mTags));
+        auto _tags=tags();
+        root[Agent::TAGS_ATTRIBUTES]=JsonUtils::toJson(TagManager::instance().fromTags(_tags));
         return root;
     }
 

@@ -29,7 +29,11 @@ namespace Steel
 
             /// Set the currenlty selected agents. If replacePrevious is true (default), any previous selection is cancelled.
             void setSelectedAgents(Selection selection, bool replacePrevious = true);
-            void clearSelection();
+            /**
+             * Select no agent. If discardEvent is true, Listeners aren't warn about it. 
+             * This can be useful if you intend on changing the selection multiple times in a row.
+             */
+            void clearSelection(bool discardEvent=false);
             void deleteSelection();
             void removeFromSelection(const Selection &aids);
             inline bool hasSelection()
@@ -83,10 +87,13 @@ namespace Steel
             /// Scale the <i>i</i>th selected agent's model to the <i>i</i>th given factor.
             void setSelectionScales(const std::vector<Ogre::Vector3> &scale);
 
-            /// Saves a Selection under the given tag.
-            void selectTag(const Tag tag);
-            /// Set tagged agents as selected
-            void tagSelection(const Tag tag);
+            /// Selects all agents under the given memo.
+            void selectMemo(Ogre::String memo);
+            /// Saves the current selection as the given memo.
+            void saveSelectionToMemo(Ogre::String memo);
+            
+            /// Assign tag to all agents in the current selection
+            void tagSelection(Tag tag);
             /// Returns a set of all tags found in the current selection.
             std::set<Tag> tagsUnion();
 
@@ -95,9 +102,6 @@ namespace Steel
                 return mSelection;
             }
         protected:
-            /// Like clearSelection, but gives the option of not warning Listeners about it.
-            void _clearSelection(bool cancelDispatch);
-            
             // not owned
             Level *mLevel;
 
@@ -106,7 +110,7 @@ namespace Steel
             Selection mSelection;
 
             /// maps tags to set of agents
-            std::map<Tag, Selection> mSelectedTags;
+            std::map<Ogre::String, Selection> mMemos;
 
             /// Get notified when selection changes.
             std::set<Listener *> mListeners;

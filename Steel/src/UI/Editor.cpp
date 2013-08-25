@@ -31,7 +31,8 @@ namespace Steel
 
     const char *Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE = "$cancelDynamicFilling";
 
-    const char *Editor::SELECTION_TAG_INFO_BOX="selectionTagsInfoBox";
+    const char *Editor::SELECTION_TAGS_INFO_BOX="selectionTagsInfoBox";
+    const char *Editor::SELECTIONS_TAG_EDIT_BOX="selection_tags_editbox";
     const char *Editor::AGENT_TAG_ITEM_NAME="agentTagItem";
 
     Editor::Editor():UIPanel("Editor", "data/ui/current/editor/editor.rml"),
@@ -100,7 +101,7 @@ namespace Steel
         mEngine->removeEngineEventListener(this);
         UIPanel::shutdown();
     }
-    
+
     void Editor::init(unsigned int width, unsigned int height)
     {
         init(width, height, NULL, NULL, NULL);
@@ -895,7 +896,7 @@ namespace Steel
     {
         Ogre::String intro="Editor::onShow(): ";
         mBrush.onShow();
-        
+
         // (re)load state
         // active menu tab
         auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
@@ -932,6 +933,7 @@ namespace Steel
             else
                 processCommand(Ogre::String("editorbrush.terrabrush.distribution.")+ select_form->GetOption(index)->GetValue().CString());
         }
+        refreshSelectionTagsWidget();
     }
 
     void Editor::onHide()
@@ -949,7 +951,6 @@ namespace Steel
 
     void Editor::onSelectionChanged(Selection &selection)
     {
-        Debug::log("Editor::onSelectionChanged(): tags: ")(TagManager::instance().fromTags(mEngine->level()->selectionMan()->tagsUnion())).endl();
         refreshSelectionTagsWidget();
     }
 
@@ -969,7 +970,7 @@ namespace Steel
         if(NULL==mDocument)
             return;
 
-        Rocket::Core::Element *elem=mDocument->GetElementById(Editor::SELECTION_TAG_INFO_BOX);
+        Rocket::Core::Element *elem=mDocument->GetElementById(Editor::SELECTION_TAGS_INFO_BOX);
         if(NULL==elem)
         {
             Debug::error(intro)("child ").quotes("selectionTagsInfoBox")("not found. Aborting.").endl();
@@ -1008,7 +1009,10 @@ namespace Steel
         else if (event == "dragstart")
             mIsDraggingFromMenu = true;
         else
+        {
             elem = event.GetTargetElement();
+            mIsDraggingFromMenu = false;
+        }
 
         if (elem == NULL)
         {
@@ -1073,6 +1077,25 @@ namespace Steel
             }
             rawCommand += "." + levelName;
         }
+        else if(rawCommand == "selection.tag.set")
+        {
+            Ogre::String content=getFormControlInputValue("selection_tags_editbox");
+
+            if(content.size()>0)
+            {
+                rawCommand += ".";
+                rawCommand += content;
+            }
+            else
+            {
+                if(mDebugEvents)
+                {
+                    Debug::log("in Editor::processClickEvent(): ")("rawCommand: ").quotes(rawCommand)
+                    (", text input is empty. Not setting the empty tag.").endl();
+                }
+                return;
+            }
+        }
         //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
         if (rawCommand.size())
             processCommand(rawCommand);
@@ -1096,11 +1119,12 @@ namespace Steel
         }
         else if(rawCommand == "selection.tag.set")
         {
-            Rocket::Controls::ElementFormControlTextArea *form = static_cast<Rocket::Controls::ElementFormControlTextArea *>(elem);
-            Ogre::String content=form->GetValue().CString();
+            bool linebreak=event.GetParameter<bool>("linebreak", false);
+            if(!linebreak)
+                return;
 
-            bool isLineBreak=event.GetParameter<bool>("linebreak", false);
-            if(isLineBreak)
+            Ogre::String content=getFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX);
+            if(content.size()>0)
             {
                 rawCommand += ".";
                 rawCommand += content;
@@ -1206,11 +1230,11 @@ namespace Steel
                 Debug::warning(command)("\". Aborted.").endl();
             }
         }
-        else if (StringUtils::join(command,".",0,-1) == "selection.tag.set")
+        else if (StringUtils::join(command,".",0,3) == "selection.tag.set")
         {
-            command.erase(command.begin());
-            command.erase(command.begin());
-            command.erase(command.begin());
+            command.erase(command.begin());// selection
+            command.erase(command.begin());// tag
+            command.erase(command.begin());// set
             if(command.size()==0)
             {
                 Debug::error(intro)("no tag set").endl();
@@ -1220,10 +1244,60 @@ namespace Steel
             {
                 mEngine->level()->selectionMan()->tagSelection(TagManager::instance().toTag(StringUtils::join(command,".")));
                 refreshSelectionTagsWidget();
+                auto form=setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX,"");
+                if(NULL!=form)
+                {
+                    form->Focus();
+                }
             }
         }
         else
             Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
+    }
+
+    Ogre::String Editor::getFormControlInputValue(Ogre::String elementId)
+    {
+        if(NULL==mDocument)
+            return "";
+
+        Rocket::Core::Element *elem=mDocument->GetElementById(elementId.c_str());
+        if(NULL==elem)
+            return "";
+
+        // try to assert we're actually using a form
+        Ogre::String tagName=elem->GetTagName().CString();
+        if("input"!=tagName && "select"!=tagName)
+        {
+            Debug::error("in Editor::getFormControlInputValue(): trying to use elem with id ").quotes(elementId)
+            (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
+            return NULL;
+        }
+
+        Rocket::Controls::ElementFormControlInput *form = static_cast<Rocket::Controls::ElementFormControlInput *>(elem);
+        Ogre::String content=form->GetValue().CString();
+        return content;
+    }
+
+    Rocket::Controls::ElementFormControlInput *Editor::setFormControlInputValue(Ogre::String elementId, Ogre::String value)
+    {
+        if(NULL==mDocument)
+            return NULL;
+        Rocket::Core::Element *elem=mDocument->GetElementById(elementId.c_str());
+        if(NULL==elem)
+            return NULL;
+
+        // try to assert we're actually using a form
+        Ogre::String tagName=elem->GetTagName().CString();
+        if("input"!=tagName && "select"!=tagName)
+        {
+            Debug::error("in Editor::setFormControlInputValue(): trying to use elem with id ").quotes(elementId)
+            (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
+            return NULL;
+        }
+        Rocket::Controls::ElementFormControlInput *form=static_cast<Rocket::Controls::ElementFormControlInput *>(elem);
+        Rocket::Core::String _value=value.c_str();
+        form->SetValue(_value);
+        return form;
     }
 
     void Editor::processOptionCommand(std::vector<Ogre::String> command)

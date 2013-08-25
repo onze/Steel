@@ -7,6 +7,7 @@
 
 #include <OIS.h>
 #include <OgreString.h>
+// #include <Rocket/Controls.h>
 
 #include "steeltypes.h"
 #include "EditorBrush.h"
@@ -14,6 +15,14 @@
 #include "UI/UIPanel.h"
 #include "SelectionManager.h"
 #include "EngineEventListener.h"
+
+namespace Rocket
+{
+    namespace Controls
+    {
+        class ElementFormControlInput;
+    }
+}
 
 namespace Steel
 {
@@ -24,13 +33,15 @@ namespace Steel
     class Editor: public UIPanel, SelectionManager::Listener, EngineEventListener
     {
         private:
-            /// Reference lookup table setting name 
+            /// Reference lookup table setting name
             static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE_SETTING;
             /// Editor menu tab index setting name
             static const Ogre::String MENU_TAB_INDEX_SETTING;
-            
+
             /// Name of the UI Editor element that contains tags elements.
-            static const char *SELECTION_TAG_INFO_BOX;
+            static const char *SELECTION_TAGS_INFO_BOX;
+            /// Name of the UI Editor element that get user input for tag elements.
+            static const char *SELECTIONS_TAG_EDIT_BOX;
             /// Name of the UI Editor element that displays a tag.
             static const char *AGENT_TAG_ITEM_NAME;
         public:
@@ -157,8 +168,15 @@ namespace Steel
             /// make a command out of a Rocket event.
             void processDragDropEvent(Rocket::Core::Event& event, Rocket::Core::Element *elem);
 
-            void populateSelectionTagWidget(std::set<Tag> tags);
+            void refreshSelectionTagsWidget();
+            void populateSelectionTagsWidget(std::list< Ogre::String > tags);
             void saveMenuTabIndexSetting(ConfigFile &config) const;
+            
+            /// Retrieve a libRocket form element element's "value" attribute value.
+            Ogre::String getFormControlInputValue(Ogre::String elementId);
+            
+            /// Set a libRocket form element element's "value" attribute value.
+            Rocket::Controls::ElementFormControlInput* setFormControlInputValue(Ogre::String elementId, Ogre::String value);
 
             //not owned
             Engine *mEngine;

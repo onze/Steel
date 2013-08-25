@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <exception>
+#include <map>
 
 #include <json/json.h>
 #include <OgreString.h>
@@ -118,21 +119,12 @@ namespace Steel
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
-
-            inline void tag(Tag tag)
-            {
-                mTags.insert(tag);
-            }
             
-            inline void untag(Tag tag)
-            {
-                mTags.erase(tag);
-            }
-
-            std::set<Tag> const &tags()
-            {
-                return mTags;
-            }
+            void tag(Tag tag);
+            void tag(std::set<Tag> tags);
+            void untag(Steel::Tag tag);
+            void untag(std::set<Tag> tags);
+            std::set<Tag> tags() const;
 
         private:
             /// Unique id.
@@ -146,7 +138,11 @@ namespace Steel
             /// state flag
             bool mIsSelected;
 
-            std::set<Tag> mTags;
+            /** 
+             * The agent's tags. Since some tags are refs to the agent models, 
+             * a ref count (map value) is kept, to support unlinking from model.
+             */
+            std::map<Tag, unsigned> mTags;
     };
 
 }

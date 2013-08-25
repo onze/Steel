@@ -44,7 +44,7 @@ namespace Steel
             Engine(Ogre::String confFilename = "");
             virtual ~Engine();
 
-            /// The given listener will be notified of engine event..
+            /// The given listener will be notified of engine event: onLevelSet, onLevelUnset.
             void addEngineEventListener(EngineEventListener *listener);
             /// Remove the given listener from the set of notified listeners.
             void removeEngineEventListener(EngineEventListener *listener);
@@ -160,6 +160,7 @@ namespace Steel
                 return mWindowHandle;
             }
 
+            /// Returns a pointer to the current level, or NULL if none is currently set.
             inline Level *level()
             {
                 return mLevel;

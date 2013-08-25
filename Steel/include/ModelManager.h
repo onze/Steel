@@ -3,6 +3,7 @@
 
 #include <json/json.h>
 #include <vector>
+#include <set>
 
 #include "steeltypes.h"
 
@@ -11,12 +12,12 @@ namespace Steel
     class Agent;
     class Model;
     /**
-     * Pure abstract class used as a common interface for the template-specialized versions of modelManagers.
+     * Abstract class used as a common interface for the template-specialized versions of modelManagers.
      * The way modelManager design is laid out is this way:
      * - ModelManager "implements" the common interface, so that any model manager can be pointed at with the same pointer.
-     * - _ModelManager<M> is a templated subclass of ModelManager, that implements common behavior.
-     * - ModelManager<BlahModel> are subclasses that specialize in one single type of model, and implements details specifics to
-     * the respective model they take care of.
+     * - _ModelManager<class M> is a templated subclass of ModelManager, that implements common behavior wrt to model.
+     * - ModelManager<BlahModel> is a subclass that specializes in one single type of model, and implements details specifics to
+     * the respective model it takes care of.
      */
     class ModelManager
     {
@@ -33,6 +34,9 @@ namespace Steel
             /// Meant to be reimplemented by subclass when models use extra params in their M::fromJson
             virtual bool fromSingleJson(Json::Value &model, ModelId &id)=0;
             virtual void toJson(Json::Value &object)=0;
+            
+            /// Returns the model tags, or an empty set if the given id is not valid.
+            std::set<Tag> modelTags(ModelId mid);
     };
 
 }

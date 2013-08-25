@@ -190,6 +190,9 @@ namespace Steel
                 }
             }
         }
+        
+        // agentTags
+        allWasFine&=deserializeTags(value);
 
         // final check
         if (!allWasFine)
@@ -414,6 +417,7 @@ namespace Steel
             mWorld = NULL;
         }
         mEmitOnTag.clear();
+        Model::cleanup();
     }
 
     BoundingShape PhysicsModel::BBoxShapeFromString(Ogre::String &shape)

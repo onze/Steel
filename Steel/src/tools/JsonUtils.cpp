@@ -73,13 +73,25 @@ namespace Steel
         return defaultValue;
     }
 
-    std::list<Ogre::String> JsonUtils::asStringsList(Json::Value const &value, std::list<Ogre::String> defaultValue)
+    std::list<Ogre::String> JsonUtils::asStringsList(Json::Value const &value, std::list<Ogre::String> defaultValue, Ogre::String defaultItemValue)
     {
         std::list<Ogre::String> output;
         if(value.isArray())
             for(Json::ValueIterator it=value.begin(); it!=value.end(); ++it)
-                output.push_back(asString(*it, ""));
+                output.push_back(asString(*it, defaultItemValue));
+        else
+            output.insert(output.end(), defaultValue.begin(),defaultValue.end());
         return output;
+    }
+
+    std::set<Tag> JsonUtils::asTagsSet(const Json::Value& value, const std::set<Tag> defaultValue)
+    {
+        if(value.isNull() || !value.isArray())
+            return defaultValue;
+        std::list<Ogre::String> stringTags=JsonUtils::asStringsList(value);
+        auto tagsList=TagManager::instance().toTags(stringTags);
+        std::set<Tag> tags(tagsList.begin(),tagsList.end());
+        return tags;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

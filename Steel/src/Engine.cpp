@@ -210,7 +210,6 @@ namespace Steel
 
         // Set default mipmap level (NB some APIs ignore this)
         Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
-//         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(mRootDir.subfile("data").subfile("resources").subfile("meshes"),"FileSystem", "Steel",true);
         // initialise all resource groups
         Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
@@ -219,8 +218,8 @@ namespace Steel
         mRoot->clearEventTimes();
 
         mRayCaster = new RayCaster(this);
-        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), mRootDir.subfile("data/ui"), &mInputMan,
-                 mRenderWindow, this);
+        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), 
+                 mRootDir.subfile("data/ui"), &mInputMan, mRenderWindow, this);
 
         setCurrentLevel(createLevel("DefaultLevel"));
 
