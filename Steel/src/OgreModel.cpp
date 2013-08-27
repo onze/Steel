@@ -38,27 +38,48 @@ namespace Steel
         if(!rgm->resourceExists(resourceGroupName,meshName))
             rgm->declareResource(meshName, "FileSystem", resourceGroupName);
 
+        const bool withRestore=NULL!=mSceneNode;
+        Ogre::Any any;
+        if(withRestore)
+        {
+            any = mSceneNode->getUserAny();
+            if (mEntity != NULL)
+            {
+                mEntity->detachFromParent();
+                mSceneManager->destroyEntity(mEntity);
+                mEntity = NULL;
+            }
+            if (mSceneNode != NULL)
+            {
+                OgreUtils::destroySceneNode(mSceneNode);
+                mSceneNode = NULL;
+            }
+        }
         mEntity = sceneManager->createEntity(meshName);
+
 
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
         mSceneNode->setInheritScale(false);
         mSceneNode->setScale(scale);
+
+        if(withRestore)
+        {
+            mSceneNode->setUserAny(any);
+        }
         return true;
     }
 
-    OgreModel::OgreModel(const OgreModel &m)
+    OgreModel::OgreModel(const OgreModel &o):mSceneNode(o.mSceneNode),mEntity(o.mEntity),mSceneManager(o.mSceneManager)
     {
-        Model::operator=(m);
-        (*this) = m;
     }
 
-    OgreModel &OgreModel::operator=(const OgreModel &m)
+    OgreModel &OgreModel::operator=(const OgreModel &o)
     {
-        Model::operator=(m);
-        mEntity = m.mEntity;
-        mSceneNode = m.mSceneNode;
-        mSceneManager=m.mSceneManager;
+        Model::operator=(o);
+        mEntity = o.mEntity;
+        mSceneNode = o.mSceneNode;
+        mSceneManager=o.mSceneManager;
         return *this;
     }
 
@@ -207,15 +228,20 @@ namespace Steel
         else
             meshName = Ogre::String(value.asString());
 
-        value = node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE];
         Ogre::String materialName="";
-        if (value.isNull())
-            Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
-        else
-            materialName = Ogre::String(value.asString());
-        
+        if(node.isMember(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE))
+        {
+            value = node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE];
+            if(!value.isString())
+                Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is not a string.").endl();
+            else if (value.isNull())
+                Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
+            else
+                materialName = Ogre::String(value.asString());
+        }
+
         // agentTags
-        allWasFine&=deserializeTags(value);
+        allWasFine&=deserializeTags(node);
 
         if (!allWasFine)
         {
@@ -241,15 +267,11 @@ namespace Steel
                 Debug::error(intro)("new mesh name is not valid:")(meshName).endl();
                 return false;
             }
-            Ogre::Any any;
-            if(NULL!=mSceneNode)
-                any = mSceneNode->getUserAny();
-            cleanup();
+
             if(!init(meshName, pos, rot, scale, levelRoot, sceneManager, resourceGroupName))
             {
                 return false;
             }
-            mSceneNode->setUserAny(any);
         }
         else
         {
@@ -264,7 +286,7 @@ namespace Steel
         }
         return true;
     }
-    
+
     void OgreModel::setMaterial(Ogre::String resName)
     {
         Ogre::MaterialManager *mm=Ogre::MaterialManager::getSingletonPtr();
@@ -279,3 +301,4 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

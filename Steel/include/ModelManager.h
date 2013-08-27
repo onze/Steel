@@ -12,7 +12,7 @@ namespace Steel
     class Agent;
     class Model;
     /**
-     * Abstract class used as a common interface for the template-specialized versions of modelManagers.
+     * Pure abstract class used as a common interface for the template-specialized versions of modelManagers.
      * The way modelManager design is laid out is this way:
      * - ModelManager "implements" the common interface, so that any model manager can be pointed at with the same pointer.
      * - _ModelManager<class M> is a templated subclass of ModelManager, that implements common behavior wrt to model.
@@ -34,9 +34,8 @@ namespace Steel
             /// Meant to be reimplemented by subclass when models use extra params in their M::fromJson
             virtual bool fromSingleJson(Json::Value &model, ModelId &id)=0;
             virtual void toJson(Json::Value &object)=0;
-            
             /// Returns the model tags, or an empty set if the given id is not valid.
-            std::set<Tag> modelTags(ModelId mid);
+            virtual std::set<Tag> modelTags(ModelId mid)=0;
     };
 
 }

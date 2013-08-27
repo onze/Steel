@@ -62,6 +62,9 @@ namespace Steel
             }
 
             virtual bool onAgentLinkedToModel(Agent *agent, ModelId mid);
+            
+            /// Returns the model tags, or an empty set if the given id is not valid.
+            virtual std::set<Tag> modelTags(ModelId mid);
 
         protected:
             /// Returns the lowest Id currently in use

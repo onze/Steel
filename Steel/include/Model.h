@@ -73,8 +73,8 @@ namespace Steel
 
             /// reads tags from serialization. Returns true if all went ok.
             bool deserializeTags(Json::Value const &value);
-        protected:
 
+        protected:
             /// Number of agents referencing it.
             unsigned long mRefCount;
 

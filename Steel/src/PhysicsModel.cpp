@@ -192,7 +192,7 @@ namespace Steel
         }
         
         // agentTags
-        allWasFine&=deserializeTags(value);
+        allWasFine&=deserializeTags(root);
 
         // final check
         if (!allWasFine)

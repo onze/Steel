@@ -26,8 +26,8 @@ namespace Steel
                       Ogre::SceneNode* levelRoot,
                       Ogre::SceneManager* sceneManager,
                       Ogre::String const &resourceGroupName);
-            OgreModel(const OgreModel &m);
-            OgreModel &operator=(const OgreModel &m);
+            OgreModel(const OgreModel &o);
+            OgreModel &operator=(const OgreModel &o);
             virtual ~OgreModel();
 
             virtual inline ModelType modelType()
