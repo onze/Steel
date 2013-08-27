@@ -162,9 +162,15 @@ namespace Steel
     {
         Ogre::String intro = "Agent::linkToModel(type=" + modelTypesAsString[mType] + ", id="
                              + Ogre::StringConverter::toString(modelId) + "): ";
-        if (!mLevel->modelManager(mType)->isValid(modelId))
+        ModelManager *mm=mLevel->modelManager(mType);
+        if(NULL==mm)
         {
-            Debug::error(intro)("model ")(modelId)(" is not valid. Aborting.").endl();
+            Debug::error(intro)("no suitable manager found. Aborting.").endl();
+            return false;
+        }
+        if (!mm->isValid(modelId))
+        {
+            Debug::error(intro)("model is not valid. Aborting.").endl();
             return false;
         }
 
@@ -176,15 +182,15 @@ namespace Steel
             return false;
         }
 
-        mLevel->modelManager(mType)->incRef(modelId);
-        if(!mLevel->modelManager(mType)->onAgentLinkedToModel(this, modelId))
+        mm->incRef(modelId);
+        if(!mm->onAgentLinkedToModel(this, modelId))
         {
             unlinkFromModel(mType);
             Debug::error(intro)("Agent<->model linking aborted.").endl();
             return false;
         }
         
-        tag(mLevel->modelManager(mType)->modelTags(modelId));
+        tag(mm->modelTags(modelId));
         
         return true;
     }

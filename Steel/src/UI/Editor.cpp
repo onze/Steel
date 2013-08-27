@@ -197,7 +197,7 @@ namespace Steel
         }
         else if (node.isObject())
         {
-            if(JsonUtils::asBool(node[Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE], false))
+            if(node.isMember(Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE) && JsonUtils::asBool(node[Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE], false))
                 return true;
             // dict:: process each value
             for (auto it = node.begin(); it != node.end(); ++it)
