@@ -43,7 +43,8 @@ namespace Steel
             void init(btDynamicsWorld *world, OgreModel *omodel);
             PhysicsModel& operator=(const PhysicsModel& other);
             virtual ~PhysicsModel();
-            inline ModelType modelType()
+            
+            static ModelType modelType()
             {
                 return MT_PHYSICS;
             }
@@ -69,18 +70,18 @@ namespace Steel
 
             void setSelected(bool selected);
             void cleanup();
-            
+
             void update(float timestep, PhysicsModelManager *manager);
             void setUserPointer(Agent* agent);
         protected:
             /// Dispatches signals upon valid collisions.
             void collisionCheck(PhysicsModelManager *manager);
-            
+
             /// Removes the model's rigidbody from the world, as well as its ghostObject, if any.
             void removeFromWorld();
             /// Puts back the model's rigidbody from the world, as well as its ghostObject, if any.
             void addToWorld();
-            
+
             /// Maps a bounding shape string to its enum value. Defaults to sphere.
             BoundingShape BBoxShapeFromString(Ogre::String &shape);
             Ogre::String StringShapeFromBBox(BoundingShape &shape);
@@ -96,7 +97,7 @@ namespace Steel
             std::stack<bool> mStates;
             /// Shape of the physic model representing the graphic model.
             BoundingShape mShape;
-            
+
             /// See GHOST_ATTRIBUTE docstring.
             bool mIsGhost;
             /// Bullet ghost object

@@ -61,6 +61,9 @@ namespace Steel
 
             /// execute a serialized command
             void processCommand(std::vector<Ogre::String> command);
+            
+            /// Allows a manager to register itself to the level
+            void registerManager(ModelType type, ModelManager *manager);
 
             /**
              * save a seralization string into a file that can be loaded and read back with a call to load.
@@ -137,6 +140,11 @@ namespace Steel
             {
                 return mSelectionMan;
             }
+            
+            inline LocationModelManager *locationMan()
+            {
+                return mLocationMan;
+            }
 
         private:
             /// name used in debug output
@@ -164,7 +172,10 @@ namespace Steel
             /// root node of the level. All level-dependant entities are its children.
             Ogre::SceneNode *mLevelRoot;
             
-            //managers
+            /// Maps ModelType to managers
+            std::map<ModelType, ModelManager *> mManagers;
+            
+            // actual managers
             AgentManager *mAgentMan;
             OgreModelManager *mOgreModelMan;
             PhysicsModelManager *mPhysicsModelMan;

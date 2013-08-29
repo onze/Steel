@@ -30,7 +30,7 @@ namespace Steel
             OgreModel &operator=(const OgreModel &o);
             virtual ~OgreModel();
 
-            virtual inline ModelType modelType()
+            static ModelType modelType()
             {
                 return MT_OGRE;
             }

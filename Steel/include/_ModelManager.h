@@ -18,7 +18,7 @@ namespace Steel
     class _ModelManager: public ModelManager
     {
         private:
-            _ModelManager(){}
+            _ModelManager() {}
 
         public:
             _ModelManager(Level *level);
@@ -54,7 +54,10 @@ namespace Steel
             void toJson(Json::Value &object);
 
             /// modelType associated with this Manager
-            virtual ModelType modelType()=0;
+            static ModelType modelType()
+            {
+                return M::modelType();
+            }
 
             Ogre::String logName()
             {
@@ -62,7 +65,7 @@ namespace Steel
             }
 
             virtual bool onAgentLinkedToModel(Agent *agent, ModelId mid);
-            
+
             /// Returns the model tags, or an empty set if the given id is not valid.
             virtual std::set<Tag> modelTags(ModelId mid);
 

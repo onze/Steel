@@ -22,7 +22,7 @@ namespace Steel
     {
         public:
             static const char *SHAPE_NAME_ATTRIBUTE;
-            
+
             BTModel();
             BTModel(const BTModel &m);
             BTModel &operator=(const BTModel &m);
@@ -35,7 +35,10 @@ namespace Steel
              */
             bool init(BTShapeStream *shapeStream);
 
-            virtual ModelType modelType();
+            static ModelType modelType()
+            {
+                return MT_BT;
+            };
 
             /// Deserialize itself from the given Json object. For internal use only, see BTModelManager::buildFromFile.
             virtual bool fromJson(Json::Value &node);
@@ -56,10 +59,10 @@ namespace Steel
             // owned
             /// See SHAPE_NAME_ATTRIBUTE
             Ogre::String mShapeName;
-            
+
             /// states, aligned with the shape stream.
             BTStateStream mStateStream;
-            
+
             /// Index of the currently running node, within the StateStream.
             BTStateIndex mCurrentStateIndex;
             std::stack<BTStateIndex> mStatesStack;

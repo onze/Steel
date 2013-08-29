@@ -29,6 +29,7 @@ namespace Steel
             {
                 ++mRefCount;
             }
+            
             inline void decRef()
             {
                 if (mRefCount > 0)
@@ -61,7 +62,7 @@ namespace Steel
             }
 
             /// Returns the ModelType associated with this model.
-            virtual ModelType modelType()=0;
+            static ModelType modelType(){return MT_LAST;};
 
             /// Cleans any model specific data. SHould not be called directly, except by dedicated manager.
             virtual void cleanup();

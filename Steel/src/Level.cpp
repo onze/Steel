@@ -37,7 +37,7 @@ namespace Steel
 
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
         mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name),
-        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL),
+        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL), mManagers(std::map<ModelType, ModelManager *>()),
         mAgentMan(NULL), mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(), mSelectionMan(NULL),
         mCamera(NULL), mMainLight(NULL)
     {
@@ -197,30 +197,25 @@ namespace Steel
         Debug::log(logName() + ".save() into ")(savefile).endl();
         return true;
     }
-
+    
+    void Level::registerManager(ModelType type, ModelManager *_manager)
+    {
+        if(NULL!=modelManager(type))
+        {
+            Debug::error("in Level::registerManager(): a manager for type ").quotes(modelTypesAsString[type])
+            (" already exists ! Aborting.").endl();
+            return;
+        }
+        mManagers.insert({type, _manager});
+    }
+    
     ModelManager *Level::modelManager(ModelType modelType)
     {
-        //TODO: replace this by a lookup into a protected map of model managers ?
         ModelManager *mm = NULL;
-        switch (modelType)
+        auto it=mManagers.find(modelType);
+        if(mManagers.end() != it)
         {
-            case MT_OGRE:
-                mm = mOgreModelMan;
-                break;
-            case MT_PHYSICS:
-                mm = mPhysicsModelMan;
-                break;
-            case MT_BT:
-                mm = mBTModelMan;
-                break;
-            default:
-                Debug::error("Level::modelManager(): unknown modelType ")(modelType);
-                if (MT_FIRST < modelType && modelType < MT_LAST)
-                    Debug::error(" (")(modelTypesAsString[modelType])(")");
-                else
-                    Debug::error(" (with no string representation.)");
-                Debug::error.endl();
-                break;
+            mm=it->second;
         }
         return mm;
     }

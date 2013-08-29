@@ -21,6 +21,7 @@ namespace Steel
         mModels = std::vector<M>();
         mModelsFreeList = std::list<ModelId>();
         mLevel = level;
+        mLevel->registerManager(M::modelType(), this);
     }
 
     template<class M>

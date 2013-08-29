@@ -55,11 +55,6 @@ namespace Steel
         return true;
     }
 
-    ModelType BTModel::modelType()
-    {
-        return MT_BT;
-    }
-
     
     bool BTModel::fromJson(Json::Value &node)
     {

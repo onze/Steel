@@ -40,7 +40,7 @@ namespace Steel
                 return mSceneManager;
             }
 
-            virtual inline ModelType modelType()
+            virtual ModelType modelType()
             {
                 return MT_OGRE;
             }
