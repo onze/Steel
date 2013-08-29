@@ -380,7 +380,7 @@ namespace Steel
         if (it != mMemos.end())
         {
             auto selection = (*it).second;
-            Debug::log(intro)("selecting ")(mSelection)(" as memo ")(memo).endl();
+            Debug::log(intro)("selecting ")(mSelection)(" from memo ")(memo).endl();
             setSelectedAgents(selection);
         }
         else
