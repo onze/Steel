@@ -670,17 +670,14 @@ namespace Steel
 
         // ask the right manager to load this model
         ModelType modelType = MT_FIRST;
-        if (modelTypeString == "MT_OGRE")
-            modelType = MT_OGRE;
-        else if (modelTypeString == "MT_BT")
-            modelType = MT_BT;
-        else if (modelTypeString == "MT_PHYSICS")
-            modelType = MT_PHYSICS;
-        else
+        auto it=std::find(modelTypesAsString.begin(),modelTypesAsString.end(), modelTypeString);
+        if(modelTypesAsString.end() == it)
         {
             Debug::warning(intro)("Unknown model type: ")(modelTypeString).endl();
             return false;
         }
+        else
+            modelType = (ModelType) std::distance(modelTypesAsString.begin(), it);
 
         // check if the agent is already linked to such a model
         Agent *agent=mEngine->level()->agentMan()->getAgent(aid);
