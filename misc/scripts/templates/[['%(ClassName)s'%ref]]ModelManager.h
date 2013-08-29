@@ -1,6 +1,8 @@
 #ifndef STEEL_[[('%(TypeName)s'%ref).upper()]]MODELMANAGER_H
 #define STEEL_[[('%(TypeName)s'%ref).upper()]]MODELMANAGER_H
 
+#include <json/json.h>
+
 #include "steeltypes.h"
 
 #include "_ModelManager.h"
@@ -19,6 +21,8 @@ namespace Steel
             {
                 return MT_[[('%(TypeName)s'%ref).upper()]];
             };
+            
+            ModelId fromSingleJson(Json::Value &model);
 
         protected:
 
