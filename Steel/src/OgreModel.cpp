@@ -13,10 +13,14 @@
 
 namespace Steel
 {
+    const Ogre::String OgreModel::POSITION_ATTRIBUTE="position";
+    const Ogre::String OgreModel::ROTATION_ATTRIBUTE="rotation";
+    const Ogre::String OgreModel::SCALE_ATTRIBUTE="scale";
+    const Ogre::String OgreModel::ENTITY_MESH_NAME_ATTRIBUTE="entityMeshName";
+    
     const Ogre::String OgreModel::MISSING_MATERIAL_NAME="_missing_material_";
     const Ogre::String OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE="materialOverride";
-
-
+    
     OgreModel::OgreModel() :
         Model(),
         mSceneNode(NULL), mEntity(NULL),mSceneManager(NULL)
@@ -175,23 +179,20 @@ namespace Steel
             return;
         }
         //TODO: use abbreviated keys for release
-        node["position"] = JsonUtils::toJson(mSceneNode->getPosition());
-        node["rotation"] = JsonUtils::toJson(mSceneNode->getOrientation());
-        node["scale"] = JsonUtils::toJson(mSceneNode->getScale());
-        node["entityMeshName"] = Json::Value(mEntity->getMesh()->getName());
+        node[OgreModel::POSITION_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getPosition());
+        node[OgreModel::ROTATION_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getOrientation());
+        node[OgreModel::SCALE_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getScale());
+        node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE] = Json::Value(mEntity->getMesh()->getName());
     }
 
-    bool OgreModel::fromJson(Json::Value &mode)
+    bool OgreModel::fromJson(const Json::Value &mode)
     {
         Debug::error("OgreModel::fromJson(): wrong deserialization method called.").endl();
         // TODO: implement this method for inplace modification
         return false;
     }
 
-    bool OgreModel::fromJson(Json::Value& node,
-                             Ogre::SceneNode* levelRoot,
-                             Ogre::SceneManager* sceneManager,
-                             const Ogre::String& resourceGroupName)
+    bool OgreModel::fromJson(const Json::Value& node, Ogre::SceneNode* levelRoot, Ogre::SceneManager* sceneManager, const Ogre::String& resourceGroupName)
     {
         Ogre::String intro="in OgreModel::fromJson(): ";
         // data to gather
@@ -204,27 +205,27 @@ namespace Steel
         bool allWasFine = true;
 
         // gather it
-        value = node["position"];
+        value = node[OgreModel::POSITION_ATTRIBUTE];
         if (value.isNull())
             Debug::error(intro)("position is null: no translation applied.").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
 
-        value = node["rotation"];
+        value = node[OgreModel::ROTATION_ATTRIBUTE];
         if (value.isNull())
             Debug::warning(intro)("rotation is null: no rotation applied.").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
 
-        value = node["scale"];
+        value = node[OgreModel::SCALE_ATTRIBUTE];
         if (value.isNull())
             Debug::warning(intro)("scale is null: no scaling applied.").endl();
         else
             scale = Ogre::StringConverter::parseVector3(value.asString());
 
-        value = node["entityMeshName"];
+        value = node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE];
         if (value.isNull() && !(allWasFine = false))
-            Debug::error(intro)("field 'entityMeshName' is null.").endl();
+            Debug::error(intro)("field ").quotes(OgreModel::ENTITY_MESH_NAME_ATTRIBUTE)(" is null.").endl();
         else
             meshName = Ogre::String(value.asString());
 

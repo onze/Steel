@@ -15,6 +15,11 @@ namespace Steel
     class OgreModel: public Model
     {
         public:
+            static const Ogre::String POSITION_ATTRIBUTE;
+            static const Ogre::String ROTATION_ATTRIBUTE;
+            static const Ogre::String SCALE_ATTRIBUTE;
+            static const Ogre::String ENTITY_MESH_NAME_ATTRIBUTE;
+
             /// Default material name. This name is set by blender's OgreExporter to meshes with no material.
             static const Ogre::String MISSING_MATERIAL_NAME;
             /// Attribute used to set a mesh model (overrites the material the mesh originally links to).
@@ -58,9 +63,9 @@ namespace Steel
             void setNodeAny(AgentId aid);
 
             /// Not mean to be used.
-            virtual bool fromJson(Json::Value &mode);
+            virtual bool fromJson(const Json::Value &mode);
             /// Deserialize itself from the given Json object
-            virtual bool fromJson(Json::Value &node,
+            virtual bool fromJson(const Json::Value &node,
                                   Ogre::SceneNode *levelRoot,
                                   Ogre::SceneManager *sceneManager,
                                   Ogre::String const &resourceGroupName);
