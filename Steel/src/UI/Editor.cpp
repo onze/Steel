@@ -69,6 +69,7 @@ namespace Steel
     void Editor::loadConfig(ConfigFile const &config)
     {
         mBrush.loadConfig(config);
+        setupReferencePathsLookupTable(config.getSetting(Editor::REFERENCE_PATH_LOOKUP_TABLE_SETTING));
     }
 
     void Editor::saveConfig(ConfigFile &config) const
@@ -391,12 +392,8 @@ namespace Steel
         if (INVALID_ID == aid)
         {
             // will end up pointing to the agent owning all created models
-            Ogre::String aid_s = "";
-            if (!root.isArray() && !root["aid"].isNull())
-            {
-                aid_s = root["aid"].asCString();
-                aid = Ogre::StringConverter::parseUnsignedLong(aid_s, INVALID_ID);
-            }
+            if (!root.isArray() && !root.isMember("aid"))
+                aid = JsonUtils::asUnsignedLong(root["aid"],INVALID_ID);
             else
             {
                 Level *level=mEngine->level();
@@ -994,7 +991,7 @@ namespace Steel
     {
         // default tag button: "tagName [x]"
         Ogre::String rml=tagName+"<p style=\"margin-left:3px;\" onclick=\"selection.tag.unset.$tagName\">[x]</p>";
-        
+
         // try getting the closing button from the data templates
         Rocket::Core::Element *elemTemplate=mDocument->GetElementById("SelectionTagWidget_AgentItem_Btn");
         if(NULL!=elemTemplate && elemTemplate->GetNumChildren()>0)
