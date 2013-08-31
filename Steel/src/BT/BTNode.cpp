@@ -12,7 +12,7 @@ namespace Steel
 
     }
 
-    BTNode::BTNode(const BTNode& other)
+    BTNode::BTNode(const BTNode& o):mState(o.mState),mToken(o.mToken)
     {
 
     }
@@ -22,14 +22,18 @@ namespace Steel
 
     }
 
-    BTNode& BTNode::operator=(const BTNode& other)
+    BTNode& BTNode::operator=(const BTNode& o)
     {
+        if(this==&o)
+            return *this;
+        mState=o.mState;
+        mToken=o.mToken;
         return *this;
     }
 
-    bool BTNode::operator==(const BTNode& other) const
+    bool BTNode::operator==(const BTNode& o) const
     {
-        return false;
+        return mState==o.mState && mToken==o.mToken;
     }
 
     BTState BTNode::state()
