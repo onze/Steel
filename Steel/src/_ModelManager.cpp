@@ -160,7 +160,7 @@ namespace Steel
     }
 
     template<class M>
-    void _ModelManager<M>::toJson(Json::Value &object)
+    void _ModelManager<M>::toJson(Json::Value &root)
     {
 //         Debug::log("_ModelManager(): ")(mModels.size())(" models in stock").endl();
         for (ModelId id = firstId(); id < lastId(); ++id)
@@ -168,7 +168,10 @@ namespace Steel
             Model *m = (Model *) &(mModels[id]);
             if (m->isFree())
                 continue;
-            m->toJson(object[Ogre::StringConverter::toString(id)]);
+            // makes sure the serailization exist, even if empty, otherwise the child will be forgotten forever.
+            Json::Value node(Json::objectValue);
+            m->toJson(node);
+            root[Ogre::StringConverter::toString(id)]=node;
         }
     }
 
