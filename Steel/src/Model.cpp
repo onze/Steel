@@ -29,7 +29,7 @@ namespace Steel
     Model::~Model()
     {
     }
-
+    
     Model &Model::operator=(const Model &o)
     {
         mRefCount=o.mRefCount;
@@ -37,9 +37,23 @@ namespace Steel
         return *this;
     }
     
+    bool Model::operator==(const Model &o) const
+    {
+        return mTags==o.mTags;
+    }
+    
     void Model::cleanup()
     {
         mTags.clear();
+    }
+    
+    void Model::serializeTags(Json::Value& value)
+    {
+        if(!mTags.size())
+            return;
+        
+        std::list<Ogre::String> tags=TagManager::instance().fromTags(mTags);
+        value[Model::AGENT_TAGS_ATTRIBUTES]=JsonUtils::toJson(tags);
     }
     
     bool Model::deserializeTags(const Json::Value& value)
