@@ -177,6 +177,25 @@ namespace Steel
         Debug::log("Selected agents: ")(mSelection).endl();
         dispatchSelectionChangedEvent();
     }
+    
+    void SelectionManager::setSelectedAgent(AgentId aid, bool replacePrevious)
+    {
+        if (replacePrevious)
+            clearSelection(true);
+        
+        Agent *agent = mLevel->agentMan()->getAgent(aid);
+        if (NULL == agent)
+        {
+            dispatchSelectionChangedEvent();
+            return;
+        }
+        
+        mSelection.push_back(aid);
+        agent->setSelected(true);
+            
+        Debug::log("Selected agent: ")(aid).endl();
+        dispatchSelectionChangedEvent();
+    }
 
     void SelectionManager::removeFromSelection(const Selection &selection)
     {

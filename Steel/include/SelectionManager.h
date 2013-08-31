@@ -29,6 +29,10 @@ namespace Steel
 
             /// Set the currenlty selected agents. If replacePrevious is true (default), any previous selection is cancelled.
             void setSelectedAgents(Selection selection, bool replacePrevious = true);
+            
+            /// Set the currenlty selected agent. If replacePrevious is true (default), any previous selection is cancelled.
+            void setSelectedAgent(AgentId aid, bool replacePrevious = true);
+            
             /**
              * Select no agent. If discardEvent is true, Listeners aren't warn about it. 
              * This can be useful if you intend on changing the selection multiple times in a row.
