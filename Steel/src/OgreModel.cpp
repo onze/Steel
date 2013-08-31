@@ -21,8 +21,7 @@ namespace Steel
     const Ogre::String OgreModel::MISSING_MATERIAL_NAME="_missing_material_";
     const Ogre::String OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE="materialOverride";
     
-    OgreModel::OgreModel() :
-        Model(),
+    OgreModel::OgreModel(): Model(),
         mSceneNode(NULL), mEntity(NULL),mSceneManager(NULL)
     {
 
@@ -74,7 +73,8 @@ namespace Steel
         return true;
     }
 
-    OgreModel::OgreModel(const OgreModel &o):mSceneNode(o.mSceneNode),mEntity(o.mEntity),mSceneManager(o.mSceneManager)
+    OgreModel::OgreModel(const OgreModel &o): Model(o),
+    mSceneNode(o.mSceneNode),mEntity(o.mEntity),mSceneManager(o.mSceneManager)
     {
     }
 
@@ -183,6 +183,7 @@ namespace Steel
         node[OgreModel::ROTATION_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getOrientation());
         node[OgreModel::SCALE_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getScale());
         node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE] = Json::Value(mEntity->getMesh()->getName());
+        serializeTags(node);
     }
 
     bool OgreModel::fromJson(const Json::Value &mode)

@@ -50,7 +50,7 @@ namespace Steel
             }
 
             ///serialize itself into the given Json object
-            void toJson(Json::Value &object);
+            void toJson(Json::Value& node);
             ///deserialize itself from the given Json object. return true is successful.
             bool fromJson(Json::Value &object);
 

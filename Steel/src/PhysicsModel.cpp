@@ -450,12 +450,12 @@ namespace Steel
         return PhysicsModel::BBOX_SHAPE_NAME_SPHERE;
     }
 
-    void PhysicsModel::toJson(Json::Value &root)
+    void PhysicsModel::toJson(Json::Value &node)
     {
-        root[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
-        root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(StringShapeFromBBox(mShape));
+        node[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
+        node[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(StringShapeFromBBox(mShape));
         if(mIsGhost)
-            root[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
+            node[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
 
         if(mEmitOnTag.size())
         {
@@ -472,8 +472,9 @@ namespace Steel
                 }
             }
             if(mapValue.size())
-                root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE] = mapValue;
+                node[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE] = mapValue;
         }
+        serializeTags(node);
     }
 
     void PhysicsModel::setSelected(bool selected)
