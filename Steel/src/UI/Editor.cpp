@@ -803,6 +803,10 @@ namespace Steel
                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::TERRAFORM);
                 break;
+            case OIS::KC_L:
+                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                    mBrush.setMode(EditorBrush::LINK);
+                break;
             case OIS::KC_R:
                 if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
                     reloadContent();
