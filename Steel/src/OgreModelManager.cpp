@@ -53,7 +53,6 @@ namespace Steel
     {
         id = allocateModel();
         int loadingOk=mModels[id].fromJson(model, mLevelRoot, mSceneManager, mLevel->name());
-        //TODO discard, quarantine, repair ?
         if(!loadingOk)
         {
             deallocateModel(id);

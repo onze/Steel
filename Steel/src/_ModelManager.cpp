@@ -143,16 +143,12 @@ namespace Steel
     }
 
     template<class M>
-    bool _ModelManager<M>::fromSingleJson(Json::Value &value, ModelId &id)
+    bool _ModelManager<M>::fromSingleJson(Json::Value &model, ModelId &id)
     {
         id = allocateModel();
-        //get values for load
-        //incRef(id);
-        int loadingOk = mModels[id].fromJson(value);
-        //TODO discard, quarantine, repair ?
-        if (!loadingOk)
+        if (!mModels[id].fromJson(model))
         {
-            decRef(id);
+            deallocateModel(id);
             id = INVALID_ID;
             return false;
         }

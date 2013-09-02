@@ -20,7 +20,7 @@ namespace Steel
     class OgreModelManager: public _ModelManager<OgreModel>
     {
         public:
-            
+
             OgreModelManager(Level *level, Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
             virtual ~OgreModelManager();
 

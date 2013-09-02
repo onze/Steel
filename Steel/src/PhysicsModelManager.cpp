@@ -29,21 +29,6 @@ namespace Steel
         mLevel=NULL;
     }
 
-    bool PhysicsModelManager::fromSingleJson(Json::Value &model, ModelId &id)
-    {
-        Ogre::String intro=logName()+"::fromSingleJson(): ";
-        Json::Value value;
-        id=newModel();
-
-        if(!mModels[id].fromJson(model))
-        {
-            deallocateModel(id);
-            id=INVALID_ID;
-            return false;
-        }
-        return true;
-    }
-
     ModelId PhysicsModelManager::newModel()
     {
         ModelId mid=allocateModel();

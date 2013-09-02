@@ -23,9 +23,6 @@ namespace Steel
                 return MT_PHYSICS;
             }
 
-            /// Initialize a new PhysicsModel according to data in the json serialization.
-            bool fromSingleJson(Json::Value &model, ModelId &id);
-
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();
 
@@ -33,7 +30,7 @@ namespace Steel
             bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 
             void update(float timestep);
-            
+
             inline Level *level()
             {
                 return mLevel;
