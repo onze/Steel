@@ -39,6 +39,8 @@ namespace Steel
             /// Returns the rotation of the drop target in front of the camera.
             Ogre::Quaternion dropTargetRotation();
 
+            Ogre::Vector2 screenPosition(const Ogre::Vector3& worldPosition);
+
             /// Moves the camera according to the given coordinates.
             void translate(float dx, float dy, float dz, float speed = 1.f);
 

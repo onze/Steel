@@ -115,6 +115,11 @@ namespace Steel
     {
         return mCameraNode->getOrientation();
     }
-
+    
+    Ogre::Vector2 Camera::screenPosition(const Ogre::Vector3& worldPosition)
+    {
+        Ogre::Vector3 screenPosition = mCamera->getProjectionMatrix() * mCamera->getViewMatrix() * worldPosition;
+        return Ogre::Vector2(0.5f + 0.5f * screenPosition.x, 0.5f - 0.5f * screenPosition.y);
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
