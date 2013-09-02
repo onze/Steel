@@ -135,7 +135,7 @@ namespace Steel
             //TODO: implement id remapping, so that we stay in a low id range
             Json::Value value = *it;
             ModelId mid=INVALID_ID;
-            if(!fromSingleJson(value,mid))
+            if(!this->fromSingleJson(value, mid))
                 Debug::error(logName())("could not deserialize model ")(mid).endl();
             ids.push_back(mid);
         }
@@ -192,7 +192,7 @@ namespace Steel
 //
 //         return incRef(mid);
 //     }
-
+    /// Returns true if the linking was ok to the manager's pov.
     template<class M>
     bool _ModelManager<M>::onAgentLinkedToModel(Agent *agent, ModelId mid)
     {

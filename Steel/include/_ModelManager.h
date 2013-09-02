@@ -38,7 +38,7 @@ namespace Steel
             virtual void decRef(ModelId id);
 
             /// Clears every models from its memory.
-            void clear();
+            virtual void clear();
 
             /// Returns true if the given model id is in use.
             virtual bool isFree(ModelId id);
@@ -51,7 +51,7 @@ namespace Steel
             virtual bool fromSingleJson(Json::Value &model, ModelId &id);
 
             /// Dump all models' json representation into the given object.
-            void toJson(Json::Value &object);
+            virtual void toJson(Json::Value &object);
 
             /// modelType associated with this Manager
             static ModelType modelType()
@@ -59,7 +59,7 @@ namespace Steel
                 return M::modelType();
             }
 
-            Ogre::String logName()
+            virtual Ogre::String logName()
             {
                 return "ModelManager<" + modelTypesAsString[this->modelType()] + ">";
             }
