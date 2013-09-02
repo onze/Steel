@@ -255,7 +255,7 @@ namespace Steel
                         this->operator()("]");
                         return *this;
                     }
-                    
+
                     /// Print the parameter between quotes.
                     template<class T>
                     DebugObject &quotes(T const &o)
@@ -334,7 +334,7 @@ namespace Steel
                 warning = DebugObject(wlog);
                 //yellow
                 if(useColors)
-                warning.setColors("\033[1;33m", "\033[1;m");
+                    warning.setColors("\033[1;33m", "\033[1;m");
 
                 Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);
                 if (logListener)
@@ -343,7 +343,7 @@ namespace Steel
                 //red
                 if(useColors)
                     error.setColors("\033[1;31m", "\033[1;m");
-                
+
                 Debug::isInit=true;
             }
 

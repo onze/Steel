@@ -39,7 +39,7 @@ namespace Steel
 
             /// Returns a pointer to a cached stream, or NULL if no stream with the given name has been built.
             BTShapeStream *getBTShapeStream(Ogre::String streamName);
-            
+
             /// Removes all streams from the map
             void clearCachedStreams();
 

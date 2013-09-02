@@ -8,12 +8,16 @@
 
 namespace Steel
 {
+    /**
+     * BTFinder looks for a spec(ification) and if the spec is matched,
+     * saves the result in the BTModel under the specified dest(ination).
+     */
     class BTFinder: public BTNode
     {
         public:
-            static const Ogre::String LOCALIZATION_MODE;
-            static const Ogre::String LOCALIZATION_MODE_STATIC;
-            static const Ogre::String LOCALIZATION_MODE_DYNAMIC;
+            static const char *LOCALIZATION_MODE_ATTRIBUTE;
+            static const char *LOCALIZATION_MODE_STATIC;
+            static const char *LOCALIZATION_MODE_DYNAMIC;
 
             /// How to localize the target agent.
             enum LocalizationMode

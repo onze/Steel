@@ -59,7 +59,7 @@ namespace Steel
             }
 
         protected:
-            
+
             ///not owned
             ///owned
             /// screen size, in pixels.

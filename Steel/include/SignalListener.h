@@ -20,7 +20,7 @@ namespace Steel
             void registerSignal(const Ogre::String &signal);
             /// Registers onSignal to be called when the given signal is fired.
             void registerSignal(const Signal signal);
-            
+
             /// Unregisters calls to onSignal for the given signal.
             void unregisterSignal(Signal signal);
             /// Unregisters from all registered signals.
@@ -28,8 +28,8 @@ namespace Steel
 
             /// Triggered when the listened signal is fired.
             virtual void onSignal(Signal signal, SignalEmitter* src)=0;
-            
-            /** 
+
+            /**
              * Triggered when the listened signal is fired. Calls onSignal and bound methods.
              * Subclasses most likely want to overwrite onSignal (no leading underscrore).
              */

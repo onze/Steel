@@ -119,7 +119,7 @@ namespace Steel
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
-            
+
             void tag(Tag tag);
             void tag(std::set<Tag> tags);
             void untag(Steel::Tag tag);
@@ -138,8 +138,8 @@ namespace Steel
             /// state flag
             bool mIsSelected;
 
-            /** 
-             * The agent's tags. Since some tags are refs to the agent models, 
+            /**
+             * The agent's tags. Since some tags are refs to the agent models,
              * a ref count (map value) is kept, to support unlinking from model.
              */
             std::map<Tag, unsigned> mTags;

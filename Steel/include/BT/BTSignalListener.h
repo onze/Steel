@@ -10,7 +10,7 @@
 namespace Steel
 {
     class SignalEmitter;
-    
+
     /**
      * This node listens to a set of signals.
      * Yields READY until one of the target signals is fired, then yields the subnode result.
@@ -30,10 +30,10 @@ namespace Steel
 
             BTSignalListener(BTShapeToken const &token);
             virtual ~BTSignalListener();
-            
+
             // SignalListener interface
             void onSignal(Signal signal, SignalEmitter* src);
-            
+
             void onParentNotified();
 
         private:

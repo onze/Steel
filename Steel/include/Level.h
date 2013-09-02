@@ -29,9 +29,8 @@ namespace Steel
             Level();
             Level(Level &level);
             Level &operator=(const Level &level);
-        public:
 
-            ///@param[in] path: parent dir where the level saves itself
+        public:
             Level(Engine *engine, File path, Ogre::String name);
             virtual ~Level();
 
@@ -61,7 +60,7 @@ namespace Steel
 
             /// execute a serialized command
             void processCommand(std::vector<Ogre::String> command);
-            
+
             /// Allows a manager to register itself to the level
             void registerManager(ModelType type, ModelManager *manager);
 
@@ -130,17 +129,17 @@ namespace Steel
             {
                 return mBTModelMan;
             }
-            
+
             inline AgentManager *agentMan()
             {
                 return mAgentMan;
             }
-            
+
             inline SelectionManager *selectionMan()
             {
                 return mSelectionMan;
             }
-            
+
             inline LocationModelManager *locationMan()
             {
                 return mLocationMan;
@@ -171,10 +170,10 @@ namespace Steel
 
             /// root node of the level. All level-dependant entities are its children.
             Ogre::SceneNode *mLevelRoot;
-            
+
             /// Maps ModelType to managers
             std::map<ModelType, ModelManager *> mManagers;
-            
+
             // actual managers
             AgentManager *mAgentMan;
             OgreModelManager *mOgreModelMan;

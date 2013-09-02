@@ -39,10 +39,10 @@ namespace Steel
 
             /// Current state of the node. Can be overwritten by subclasses if needed.
             virtual BTState state();
-            
+
             BTStateIndex firstChildIndex();
             BTStateIndex lastChildIndex();
-            
+
             ////////////
             // interface in contact to BTModel
             /**
@@ -62,7 +62,7 @@ namespace Steel
              * Meant to be overwritten.
              */
             virtual void childReturned(BTNode const * const node, BTState state);
-            
+
             /**
              * Called after run, once the parent has been notified of the node's state.
              * Defaults to resetting the state to READY;

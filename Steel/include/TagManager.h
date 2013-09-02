@@ -25,25 +25,25 @@ namespace Steel
             virtual ~TagManager();
 
             Tag toTag(const Ogre::String& tag);
-            
+
             std::list<Tag> toTags(std::list<Ogre::String> tags);
-            
+
             Ogre::String fromTag(const Tag tag) const;
-            
+
             std::list<Ogre::String> fromTags(std::set<Tag> tags) const;
 
         private:
             static TagManager *sInstance;
-            
+
             /// Value of the next created signal.
             Tag mNextTag;
-            
+
             /// Maps string tags to long values, used internally.
             std::map<Ogre::String, Tag> mTagsMap;
-            #ifdef DEBUG
+#ifdef DEBUG
             /// mTagsMap's reverse mapping, for debug purposes.
             std::map<Tag, Ogre::String> mInverseTagsMap;
-            #endif
+#endif
     };
 }
 

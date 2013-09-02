@@ -43,7 +43,7 @@ namespace Steel
             void init(btDynamicsWorld *world, OgreModel *omodel);
             PhysicsModel& operator=(const PhysicsModel& other);
             virtual ~PhysicsModel();
-            
+
             static ModelType modelType()
             {
                 return MT_PHYSICS;

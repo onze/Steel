@@ -20,7 +20,7 @@ namespace Steel
              * If set, after the limit is reached, freezes its state to its last value.
              */
             static const char *MAX_LOOPS_ATTRIBUTE;
-            
+
         public:
             inline static BTShapeTokenType tokenType()
             {

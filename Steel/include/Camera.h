@@ -47,14 +47,12 @@ namespace Steel
             {
                 return mCamera;
             }
-            ;
 
             /// Returns a pointer to the node the internal camera instance is attached to.
             inline Ogre::SceneNode *camNode()
             {
                 return mCameraNode;
             }
-            ;
 
         protected:
             // not owned

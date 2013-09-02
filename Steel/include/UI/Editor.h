@@ -159,7 +159,7 @@ namespace Steel
             virtual void onLevelSet(Level *level);
             /// called right before a level is unset (becomes not current anymore).
             virtual void onLevelUnset(Level *level);
-            
+
         private:
             /// If found and set to true in an object of a model serialization, values of the object skip their way through dynamicFillSerialization.
             static const char *DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE;
@@ -177,10 +177,10 @@ namespace Steel
             void populateSelectionTagsWidget(std::list< Ogre::String > tags);
             void decorateSelectionTagWidgetItem(Rocket::Core::Element* item, const Ogre::String& tagName);
             void saveMenuTabIndexSetting(ConfigFile &config) const;
-            
+
             /// Retrieve a libRocket form element element's "value" attribute value.
             Ogre::String getFormControlInputValue(Ogre::String elementId);
-            
+
             /// Set a libRocket form element element's "value" attribute value.
             Rocket::Controls::ElementFormControlInput* setFormControlInputValue(Ogre::String elementId, Ogre::String value);
 

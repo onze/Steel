@@ -18,11 +18,11 @@ namespace Steel
     {
         public:
             static const char *AGENT_TAGS_ATTRIBUTES;
-            
+
             Model();
             Model(const Model &o);
             virtual ~Model();
-            
+
             virtual Model &operator=(const Model &o);
             virtual bool operator==(const Model &o) const;
 
@@ -30,7 +30,7 @@ namespace Steel
             {
                 ++mRefCount;
             }
-            
+
             inline void decRef()
             {
                 if (mRefCount > 0)
@@ -75,7 +75,7 @@ namespace Steel
 
             /// write tags to serialization.
             void serializeTags(Json::Value &value);
-            
+
             /// reads tags from serialization. Returns true if all went ok.
             bool deserializeTags(Json::Value const &value);
 

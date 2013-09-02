@@ -12,22 +12,22 @@ namespace Steel
      */
     class BTDebug:public BTNode
     {
-    public:
-        static const char *TEXT_ATTRIBUTE;
-        
-        inline static BTShapeTokenType tokenType()
-        {
-            return BTDebugToken;
-        }
-        BTDebug(BTShapeToken const &token);
-        virtual ~BTDebug();
-        
-        void run(float timestep);
-        
-    private:
-        bool parseNodeContent(Json::Value &root);
-        
-        Ogre::String mDebugText;
+        public:
+            static const char *TEXT_ATTRIBUTE;
+
+            inline static BTShapeTokenType tokenType()
+            {
+                return BTDebugToken;
+            }
+            BTDebug(BTShapeToken const &token);
+            virtual ~BTDebug();
+
+            void run(float timestep);
+
+        private:
+            bool parseNodeContent(Json::Value &root);
+
+            Ogre::String mDebugText;
     };
 }
 

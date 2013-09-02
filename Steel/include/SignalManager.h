@@ -12,7 +12,7 @@ namespace Steel
 {
     class SignalListener;
     class SignalEmitter;
-    
+
     class SignalManager
     {
         public:
@@ -25,24 +25,24 @@ namespace Steel
 
             SignalManager();
             virtual ~SignalManager();
-            
+
             void registerListener(const Signal signal, SignalListener* listener);
             void unregisterListener(const Signal signal, SignalListener* listener);
-            
+
             /// Registers the signal to be fired before next frame (recommended).
             void emit(const Signal signal, SignalEmitter* src=NULL);
             inline void emit(const Ogre::String& signal, SignalEmitter* src=NULL)
             {
                 emit(toSignal(signal), src);
             }
-            
+
             /// Immediatly calls all registered listeners of the given signal.
             void fire(const Signal signal, SignalEmitter* src=NULL);
             inline void fire(const Ogre::String& signal, SignalEmitter* src=NULL)
             {
                 fire(toSignal(signal), src);
             }
-            
+
             /// Fires all emitted signals.
             void fireEmittedSignals();
 
@@ -53,19 +53,19 @@ namespace Steel
 
         private:
             static SignalManager *sInstance;
-            
+
             /// Value of the next created signal.
             Signal mNextSignal;
             /// Maps string signals to long values, used internally.
             std::map<Ogre::String, Signal> mSignalsMap;
-            #ifdef DEBUG
+#ifdef DEBUG
             /// mSignalsMap's reverse mapping, for debug purposes.
             std::map<Signal, Ogre::String> mInverseSignalsMap;
-            #endif
-            
+#endif
+
             /// Instances to notify of emitted signals.
             std::map<Signal, std::set<SignalListener*>> mListeners;
-            
+
             /// Emitted signals
             std::set<std::pair<Signal, SignalEmitter*>> mEmittedSignals;
     };
