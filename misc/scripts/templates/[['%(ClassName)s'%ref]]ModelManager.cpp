@@ -13,18 +13,19 @@ namespace Steel
 
     }
 
-    ModelId [['%(ClassName)s'%ref]]ModelManager::fromSingleJson(Json::Value &model)
+    bool [['%(ClassName)s'%ref]]ModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
-        ModelId id = allocateModel();
+        id = allocateModel();
         //get values for load
         //incRef(id);
         int loadingOk=mModels[id].fromJson(model);
-        //TODO discard, quarantine, repair ?
         if(!loadingOk)
         {
+            deallocate(id);
             id=INVALID_ID;
+            return false;
         }
-        return id;
+        return true;
     }
 }
 

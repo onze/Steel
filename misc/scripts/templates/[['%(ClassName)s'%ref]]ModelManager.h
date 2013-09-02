@@ -22,7 +22,7 @@ namespace Steel
                 return MT_[[('%(TypeName)s'%ref).upper()]];
             };
             
-            ModelId fromSingleJson(Json::Value &model);
+            bool fromSingleJson(Json::Value &model, ModelId &id);
 
         protected:
 
