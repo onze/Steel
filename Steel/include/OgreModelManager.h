@@ -25,7 +25,7 @@ namespace Steel
             virtual ~OgreModelManager();
 
             /// Initialize a new OgreModel according to data in the json serialization.
-            virtual bool fromSingleJson(Json::Value &model, ModelId& id);
+            bool fromSingleJson(Json::Value &model, ModelId& id);
 
             /// Initialize a new OgreModel and returns its identifier.
             ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);

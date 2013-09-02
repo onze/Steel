@@ -6,7 +6,7 @@ namespace Steel
 
     BTModelManager::BTModelManager(Level *level,Ogre::String path) :
         _ModelManager<BTModel>(level),
-        mBTShapeMan(),mBasePath(path)
+        mBTShapeMan(), mBasePath(path)
     {
         if(!mBasePath.exists())
         {
