@@ -866,7 +866,7 @@ namespace Steel
     bool Editor::mouseMoved(const OIS::MouseEvent& evt)
     {
         bool hoveringMenu=hitTest(evt.state.X.abs, evt.state.Y.abs, "menu");
-        if (!mIsDraggingFromMenu && !hoveringMenu)
+        if ((!mIsDraggingFromMenu && !hoveringMenu) || (mBrush.isDragging() || mBrush.isInContiniousMode() || mBrush.isSelecting()))
         {
             mBrush.mouseMoved(evt);
             Rocket::Core::Element *elem;
@@ -904,9 +904,7 @@ namespace Steel
             elem->SetActiveTab(tabNo);
         }
 
-
         // ## reconnect to document
-
         // data sources
         mFSResources->refresh(mDocument);
 

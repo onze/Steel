@@ -104,6 +104,21 @@ namespace Steel
                     return .0f;
                 return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
             }
+            
+            inline bool isDragging()
+            {
+                return mIsDraggingSelection;
+            }
+            
+            inline bool isInContiniousMode()
+            {
+                return mContinuousModeActivated;
+            }
+            
+            inline bool isSelecting()
+            {
+                return mIsSelecting;
+            }
 
         protected:
             /// Warns, in case some values make using the brush impossible.
