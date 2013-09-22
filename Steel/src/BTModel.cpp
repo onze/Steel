@@ -59,8 +59,8 @@ namespace Steel
     bool BTModel::fromJson(Json::Value &node)
     {
         // building a BTModel requires structures that only the manager can access.
-        throw std::runtime_error("BTModel::fromJson is not meant to be called. Use the BTModelManager.");
-        return true;
+        //throw std::runtime_error("BTModel::fromJson is not meant to be called. Use the BTModelManager.");
+        return false;
     }
 
     void BTModel::toJson(Json::Value &node)
