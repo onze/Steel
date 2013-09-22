@@ -3,14 +3,16 @@
 #include <BTModelManager.h>
 #include <tools/StringUtils.h>
 #include <tools/File.h>
+#include <Engine.h>
 
 namespace Steel
 {
-    bool test_BTrees()
+    bool test_BTrees(Engine *engine)
     {
+        return true;
         Ogre::String intro="in test_BTrees(): file ";
 
-        BTModelManager *btModelMan=new BTModelManager(NULL,"/media/a0/cpp/1210/usmb/install_dir/data/raw_resources/BT");
+        BTModelManager *btModelMan=new BTModelManager(engine->level(),"/media/a0/cpp/1210/usmb/install_dir/data/raw_resources/BT");
         // load BTree serialization
         File rootFile("/media/a0/cpp/1210/usmb/data/resources/BTree models/patrol.model");
         if(!rootFile.exists())

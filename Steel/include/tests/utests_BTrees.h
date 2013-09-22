@@ -3,7 +3,8 @@
 
 namespace Steel
 {
-    bool test_BTrees();
+    class Engine;
+    bool test_BTrees(Engine *engine);
 }
 
 #endif

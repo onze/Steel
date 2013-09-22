@@ -102,7 +102,7 @@ namespace Steel
         if(!(passed&=test_ConfigFile()) && abortOnFail)return false;
         if(!(passed&=test_BTShapeStream()) && abortOnFail)return false;
         if(!(passed&=test_BTStateStream()) && abortOnFail)return false;
-        if(!(passed&=test_BTrees()) && abortOnFail)return false;
+        if(!(passed&=test_BTrees(engine)) && abortOnFail)return false;
 
         if(passed)
             Debug::log("start_tests(): all direct unit tests passed. Registering gameplay tests...").endl();
