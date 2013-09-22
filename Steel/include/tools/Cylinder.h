@@ -24,8 +24,8 @@ namespace Steel
 
         public:
             static Ogre::MeshPtr getMesh(Ogre::SceneManager *sceneManager, int radius, int height);
-            static Ogre::SceneNode *getSceneNode(Ogre::SceneManager *sceneManager, 
-                                                 Ogre::SceneNode *parent, 
+            static Ogre::SceneNode *getSceneNode(Ogre::SceneManager *sceneManager,
+                                                 Ogre::SceneNode *parent,
                                                  Ogre::String name,
                                                  int radius, int height);
     };

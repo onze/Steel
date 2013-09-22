@@ -28,6 +28,7 @@
 #include "tests/utests.h"
 #include "EngineEventListener.h"
 #include "SelectionManager.h"
+#include "SignalManager.h"
 
 namespace Steel
 {
@@ -218,8 +219,7 @@ namespace Steel
         mRoot->clearEventTimes();
 
         mRayCaster = new RayCaster(this);
-        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), 
-                 mRootDir.subfile("data/ui"), &mInputMan, mRenderWindow, this);
+        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), mRootDir.subfile("data/ui"), &mInputMan, mRenderWindow, this);
 
         setCurrentLevel(createLevel("DefaultLevel"));
 

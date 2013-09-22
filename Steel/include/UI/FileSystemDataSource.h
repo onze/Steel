@@ -55,8 +55,8 @@ namespace Steel
              * @param[in] row_index The index of the desired row.
              * @param[in] columns The list of desired columns within the row.
              **/
-            virtual void GetRow(Rocket::Core::StringList& row, 
-                                const Rocket::Core::String& table, 
+            virtual void GetRow(Rocket::Core::StringList& row,
+                                const Rocket::Core::String& table,
                                 int row_index,
                                 const Rocket::Core::StringList& columns);
             /**
