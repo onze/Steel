@@ -402,7 +402,6 @@ namespace Steel
         }
         else
         {
-
             for (ModelType i = (ModelType) ((unsigned long) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((unsigned long) i + 1))
             {
                 Ogre::String type = modelTypesAsString[i];

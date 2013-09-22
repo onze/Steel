@@ -64,12 +64,14 @@ namespace Steel
 
     bool LocationModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
-        id = allocateModel();
-        int loadingOk=mModels[id].fromJson(model, this);
-        if(!loadingOk)
+        id = allocateModel(id);
+        if(INVALID_ID == id)
+            return false;
+        
+        if(!mModels[id].fromJson(model, this))
         {
             deallocateModel(id);
-            id=INVALID_ID;
+            id = INVALID_ID;
             return false;
         }
         return true;

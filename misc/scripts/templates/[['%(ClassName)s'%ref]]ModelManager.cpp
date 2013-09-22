@@ -15,14 +15,14 @@ namespace Steel
 
     bool [['%(ClassName)s'%ref]]ModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
-        id = allocateModel();
-        //get values for load
-        //incRef(id);
-        int loadingOk=mModels[id].fromJson(model);
-        if(!loadingOk)
+        id = allocateModel(id);
+        if(INVALID_ID == id)
+            return false;
+        
+        if(!mModels[id].fromJson(model))
         {
             deallocate(id);
-            id=INVALID_ID;
+            id = INVALID_ID;
             return false;
         }
         return true;

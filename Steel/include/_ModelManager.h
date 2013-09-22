@@ -47,7 +47,12 @@ namespace Steel
 
             /// Initialize new models according to data in the json serialization.
             virtual std::vector<ModelId> fromJson(Json::Value &models);
-            /// Initializea single new model according to data in the json serialization.
+            /**
+             * Initialize a single new model according to data in the json serialization.
+             * If mid == INVALID_ID, a new id is found and mid is set to it. Otherwise, 
+             * the model will be set the given id.
+             * Returns false is anything went wrong.
+             */
             virtual bool fromSingleJson(Json::Value &model, ModelId &id);
 
             /// Dump all models' json representation into the given object.
@@ -83,10 +88,12 @@ namespace Steel
                 return mModels.size();
             }
             /**
-             * Finds a free id to place the given model at. returns this ModelId.
-             * If allocation was not possible, returns Steel::INVALID_ID.
-             * The allocated model has a refCount of one. Call decRef on it to release it.
+             * Allocates a new model for the given id and returns its id. 
+             * If id is INVALID_ID, finds a free id to place the given model at.
+             * If allocation was not possible (or id was already taken), 
+             * returns Steel::INVALID_ID and sets id to it.
              */
+            ModelId allocateModel(ModelId &id);
             ModelId allocateModel();
 
             /**

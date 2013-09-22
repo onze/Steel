@@ -27,7 +27,6 @@ namespace Steel
 
     bool BTModelManager::fromSingleJson(Json::Value &root, ModelId &id)
     {
-        id=INVALID_ID;
         Json::Value value;
         Ogre::String intro="in BTModelManager::fromSingleJson():\n"+root.toStyledString()+"\n";
         if(root.isNull())
@@ -80,10 +79,12 @@ namespace Steel
         assert(NULL!=shapeStream);
 
         // make it build the state stream
-        id=allocateModel();
+        id = allocateModel(id);
+        if(INVALID_ID == id)
+            return false;
+        
         if(!mModels[id].init(shapeStream))
         {
-            Debug::error(intro)("could not init model. Deallocating it.").endl();
             deallocateModel(id);
             id=INVALID_ID;
         }

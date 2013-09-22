@@ -18,8 +18,10 @@ namespace Steel
     _ModelManager<M>::_ModelManager(Level *level)
         : ModelManager()
     {
-        mModels = std::vector<M>();
+        // capacity is doubled each time, therefore it cannot start at 0.
+        mModels = std::vector<M>(1);
         mModelsFreeList = std::list<ModelId>();
+        mModelsFreeList.push_back(0L);
         mLevel = level;
         mLevel->registerManager(M::modelType(), this);
     }
@@ -72,18 +74,52 @@ namespace Steel
     template<class M>
     ModelId _ModelManager<M>::allocateModel()
     {
-        ModelId id = INVALID_ID;
-        if (mModelsFreeList.size() > 0)
+        ModelId mid=INVALID_ID;
+        return allocateModel(mid);
+    }
+
+    template<class M>
+    ModelId _ModelManager<M>::allocateModel(ModelId &mid)
+    {
+        if(INVALID_ID == mid)
         {
-            id = mModelsFreeList.front();
-            mModelsFreeList.pop_front();
+            if (mModelsFreeList.size() > 0)
+            {
+                mid = mModelsFreeList.front();
+                mModelsFreeList.pop_front();
+            }
+            else
+            {
+                mid = (ModelId) mModels.size();
+                mModels.push_back(M());
+            }
+        }
+        else if(isValid(mid))
+        {
+            if(isFree(mid))
+            {
+                // user asked for an already existing free slot: remove from free list
+                auto it=std::find(mModelsFreeList.begin(), mModelsFreeList.end(), mid);
+                if(mModelsFreeList.end() != it)
+                    mModelsFreeList.erase(it);
+            }
+            else
+            {
+                mid = INVALID_ID;
+            }
         }
         else
         {
-            id = (ModelId) mModels.size();
-            mModels.push_back(M());
+            while(mModels.capacity() <= mid)
+                mModels.reserve(mModels.capacity()*2);
+            
+            for(ModelId i = mModels.size(); i < mid; ++i)
+                mModelsFreeList.push_back(i);
+            
+            if(mModels.size() <= mid)
+                mModels.resize(mid+1, M());
         }
-        return id;
+        return mid;
     }
 
     template<class M>
@@ -123,7 +159,7 @@ namespace Steel
     template<class M>
     bool _ModelManager<M>::isFree(ModelId id)
     {
-        return isValid(id) && !mModels[id].isFree();
+        return isValid(id) && mModels[id].isFree();
     }
 
     template<class M>
@@ -135,6 +171,7 @@ namespace Steel
             //TODO: implement id remapping, so that we stay in a low id range
             Json::Value value = *it;
             ModelId mid=INVALID_ID;
+            mid=Ogre::StringConverter::parseUnsignedLong(it.memberName(), INVALID_ID);
             if(!this->fromSingleJson(value, mid))
                 Debug::error(logName())("could not deserialize model ")(mid).endl();
             ids.push_back(mid);
@@ -145,7 +182,7 @@ namespace Steel
     template<class M>
     bool _ModelManager<M>::fromSingleJson(Json::Value &model, ModelId &id)
     {
-        id = allocateModel();
+        id = allocateModel(id);
         if (!mModels[id].fromJson(model))
         {
             deallocateModel(id);
@@ -199,7 +236,7 @@ namespace Steel
         // no problem with that
         return true;
     }
-    
+
     template<class M>
     std::set<Tag> _ModelManager<M>::modelTags(ModelId mid)
     {
