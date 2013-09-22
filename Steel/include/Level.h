@@ -20,7 +20,7 @@ namespace Steel
     class ModelManager;
     class OgreModelManager;
     class PhysicsModelManager;
-    class BlackBoardModelManager;
+    class LocationModelManager;
     class SelectionManager;
 
     class Level: public TerrainManagerEventListener
@@ -181,6 +181,7 @@ namespace Steel
             BTModelManager *mBTModelMan;
             TerrainManager mTerrainMan;
             SelectionManager *mSelectionMan;
+            LocationModelManager *mLocationMan;
 
             /// Main camera
             Camera *mCamera;

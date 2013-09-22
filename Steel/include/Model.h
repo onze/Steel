@@ -63,7 +63,10 @@ namespace Steel
             }
 
             /// Returns the ModelType associated with this model.
-            static ModelType modelType(){return MT_LAST;};
+            static ModelType modelType()
+            {
+                return MT_LAST;
+            };
 
             /// Cleans any model specific data. SHould not be called directly, except by dedicated manager.
             virtual void cleanup();

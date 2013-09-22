@@ -31,14 +31,16 @@
 #include "TerrainPhysicsManager.h"
 #include "AgentManager.h"
 #include "SelectionManager.h"
+#include "LocationModelManager.h"
 
 namespace Steel
 {
 
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
         mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name),
-        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL), mManagers(std::map<ModelType, ModelManager *>()),
-        mAgentMan(NULL), mOgreModelMan(NULL), mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(), mSelectionMan(NULL),
+        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL),
+        mManagers(std::map<ModelType, ModelManager *>()), mAgentMan(NULL), mOgreModelMan(NULL),
+        mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(), mSelectionMan(NULL), mLocationMan(NULL),
         mCamera(NULL), mMainLight(NULL)
     {
         Debug::log(logName() + "()").endl();
@@ -75,7 +77,7 @@ namespace Steel
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
-        mSelectionMan = new SelectionManager(this);
+        mLocationMan = new LocationModelManager(this);
 
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
@@ -84,18 +86,22 @@ namespace Steel
     {
         Debug::log(logName() + ".~Level()").endl();
 
+        mBTModelMan->clear();
+        delete mBTModelMan;
+        mBTModelMan = NULL;
+
         mPhysicsModelMan->clear();
         delete mPhysicsModelMan;
         mPhysicsModelMan = NULL;
         mTerrainMan.shutdown();
 
+        mLocationMan->clear();
+        delete mLocationMan;
+        mLocationMan = NULL;
+
         mOgreModelMan->clear();
         delete mOgreModelMan;
         mOgreModelMan = NULL;
-
-        mBTModelMan->clear();
-        delete mBTModelMan;
-        mBTModelMan = NULL;
 
         Ogre::RenderWindow *window = mEngine->renderWindow();
         if (mSceneManager != NULL)
@@ -172,9 +178,13 @@ namespace Steel
         if (!deserialize(s))
         {
             mAgentMan->deleteAllAgents();
-            mBTModelMan->clear();
-            mPhysicsModelMan->clear();
-            mOgreModelMan->clear();
+            for(ModelType mt=MT_FIRST; mt<MT_LAST; mt=(ModelType)(((unsigned long)mt)+1L))
+            {
+                ModelManager *mm=modelManager(mt);
+                if(NULL==mm)
+                    continue;
+                mm->clear();
+            }
 
             mTerrainMan.removeTerrainManagerEventListener(this);
             Debug::warning(logName() + ".load(): error deserializing saved file.");
@@ -197,7 +207,7 @@ namespace Steel
         Debug::log(logName() + ".save() into ")(savefile).endl();
         return true;
     }
-    
+
     void Level::registerManager(ModelType type, ModelManager *_manager)
     {
         if(NULL!=modelManager(type))
@@ -206,9 +216,9 @@ namespace Steel
             (" already exists ! Aborting.").endl();
             return;
         }
-        mManagers.insert({type, _manager});
+        mManagers.insert( {type, _manager});
     }
-    
+
     ModelManager *Level::modelManager(ModelType modelType)
     {
         ModelManager *mm = NULL;
@@ -246,7 +256,7 @@ namespace Steel
             }
         }
     }
-    
+
 //     void Level::getAgentFromModelIds(std::list<>)
 //     {
 //         //retrieving agents
@@ -313,7 +323,8 @@ namespace Steel
         Debug::log("processing models...").endl();
         Json::Value models;
 
-        for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1); modelType != MT_LAST;
+        for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1);
+                modelType != MT_LAST;
                 modelType = (ModelType) ((int) modelType + 1))
         {
             ModelManager *mm = modelManager(modelType);
@@ -392,7 +403,7 @@ namespace Steel
         else
         {
 
-            for (ModelType i = (ModelType) ((int) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((int) i + 1))
+            for (ModelType i = (ModelType) ((unsigned long) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((unsigned long) i + 1))
             {
                 Ogre::String type = modelTypesAsString[i];
                 Json::Value models = dict[type];
@@ -407,7 +418,6 @@ namespace Steel
                     Debug::warning("no modelManager for type ")(type).endl();
                     continue;
                 }
-
                 mm->fromJson(models);
             }
             Debug::log("models done").endl();

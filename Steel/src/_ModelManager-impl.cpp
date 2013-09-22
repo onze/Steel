@@ -10,9 +10,11 @@
 #include "OgreModel.h"
 #include "PhysicsModel.h"
 #include "BTModel.h"
+#include "LocationModel.h"
 
 template class Steel::_ModelManager<Steel::OgreModel>;
 template class Steel::_ModelManager<Steel::PhysicsModel>;
 template class Steel::_ModelManager<Steel::BTModel>;
+template class Steel::_ModelManager<Steel::LocationModel>;
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

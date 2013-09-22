@@ -6,6 +6,7 @@
 #include "Level.h"
 #include "AgentManager.h"
 #include "TagManager.h"
+#include <LocationModel.h>
 
 namespace Steel
 {
@@ -449,6 +450,30 @@ namespace Steel
             }
         }
         return tags;
+    }
+    
+    std::set<Ogre::String> SelectionManager::pathsUnion()
+    {
+        std::set<Ogre::String> paths;
+        if(NULL!=mLevel)
+        {
+            for(auto const aid:mSelection)
+            {
+                if(INVALID_ID==aid)
+                    continue;
+                
+                auto agent=mLevel->agentMan()->getAgent(aid);
+                if(NULL==agent)
+                    continue;
+                
+                LocationModel *model=agent->locationModel();
+                if(NULL==model || !model->hasPath())
+                    continue;
+                
+                paths.insert(model->path());
+            }
+        }
+        return paths;
     }
 
     void SelectionManager::addListener(Steel::SelectionManager::Listener *listener)

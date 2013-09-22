@@ -24,6 +24,7 @@ namespace Steel
     class Editor;
     class InputManager;
     class SelectionBox;
+    class DynamicLines;
 
     class EditorBrush: public Ogre::FrameListener
     {
@@ -41,7 +42,7 @@ namespace Steel
 
             enum BrushMode
             {
-                NONE = 0, TRANSLATE, ROTATE, SCALE, TERRAFORM
+                NONE = 0, TRANSLATE, ROTATE, SCALE, TERRAFORM, LINK
             };
             EditorBrush();
             EditorBrush(const EditorBrush& other);
@@ -91,19 +92,9 @@ namespace Steel
             //setters
             void setMode(BrushMode mode);
 
-            inline float intensity()
-            {
-                if (sTerraBrushVisual == NULL)
-                    return .0f;
-                return sTerraBrushVisual->getScale().y / 3.f;
-            }
+            float intensity();
 
-            inline float radius()
-            {
-                if (sTerraBrushVisual == NULL)
-                    return .0f;
-                return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
-            }
+            float radius();
             
             inline bool isDragging()
             {
@@ -120,10 +111,12 @@ namespace Steel
                 return mIsSelecting;
             }
 
-        protected:
+        private:
             /// Warns, in case some values make using the brush impossible.
             void checkTerraScaleFactorValue();
-            
+            /// Updates the SelectionManager's selection, and sets mIsSelecting.
+            Selection mousePressedSelectionUpdate(Ogre::Vector2 mPos, OIS::MouseButtonID id);
+
             //not owned
             Engine *mEngine;
             Editor *mEditor;
@@ -163,6 +156,11 @@ namespace Steel
             bool mIsSelecting;
             /// Helper for selecting many agents at once
             SelectionBox *mSelectionBox;
+            
+            /// id of the source agent in link mode
+            AgentId mFirstLinkedAgent;
+            /// Line drawn during linking (of LocationModel, etc)
+            DynamicLines *mLinkingLine;
     };
 }
 #endif // STEEL_EDITORBRUSH_H

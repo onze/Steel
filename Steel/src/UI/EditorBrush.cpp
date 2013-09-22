@@ -5,6 +5,7 @@
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
 #include <OgreEntity.h>
+#include <OgreVector2.h>
 
 #include <steeltypes.h>
 #include "UI/EditorBrush.h"
@@ -15,10 +16,14 @@
 #include <Level.h>
 #include <tools/Cylinder.h>
 #include <tools/OgreUtils.h>
+#include <tools/DynamicLines.h>
 #include <Agent.h>
 #include <SelectionManager.h>
+#include <AgentManager.h>
+#include <LocationModelManager.h>
 #include <OgreManualObject.h>
 #include <OgreMeshManager.h>
+#include "tools/DynamicLines.h"
 
 namespace Steel
 {
@@ -37,7 +42,8 @@ namespace Steel
           mIsDraggingSelection(false), mIsDraggingSelectionCancelled(false),
           mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(.0f),
           mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()),
-          mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(NULL)
+          mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(NULL),
+          mLinkingLine(NULL)
     {
     }
 
@@ -73,6 +79,7 @@ namespace Steel
 
     bool EditorBrush::operator==(const EditorBrush& other) const
     {
+        throw std::runtime_error("EditorBrush::operator==() not implemented");
         return false;
     }
 
@@ -94,97 +101,132 @@ namespace Steel
         }
     }
 
+    float EditorBrush::intensity()
+    {
+        if (sTerraBrushVisual == NULL)
+            return .0f;
+        return sTerraBrushVisual->getScale().y / 3.f;
+    }
+
+    float EditorBrush::radius()
+    {
+        if (sTerraBrushVisual == NULL)
+            return .0f;
+        return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
+    }
+
+    Selection EditorBrush::mousePressedSelectionUpdate(Ogre::Vector2 mPos, OIS::MouseButtonID id)
+    {
+        auto level = mEngine->level();
+        SelectionManager *selectionMan=level->selectionMan();
+        switch (id)
+        {
+            case OIS::MB_Left:
+            {
+                std::list<ModelId> selection;
+                auto mPos = mInputMan->mousePos();
+                mEngine->pickAgents(selection, mPos.x, mPos.y);
+
+                // click on nothing
+                if (selection.size() == 0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                    level->selectionMan()->clearSelection();
+                else if (selectionMan->hasSelection())
+                {
+                    // clicked a new agent
+                    if (selectionMan->isSelected(selection.front()))
+                    {
+                        if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                            selectionMan->removeFromSelection(selection);
+                    }
+                    else
+                        selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
+                }
+                else
+                {
+                    selectionMan->setSelectedAgents(selection);
+                    //Debug::log("EditorBrush::mousePressed(): selection position: ")(selectionMan->selectionPosition()).endl();
+                }
+
+                if (selectionMan->hasSelection())
+                {
+                    mIsDraggingSelection = true;
+                    // saved so that we know what to reset properties to
+                    //TODO: save complete serialisations
+                    mSelectionPosBeforeTransformation = selectionMan->selectionPositions();
+                    mSelectionRotBeforeTransformation = selectionMan->selectionRotations();
+                    mSelectionScaleBeforeTransformation = selectionMan->selectionScales();
+                }
+                else
+                {
+                    mIsSelecting = true;
+                    mSelectionBox->setVisible(true);
+                    Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
+                    mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize, mPos / screenSize);
+                }
+                break;
+            }
+            case OIS::MB_Right:
+                // cancel current selection dragging (translate, etc)
+                if (mIsDraggingSelection)
+                {
+                    mIsDraggingSelectionCancelled = true;
+                    selectionMan->setSelectionPositions(mSelectionPosBeforeTransformation);
+                    selectionMan->setSelectionRotations(mSelectionRotBeforeTransformation);
+                    selectionMan->setSelectionScales(mSelectionScaleBeforeTransformation);
+                }
+                break;
+            default:
+                break;
+        }
+        return selectionMan->selection();
+    }
+
     bool EditorBrush::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
         mContinuousModeActivated = false;
-        SelectionManager *selectionMan=mEngine->level()->selectionMan();
+        auto level = mEngine->level();
+//         SelectionManager *selectionMan=level->selectionMan();
         switch (mMode)
         {
             case TRANSLATE:
             case ROTATE:
             case SCALE:
-                switch (id)
-                {
-                    case OIS::MB_Left:
-                    {
-                        std::list<ModelId> selection;
-                        auto mPos = mInputMan->mousePos();
-                        mEngine->pickAgents(selection, mPos.x, mPos.y);
-                        
-                        // click on nothing
-                        if (selection.size() == 0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                            mEngine->level()->selectionMan()->clearSelection();
-                        else if (selectionMan->hasSelection())
-                        {
-                            // clicked a new agent
-                            if (selectionMan->isSelected(selection.front()))
-                            {
-                                if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
-                                    selectionMan->removeFromSelection(selection);
-                            }
-                            else
-                                selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
-                        }
-                        else
-                        {
-                            selectionMan->setSelectedAgents(selection);
-                            //Debug::log("EditorBrush::mousePressed(): selection position: ")(selectionMan->selectionPosition()).endl();
-                        }
-
-                        if (selectionMan->hasSelection())
-                        {
-                            mIsDraggingSelection = true;
-                            // saved so that we know what to reset properties to
-                            //TODO: save complete serialisations
-                            mSelectionPosBeforeTransformation = selectionMan->selectionPositions();
-                            mSelectionRotBeforeTransformation = selectionMan->selectionRotations();
-                            mSelectionScaleBeforeTransformation = selectionMan->selectionScales();
-                        }
-                        else
-                        {
-                            mIsSelecting = true;
-                            mSelectionBox->setVisible(true);
-                            Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
-                            mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize, mPos / screenSize);
-                        }
-                        break;
-                    }
-                    case OIS::MB_Right:
-                        // cancel current selection dragging (translate, etc)
-                        if (mIsDraggingSelection)
-                        {
-                            mIsDraggingSelectionCancelled = true;
-                            selectionMan->setSelectionPositions(mSelectionPosBeforeTransformation);
-                            selectionMan->setSelectionRotations(mSelectionRotBeforeTransformation);
-                            selectionMan->setSelectionScales(mSelectionScaleBeforeTransformation);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            {
+                auto mPos = mInputMan->mousePos();
+                mousePressedSelectionUpdate(mPos, id);
                 break;
+            }
             case TERRAFORM:
                 mContinuousModeActivated = true;
                 switch (id)
                 {
                     case OIS::MB_Middle:
                     {
-                        auto level = mEngine->level();
-                        if (level)
-                        {
-                            Ogre::Terrain *terrain;
-                            auto pos = level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(
-                                           sTerraBrushVisual->getPosition(), &terrain);
-                            // keep last valid value
-                            if (terrain != NULL)
-                                mSelectedTerrainHeight = pos;
-                        }
+                        Ogre::Terrain *terrain;
+                        auto pos = level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(sTerraBrushVisual->getPosition(), &terrain);
+                        // keep last valid value
+                        if (terrain != NULL)
+                            mSelectedTerrainHeight = pos;
                         break;
                     }
                     default:
                         break;
                 }
                 break;
+            case LINK:
+            {
+                AgentId aid = mEditor->agentIdUnderMouse();
+
+                Agent *agent=level->agentMan()->getAgent(aid);
+                if(NULL==agent)
+                    break;
+                if(INVALID_ID==agent->modelId(MT_LOCATION))
+                    break;
+
+                mFirstLinkedAgent = aid;
+                mContinuousModeActivated = true;
+                break;
+            }
             default:
                 break;
         }
@@ -194,7 +236,9 @@ namespace Steel
 
     bool EditorBrush::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
     {
-        SelectionManager *selectionMan=mEngine->level()->selectionMan();
+        static const Ogre::String intro="in EditorBrush::mouseReleased(): ";
+        auto level = mEngine->level();
+        SelectionManager *selectionMan=level->selectionMan();
         switch (mMode)
         {
             case TRANSLATE:
@@ -229,30 +273,62 @@ namespace Steel
                 if (mContinuousModeActivated)
                 {
                     //now might be the right time to update blendmaps
-                    auto level = mEngine->level();
-                    if (level)
+                    for (auto it = mModifiedTerrains.begin(); it != mModifiedTerrains.end(); ++it)
                     {
-                        for (auto it = mModifiedTerrains.begin(); it != mModifiedTerrains.end(); ++it)
-                        {
-                            Ogre::Terrain *terrain = *it;
-                            terrain->update(true);
-                            level->terrainManager()->updateBlendMaps(terrain);
+                        Ogre::Terrain *terrain = *it;
+                        terrain->update(true);
+                        level->terrainManager()->updateBlendMaps(terrain);
 //                             level->terrainManager()->updateHeightmap(terrain);
-                            continue;
-                            for (int index = 1; index < terrain->getLayerCount(); ++index)
-                                terrain->getLayerBlendMap(index)->dirty();
-                            for (int index = 1; index < terrain->getLayerCount(); ++index)
-                                terrain->getLayerBlendMap(index)->update();
-                            terrain->updateDerivedData(true);
-                        }
+                        continue;
+                        for (int index = 1; index < terrain->getLayerCount(); ++index)
+                            terrain->getLayerBlendMap(index)->dirty();
+                        for (int index = 1; index < terrain->getLayerCount(); ++index)
+                            terrain->getLayerBlendMap(index)->update();
+                        terrain->updateDerivedData(true);
                     }
                 }
                 break;
             }
+            case LINK:
+                if(mContinuousModeActivated)
+                {
+                    AgentId aid = mEditor->agentIdUnderMouse();
+                    if(INVALID_ID==aid)
+                        break;
+
+                    if(aid==mFirstLinkedAgent)
+                        break;
+
+                    ModelId dst = level->agentMan()->getAgent(aid)->modelId(MT_LOCATION);
+                    if(INVALID_ID==dst)
+                        break;
+
+                    ModelId src=level->agentMan()->getAgent(mFirstLinkedAgent)->modelId(MT_LOCATION);
+                    if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                    {
+                        if(level->locationMan()->unlinkLocations(src, dst))
+                            Debug::error(intro)("unlinked LocationModel ")(src)(" and ")(dst).endl();
+                        else
+                            Debug::error(intro)("could not unlink LocationModel ")(src)(" and ")(dst).endl();
+                    }
+                    else
+                    {
+                        if(level->locationMan()->linkLocations(src, dst))
+                            Debug::error(intro)("linked source LocationModel ")(src)(" to ")(dst).endl();
+                        else
+                            Debug::error(intro)("could not link source LocationModel ")(src)(" to ")(dst).endl();
+                    }
+                }
+                break;
             case NONE:
             default:
                 break;
         }
+        // clean linking mode state
+        mFirstLinkedAgent=INVALID_ID;
+        mLinkingLine->clear();
+        mLinkingLine->update();
+
         mContinuousModeActivated = false;
         // not used
         return true;
@@ -260,7 +336,8 @@ namespace Steel
 
     bool EditorBrush::mouseMoved(const OIS::MouseEvent& evt)
     {
-        SelectionManager *selectionMan=mEngine->level()->selectionMan();
+        Level *level=mEngine->level();
+        SelectionManager *selectionMan=level->selectionMan();
         Ogre::Real x = float(evt.state.X.abs);
         Ogre::Real y = float(evt.state.Y.abs);
         Ogre::Real _x = x - float(evt.state.X.rel);
@@ -313,6 +390,33 @@ namespace Steel
 
         if (evt.state.buttonDown(OIS::MB_Left))
         {
+            if(mContinuousModeActivated)
+            {
+                switch(mMode)
+                {
+                    case LINK:
+                    {
+                        if(level->agentMan()->isIdFree(mFirstLinkedAgent))
+                            break;
+                        // draw a link between source and cursor
+                        mLinkingLine->clear();
+                        Agent *agent=level->agentMan()->getAgent(mFirstLinkedAgent);
+                        Ogre::Vector2 srcPos=level->camera()->screenPosition(agent->position());
+                        // ortho view -> invert y axis
+                        srcPos.y=1.f-srcPos.y;
+                        // then rescale from [0,1] to [-1,1]
+                        srcPos=srcPos*2.f-1.f;
+                        mLinkingLine->addPoint(srcPos);
+                        Ogre::Vector2 dstPos(x/w,1.f-y/h);
+                        dstPos=dstPos*2.f-1.f;
+                        mLinkingLine->addPoint(dstPos);
+                        mLinkingLine->update();
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
             if (mIsDraggingSelection)
             {
                 if (selectionMan->hasSelection())
@@ -408,17 +512,17 @@ namespace Steel
                     } //end of switch (mMode)
                 } //end of if(selectionMan->hasSelection())
             } // end of if(mIsDraggingSelection)
-            if (mIsSelecting)
+            if(mIsSelecting)
             {
                 Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
                 mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize,
                                           mInputMan->mousePos() / screenSize);
-            }
+            }// end of if(mIsSelecting)
         } //end of if(evt.state.buttonDown(OIS::MB_Left))
         // not used
         return true;
     }
-    
+
     void EditorBrush::checkTerraScaleFactorValue()
     {
         if(Ogre::Math::Abs(mTerraScaleFactor-1.f)<0.001)
@@ -497,6 +601,7 @@ namespace Steel
 
     void EditorBrush::processCommand(std::vector<Ogre::String> command)
     {
+        static const Ogre::String intro = "EditorBrush::processCommand(): ";
         if (command[0] == "mode")
         {
             command.erase(command.begin());
@@ -509,6 +614,10 @@ namespace Steel
                 setMode(SCALE);
             else if (command[0] == "terraform")
                 setMode(TERRAFORM);
+            else if (command[0] == "link")
+                setMode(LINK);
+            else
+                Debug::warning(intro)("unknown mode ").quotes(StringUtils::join(command,".")).endl();
         }
         else if (command[0] == "terrabrush")
         {
@@ -518,7 +627,7 @@ namespace Steel
                 command.erase(command.begin());
                 if (command.size() == 0)
                 {
-                    Debug::warning("EditorBrush::processCommand(): terrabrush needs a distribution").endl();
+                    Debug::warning(intro)("terrabrush needs a distribution").endl();
                     return;
                 }
                 if (command[0] == "uniform")
@@ -568,8 +677,14 @@ namespace Steel
                 getBrush(TERRAFORM);
                 Ogre::Root::getSingletonPtr()->addFrameListener(this);
                 break;
+            case LINK:
+                mMode=LINK;
+                break;
             case NONE:
+                mMode = NONE;
+                break;
             default:
+                Debug::warning("in EditorBrush::setMode(): ")("unknown mode ").quotes(mode).endl();
                 mMode = NONE;
                 break;
         }
@@ -642,6 +757,10 @@ namespace Steel
         popMode();
         mSelectionBox = new SelectionBox("EditorBrushSelectionBox", mEngine);
         mSelectionBox->setVisible(false);
+
+        mLinkingLine = new DynamicLines(Ogre::RenderOperation::OT_LINE_LIST);
+        mLinkingLine->setUse2D(true);
+        mEngine->level()->levelRoot()->attachObject(mLinkingLine);
     }
 
     void EditorBrush::onHide()
@@ -653,8 +772,17 @@ namespace Steel
             mSelectionBox = NULL;
         }
 
+        if (NULL != mLinkingLine)
+        {
+            mLinkingLine->clear();
+            mEngine->level()->levelRoot()->detachObject(mLinkingLine);
+            delete mLinkingLine;
+            mLinkingLine = NULL;
+        }
+
         pushMode();
         setMode(NONE);
+
     }
 
     void EditorBrush::popMode()

@@ -48,6 +48,11 @@ namespace Steel
             static const char *SELECTIONS_TAG_EDIT_BOX;
             /// Name of the UI Editor element that displays a tag.
             static const char *AGENT_TAG_ITEM_NAME;
+
+            /// Name of the UI Editor element that contains tags elements.
+            static const char *SELECTION_PATH_INFO_BOX;
+            /// Name of the UI Editor element that get user input for tag elements.
+            static const char *SELECTIONS_PATH_EDIT_BOX;
         public:
             Editor();
             Editor(const Editor& other);
@@ -176,6 +181,9 @@ namespace Steel
             void refreshSelectionTagsWidget();
             void populateSelectionTagsWidget(std::list< Ogre::String > tags);
             void decorateSelectionTagWidgetItem(Rocket::Core::Element* item, const Ogre::String& tagName);
+            
+            void refreshSelectionPathWidget();
+            
             void saveMenuTabIndexSetting(ConfigFile &config) const;
 
             /// Retrieve a libRocket form element element's "value" attribute value.

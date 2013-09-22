@@ -36,6 +36,9 @@ namespace Steel
             virtual void toJson(Json::Value &object)=0;
             /// Returns the model tags, or an empty set if the given id is not valid.
             virtual std::set<Tag> modelTags(ModelId mid)=0;
+            
+            /// Clears every models.
+            virtual void clear()=0;
     };
 
 }

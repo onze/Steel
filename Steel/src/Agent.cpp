@@ -14,8 +14,10 @@
 #include "_ModelManager.h"
 #include "OgreModelManager.h"
 #include "Level.h"
-#include <tools/JsonUtils.h>
-#include <TagManager.h>
+#include "tools/JsonUtils.h"
+#include "TagManager.h"
+#include "LocationModelManager.h"
+#include "PhysicsModel.h"
 
 namespace Steel
 {
@@ -33,12 +35,11 @@ namespace Steel
 
     void Agent::cleanup()
     {
-        for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
-            mLevel->modelManager(it->first)->decRef(it->second);
-        mLevel=NULL;
-        mModelIds.clear();
+        while(mModelIds.size())
+            unlinkFromModel(mModelIds.begin()->first);
         mTags.clear();
-        mId=INVALID_ID;
+        mLevel = NULL;
+        mId = INVALID_ID;
     }
 
     Agent::Agent(const Agent &o)
@@ -75,7 +76,7 @@ namespace Steel
             for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
                 linkToModel(it->first,it->second);
         }
-        
+
         mTags=o.mTags;
         if(mIsSelected!=o.mIsSelected)
         {
@@ -110,14 +111,14 @@ namespace Steel
             Debug::warning("Agent::fromJson(): agent ")(mId)(" linked with (")(nModels)(" models, ");
             Debug::warning(nExpected)(" were expected. Json string:").endl()(value).endl();
         }
-        
+
         // tags
         mTags.clear();
         for(auto const &_tag:JsonUtils::asTagsSet(value[Agent::TAGS_ATTRIBUTES]))
             tag(_tag);
         return true;
     }
-    
+
     void Agent::tag(Tag tag)
     {
         std::map<Tag, unsigned>::iterator it=mTags.find(tag);
@@ -126,30 +127,30 @@ namespace Steel
         else
             it->second++;
     }
-    
+
     void Agent::tag(std::set<Tag> _tags)
     {
         for(auto const &_tag:_tags)
             tag(_tag);
     }
-    
+
     void Agent::untag(Tag tag)
     {
         std::map<Tag, unsigned>::iterator it=mTags.find(tag);
         if(mTags.end()==it)
             return;
-        
+
         it->second--;
         if(0==it->second)
             mTags.erase(it);
     }
-    
+
     void Agent::untag(std::set<Tag> _tags)
     {
         for(auto const &_tag:_tags)
             untag(_tag);
     }
-    
+
     std::set<Tag> Agent::tags() const
     {
         std::set<Tag> _tags;
@@ -189,30 +190,38 @@ namespace Steel
             Debug::error(intro)("Agent<->model linking aborted.").endl();
             return false;
         }
-        
+
         tag(mm->modelTags(modelId));
-        
+
         return true;
     }
 
     void Agent::unlinkFromModel(ModelType mType)
     {
         auto it = mModelIds.find(mType);
-        if (it != mModelIds.end())
+        if (it == mModelIds.end())
+            return;
+        ModelId mid=it->second;
+        // dependencies first
+        ModelManager *mm=mLevel->modelManager(mType);
+        switch (mType)
         {
-            // dependencies first
-            switch (mType)
-            {
-                case MT_OGRE:
-                    unlinkFromModel(MT_PHYSICS);
-                    break;
-                default:
-                    break;
-            }
-            untag(mLevel->modelManager(mType)->modelTags((*it).second));
-            mLevel->modelManager(mType)->decRef((*it).second);
-            mModelIds.erase(it);
+            case MT_OGRE:
+                unlinkFromModel(MT_PHYSICS);
+                unlinkFromModel(MT_LOCATION);
+                break;
+            case MT_LOCATION:
+                if(mm->at(mid)->refCount()==1)
+                    ((LocationModelManager *)mm)->unlinkLocation(mid);
+            case MT_BT:
+            case MT_PHYSICS:
+            case MT_FIRST:
+            case MT_LAST:
+                break;
         }
+        untag(mm->modelTags(mid));
+        mm->decRef(mid);
+        mModelIds.erase(it);
     }
 
     Model *Agent::model(ModelType mType) const
@@ -247,7 +256,7 @@ namespace Steel
     Json::Value Agent::toJson()
     {
         Json::Value root;
-        
+
         // model ids
         for (std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)
         {
@@ -255,7 +264,7 @@ namespace Steel
             ModelId mid = (*it).second;
             root[modelTypesAsString[mt]] = JsonUtils::toJson(mid);
         }
-        
+
         // tags
         auto _tags=tags();
         root[Agent::TAGS_ATTRIBUTES]=JsonUtils::toJson(TagManager::instance().fromTags(_tags));
@@ -284,11 +293,16 @@ namespace Steel
     {
         //Debug::log("agent ")(id())(" moves ogreModel ")(ogreModelId())(" and physicsModel ")(physicsModelId()).endl();
         auto omodel = ogreModel();
-        if (NULL != omodel)
+        if(NULL != omodel)
             omodel->move(dpos);
+
         auto pmodel = physicsModel();
-        if (NULL != pmodel)
+        if(NULL != pmodel)
             pmodel->move(dpos);
+
+        auto lmodel = locationModel();
+        if(NULL != lmodel)
+            mLevel->locationMan()->moveLocation(locationModelId(), position());
     }
 
     void Agent::rotate(const Ogre::Vector3& rot)
@@ -310,6 +324,7 @@ namespace Steel
         auto omodel = ogreModel();
         if (NULL != omodel)
             omodel->rescale(sca);
+
         auto pmodel = physicsModel();
         if (NULL != pmodel)
             pmodel->rescale(sca);
@@ -320,9 +335,14 @@ namespace Steel
         auto omodel = ogreModel();
         if (NULL != omodel)
             omodel->setPosition(pos);
+
         auto pmodel = physicsModel();
         if (NULL != pmodel)
             pmodel->setPosition(pos);
+
+        auto lmodel = locationModel();
+        if(NULL != lmodel)
+            mLevel->locationMan()->moveLocation(locationModelId(), position());
     }
 
     void Agent::setRotation(const Ogre::Quaternion &rot)
@@ -341,5 +361,37 @@ namespace Steel
         if (NULL != pmodel)
             pmodel->setScale(sca);
     }
+
+    bool Agent::setPath(Ogre::String const &name)
+    {
+        auto model=locationModel();
+        if(NULL==model)
+        {
+            auto locationMan=mLevel->locationMan();
+            if(NULL==locationMan)
+                return false;
+            ModelId mid=locationMan->newModel();
+            linkToModel(MT_LOCATION,mid);
+            model=locationModel();
+        }
+        return model->setPath(name);
+    }
+
+    void Agent::unsetPath()
+    {
+        auto model=locationModel();
+        if(NULL==model)
+            return;
+        model->unsetPath();
+    }
+
+    bool Agent::hasPath()
+    {
+        auto model=locationModel();
+        if(NULL==model)
+            return false;
+        return model->hasPath();
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

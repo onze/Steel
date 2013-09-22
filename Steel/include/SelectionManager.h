@@ -102,6 +102,8 @@ namespace Steel
             void untagSelection(Tag tag);
             /// Returns a set of all tags found in the current selection.
             std::set<Tag> tagsUnion();
+            /// Returns a set of all paths names found in the current selection.
+            std::set<Ogre::String> pathsUnion();
 
             inline Selection selection()
             {

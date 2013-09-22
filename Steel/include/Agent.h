@@ -10,14 +10,14 @@
 #include <OgreVector3.h>
 
 #include "steeltypes.h"
-#include "PhysicsModel.h"
 
 namespace Steel
 {
-
     class Level;
     class Model;
     class OgreModel;
+    class PhysicsModel;
+    class LocationModel;
 
     /**
      * Agent is the base class of Steel objects.
@@ -90,6 +90,17 @@ namespace Steel
                 return modelId(MT_PHYSICS);
             }
 
+            /// Shortcut to Agent::model(MT_LOCATION).
+            inline LocationModel *locationModel() const
+            {
+                return (LocationModel *) model(MT_LOCATION);
+            }
+            /// Shortcut to Agent::modelId(MT_LOCATION).
+            inline ModelId locationModelId() const
+            {
+                return modelId(MT_LOCATION);
+            }
+
             inline bool isSelected()
             {
                 return mIsSelected;
@@ -103,6 +114,7 @@ namespace Steel
 
             //////////////////////////////////////////////////////////////////////
             // OgreModel/PhysicsModel shortcuts
+            
             Ogre::Vector3 position() const;
             Ogre::Quaternion rotation() const;
             Ogre::Vector3 scale() const;
@@ -119,7 +131,17 @@ namespace Steel
             void setPosition(const Ogre::Vector3 &pos);
             void setRotation(const Ogre::Quaternion &rot);
             void setScale(const Ogre::Vector3 &sca);
-
+            
+            //////////////////////////////////////////////////////////////////////
+            // LocationModel shortcuts
+            
+            /// Shortcut to LocationModel()->setPath. Will attach to a new model if needed.
+            bool setPath(Ogre::String const &name);
+            void unsetPath();
+            bool hasPath();
+            
+            //////////////////////////////////////////////////////////////////////
+            // tagging shortcuts
             void tag(Tag tag);
             void tag(std::set<Tag> tags);
             void untag(Steel::Tag tag);
