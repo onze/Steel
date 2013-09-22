@@ -66,7 +66,10 @@ namespace Steel
     {
         ModelId id = allocateModel();
         if(!mModels[id].init(meshName, pos, rot, Ogre::Vector3::UNIT_SCALE, mLevelRoot, mSceneManager,mLevel->name()))
+        {
+            deallocateModel(id);
             id=INVALID_ID;
+        }
         return id;
     }
     
