@@ -30,7 +30,7 @@ include_directories(
     /media/a0/cpp/libs/ogre/Components/Terrain/include
     /media/a0/cpp/libs/ogre/Components/Paging/include
     /media/a0/cpp/libs/libRocket.github.onze/Include
-    /usr/local/include/bullet
+    /usr/include/bullet
     /media/a0/cpp/libs/btogre/include
 )
 
