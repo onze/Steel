@@ -177,7 +177,7 @@ namespace Steel
             terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | flags);
         }
 
-        updateHeightmap(ogreTerrain,terrain);
+        updateHeightmap(ogreTerrain, terrain);
 
         //add the body to the dynamics world
         mWorld->addRigidBody(terrain->mBody);
@@ -199,10 +199,11 @@ namespace Steel
 
     void TerrainPhysicsManager::updateHeightmap(Ogre::Terrain* oterrain)
     {
-        TerrainPhysics *pterrain=getTerrainFor(oterrain);
+        TerrainPhysics *pterrain = getTerrainFor(oterrain);
         if(NULL!=pterrain)
-            updateHeightmap(oterrain,pterrain);
+            updateHeightmap(oterrain, pterrain);
     }
+    
     void TerrainPhysicsManager::updateHeightmap(Ogre::Terrain *oterrain,TerrainPhysics *pterrain)
     {
         // We need to mirror the ogre-height-data along the z axis
@@ -246,12 +247,20 @@ namespace Steel
         }
 
         TerrainPhysics *terrain=(*it).second;
-        if(NULL!=terrain->mHeightfieldData)
+        if(NULL != terrain->mBody)
         {
-            delete terrain->mHeightfieldData;
-            terrain->mHeightfieldData=NULL;
-            mTerrains.erase(it);
+            mWorld->removeRigidBody(terrain->mBody);
+            
+            if(NULL != terrain->mBody->getMotionState())
+                delete terrain->mBody->getMotionState();
+            
+            if(NULL != terrain->mHeightfieldData)
+            
+            delete terrain->mBody;
         }
+        
+        delete terrain;
+        mTerrains.erase(it);
         return true;
     }
 

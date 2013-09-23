@@ -412,8 +412,11 @@ namespace Steel
 
             mWorld->removeRigidBody(mBody);
             delete mBody;
+            
+            if(NULL != mBody->getMotionState())
+                delete mBody->getMotionState();
+            
             mBody = NULL;
-
             mWorld = NULL;
         }
         mEmitOnTag.clear();
