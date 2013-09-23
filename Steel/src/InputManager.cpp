@@ -45,6 +45,7 @@ namespace Steel
 
     InputManager::InputManager() :
         mEngine(NULL), mUI(NULL),mOISInputManager(NULL),mIsInputGrabbed(false),mIsGrabExclusive(false),
+        mDelayedInputReleaseRequested(false), mDelayedRequestIsExclusive(false), 
         mMouse(NULL),mKeyboard(NULL), mKeysPressed(std::list<OIS::KeyCode>()), mHasMouseMoved(false),
         mMouseMove(Ogre::Vector2::ZERO),mMousePos(Ogre::Vector2(-1.f,-1.f)),mMouseStateStack(std::list<Ogre::Vector2>())
     {
