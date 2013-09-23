@@ -563,6 +563,7 @@ namespace Steel
                 mTerrainGroup->removeTerrain(x, y);
             mTerrainGroup->defineTerrain(x, y, idata);
             mTerrainsImported = true;
+            delete idata;
         }
     }
 
