@@ -265,7 +265,9 @@ namespace Steel
             std::fill(img_data, img_data + resolution, 1);
         }
 
-        float *heights = new float[resolution];
+        //float *heights = new float[resolution];
+        // created here and given to ogre. yerk
+        float *heights = OGRE_ALLOC_T(float, resolution, Ogre::MEMCATEGORY_GEOMETRY);
         for (int i = 0; i < resolution; ++i)
             heights[i] = static_cast<float>(img_data[i]);
 
@@ -553,6 +555,9 @@ namespace Steel
         {
             Ogre::Terrain::ImportData *idata = new Ogre::Terrain::ImportData();
             idata->inputFloat = loadTerrainHeightmapFrom(terrainSlotData.heightmapPath, terrainSlotData.size);
+            // hence the OGRE_ALLOC_T allocation
+            idata->deleteInputData = true;
+            
             idata->inputBias = 0.f;
             idata->terrainSize = terrainSlotData.size;
             idata->worldSize = terrainSlotData.worldSize;
@@ -563,6 +568,7 @@ namespace Steel
                 mTerrainGroup->removeTerrain(x, y);
             mTerrainGroup->defineTerrain(x, y, idata);
             mTerrainsImported = true;
+            
             delete idata;
         }
     }

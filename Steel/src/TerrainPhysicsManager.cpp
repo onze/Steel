@@ -41,6 +41,7 @@ namespace Steel
 
     TerrainPhysicsManager::TerrainPhysicsManager(const TerrainPhysicsManager& o)
     {
+        throw std::runtime_error("invalid codepath");
     }
 
     TerrainPhysicsManager::~TerrainPhysicsManager()
@@ -253,8 +254,6 @@ namespace Steel
             
             if(NULL != terrain->mBody->getMotionState())
                 delete terrain->mBody->getMotionState();
-            
-            if(NULL != terrain->mHeightfieldData)
             
             delete terrain->mBody;
         }

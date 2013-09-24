@@ -66,7 +66,10 @@ namespace Steel
     {
         // TODO: OPT: use an update list, updated upon model init/cleanup ?
         for(auto &model:mModels)
-            model.update(timestep, this);
+        {
+            if(model.refCount()>0)
+                model.update(timestep, this);
+        }
     }
 }
 
