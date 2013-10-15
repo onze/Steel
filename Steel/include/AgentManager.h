@@ -28,7 +28,7 @@ namespace Steel
             /// Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
             AgentId newAgent();
 
-            /// Returns a pointer to the agent whose id's given, or NULL if there's no such agent.
+            /// Returns a pointer to the agent whose id's given, or nullptr if there's no such agent.
             Agent *getAgent(AgentId id);
 
             void deleteAgent(AgentId id);

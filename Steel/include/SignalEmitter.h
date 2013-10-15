@@ -14,7 +14,7 @@ namespace Steel
             inline void emit(const Signal signal, bool anonymous = false)
             {
                 Debug::log("SignalEmitter::emit(")(signal)("/").quotes(SignalManager::instance().fromSignal(signal))(")").endl();
-                SignalManager::instance().emit(signal, anonymous ? NULL : this);
+                SignalManager::instance().emit(signal, anonymous ? nullptr : this);
             }
 
             inline void emit(const Ogre::String& signal, bool anonymous = false)

@@ -36,7 +36,7 @@ namespace Steel
             {
                 public:
                     TerrainPhysics()
-                        : mTerrainShape(NULL), mMotionState(NULL), mBody(NULL), mHeightfieldData(NULL)
+                        : mTerrainShape(nullptr), mMotionState(nullptr), mBody(nullptr), mHeightfieldData(nullptr)
                     {
                     }
                     btHeightfieldTerrainShape *mTerrainShape;

@@ -29,6 +29,13 @@ namespace Steel
             Level();
             Level(Level &level);
             Level &operator=(const Level &level);
+            
+            static const char *BACKGROUND_COLOR_ATTRIBUTE;
+            static const char *NAME_ATTRIBUTE;
+            static const char *CAMERA_ATTRIBUTE;
+            static const char *TERRAIN_ATTRIBUTE;
+            static const char *AGENTS_ATTRIBUTE;
+            static const char *MODELS_ATTRIBUTE;
 
         public:
             Level(Engine *engine, File path, Ogre::String name);

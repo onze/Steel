@@ -15,7 +15,7 @@ extern ContactDestroyedCallback gContactDestroyedCallback;
 namespace Steel
 {
     PhysicsModelManager::PhysicsModelManager(Level * level,btDynamicsWorld* world):_ModelManager<PhysicsModel>(level),
-        mLevel(level), mWorld(NULL)
+        mLevel(level), mWorld(nullptr)
     {
         mWorld=world;
 
@@ -25,8 +25,8 @@ namespace Steel
 
     PhysicsModelManager::~PhysicsModelManager()
     {
-        mWorld=NULL;
-        mLevel=NULL;
+        mWorld=nullptr;
+        mLevel=nullptr;
     }
 
     ModelId PhysicsModelManager::newModel()

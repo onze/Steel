@@ -29,7 +29,7 @@ namespace Steel
             /// Returns the token at the given index, in depth-first order.
             BTShapeToken tokenAt(BTStateIndex index);
 
-            /// Returns the BTNode subclass at the given index. Returns NULL if index is invalid.
+            /// Returns the BTNode subclass at the given index. Returns nullptr if index is invalid.
             BTNode* stateAt(BTStateIndex index);
             void *rootState()
             {

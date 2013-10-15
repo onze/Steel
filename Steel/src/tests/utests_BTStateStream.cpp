@@ -20,7 +20,7 @@ namespace Steel
         BTShapeManager shapeMan;
         Ogre::String streamId="utests/shapes/A - sequence";
         File rootFile("/media/a0/cpp/1210/usmb/data/raw_resources/BT/utests/shapes/A - sequence");
-        BTShapeStream *shapeStream=NULL;
+        BTShapeStream *shapeStream=nullptr;
         if(!rootFile.exists())
         {
             Debug::warning(intro)(rootFile)(" not found. ")(abortMsg).endl();
@@ -74,8 +74,6 @@ namespace Steel
         assert(fdr->end()==3);
         assert(BTFinderToken==fdr->tokenType());
         // specifics
-        assert("B"==fdr->agentSpec().tag());
-        assert(BTFinder::LM_STATIC==fdr->localizationMode());
 
         // D
         nav=(BTNavigator *)stateStream.stateAt(3);
@@ -95,8 +93,6 @@ namespace Steel
         assert(fdr->begin()==5);
         assert(fdr->end()==6);
         assert(BTFinderToken==fdr->tokenType());
-        assert("A"==fdr->agentSpec().tag());
-//         assert(BTFinder::LM_DYNAMIC==fdr->localizationMode());
 
         // G
         nav=(BTNavigator *)stateStream.stateAt(6);

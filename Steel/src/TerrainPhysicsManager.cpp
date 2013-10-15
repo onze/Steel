@@ -15,9 +15,9 @@ namespace Steel
 {
     TerrainPhysicsManager::TerrainPhysicsManager(TerrainManager *terrainMan):
         TerrainManagerEventListener(),Ogre::FrameListener(),
-        mTerrainMan(NULL),mTerrains(std::map<Ogre::Terrain *,TerrainPhysics *>()),
-        mWorld(NULL),mSolver(NULL),mDispatcher(NULL),mCollisionConfig(NULL),mBroadphase(NULL),
-        mDebugDrawer(NULL)
+        mTerrainMan(nullptr),mTerrains(std::map<Ogre::Terrain *,TerrainPhysics *>()),
+        mWorld(nullptr),mSolver(nullptr),mDispatcher(nullptr),mCollisionConfig(nullptr),mBroadphase(nullptr),
+        mDebugDrawer(nullptr)
     {
         mTerrainMan=terrainMan;
         // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=16731#p16731
@@ -46,16 +46,16 @@ namespace Steel
 
     TerrainPhysicsManager::~TerrainPhysicsManager()
     {
-        if(NULL!=mWorld)
+        if(nullptr!=mWorld)
         {
             if(getDebugDraw())
                 setDebugDraw(false);
 
-            if(NULL!=mDebugDrawer)
+            if(nullptr!=mDebugDrawer)
             {
-                mWorld->setDebugDrawer(NULL);
+                mWorld->setDebugDrawer(nullptr);
                 delete mDebugDrawer;
-                mDebugDrawer=NULL;
+                mDebugDrawer=nullptr;
             }
 
             while(mTerrains.size()>0)
@@ -78,13 +78,13 @@ namespace Steel
             delete mDispatcher;
             delete mBroadphase;
             delete mCollisionConfig;
-            mWorld=NULL;
-            mSolver=NULL;
-            mDispatcher=NULL;
-            mBroadphase=NULL;
-            mCollisionConfig=NULL;
+            mWorld=nullptr;
+            mSolver=nullptr;
+            mDispatcher=nullptr;
+            mBroadphase=nullptr;
+            mCollisionConfig=nullptr;
         }
-        mTerrainMan=NULL;
+        mTerrainMan=nullptr;
     }
 
     TerrainPhysicsManager& TerrainPhysicsManager::operator=(const TerrainPhysicsManager& o)
@@ -127,7 +127,7 @@ namespace Steel
     {
         auto it=mTerrains.find(ogreTerrain);
         if(it==mTerrains.end())
-            return NULL;
+            return nullptr;
         else
             return (*it).second;
     }
@@ -135,7 +135,7 @@ namespace Steel
     bool TerrainPhysicsManager::createTerrainFor(Ogre::Terrain *ogreTerrain)
     {
         TerrainPhysics *terrain=getTerrainFor(ogreTerrain);
-        if(NULL!=terrain)
+        if(nullptr!=terrain)
         {
             Debug::error("TerrainPhysicsManager::createTerrain(): TerrainPhysics already exists ");
             Debug::error("at position ")(ogreTerrain->getPosition())(". Aborted.").endl();
@@ -201,7 +201,7 @@ namespace Steel
     void TerrainPhysicsManager::updateHeightmap(Ogre::Terrain* oterrain)
     {
         TerrainPhysics *pterrain = getTerrainFor(oterrain);
-        if(NULL!=pterrain)
+        if(nullptr!=pterrain)
             updateHeightmap(oterrain, pterrain);
     }
     
@@ -248,11 +248,11 @@ namespace Steel
         }
 
         TerrainPhysics *terrain=(*it).second;
-        if(NULL != terrain->mBody)
+        if(nullptr != terrain->mBody)
         {
             mWorld->removeRigidBody(terrain->mBody);
             
-            if(NULL != terrain->mBody->getMotionState())
+            if(nullptr != terrain->mBody->getMotionState())
                 delete terrain->mBody->getMotionState();
             
             delete terrain->mBody;
@@ -275,13 +275,13 @@ namespace Steel
 
     void TerrainPhysicsManager::update(float timestep)
     {
-        if(NULL!=mWorld)
+        if(nullptr!=mWorld)
             mWorld->stepSimulation(timestep, 10);
     }
 
     bool TerrainPhysicsManager::frameRenderingQueued(const Ogre::FrameEvent &evt)
     {
-        if(NULL!=mDebugDrawer)
+        if(nullptr!=mDebugDrawer)
         {
             mDebugDrawer->step();
             if(!mDebugDrawer->getDebugMode())

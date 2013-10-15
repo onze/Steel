@@ -35,17 +35,25 @@
 
 namespace Steel
 {
+    const char *Level::BACKGROUND_COLOR_ATTRIBUTE = "backgroundColor";
+    const char *Level::NAME_ATTRIBUTE = "name";
+    const char *Level::CAMERA_ATTRIBUTE = "camera";
+    const char *Level::TERRAIN_ATTRIBUTE = "terrain";
+    const char *Level::AGENTS_ATTRIBUTE = "agents";
+    const char *Level::MODELS_ATTRIBUTE = "models";
 
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
-        mEngine(engine), mViewport(NULL), mPath(path.subfile(name)), mName(name),
-        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(NULL), mLevelRoot(NULL),
-        mManagers(std::map<ModelType, ModelManager *>()), mAgentMan(NULL), mOgreModelMan(NULL),
-        mPhysicsModelMan(NULL), mBTModelMan(NULL), mTerrainMan(), mSelectionMan(NULL), mLocationMan(NULL),
-        mCamera(NULL), mMainLight(NULL)
+        mEngine(engine), mViewport(nullptr), mPath(path.subfile(name)), mName(name),
+        mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(nullptr), mLevelRoot(nullptr),
+        mManagers(std::map<ModelType, ModelManager *>()), mAgentMan(nullptr), mOgreModelMan(nullptr),
+        mPhysicsModelMan(nullptr), mBTModelMan(nullptr), mTerrainMan(), mSelectionMan(nullptr), mLocationMan(nullptr),
+        mCamera(nullptr), mMainLight(nullptr)
     {
         Debug::log(logName() + "()").endl();
-        if (!mPath.exists())
+
+        if(!mPath.exists())
             mPath.mkdir();
+
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         resGroupMan->addResourceLocation(mPath.fullPath(), "FileSystem", mName, true);
         resGroupMan->initialiseResourceGroup(name);
@@ -60,8 +68,10 @@ namespace Steel
         // reuse viewport if possible, entire window
         Ogre::RenderWindow *window = mEngine->renderWindow();
         int zOrder = -1;
-        while (window->hasViewportWithZOrder(++zOrder))
+
+        while(window->hasViewportWithZOrder(++zOrder))
             ;
+
         mViewport = window->addViewport(mCamera->cam(), zOrder);
         mViewport->setBackgroundColour(mBackgroundColor);
 
@@ -73,7 +83,7 @@ namespace Steel
         mTerrainMan.init(mName + ".terrainManager", path.subfile(mName), mSceneManager);
 
         mSelectionMan = new SelectionManager(this);
-        mAgentMan=new AgentManager(this);
+        mAgentMan = new AgentManager(this);
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
@@ -88,67 +98,73 @@ namespace Steel
 
         mBTModelMan->clear();
         delete mBTModelMan;
-        mBTModelMan = NULL;
+        mBTModelMan = nullptr;
 
         mPhysicsModelMan->clear();
         delete mPhysicsModelMan;
-        mPhysicsModelMan = NULL;
+        mPhysicsModelMan = nullptr;
         mTerrainMan.shutdown();
 
         mLocationMan->clear();
         delete mLocationMan;
-        mLocationMan = NULL;
+        mLocationMan = nullptr;
 
         mOgreModelMan->clear();
         delete mOgreModelMan;
-        mOgreModelMan = NULL;
+        mOgreModelMan = nullptr;
 
         Ogre::RenderWindow *window = mEngine->renderWindow();
-        if (mSceneManager != NULL)
+
+        if(mSceneManager != nullptr)
         {
             delete mCamera;
             mSceneManager->clearScene();
             mSceneManager->destroyAllCameras();
             window->removeViewport(mViewport->getZOrder());
             Ogre::Root::getSingletonPtr()->destroySceneManager(mSceneManager);
-            mViewport = NULL;
-            mCamera = NULL;
-            mSceneManager = NULL;
+            mViewport = nullptr;
+            mCamera = nullptr;
+            mSceneManager = nullptr;
         }
+
         Ogre::ResourceGroupManager::getSingletonPtr()->destroyResourceGroup(mName);
-        mViewport = NULL;
+        mViewport = nullptr;
     }
 
     bool Level::linkAgentToModel(AgentId aid, ModelType mType, ModelId mid)
     {
         Ogre::String intro = "Level::linkAgentToModel(): ";
-        if (aid == INVALID_ID)
+
+        if(aid == INVALID_ID)
         {
             Debug::error(intro)("aid ")(aid)(" does not exist.").endl();
             return false;
         }
+
         Agent *agent = mAgentMan->getAgent(aid);
 
         ModelManager *mm = modelManager(mType);
-        if (mm == NULL)
+
+        if(mm == nullptr)
         {
             Debug::error(intro)("mType ")((long int) mType)(" aka \"");
             Debug::error(modelTypesAsString[mType])("\" does not exist.").endl();
             return false;
         }
 
-        if (mid == INVALID_ID)
+        if(mid == INVALID_ID)
         {
             Debug::error(intro)("invalid model id.").endl();
             return false;
         }
 
-        if (!agent->linkToModel(mType, mid))
+        if(!agent->linkToModel(mType, mid))
         {
             Debug::error(intro)("linkage agent ")(aid)("<->model<")(modelTypesAsString[mType])(">");
             Debug::error(mid)(" failed.").endl();
             return false;
         }
+
         return true;
     }
 
@@ -167,22 +183,28 @@ namespace Steel
         Debug::log(logName() + ".load()").indent().endl();
 
         File savefile = getSavefile();
-        if (!savefile.exists())
+
+        if(!savefile.exists())
         {
             Debug::warning(logName() + ".load(): file does not exists: ");
             Debug::warning(savefile)(" -> Loading cancelled.").endl();
             return false;
         }
+
         Ogre::String s = savefile.read();
         mTerrainMan.addTerrainManagerEventListener(this);
-        if (!deserialize(s))
+
+        if(!deserialize(s))
         {
             mAgentMan->deleteAllAgents();
-            for(ModelType mt=MT_FIRST; mt<MT_LAST; mt=(ModelType)(((unsigned long)mt)+1L))
+
+            for(ModelType mt = MT_FIRST; mt < MT_LAST; mt = (ModelType)(((unsigned long)mt) + 1L))
             {
-                ModelManager *mm=modelManager(mt);
-                if(NULL==mm)
+                ModelManager *mm = modelManager(mt);
+
+                if(nullptr == mm)
                     continue;
+
                 mm->clear();
             }
 
@@ -190,6 +212,7 @@ namespace Steel
             Debug::warning(logName() + ".load(): error deserializing saved file.");
             return false;
         }
+
         Debug::log(logName() + ".load(): loaded ")(savefile)(" successfully.").unIndent().endl();
         return true;
     }
@@ -210,41 +233,48 @@ namespace Steel
 
     void Level::registerManager(ModelType type, ModelManager *_manager)
     {
-        if(NULL!=modelManager(type))
+        if(nullptr != modelManager(type))
         {
             Debug::error("in Level::registerManager(): a manager for type ").quotes(modelTypesAsString[type])
             (" already exists ! Aborting.").endl();
             return;
         }
+
         mManagers.insert( {type, _manager});
     }
 
     ModelManager *Level::modelManager(ModelType modelType)
     {
-        ModelManager *mm = NULL;
-        auto it=mManagers.find(modelType);
+        ModelManager *mm = nullptr;
+        auto it = mManagers.find(modelType);
+
         if(mManagers.end() != it)
         {
-            mm=it->second;
+            mm = it->second;
         }
+
         return mm;
     }
 
     void Level::onTerrainEvent(TerrainManager::LoadingState state)
     {
-        if (state == mTerrainMan.READY)
+        if(state == mTerrainMan.READY)
             mTerrainMan.removeTerrainManagerEventListener(this);
     }
 
     void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, Selection &selection)
     {
-        static const Ogre::String intro="in Level::getAgentsIdsFromSceneNodes(): ";
-        for (std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
+        static const Ogre::String intro = "in Level::getAgentsIdsFromSceneNodes(): ";
+
+        for(std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
         {
             auto any = (*it)->getUserObjectBindings().getUserAny();
-            if (any.isEmpty())
+
+            if(any.isEmpty())
                 continue;
+
             AgentId aid = any.get<AgentId>();
+
             if(mAgentMan->isIdFree(aid))
             {
                 Debug::warning(intro)("found sceneNode with invalid agentId ")(aid)(". Deleting it.").endl();
@@ -281,15 +311,17 @@ namespace Steel
     void Level::processCommand(std::vector<Ogre::String> command)
     {
         Ogre::String intro = "Level::processCommand(" + StringUtils::join(command, ".") + ")";
-        if (command.size() == 0)
+
+        if(command.size() == 0)
             return;
-        if (command[0] == "load")
+
+        if(command[0] == "load")
             load();
-        else if (command[0] == "save")
+        else if(command[0] == "save")
             save();
-        else if (command.size() > 1 && command[0] == "PhysicsTerrainManager" && command[1] == "switch_debug_draw")
+        else if(command.size() > 1 && command[0] == "PhysicsTerrainManager" && command[1] == "switch_debug_draw")
             mTerrainMan.terrainPhysicsMan()->setDebugDraw(!mTerrainMan.terrainPhysicsMan()->getDebugDraw());
-        else if (command[0] == "delete")
+        else if(command[0] == "delete")
             Debug::error(intro)("to be implemented: level deletion").endl();
         else
             Debug::log("Level::processLevelCommand(): unknown command: ")(command).endl();
@@ -299,43 +331,47 @@ namespace Steel
     {
         Debug::log(logName() + ".serialise()").endl().indent();
         Json::Value root;
-        root["name"] = mName;
+        root[Level::NAME_ATTRIBUTE] = mName;
 
-        root["backgroundColor"] = JsonUtils::toJson(mBackgroundColor);
+        root[Level::BACKGROUND_COLOR_ATTRIBUTE] = JsonUtils::toJson(mBackgroundColor);
 
-        root["camera"] = mCamera->toJson();
-        root["terrain"] = mTerrainMan.toJson();
+        root[Level::CAMERA_ATTRIBUTE] = mCamera->toJson();
+        root[Level::TERRAIN_ATTRIBUTE] = mTerrainMan.toJson();
 
         // serialise agents
         Debug::log("processing agents...").endl().indent();
         Json::Value agents;
-        for (std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
+
+        for(std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
         {
             AgentId aid = (*it_agents).first;
             Agent *agent = (*it_agents).second;
             agents[Ogre::StringConverter::toString(aid)] = agent->toJson();
         }
 
-        root["agents"] = agents;
+        root[Level::AGENTS_ATTRIBUTE] = agents;
         Debug::log("all agents done.").unIndent().endl();
 
         // serialise models
         Debug::log("processing models...").endl();
         Json::Value models;
 
-        for (ModelType modelType = (ModelType) ((int) MT_FIRST + 1);
+        for(ModelType modelType = (ModelType)((int) MT_FIRST + 1);
                 modelType != MT_LAST;
-                modelType = (ModelType) ((int) modelType + 1))
+                modelType = (ModelType)((int) modelType + 1))
         {
             ModelManager *mm = modelManager(modelType);
-            if (mm == NULL)
+
+            if(mm == nullptr)
             {
                 Debug::warning(logName() + ".serialize(): no modelManager of type ")(modelTypesAsString[modelType]).endl();
                 continue;
             }
+
             mm->toJson(models[modelTypesAsString[modelType]]);
         }
-        root["models"] = models;
+
+        root[Level::MODELS_ATTRIBUTE] = models;
         Debug::log("all models done.").unIndent().endl();
 
         Debug::log("serialization done").unIndent().endl();
@@ -350,99 +386,116 @@ namespace Steel
         Json::Reader reader;
         Json::Value root;
         bool parsingOk = reader.parse(s, root, false);
-        if (!parsingOk)
+
+        if(!parsingOk)
         {
             Debug::error("could not parse this:").endl();
             Debug::error(s).endl();
             Debug::error(reader.getFormattedErrorMessages()).endl();
             return false;
         }
+
         Json::Value value;
 
         // get level info
-        value = root["name"];
+        value = root[Level::NAME_ATTRIBUTE];
+
         if(value.isNull())
         {
             Debug::error("level name is null. Aborting.").endl();
             return false;
         }
-        if(mName!=value.asString())
+
+        if(mName != value.asString())
         {
             Debug::error("level name ").quotes(mName)(" does not match loaded data's ").quotes(value.asString())(" . Aborting.").endl();
             return false;
         }
 
-        value = root["backgroundColor"];
-        if (value.isNull())
+        value = root[Level::BACKGROUND_COLOR_ATTRIBUTE];
+
+        if(value.isNull())
             Debug::warning(logName() + ": key \"background\" is null. Using default.").endl();
         else
             mBackgroundColor = Ogre::StringConverter::parseColourValue(value.asString(), Ogre::ColourValue::White);
-        if (Ogre::ColourValue::White == mBackgroundColor)
+
+        if(Ogre::ColourValue::White == mBackgroundColor)
             Debug::warning(logName() + ": could no parse key \"background\". Using default.").endl();
+
         mBackgroundColor = Ogre::ColourValue::Black;
 
         //camera
-        if (!mCamera->fromJson(root["camera"]))
+        if(!mCamera->fromJson(root[Level::CAMERA_ATTRIBUTE]))
         {
             Debug::error(logName())(": could not deserialize camera.").endl();
             return false;
         }
 
-        if (!mTerrainMan.fromJson(root["terrain"]))
+        if(!mTerrainMan.fromJson(root[Level::TERRAIN_ATTRIBUTE]]))
         {
             Debug::error(logName())(": could not deserialize terrain.").endl();
             return false;
         }
 
         Debug::log("instanciate ALL the models ! \\o/").endl();
-        Json::Value dict = root["models"];
-        if (dict.isNull())
+        Json::Value dict = root[Level::MODELS_ATTRIBUTE];
+
+        if(dict.isNull())
         {
             Debug::warning("no models, really ?").endl();
         }
         else
         {
-            for (ModelType i = (ModelType) ((unsigned long) MT_FIRST + 1); i != MT_LAST; i = (ModelType) ((unsigned long) i + 1))
+            for(ModelType i = (ModelType)((unsigned long) MT_FIRST + 1); i != MT_LAST; i = (ModelType)((unsigned long) i + 1))
             {
                 Ogre::String type = modelTypesAsString[i];
                 Json::Value models = dict[type];
-                if (models.isNull())
+
+                if(models.isNull())
                 {
                     Debug::log("no models for type ")(type).endl();
                     continue;
                 }
+
                 ModelManager *mm = modelManager(i);
-                if (mm == NULL)
+
+                if(mm == nullptr)
                 {
                     Debug::warning("no modelManager for type ")(type).endl();
                     continue;
                 }
+
                 mm->fromJson(models);
             }
+
             Debug::log("models done").endl();
         }
 
         Debug::log("now instanciate ALL the agents ! \\o/").endl();
-        dict = root["agents"];
+        dict = root[Level::AGENTS_ATTRIBUTE];
 
-        for (Json::ValueIterator it = dict.begin(); it != dict.end(); ++it)
+        for(Json::ValueIterator it = dict.begin(); it != dict.end(); ++it)
         {
-            AgentId aid=Ogre::StringConverter::parseUnsignedLong(it.key().asString(),INVALID_ID);
-            assert(aid!=INVALID_ID);
+            AgentId aid = Ogre::StringConverter::parseUnsignedLong(it.key().asString(), INVALID_ID);
+            assert(aid != INVALID_ID);
+
             if(!mAgentMan->isIdFree(aid))
             {
                 Debug::error("AgentId ")(aid)(" could not be used: id is not free.").endl();
                 return false;
             }
+
             Agent *agent = mAgentMan->newAgent(aid);
-            assert(NULL!=agent);
+            assert(nullptr != agent);
             agent->fromJson(*it);
-            if (agent->modelsIds().size() == 0)
+
+            if(agent->modelsIds().size() == 0)
             {
                 Debug::warning("deleting agent ")(aid)(" with 0 models.").endl();
                 mAgentMan->deleteAgent(aid);
             }
         }
+
         Debug::log("agents done").endl();
         Debug::log(logName() + ".deserialize(): done").unIndent().endl();
         return true;

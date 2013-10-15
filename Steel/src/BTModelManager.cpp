@@ -69,14 +69,14 @@ namespace Steel
         Ogre::String intro="in BTModelManager::buildFromFile("+rootFile.fullPath()+"): ";
 
         // get the stream
-        BTShapeStream *shapeStream=NULL;
+        BTShapeStream *shapeStream=nullptr;
         if(!mBTShapeMan.buildShapeStream(rootFile.fileName(), rootFile, shapeStream))
         {
             Debug::error(intro)("could not generate a BT shape root node ")(rootFile);
             Debug::error(", see above for details. Aborting.").endl();
             return false;
         }
-        assert(NULL!=shapeStream);
+        assert(nullptr!=shapeStream);
 
         // make it build the state stream
         id = allocateModel(id);

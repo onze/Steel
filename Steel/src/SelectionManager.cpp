@@ -41,7 +41,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->setSelected(false);
         }
@@ -66,7 +66,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->rotate(rotation);
         }
@@ -88,7 +88,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             pos.push_back(agent->position());
         }
@@ -104,7 +104,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             rots.push_back(agent->rotation());
         }
@@ -120,7 +120,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             scales.push_back(agent->scale());
         }
@@ -134,7 +134,7 @@ namespace Steel
 
         AgentId aid = mSelection.front();
         Agent *agent = mLevel->agentMan()->getAgent(aid);
-        if (agent == NULL)
+        if (agent == nullptr)
         {
             Debug::error("SelectionManager::selectionOrientationFromCenter(): selection's first item (agent ")(aid)(
                 ") is not valid.").endl();
@@ -154,7 +154,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             rots.push_back(mean.getRotationTo(agent->position(), Ogre::Vector3::UNIT_Z));
         }
@@ -165,12 +165,12 @@ namespace Steel
     {
         if (replacePrevious)
             clearSelection(true);
-        Agent *agent = NULL;
+        Agent *agent = nullptr;
         //process actual selections
         for (Selection::iterator it = selection.begin(); it != selection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (NULL == agent)
+            if (nullptr == agent)
                 continue;
             mSelection.push_back(agent->id());
             agent->setSelected(true);
@@ -185,7 +185,7 @@ namespace Steel
             clearSelection(true);
         
         Agent *agent = mLevel->agentMan()->getAgent(aid);
-        if (NULL == agent)
+        if (nullptr == agent)
         {
             dispatchSelectionChangedEvent();
             return;
@@ -213,7 +213,7 @@ namespace Steel
                 mSelection.erase(it);
 
                 auto agent = mLevel->agentMan()->getAgent(aid);
-                if (NULL == agent)
+                if (nullptr == agent)
                     continue;
                 agent->setSelected(false);
             }
@@ -235,7 +235,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->move(diff);
         }
@@ -251,7 +251,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->setPosition(*(it_pos++));
         }
@@ -265,7 +265,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (NULL == agent)
+            if (nullptr == agent)
                 continue;
             agent->move(dpos);
         }
@@ -281,7 +281,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->move(*(it_pos++));
         }
@@ -296,7 +296,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->move((agent->position() - center).normalisedCopy() * dpos);
         }
@@ -312,7 +312,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->setRotation(*(it_rot++));
         }
@@ -329,7 +329,7 @@ namespace Steel
         if (mSelection.size() == 1)
         {
             agent = mLevel->agentMan()->getAgent(mSelection.front());
-            if (agent == NULL)
+            if (agent == nullptr)
                 return;
             agent->rotate(rotation);
         }
@@ -338,7 +338,7 @@ namespace Steel
             for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
             {
                 agent = mLevel->agentMan()->getAgent(*it);
-                if (agent == NULL)
+                if (agent == nullptr)
                     continue;;
 
                 auto pos = agent->position();
@@ -361,7 +361,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->rescale(scale);
         }
@@ -378,7 +378,7 @@ namespace Steel
         for (Selection::iterator it = mSelection.begin(); it != mSelection.end(); ++it)
         {
             agent = mLevel->agentMan()->getAgent(*it);
-            if (agent == NULL)
+            if (agent == nullptr)
                 continue;
             agent->setScale(*(it_sca++));
         }
@@ -414,7 +414,7 @@ namespace Steel
         for(AgentId const &aid:mSelection)
         {
             Agent *agent=mLevel->agentMan()->getAgent(aid);
-            if(NULL==agent)
+            if(nullptr==agent)
                 continue;
             agent->tag(tag);
         }
@@ -425,7 +425,7 @@ namespace Steel
         for(AgentId const &aid:mSelection)
         {
             Agent *agent=mLevel->agentMan()->getAgent(aid);
-            if(NULL==agent)
+            if(nullptr==agent)
                 continue;
             agent->untag(tag);
         }
@@ -434,7 +434,7 @@ namespace Steel
     std::set<Tag> SelectionManager::tagsUnion()
     {
         std::set<Tag> tags;
-        if(NULL!=mLevel)
+        if(nullptr!=mLevel)
         {
             for(auto const aid:mSelection)
             {
@@ -442,7 +442,7 @@ namespace Steel
                     continue;
                 
                 auto agent=mLevel->agentMan()->getAgent(aid);
-                if(NULL==agent)
+                if(nullptr==agent)
                     continue;
                 
                 auto agentTags=agent->tags();
@@ -455,7 +455,7 @@ namespace Steel
     std::set<Ogre::String> SelectionManager::pathsUnion()
     {
         std::set<Ogre::String> paths;
-        if(NULL!=mLevel)
+        if(nullptr!=mLevel)
         {
             for(auto const aid:mSelection)
             {
@@ -463,11 +463,11 @@ namespace Steel
                     continue;
                 
                 auto agent=mLevel->agentMan()->getAgent(aid);
-                if(NULL==agent)
+                if(nullptr==agent)
                     continue;
                 
                 LocationModel *model=agent->locationModel();
-                if(NULL==model || !model->hasPath())
+                if(nullptr==model || !model->hasPath())
                     continue;
                 
                 paths.insert(model->path());

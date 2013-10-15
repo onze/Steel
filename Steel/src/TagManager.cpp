@@ -4,7 +4,7 @@
 
 namespace Steel
 {
-    TagManager* TagManager::sInstance = NULL;
+    TagManager* TagManager::sInstance = nullptr;
 
     TagManager::TagManager(): mNextTag(0L), mTagsMap(std::map<Ogre::String, Tag>())
 #ifdef DEBUG

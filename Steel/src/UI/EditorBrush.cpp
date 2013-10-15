@@ -27,14 +27,14 @@
 
 namespace Steel
 {
-    Ogre::SceneNode *EditorBrush::sTerraBrushVisual = NULL;
+    Ogre::SceneNode *EditorBrush::sTerraBrushVisual = nullptr;
 
     const Ogre::String EditorBrush::MODE = "EditorBrush::mode";
     const Ogre::String EditorBrush::TERRA_SCALE = "EditorBrush::terraScale";
     const Ogre::String EditorBrush::TERRA_SCALE_FACTOR = "EditorBrush::terraScaleFactor";
 
     EditorBrush::EditorBrush()
-        : Ogre::FrameListener(), mEngine(NULL), mEditor(NULL), mInputMan(NULL),
+        : Ogre::FrameListener(), mEngine(nullptr), mEditor(nullptr), mInputMan(nullptr),
           mMode(TRANSLATE), mContinuousModeActivated(false),
           mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),
           mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
@@ -42,8 +42,8 @@ namespace Steel
           mIsDraggingSelection(false), mIsDraggingSelectionCancelled(false),
           mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(.0f),
           mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()),
-          mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(NULL),
-          mLinkingLine(NULL)
+          mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(nullptr),
+          mLinkingLine(nullptr)
     {
     }
 
@@ -93,24 +93,24 @@ namespace Steel
 
     void EditorBrush::shutdown()
     {
-        if (NULL != mSelectionBox)
+        if (nullptr != mSelectionBox)
         {
             OgreUtils::destroySceneNode(mSelectionBox->getParentSceneNode());
             delete mSelectionBox;
-            mSelectionBox = NULL;
+            mSelectionBox = nullptr;
         }
     }
 
     float EditorBrush::intensity()
     {
-        if (sTerraBrushVisual == NULL)
+        if (sTerraBrushVisual == nullptr)
             return .0f;
         return sTerraBrushVisual->getScale().y / 3.f;
     }
 
     float EditorBrush::radius()
     {
-        if (sTerraBrushVisual == NULL)
+        if (sTerraBrushVisual == nullptr)
             return .0f;
         return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
     }
@@ -205,7 +205,7 @@ namespace Steel
                         Ogre::Terrain *terrain;
                         auto pos = level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(sTerraBrushVisual->getPosition(), &terrain);
                         // keep last valid value
-                        if (terrain != NULL)
+                        if (terrain != nullptr)
                             mSelectedTerrainHeight = pos;
                         break;
                     }
@@ -218,7 +218,7 @@ namespace Steel
                 AgentId aid = mEditor->agentIdUnderMouse();
 
                 Agent *agent=level->agentMan()->getAgent(aid);
-                if(NULL==agent)
+                if(nullptr==agent)
                     break;
                 if(INVALID_ID==agent->modelId(MT_LOCATION))
                     break;
@@ -348,9 +348,9 @@ namespace Steel
         // resize
         if (mMode == TERRAFORM)
         {
-            if (sTerraBrushVisual == NULL)
+            if (sTerraBrushVisual == nullptr)
                 getBrush(TERRAFORM);
-            if (sTerraBrushVisual != NULL)
+            if (sTerraBrushVisual != nullptr)
             {
                 if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
                 {
@@ -558,10 +558,10 @@ namespace Steel
         //TODO: put this in a proper terraform method
         if (mMode == TERRAFORM)
         {
-            if (sTerraBrushVisual == NULL)
+            if (sTerraBrushVisual == nullptr)
                 getBrush(TERRAFORM);
             auto level = mEngine->level();
-            if (level != NULL && sTerraBrushVisual != NULL)
+            if (level != nullptr && sTerraBrushVisual != nullptr)
             {
                 // move
                 auto ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
@@ -695,10 +695,10 @@ namespace Steel
         switch (mMode)
         {
             case TERRAFORM:
-                if (sTerraBrushVisual == NULL)
+                if (sTerraBrushVisual == nullptr)
                 {
                     auto level = mEngine->level();
-                    if (level != NULL)
+                    if (level != nullptr)
                     {
                         auto sm = level->sceneManager();
                         Ogre::MeshPtr mesh = Cylinder::getMesh(sm, 1, 1);
@@ -740,10 +740,10 @@ namespace Steel
         switch (mMode)
         {
             case TERRAFORM:
-                if (sTerraBrushVisual != NULL)
+                if (sTerraBrushVisual != nullptr)
                 {
                     OgreUtils::destroySceneNode(sTerraBrushVisual);
-                    sTerraBrushVisual = NULL;
+                    sTerraBrushVisual = nullptr;
                 }
                 mModifiedTerrains.clear();
                 break;
@@ -765,19 +765,19 @@ namespace Steel
 
     void EditorBrush::onHide()
     {
-        if (NULL != mSelectionBox)
+        if (nullptr != mSelectionBox)
         {
             OgreUtils::destroySceneNode(mSelectionBox->getParentSceneNode());
             delete mSelectionBox;
-            mSelectionBox = NULL;
+            mSelectionBox = nullptr;
         }
 
-        if (NULL != mLinkingLine)
+        if (nullptr != mLinkingLine)
         {
             mLinkingLine->clear();
             mEngine->level()->levelRoot()->detachObject(mLinkingLine);
             delete mLinkingLine;
-            mLinkingLine = NULL;
+            mLinkingLine = nullptr;
         }
 
         pushMode();

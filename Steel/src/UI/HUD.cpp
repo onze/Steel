@@ -10,24 +10,24 @@
 
 namespace Steel
 {
-    HUD::HUD():UIPanel("HUD","data/ui/current/HUD/HUD.rml"),Ogre::FrameListener(),
-        mEngine(NULL),mUI(NULL),mShowFPS(false)
+    HUD::HUD(): UIPanel("HUD", "data/ui/current/hud/hud.rml"), Ogre::FrameListener(),
+        mEngine(nullptr), mUI(nullptr), mShowFPS(false)
     {
 #ifdef DEBUG
-        mAutoReload=true;
+        mAutoReload = true;
         showFPS();
 #endif
     }
 
-    HUD::HUD(const HUD& other)
+    HUD::HUD(const HUD &other)
     {
 
     }
 
     HUD::~HUD()
     {
-        mEngine=NULL;
-        mUI=NULL;
+        mEngine = nullptr;
+        mUI = nullptr;
     }
 
     void HUD::saveConfig(ConfigFile &config) const
@@ -38,40 +38,45 @@ namespace Steel
     {
     }
 
-    HUD& HUD::operator=(const HUD& other)
+    HUD &HUD::operator=(const HUD &other)
     {
         return *this;
     }
 
-    void HUD::init(int width,int height,Engine *engine, UI *ui)
+    void HUD::init(int width, int height, Engine *engine, UI *ui)
     {
         Debug::log("HUD::init()").endl();
-        UIPanel::init(width,height);
-        mEngine=engine;
-        mUI=ui;
+        UIPanel::init(width, height);
+        mEngine = engine;
+        mUI = ui;
     }
 
     bool HUD::frameRenderingQueued(const Ogre::FrameEvent &evt)
     {
         Rocket::Core::Element *elem;
+
         if(mShowFPS)
         {
-            if(mDocument!=NULL)
+            if(mDocument != nullptr)
             {
-                elem=mDocument->GetElementById("fps");
-                if(elem!=NULL)
+                elem = mDocument->GetElementById("fps");
+
+                if(elem != nullptr)
                 {
-                    Ogre::RenderTarget::FrameStats ogreStats=mEngine->renderWindow()->getStatistics();
+                    Ogre::RenderTarget::FrameStats ogreStats = mEngine->renderWindow()->getStatistics();
                     elem->SetInnerRML(Ogre::StringConverter::toString(static_cast<int>(ogreStats.avgFPS)).c_str());
                 }
-                elem=mDocument->GetElementById("camPos");
-                if(elem!=NULL)
+
+                elem = mDocument->GetElementById("camPos");
+
+                if(elem != nullptr)
                 {
-                    auto camPos=mEngine->level()->camera()->camNode()->getPosition();
+                    auto camPos = mEngine->level()->camera()->camNode()->getPosition();
                     elem->SetInnerRML(Ogre::StringConverter::toString(camPos).c_str());
                 }
             }
         }
+
         return true;
     }
 
@@ -88,14 +93,16 @@ namespace Steel
     void HUD::showFPS()
     {
         if(mShowFPS)return;
-        mShowFPS=true;
+
+        mShowFPS = true;
 
     }
 
     void HUD::hideFPS()
     {
         if(!mShowFPS)return;
-        mShowFPS=false;
+
+        mShowFPS = false;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

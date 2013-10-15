@@ -44,9 +44,9 @@ namespace Steel
 {
 
     InputManager::InputManager() :
-        mEngine(NULL), mUI(NULL),mOISInputManager(NULL),mIsInputGrabbed(false),mIsGrabExclusive(false),
+        mEngine(nullptr), mUI(nullptr),mOISInputManager(nullptr),mIsInputGrabbed(false),mIsGrabExclusive(false),
         mDelayedInputReleaseRequested(false), mDelayedRequestIsExclusive(false), 
-        mMouse(NULL),mKeyboard(NULL), mKeysPressed(std::list<OIS::KeyCode>()), mHasMouseMoved(false),
+        mMouse(nullptr),mKeyboard(nullptr), mKeysPressed(std::list<OIS::KeyCode>()), mHasMouseMoved(false),
         mMouseMove(Ogre::Vector2::ZERO),mMousePos(Ogre::Vector2(-1.f,-1.f)),mMouseStateStack(std::list<Ogre::Vector2>())
     {
     }
@@ -149,12 +149,12 @@ namespace Steel
 //         Debug::log("InputManager::_grabInput(exclusive=")(exclusive)(") ");
 
 
-        assert(mOISInputManager==NULL);
-        assert(mKeyboard==NULL);
-        assert(mMouse==NULL);
+        assert(mOISInputManager==nullptr);
+        assert(mKeyboard==nullptr);
+        assert(mMouse==nullptr);
 
         mIsGrabExclusive=exclusive;
-        assert(mOISInputManager==NULL);
+        assert(mOISInputManager==nullptr);
         auto params=getOISparams(exclusive);
         mOISInputManager= OIS::InputManager::createInputSystem(params);
 
@@ -184,9 +184,9 @@ namespace Steel
         mMousePos=Ogre::Vector2::ZERO;
         mIsInputGrabbed=true;
         mDelayedInputGrabRequested=false;
-        assert(mOISInputManager!=NULL);
-        assert(mKeyboard!=NULL);
-        assert(mMouse!=NULL);
+        assert(mOISInputManager!=nullptr);
+        assert(mKeyboard!=nullptr);
+        assert(mMouse!=nullptr);
     }
 
     void InputManager::releaseInput()
@@ -196,20 +196,20 @@ namespace Steel
 
     void InputManager::_releaseInput()
     {
-        if(mMouse!=NULL)
+        if(mMouse!=nullptr)
         {
             mOISInputManager->destroyInputObject(mMouse);
-            mMouse=NULL;
+            mMouse=nullptr;
         }
-        if(mKeyboard!=NULL)
+        if(mKeyboard!=nullptr)
         {
             mOISInputManager->destroyInputObject(mKeyboard);
-            mKeyboard=NULL;
+            mKeyboard=nullptr;
         }
-        if(mOISInputManager!=NULL)
+        if(mOISInputManager!=nullptr)
         {
             OIS::InputManager::destroyInputSystem(mOISInputManager);
-            mOISInputManager=NULL;
+            mOISInputManager=nullptr;
         }
         mIsInputGrabbed=false;
         mDelayedInputReleaseRequested=false;
@@ -281,7 +281,7 @@ namespace Steel
 
     void InputManager::pushMouseState()
     {
-        if(mMouse==NULL)
+        if(mMouse==nullptr)
         {
             Debug::warning("InputManager::pushMouseState(): no mMouse defined, aborting. (try grabbing first).").endl();
             return;
@@ -304,7 +304,7 @@ namespace Steel
 
     void InputManager::setMousePosition(Ogre::Vector2 &pos)
     {
-        if(mMouse==NULL)
+        if(mMouse==nullptr)
         {
 //             Debug::warning("InputManager::setMousePosition(): no mMouse defined, aborting. (try grabbing first).").endl();
             return;
@@ -341,12 +341,12 @@ namespace Steel
         if(mDelayedInputGrabRequested)
             _grabInput(mDelayedRequestIsExclusive);
 
-        if (mOISInputManager == NULL)
+        if (mOISInputManager == nullptr)
             return;
 
-        if(NULL!=mKeyboard)
+        if(nullptr!=mKeyboard)
             mKeyboard->capture();
-        if(NULL!=mMouse)
+        if(nullptr!=mMouse)
             mMouse->capture();
     }
 
@@ -356,7 +356,7 @@ namespace Steel
         int left, top;
         rw->getMetrics(width, height, depth, left, top);
 
-        if(NULL!=mMouse)
+        if(nullptr!=mMouse)
         {
             const OIS::MouseState &ms = mMouse->getMouseState();
             ms.width = width;

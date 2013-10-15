@@ -24,7 +24,7 @@ namespace Steel
             _ModelManager(Level *level);
             virtual ~_ModelManager();
             /**
-             * Returns a pointer to the model referenced by the given id, if the model is in use. Return NULL
+             * Returns a pointer to the model referenced by the given id, if the model is in use. Return nullptr
              * otherwise. Since model addresses can change without notice, models pointers lifetime is not
              * supposed to be longer than the function they're created in (and watchout when multithreading).
              * ModelIds are meant for this, as seen in Agent.h/cpp.

@@ -13,7 +13,7 @@ namespace Steel
     const char *LocationModel::PATH_ATTRIBUTE = "path";
 
     LocationModel::LocationModel(): Model(),
-        mLocationModelMan(NULL), mSource(INVALID_ID), mDestination(INVALID_ID), mAttachedAgent(INVALID_ID),
+        mLocationModelMan(nullptr), mSource(INVALID_ID), mDestination(INVALID_ID), mAttachedAgent(INVALID_ID),
         mPosition(Ogre::Vector3::ZERO), mPath("")
     {
 
@@ -38,7 +38,7 @@ namespace Steel
         if(hasDestination())
             unsetDestination();
         
-        mLocationModelMan = NULL;
+        mLocationModelMan = nullptr;
         mSource = mDestination = INVALID_ID;
         mAttachedAgent = INVALID_ID;
         mPosition = Ogre::Vector3::ZERO;
@@ -78,7 +78,7 @@ namespace Steel
     bool LocationModel::init(LocationModelManager* const locationModelMan)
     {
         mLocationModelMan = locationModelMan;
-        return NULL != mLocationModelMan;
+        return nullptr != mLocationModelMan;
     }
 
     bool LocationModel::fromJson(const Json::Value& node, LocationModelManager * const locationModelMan)
@@ -124,7 +124,7 @@ namespace Steel
     bool LocationModel::setDestination(ModelId mid)
     {
         LocationModel *dst=mLocationModelMan->at(mid);
-        if(NULL==dst)
+        if(nullptr==dst)
         {
             mDestination = INVALID_ID;
             return false;
@@ -145,7 +145,7 @@ namespace Steel
     bool LocationModel::setSource(ModelId mid)
     {
         LocationModel *src=mLocationModelMan->at(mid);
-        if(NULL==src)
+        if(nullptr==src)
         {
             mSource = INVALID_ID;
             return false;
@@ -179,7 +179,7 @@ namespace Steel
         return mPosition;
 //         Agent *agent=mAgentMan->getAgent(mAttachedAgent);
 //         Ogre::Vector3 position=Ogre::Vector3::ZERO;
-//         if(NULL==agent)
+//         if(nullptr==agent)
 //             Debug::error("in LocationModel::position(): invalid attached agent ")(mAttachedAgent).endl();
 //         else
 //             position=agent->position();
@@ -215,7 +215,7 @@ namespace Steel
             LocationModel *model=fringe.top();
             fringe.pop();
 
-            if(NULL==model)
+            if(nullptr==model)
                 continue;
                 
             // already set: assuming next nodes also are

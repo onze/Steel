@@ -35,7 +35,7 @@ namespace Steel
             }
             inline bool isModifierDown(OIS::Keyboard::Modifier mod)
             {
-                return NULL == mKeyboard ? false : mKeyboard->isModifierDown(mod);
+                return nullptr == mKeyboard ? false : mKeyboard->isModifierDown(mod);
             }
 
             bool keyPressed(const OIS::KeyEvent& evt);

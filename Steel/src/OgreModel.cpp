@@ -22,7 +22,7 @@ namespace Steel
     const Ogre::String OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE="materialOverride";
     
     OgreModel::OgreModel(): Model(),
-        mSceneNode(NULL), mEntity(NULL),mSceneManager(NULL)
+        mSceneNode(nullptr), mEntity(nullptr),mSceneManager(nullptr)
     {
 
     }
@@ -41,21 +41,21 @@ namespace Steel
         if(!rgm->resourceExists(resourceGroupName,meshName))
             rgm->declareResource(meshName, "FileSystem", resourceGroupName);
 
-        const bool withRestore=NULL!=mSceneNode;
+        const bool withRestore=nullptr!=mSceneNode;
         Ogre::Any any;
         if(withRestore)
         {
             any = mSceneNode->getUserAny();
-            if (mEntity != NULL)
+            if (mEntity != nullptr)
             {
                 mEntity->detachFromParent();
                 mSceneManager->destroyEntity(mEntity);
-                mEntity = NULL;
+                mEntity = nullptr;
             }
-            if (mSceneNode != NULL)
+            if (mSceneNode != nullptr)
             {
                 OgreUtils::destroySceneNode(mSceneNode);
-                mSceneNode = NULL;
+                mSceneNode = nullptr;
             }
         }
         mEntity = sceneManager->createEntity(meshName);
@@ -93,16 +93,16 @@ namespace Steel
 
     void OgreModel::cleanup()
     {
-        if (mEntity != NULL)
+        if (mEntity != nullptr)
         {
             mEntity->detachFromParent();
             mSceneManager->destroyEntity(mEntity);
-            mEntity = NULL;
+            mEntity = nullptr;
         }
-        if (mSceneNode != NULL)
+        if (mSceneNode != nullptr)
         {
             OgreUtils::destroySceneNode(mSceneNode);
-            mSceneNode = NULL;
+            mSceneNode = nullptr;
         }
         Model::cleanup();
     }
@@ -173,9 +173,9 @@ namespace Steel
 
     void OgreModel::toJson(Json::Value &node)
     {
-        if (mSceneNode == NULL)
+        if (mSceneNode == nullptr)
         {
-            Debug::error("OgreModel::toJson() called while mSceneNode is NULL !");
+            Debug::error("OgreModel::toJson() called while mSceneNode is nullptr !");
             return;
         }
         //TODO: use abbreviated keys for release
@@ -254,12 +254,12 @@ namespace Steel
 
         // now whether we have minor changes (and we apply them directly), or major ones (cleanup, then init).
         // lets start with major ones
-        if (mEntity == NULL || meshName != mEntity->getMesh()->getName())
+        if (mEntity == nullptr || meshName != mEntity->getMesh()->getName())
         {
             // make sure we've been called with all arguments, because they're all needed now
-            if (levelRoot == NULL || sceneManager == NULL)
+            if (levelRoot == nullptr || sceneManager == nullptr)
             {
-                Debug::error(intro)("a new mesh is required, but sceneManager or levelRoot are NULL.");
+                Debug::error(intro)("a new mesh is required, but sceneManager or levelRoot are nullptr.");
                 Debug::error(" Aborting.").endl();
                 return false;
             }

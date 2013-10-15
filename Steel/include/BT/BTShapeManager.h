@@ -37,7 +37,7 @@ namespace Steel
              */
             bool buildShapeStream(Ogre::String streamName, Steel::File& rootFile, Steel::BTShapeStream*& stream);
 
-            /// Returns a pointer to a cached stream, or NULL if no stream with the given name has been built.
+            /// Returns a pointer to a cached stream, or nullptr if no stream with the given name has been built.
             BTShapeStream *getBTShapeStream(Ogre::String streamName);
 
             /// Removes all streams from the map

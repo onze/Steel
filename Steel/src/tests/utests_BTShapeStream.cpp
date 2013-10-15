@@ -24,7 +24,7 @@ namespace Steel
         BTShapeManager shapeMan;
         Ogre::String streamId="utests/shapes/A - sequence";
         File rootFile("/media/a0/cpp/1210/usmb/data/raw_resources/BT/utests/shapes/A - sequence");
-        BTShapeStream *stream=NULL;
+        BTShapeStream *stream=nullptr;
         if(!rootFile.exists())
         {
             Debug::warning(intro)(rootFile)(" not found. ")(abortMsg).endl();

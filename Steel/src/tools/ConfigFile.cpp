@@ -10,13 +10,13 @@ namespace Steel
 //    const Ogre::String ConfigFile::VERSION_ATTRIBUTE_NAME="_version";
 
     ConfigFile::ConfigFile(File file)
-        :mFile(file),mSettings(Json::Value())
+        : mFile(file), mSettings(Json::Value())
     {
-        mSettings=Json::objectValue;
+        mSettings = Json::objectValue;
         load();
     }
 
-    ConfigFile::ConfigFile(const ConfigFile& o):mFile(o.mFile),mSettings(o.mSettings)
+    ConfigFile::ConfigFile(const ConfigFile &o): mFile(o.mFile), mSettings(o.mSettings)
     {
         load();
     }
@@ -26,21 +26,22 @@ namespace Steel
 
     }
 
-    ConfigFile& ConfigFile::operator=(const ConfigFile& o)
+    ConfigFile &ConfigFile::operator=(const ConfigFile &o)
     {
-        if(&o==this)
+        if(&o == this)
             return *this;
-        mFile=o.mFile;
-        mSettings=o.mSettings;
+
+        mFile = o.mFile;
+        mSettings = o.mSettings;
         return *this;
     }
 
-    bool ConfigFile::operator==(const ConfigFile& o) const
+    bool ConfigFile::operator==(const ConfigFile &o) const
     {
-        bool equals=true;
+        bool equals = true;
 
-        equals&=mFile==o.mFile;
-        equals&=mSettings==o.mSettings;
+        equals &= mFile == o.mFile;
+        equals &= mSettings == o.mSettings;
 
         return equals;
     }
@@ -52,15 +53,17 @@ namespace Steel
 
         Json::Reader reader;
         Json::Value settings;
-        if(!reader.parse(mFile.read(),settings,true))
+
+        if(!reader.parse(mFile.read(), settings, true))
         {
             // can't debug
             if(Debug::isInit)
                 Debug::error("in ConfigFile::load(): can't parse configFile ")(mFile).endl();
             else
             {
-                std::cerr<<"in ConfigFile::load(): can't parse configFile "<<mFile.fullPath().c_str()<<std::endl;
+                std::cerr << "in ConfigFile::load(): can't parse configFile " << mFile.fullPath().c_str() << std::endl;
             }
+
             return;
         }
 
@@ -80,7 +83,7 @@ namespace Steel
 //
 //        if(validVersion)
 //        {
-        mSettings=settings;
+        mSettings = settings;
 //        }
 //        else
 //        {
@@ -101,72 +104,83 @@ namespace Steel
     void ConfigFile::save()
     {
         // little backup
-        File backup(mFile.fullPath()+".back");
+        File backup(mFile.fullPath() + ".back");
+
         if(mFile.exists())
-            backup.write(mFile.read(),File::OM_OVERWRITE);
+            backup.write(mFile.read(), File::OM_OVERWRITE);
 
         // write settings
-        mFile.write(mSettings.toStyledString(),File::OM_OVERWRITE);
+        mFile.write(mSettings.toStyledString(), File::OM_OVERWRITE);
     }
 
-    ConfigFile& ConfigFile::setSetting(Ogre::String key, Ogre::String const &value)
+    ConfigFile &ConfigFile::setSetting(Ogre::String key, Ogre::String const &value)
     {
-        mSettings[key]=value;
+        mSettings[key] = value;
         return *this;
     }
 
-    ConfigFile& ConfigFile::setSetting(Ogre::String key, Json::Value const &value)
+    ConfigFile &ConfigFile::setSetting(Ogre::String key, Json::Value const &value)
     {
-        mSettings[key]=value;
+        mSettings[key] = value;
         return *this;
     }
 
-    int ConfigFile::getSettingAsBool(const Ogre::String& key, bool defaultValue) const
+    int ConfigFile::getSettingAsBool(const Ogre::String &key, bool defaultValue) const
     {
-        if(mSettings.size()==0)
+        if(mSettings.size() == 0)
             return defaultValue;
+
         if(mSettings.isMember(key))
             return JsonUtils::asBool(mSettings[key], defaultValue);
+
         return defaultValue;
     }
 
-    int ConfigFile::getSettingAsInt(const Ogre::String& key, int defaultValue) const
+    int ConfigFile::getSettingAsInt(const Ogre::String &key, int defaultValue) const
     {
-        if(mSettings.size()==0)
+        if(mSettings.size() == 0)
             return defaultValue;
+
         if(mSettings.isMember(key))
             return JsonUtils::asInt(mSettings[key], defaultValue);
+
         return defaultValue;
     }
 
-    float ConfigFile::getSettingAsFloat(const Ogre::String& key, float defaultValue) const
+    float ConfigFile::getSettingAsFloat(const Ogre::String &key, float defaultValue) const
     {
-        if(mSettings.size()==0)
+        if(mSettings.size() == 0)
             return defaultValue;
+
         if(mSettings.isMember(key))
             return JsonUtils::asFloat(mSettings[key], defaultValue);
+
         return defaultValue;
     }
 
-    unsigned long ConfigFile::getSettingAsUnsignedLong(const Ogre::String& key, long unsigned int defaultValue) const
+    unsigned long ConfigFile::getSettingAsUnsignedLong(const Ogre::String &key, long unsigned int defaultValue) const
     {
-        if(mSettings.size()==0)
+        if(mSettings.size() == 0)
             return defaultValue;
+
         if(mSettings.isMember(key))
             return JsonUtils::asUnsignedLong(mSettings[key], defaultValue);
+
         return defaultValue;
     }
 
-    Ogre::String ConfigFile::getSetting(const Ogre::String& key, const Ogre::String& defaultValue) const
+    Ogre::String ConfigFile::getSetting(const Ogre::String &key, const Ogre::String &defaultValue) const
     {
         if(mSettings.isMember(key))
         {
-            Json::Value value=mSettings[key];
+            Json::Value value = mSettings[key];
+
             if(value.isString())
                 return value.asString();
             else
                 return value.toStyledString();
         }
+
         return defaultValue;
     }
 

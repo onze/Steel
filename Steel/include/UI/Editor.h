@@ -59,7 +59,7 @@ namespace Steel
             virtual ~Editor();
             virtual Editor& operator=(const Editor& other);
 
-            void init(unsigned int width, unsigned int height, Engine *engine=NULL, UI *ui=NULL, InputManager *inputMan=NULL);
+            void init(unsigned int width, unsigned int height, Engine *engine=nullptr, UI *ui=nullptr, InputManager *inputMan=nullptr);
         protected:
             // this init should not be called from outside, since it does not have all necessary parameters. It is called upon UIPanel::reload though.
             virtual void init(unsigned int width, unsigned int height);

@@ -14,9 +14,9 @@
 namespace Steel
 {
     BTStateStream::BTStateStream():
-        mShapeStream(NULL),
+        mShapeStream(nullptr),
         mStateOffsets(std::vector<size_t>()),
-        mData(NULL),mDataSize(0)
+        mData(nullptr),mDataSize(0)
     {
 
     }
@@ -40,7 +40,7 @@ namespace Steel
 
     bool BTStateStream::empty()
     {
-        return NULL==mShapeStream?true:mShapeStream->mData.size()==0;
+        return nullptr==mShapeStream?true:mShapeStream->mData.size()==0;
     }
 
     Ogre::String BTStateStream::debugName()
@@ -59,9 +59,9 @@ namespace Steel
         if(!empty())
             clear();
         
-        if(NULL == shapeStream)
+        if(nullptr == shapeStream)
         {
-            Debug::warning(intro)("trying to build from NULL shapeStream. Aborting.").endl();
+            Debug::warning(intro)("trying to build from nullptr shapeStream. Aborting.").endl();
             return false;
         }
         
@@ -104,7 +104,7 @@ namespace Steel
         size_t offset=(size_t)_offset;
         assert(offset<mDataSize);
         size_t base=(size_t) mData;
-        BTNode *node=NULL;
+        BTNode *node=nullptr;
         // placement new http://www.parashift.com/c++-faq-lite/placement-new.html
         switch(token.type)
         {
@@ -197,10 +197,10 @@ namespace Steel
             }
         }
         mStateOffsets.clear();
-        if(NULL!=mData)
+        if(nullptr!=mData)
             ::operator delete(mData);
-        mData=NULL;
-        mShapeStream=NULL;
+        mData=nullptr;
+        mShapeStream=nullptr;
     }
 
     BTNode* BTStateStream::stateAt(BTStateIndex index)
@@ -208,7 +208,7 @@ namespace Steel
         if(index>mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::stateAt(")(index)("): ")(debugName())(" index out of range.").endl();
-            return NULL;
+            return nullptr;
         }
         size_t base=(size_t)mData;
         return (BTNode *)(base+mStateOffsets[(size_t)index]);

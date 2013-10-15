@@ -41,7 +41,7 @@ namespace Steel
         {
             return &(*it).second;
         }
-        return NULL;
+        return nullptr;
     }
 
     bool BTShapeManager::buildShapeStream(Ogre::String streamName,
@@ -50,7 +50,7 @@ namespace Steel
     {
         BTShapeStreamMap::iterator it;
         // already built ?
-        if(NULL != (streamPtr=getBTShapeStream(streamName)))
+        if(nullptr != (streamPtr=getBTShapeStream(streamName)))
             return true;
 
         BTShapeStream stream;

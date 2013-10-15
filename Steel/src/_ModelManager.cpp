@@ -30,14 +30,14 @@ namespace Steel
     _ModelManager<M>::~_ModelManager()
     {
         clear();
-        mLevel = NULL;
+        mLevel = nullptr;
     }
 
     template<class M>
     M *_ModelManager<M>::at(ModelId id)
     {
         if (!isValid(id))
-            return NULL;
+            return nullptr;
 
         return &(mModels[id]);
     }
@@ -242,7 +242,7 @@ namespace Steel
     {
         std::set<Tag> output;
         M *model=at(mid);
-        if(NULL==model)
+        if(nullptr==model)
             return output;
         return model->tags();
     }

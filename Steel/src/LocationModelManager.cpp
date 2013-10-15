@@ -44,13 +44,13 @@ namespace Steel
         for(ModelId id=firstId(); id<lastId(); ++id)
         {
             current=at(id);
-            if(NULL==current)
+            if(nullptr==current)
                 continue;
             if(!current->hasDestination())
                 continue;
             dstId = current->destination();
             dst=at(dstId);
-            if(NULL==dst)
+            if(nullptr==dst)
             {
                 Debug::error(intro)("source model ")(id)(" has invalid destination ")(dstId)
                 (". Unlinking.").endl();
@@ -81,12 +81,12 @@ namespace Steel
     {
         static const Ogre::String intro="in LocationModelManager::linkLocations(): ";
         LocationModel *src=at(srcId), *dst=at(dstId);
-        if(NULL==src)
+        if(nullptr==src)
         {
             Debug::error(intro)("source model ")(srcId)(" is not valid.").endl();
             return false;
         }
-        if(NULL==dst)
+        if(nullptr==dst)
         {
             Debug::error(intro)("destination model ")(dstId)(" is not valid.").endl();
             return false;
@@ -124,7 +124,7 @@ namespace Steel
         static const Ogre::String intro="in LocationModelManager::linkLocation(): ";
         
         LocationModel *model=at(mid);
-        if(NULL==model)
+        if(nullptr==model)
         {
             Debug::error(intro)("model ")(mid)(" is not valid.").endl();
             return;
@@ -140,12 +140,12 @@ namespace Steel
         static const Ogre::String intro="in LocationModelManager::linkLocations(): ";
 
         LocationModel *m0=at(mid0), *m1=at(mid1);
-        if(NULL==m0)
+        if(nullptr==m0)
         {
             Debug::error(intro)("model ")(mid0)(" is not valid.").endl();
             return false;
         }
-        if(NULL==m1)
+        if(nullptr==m1)
         {
             Debug::error(intro)("model ")(mid1)(" is not valid.").endl();
             return false;
@@ -184,7 +184,7 @@ namespace Steel
         auto key=makeKey(mid0, mid1);
         DynamicLines *line;
         getDebugLine(mid0, mid1, line);
-        if(NULL!=line)
+        if(nullptr!=line)
         {
             line->clear();
             line->update();
@@ -207,7 +207,7 @@ namespace Steel
             {
                 delete line;
                 Debug::error("LocationModelManager::getDebugLine(): can't insert ").endl();
-                line=NULL;
+                line=nullptr;
                 return false;
             }
             mLevel->levelRoot()->attachObject(line);
@@ -222,7 +222,7 @@ namespace Steel
     bool LocationModelManager::onAgentLinkedToModel(Agent *agent, ModelId mid)
     {
         LocationModel *model=at(mid);
-        if(NULL==model)
+        if(nullptr==model)
             return false;
         model->attachAgent(agent->id());
         moveLocation(mid, agent->position());
@@ -232,7 +232,7 @@ namespace Steel
     void LocationModelManager::moveLocation(ModelId mid, Ogre::Vector3 const &pos)
     {
         LocationModel *model=at(mid);
-        if(NULL==model)
+        if(nullptr==model)
             return;
         model->setPosition(pos);
         updateDebugLine(mid);
@@ -241,7 +241,7 @@ namespace Steel
     void LocationModelManager::updateDebugLine(ModelId mid)
     {
         LocationModel *model=at(mid);
-        if(NULL==model)
+        if(nullptr==model)
             return;
         if(model->hasSource())
             updateDebugLine(model->source(), mid);
@@ -254,7 +254,7 @@ namespace Steel
         if(!(isValid(srcId) && isValid(dstId)))
             return;
 
-        DynamicLines *line=NULL;
+        DynamicLines *line=nullptr;
         if(getDebugLine(srcId, dstId, line))
         {
             line->clear();

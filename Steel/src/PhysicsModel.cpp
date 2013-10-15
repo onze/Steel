@@ -31,9 +31,9 @@ namespace Steel
     const Ogre::String PhysicsModel::BBOX_SHAPE_NAME_TRIMESH="trimesh";
 
     PhysicsModel::PhysicsModel(): Model(), SignalEmitter(),
-        mWorld(NULL), mBody(NULL),
+        mWorld(nullptr), mBody(nullptr),
         mMass(.0f), mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE),
-        mIsGhost(false),mGhostObject(NULL),mEmitOnTag(std::map<Tag,std::set<Signal>>()),mCollidingAgents(std::set<AgentId>())
+        mIsGhost(false),mGhostObject(nullptr),mEmitOnTag(std::map<Tag,std::set<Signal>>()),mCollidingAgents(std::set<AgentId>())
     {
 
     }
@@ -42,20 +42,20 @@ namespace Steel
     {
         mWorld = world;
         Ogre::String intro = "PhysicsModel::init(): ";
-        if (NULL == world)
+        if (nullptr == world)
         {
-            Debug::error(intro)(" was given a NULL world. Aborted.").endl();
+            Debug::error(intro)(" was given a nullptr world. Aborted.").endl();
             return;
         }
-        if (NULL == omodel)
+        if (nullptr == omodel)
         {
-            Debug::error(intro)(" was given a NULL omodel. Aborted.").endl();
+            Debug::error(intro)(" was given a nullptr omodel. Aborted.").endl();
             return;
         }
         // Create shape
         BtOgre::StaticMeshToShapeConverter converter(omodel->entity());
 
-        btCollisionShape *shape=NULL;
+        btCollisionShape *shape=nullptr;
         switch(mShape)
         {
             case BS_BOX:
@@ -104,7 +104,7 @@ namespace Steel
                                            );
             mWorld->addCollisionObject(mGhostObject);
         }
-        setUserPointer(NULL);
+        setUserPointer(nullptr);
     }
 
     bool PhysicsModel::fromJson(Json::Value &root)
@@ -249,11 +249,11 @@ namespace Steel
 
     void PhysicsModel::setUserPointer(Agent* agent)
     {
-        if(NULL!=mBody)
+        if(nullptr!=mBody)
         {
             mBody->setUserPointer(agent);
         }
-        if(NULL!=mGhostObject)
+        if(nullptr!=mGhostObject)
         {
 //             mGhostObject->setUserPointer(agent);
         }
@@ -297,7 +297,7 @@ namespace Steel
 
 
                         Agent *otherAgent=static_cast<Agent *>(otherBody->getUserPointer());
-                        if(NULL != otherAgent && otherAgent->physicsModel()!=this)
+                        if(nullptr != otherAgent && otherAgent->physicsModel()!=this)
                         {
                             if(0)
                                 Debug::log("agent ")(((Agent *)mGhostObject->getUserPointer())->id())
@@ -337,7 +337,7 @@ namespace Steel
                 for(auto const &aid:newlyColliding)
                 {
                     Agent *agent=manager->level()->agentMan()->getAgent(aid);
-                    if(NULL==agent)
+                    if(nullptr==agent)
                         continue;
                     auto _tags=agent->tags();
                     tagsMet.insert(_tags.begin(),_tags.end());
@@ -401,23 +401,23 @@ namespace Steel
 
     void PhysicsModel::cleanup()
     {
-        if (NULL != mWorld && mBody != NULL)
+        if (nullptr != mWorld && mBody != nullptr)
         {
-            if(NULL!=mGhostObject)
+            if(nullptr!=mGhostObject)
             {
                 mWorld->removeCollisionObject(mGhostObject);
                 delete mGhostObject;
-                mGhostObject = NULL;
+                mGhostObject = nullptr;
             }
 
             mWorld->removeRigidBody(mBody);
             delete mBody;
             
-            if(NULL != mBody->getMotionState())
+            if(nullptr != mBody->getMotionState())
                 delete mBody->getMotionState();
             
-            mBody = NULL;
-            mWorld = NULL;
+            mBody = nullptr;
+            mWorld = nullptr;
         }
         mEmitOnTag.clear();
         Model::cleanup();
@@ -523,7 +523,7 @@ namespace Steel
         mBody->getMotionState()->setWorldTransform(ts);
         mBody->setCenterOfMassTransform(ts);
 
-        if(NULL!=mGhostObject)
+        if(nullptr!=mGhostObject)
             mGhostObject->setWorldTransform(ts);
 
         if (switchBack)
@@ -542,7 +542,7 @@ namespace Steel
         mBody->getMotionState()->setWorldTransform(ts);
         mBody->setCenterOfMassTransform(ts);
 
-        if(NULL!=mGhostObject)
+        if(nullptr!=mGhostObject)
             mGhostObject->setWorldTransform(ts);
 
         if (switchBack)

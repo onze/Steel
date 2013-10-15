@@ -67,7 +67,7 @@ namespace Steel
     {
         static const Ogre::String intro="in BTModel::toJson(): ";
         BTShapeStream *st=mStateStream.shapeStream();
-        if(NULL==st)
+        if(nullptr==st)
         {
             Debug::error(intro)("stateStream's has no shapeStream !").endl();
             node[BTModel::SHAPE_NAME_ATTRIBUTE]=Json::Value::null;
@@ -88,8 +88,8 @@ namespace Steel
         static const Ogre::String intro="in BTModel::update(): ";
         BTStateIndex prevStateIndex=mCurrentStateIndex;
         BTStateIndex newIndex=mCurrentStateIndex;
-        BTNode* node=NULL;
-        BTNode* parent=NULL;
+        BTNode* node=nullptr;
+        BTNode* parent=nullptr;
         BTState nodeState=SUCCESS;
         BTShapeToken token;
         while(true)

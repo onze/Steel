@@ -13,7 +13,6 @@ namespace Steel
             ConfigFile()
             {
             }
-            ;
         public:
             /// Protocol version number.
             static const Ogre::String VERSION;

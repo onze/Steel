@@ -90,7 +90,7 @@ namespace Steel
 
             /**
              * Returns the coordinate at which the given ray intersects the terrain.
-             * the pointer of Terrain is always NULL, since this is implementation specific.
+             * the pointer of Terrain is always nullptr, since this is implementation specific.
              */
             Ogre::TerrainGroup::RayResult intersectRay(const Ogre::Ray& ray);
 

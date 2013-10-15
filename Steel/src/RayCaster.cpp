@@ -18,47 +18,47 @@ namespace Steel
 {
 
     RayCaster::RayCaster(Engine *engine):EngineEventListener(),
-        mEngine(engine),mSceneManager(NULL),mRaySceneQuery(NULL)
+        mEngine(engine),mSceneManager(nullptr),mRaySceneQuery(nullptr)
     {
         engine->addEngineEventListener(this);
     }
 
     RayCaster::~RayCaster()
     {
-        if(NULL!=mSceneManager && NULL!=mRaySceneQuery)
+        if(nullptr!=mSceneManager && nullptr!=mRaySceneQuery)
             mSceneManager->destroyQuery(mRaySceneQuery);
-        if(NULL!=mEngine)
+        if(nullptr!=mEngine)
         {
             mEngine->removeEngineEventListener(this);
-            mEngine=NULL;
+            mEngine=nullptr;
         }
-        mRaySceneQuery=NULL;
-        mSceneManager=NULL;
+        mRaySceneQuery=nullptr;
+        mSceneManager=nullptr;
     }
 
     void RayCaster::onLevelUnset(Level *level)
     {
-        if(NULL==level)
+        if(nullptr==level)
             return;
         mSceneManager->destroyQuery(mRaySceneQuery);
-        mRaySceneQuery=NULL;
-        mSceneManager=NULL;
+        mRaySceneQuery=nullptr;
+        mSceneManager=nullptr;
     }
 
     void RayCaster::onLevelSet(Level *level)
     {
-        if(NULL==level)
+        if(nullptr==level)
         {
-            mSceneManager=NULL;
-            mRaySceneQuery=NULL;
+            mSceneManager=nullptr;
+            mRaySceneQuery=nullptr;
             return;
         }
         mSceneManager=level->sceneManager();
-        if(NULL == mSceneManager)
+        if(nullptr == mSceneManager)
             return;
         // create the ray scene query object
         mRaySceneQuery = mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
-        if (NULL == mRaySceneQuery)
+        if (nullptr == mRaySceneQuery)
             Debug::log("Raycaster::Raycaster(): Failed to create Ogre::RaySceneQuery instance").endl();
         else
             mRaySceneQuery->setSortByDistance(true);
@@ -69,7 +69,7 @@ namespace Steel
 //         Debug::log("RayCaster::fromRay()").endl();
 
         // check we are initialised
-        if (mRaySceneQuery != NULL)
+        if (mRaySceneQuery != nullptr)
         {
             // create a query object
             mRaySceneQuery->setRay(ray);
@@ -106,7 +106,7 @@ namespace Steel
 //                 break;
             }
             // only check this result if it's a hit against an entity
-            if (query_result[qr_idx].movable != NULL)
+            if (query_result[qr_idx].movable != nullptr)
             {
                 if ((query_result[qr_idx].movable->getMovableType().compare("Entity") == 0))
                 {

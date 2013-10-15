@@ -57,7 +57,7 @@ namespace Steel
             /// Opposite of linkToModel
             void unlinkFromModel(ModelType modelType);
 
-            /// Returns an address to the model of the given type, if any. returns NULL otherwise.
+            /// Returns an address to the model of the given type, if any. returns nullptr otherwise.
             Model *model(ModelType modelType) const;
             /// Return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
             ModelId modelId(ModelType modelType) const;

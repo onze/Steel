@@ -103,7 +103,7 @@ namespace Steel
             Rocket::Core::TextureHandle texture)
     {
         RocketOgre3DCompiledGeometry* geometry = new RocketOgre3DCompiledGeometry();
-//     geometry->texture = texture == NULL ? NULL : (RocketOgre3DTexture*) texture;
+//     geometry->texture = texture == nullptr ? nullptr : (RocketOgre3DTexture*) texture;
         geometry->texture = (RocketOgre3DTexture*) texture;
 
         geometry->render_operation.vertexData = new Ogre::VertexData();
@@ -177,7 +177,7 @@ namespace Steel
         render_system = Ogre::Root::getSingleton().getRenderSystem();
         RocketOgre3DCompiledGeometry* ogre3d_geometry = (RocketOgre3DCompiledGeometry*) geometry;
 
-        if (ogre3d_geometry->texture != NULL)
+        if (ogre3d_geometry->texture != nullptr)
         {
             render_system->_setTexture(0, true, ogre3d_geometry->texture->texture);
 

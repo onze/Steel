@@ -6,7 +6,7 @@
 
 namespace Steel
 {
-    SignalManager* SignalManager::sInstance = NULL;
+    SignalManager* SignalManager::sInstance = nullptr;
 
     SignalManager::SignalManager(): mNextSignal(0L), mSignalsMap(std::map<Ogre::String, Signal>())
 #ifdef DEBUG
@@ -95,9 +95,9 @@ namespace Steel
 
     void SignalManager::registerListener(const Signal signal, SignalListener* listener)
     {
-        if(NULL==listener)
+        if(nullptr==listener)
         {
-            Debug::warning("in SignalManager::registerListener(): trying to insert a NULL listener for signal ");
+            Debug::warning("in SignalManager::registerListener(): trying to insert a nullptr listener for signal ");
             Debug::warning(signal)(" / ")(fromSignal(signal)).endl();
             return;
         }
@@ -114,7 +114,7 @@ namespace Steel
 
     void SignalManager::unregisterListener(const Signal signal, SignalListener* listener)
     {
-        if(NULL==listener)
+        if(nullptr==listener)
             return;
         auto signal_it=mListeners.find(signal);
         if(mListeners.end()!=signal_it)

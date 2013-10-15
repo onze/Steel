@@ -29,7 +29,7 @@ namespace Steel
     auto SYSCALL_ALIAS_read = read;
 
 #if defined(_WIN32)
-    auto SYSCALL_ALIAS_mkdir=_mkdir;
+    auto SYSCALL_ALIAS_mkdir = _mkdir;
 #else
     auto SYSCALL_ALIAS_mkdir = mkdir;
 #endif
@@ -84,9 +84,13 @@ namespace Steel
 
     File &File::operator=(File const &f)
     {
-        mPath = f.mPath;
-        mBaseName = f.mBaseName;
-        mExtension = f.mExtension;
+        if(this != &f)
+        {
+            mPath = f.mPath;
+            mBaseName = f.mBaseName;
+            mExtension = f.mExtension;
+        }
+
         return *this;
     }
 
@@ -107,11 +111,14 @@ namespace Steel
 
     int File::init()
     {
-        if (sInotifyFD >= 0)
+        if(sInotifyFD >= 0)
             return 0;
+
         sInotifyFD = inotify_init();
-        if (sInotifyFD < 0)
+
+        if(sInotifyFD < 0)
             return sInotifyFD;
+
         std::thread t(File::poolAndNotify);
         t.detach();
         return 0;
@@ -140,8 +147,10 @@ namespace Steel
     void File::mkdir()
     {
         Ogre::String path = fullPath();
-        if (isFile())
+
+        if(isFile())
             path = parentDir().fullPath();
+
 // http://stackoverflow.com/a/10356780
 #if defined(_WIN32)
         SYSCALL_ALIAS_mkdir(path.c_str());
@@ -152,12 +161,14 @@ namespace Steel
 
     bool File::touch()
     {
-        if (isDir())
+        if(isDir())
         {
-            if (!exists())
+            if(!exists())
                 mkdir();
+
             return true;
         }
+
         Ogre::String path = fullPath();
 #if defined(_WIN32)
         throw std::runtime_error("File::touch not implemented");
@@ -169,8 +180,9 @@ namespace Steel
 
     void File::rm()
     {
-        if (isDir())
+        if(isDir())
             throw std::runtime_error("File::rm not implemented for directories");
+
 #if defined(_WIN32)
         throw std::runtime_error("File::rm not implemented");
 #else
@@ -182,7 +194,7 @@ namespace Steel
     void File::poolAndNotify()
     {
         //http://stackoverflow.com/questions/5211993/using-read-with-inotify
-        while (sInotifyFD >= 0)
+        while(sInotifyFD >= 0)
         {
             unsigned int avail;
             ioctl(sInotifyFD, FIONREAD, &avail);
@@ -191,19 +203,22 @@ namespace Steel
             SYSCALL_ALIAS_read(sInotifyFD, buffer, avail);
 
             int offset = 0;
-            while (offset < (int) avail)
+
+            while(offset < (int) avail)
             {
-                struct inotify_event *iEvent = (inotify_event *) (buffer + offset);
+                struct inotify_event *iEvent = (inotify_event *)(buffer + offset);
 
                 FileEvent event;
                 sStaticLock.lock();
-                if (iEvent->mask & IN_MODIFY)
+
+                if(iEvent->mask & IN_MODIFY)
                     event = FileEvent(iEvent->wd, IN_MODIFY);
                 else
                     continue;
 
                 auto it = sListeners.find(event);
-                if (it == sListeners.end())
+
+                if(it == sListeners.end())
                 {
                     Debug::warning("File::poolAndNotify(): found no listener for ")(event.first)(". Ignoring notification.").endl();
                     sStaticLock.unlock();
@@ -217,6 +232,7 @@ namespace Steel
                 offset += sizeof(inotify_event) + iEvent->len;
             }
         }
+
         sStaticLock.lock();
         sListeners.clear();
         sStaticLock.unlock();
@@ -229,7 +245,7 @@ namespace Steel
 
     void File::dispatchEvents()
     {
-        while (!sNotificationList.empty())
+        while(!sNotificationList.empty())
         {
             sStaticLock.lock();
             //pair wd, filepath
@@ -237,7 +253,8 @@ namespace Steel
 
             // find listeners
             auto it_event = sListeners.find(event);
-            if (it_event == sListeners.end())
+
+            if(it_event == sListeners.end())
             {
                 sStaticLock.unlock();
                 sNotificationList.pop_front();
@@ -250,7 +267,7 @@ namespace Steel
             sNotificationList.pop_front();
             sStaticLock.unlock();
 
-            for (auto it = listeners.begin(); it != listeners.end(); ++it)
+            for(auto it = listeners.begin(); it != listeners.end(); ++it)
                 (*it)->onFileChangeEvent(file);
         }
     }
@@ -273,12 +290,14 @@ namespace Steel
         FileEvent fileEvent(wd, IN_MODIFY);
 //         Debug::log("File::addFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();
         auto it = sListeners.find(fileEvent);
-        if (it == sListeners.end())
+
+        if(it == sListeners.end())
         {
             auto entry = ListenersEntry(file->fullPath(), std::set<FileEventListener *>());
             sListeners.insert(std::pair<FileEvent, ListenersEntry>(fileEvent, entry));
             it = sListeners.find(fileEvent);
         }
+
         std::set<FileEventListener *> *record = &((*it).second.second);
         record->insert(listener);
         sStaticLock.unlock();
@@ -292,24 +311,29 @@ namespace Steel
 //         Debug::log("File::removeFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();
         FileEvent fileEvent(wd, IN_MODIFY);
         auto it = sListeners.find(fileEvent);
-        if (it != sListeners.end())
+
+        if(it != sListeners.end())
         {
             std::set<FileEventListener *> *record = &((*it).second.second);
             record->erase(listener);
-            if (record->size() == 0)
+
+            if(record->size() == 0)
                 sListeners.erase(fileEvent);
         }
+
         sStaticLock.unlock();
     }
 
     File File::getCurrentDirectory()
     {
         char _cwd[1024];
-        if (getcwd(_cwd, sizeof(_cwd)) == 0)
+
+        if(getcwd(_cwd, sizeof(_cwd)) == 0)
         {
             Debug::error("File::getCurrentDirectory(): getcwd() error:")(errno).endl();
-            assert( false);
+            assert(false);
         }
+
         Ogre::String s(_cwd);
         return File(s);
     }
@@ -328,8 +352,10 @@ namespace Steel
     Ogre::String File::fileName() const
     {
         Ogre::String s = mBaseName;
-        if (mExtension.size() > 0)
+
+        if(mExtension.size() > 0)
             s.append("." + mExtension);
+
         return s;
     }
 
@@ -342,20 +368,20 @@ namespace Steel
     {
 #ifdef __unix
         //http://stackoverflow.com/questions/1036625/differentiate-between-a-unix-directory-and-file-in-c
-//	Debug::log("File<")(fullPath())(">::isDir()").endl();
+//  Debug::log("File<")(fullPath())(">::isDir()").endl();
         int status;
         struct stat st_buf;
 
         status = stat(fullPath().c_str(), &st_buf);
 
-        if (status != 0)
+        if(status != 0)
         {
             return false;
             Debug::error("File<")(fullPath())(">::isDir():");
             Debug::error(" can't status the file. errno:")(errno).endl();
         }
 
-        return S_ISDIR ( st_buf.st_mode );
+        return S_ISDIR(st_buf.st_mode);
 #else
 #warning bool File::isDir() is not implemented for your platform.
         throw std::runtime_error("bool File::isDir() is not implemented for your platform.");
@@ -372,20 +398,20 @@ namespace Steel
     {
 #ifdef __unix
         //http://stackoverflow.com/questions/1036625/differentiate-between-a-unix-directory-and-file-in-c
-//	Debug::log("File<")(fullPath())(">::isFile()").endl();
+//  Debug::log("File<")(fullPath())(">::isFile()").endl();
         int status;
         struct stat st_buf;
 
         status = stat(fullPath().c_str(), &st_buf);
 
-        if (status != 0)
+        if(status != 0)
         {
             return false;
             Debug::error("File<")(fullPath())(">::isDir():");
             Debug::error(" can't status the file. errno:")(errno).endl();
         }
 
-        return S_ISREG ( st_buf.st_mode );
+        return S_ISREG(st_buf.st_mode);
 #else
 #warning bool File::isFile() is not implemented for your platform.
         throw std::runtime_error("bool File::isFile() is not implemented for your platform.");
@@ -394,51 +420,61 @@ namespace Steel
 
     std::vector<File> File::ls(File::NodeType filter, bool include_hidden)
     {
-        if (!(exists() && isDir()))
+        if(!(exists() && isDir()))
             return std::vector<File>(0);
 
         std::vector<std::string> files;
         Poco::File(fullPath()).list(files);
-        
+
         std::list<File> nodes;
-        for (auto it = files.begin(); it != files.end(); ++it)
+
+        for(auto it = files.begin(); it != files.end(); ++it)
         {
             File file = subfile(*it);
             NodeType nodeType = file.nodeType();
-            if (nodeType & filter)
+
+            if(nodeType & filter)
             {
-                if (!include_hidden && (nodeType & HIDDEN))
+                if(!include_hidden && (nodeType & HIDDEN))
                     continue;
+
                 nodes.push_back(file);
             }
         }
+
         std::vector<File> vecnodes;
-        for (auto it = nodes.begin(); it != nodes.end(); ++it)
+
+        for(auto it = nodes.begin(); it != nodes.end(); ++it)
             vecnodes.push_back(*it);
+
         return vecnodes;
     }
 
     File::NodeType File::nodeType()
     {
         NodeType type = static_cast<NodeType>(0);
-        if (exists())
+
+        if(exists())
         {
-            if (isDir())
+            if(isDir())
                 type = type | File::DIR;
-            if (isFile())
+
+            if(isFile())
                 type = type | File::FILE;
-            if (fileName().at(0) == '.')
+
+            if(fileName().at(0) == '.')
                 type = type | File::HIDDEN;
         }
         else
             return File::ANY;
+
         return type;
     }
 
     Ogre::String File::read(bool skiptEmtpyLines)
     {
-        if (!exists())
-            return "";
+        if(!exists())
+            return Ogre::StringUtil::BLANK;
 
         std::ifstream s;
         s.open(fullPath().c_str());
@@ -459,41 +495,52 @@ namespace Steel
             decltype(lines) filteredLines(lines.size());
             auto it = std::copy_if(lines.begin(), lines.end(), filteredLines.begin(), [](Ogre::String line)
             {
-                auto _line=line;
-                if(_line.length()>0)
+                auto _line = line;
+
+                if(_line.length() > 0)
                     Ogre::StringUtil::trim(_line);
-                return _line.length()>0;
+
+                return _line.length() > 0;
             });
             filteredLines.resize(std::distance(filteredLines.begin(), it));
             return StringUtils::join(filteredLines, StringUtils::LINE_SEP);
         }
+
         return rawContent;
     }
 
     bool File::readInto(Json::Value &root, bool keepComments)
     {
-        Ogre::String intro = "in File<"+fullPath()+">::readInto(): ";
-        if (!exists())
+        Ogre::String intro = "in File<" + fullPath() + ">::readInto(): ";
+
+        if(!exists())
         {
             Ogre::String msg = "Could not open :" + fullPath() + ": file not found.";
-            if (Debug::isInit)
+
+            if(Debug::isInit)
                 Debug::error(intro)(msg).endl();
             else
                 std::cerr << intro.c_str() << msg.c_str() << std::endl;
+
             return false;
         }
+
         Json::Reader reader;
         Ogre::String content = read(false);
         root.clear();
-        if (!reader.parse(content, root, keepComments))
+
+        if(!reader.parse(content, root, keepComments))
         {
             Ogre::String msg = "Could not parse content:" + reader.getFormatedErrorMessages() + "\non :" + content;
-            if (Debug::isInit)
+
+            if(Debug::isInit)
                 Debug::error(intro)(msg).endl();
             else
                 std::cerr << intro.c_str() << msg.c_str() << std::endl;
+
             return false;
         }
+
         return true;
     }
 
@@ -510,7 +557,7 @@ namespace Steel
 #ifdef __unix
         return File(fullPath() + "/" + filename);
 #else
-        return File ( fullPath() + "\\" + filename );
+        return File(fullPath() + "\\" + filename);
 #endif
     }
 

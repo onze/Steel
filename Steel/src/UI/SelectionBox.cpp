@@ -14,7 +14,7 @@ namespace Steel
         Ogre::ManualObject(name),
         mEngine(engine),
         mLeft(.0f), mTop(.0f), mRight(.0f), mBottom(.0f),
-        mVolQuery(NULL)
+        mVolQuery(nullptr)
     {
         /*The first function sets the render queue for the object to be the Overlay queue.
          The next two functions set the projection and view matrices to be the identity. Projection and
@@ -30,7 +30,7 @@ namespace Steel
         setUseIdentityProjection(true);
         setUseIdentityView(true);
         setQueryFlags(0);
-        if(NULL!=mEngine->level())
+        if(nullptr!=mEngine->level())
         {
             mEngine->level()->levelRoot()->createChildSceneNode()->attachObject(this);
             mVolQuery = mEngine->level()->sceneManager()->createPlaneBoundedVolumeQuery(Ogre::PlaneBoundedVolumeList());
@@ -40,10 +40,10 @@ namespace Steel
     SelectionBox::~SelectionBox()
     {
         clear();
-        if(NULL!=mVolQuery)
+        if(nullptr!=mVolQuery)
         {
             mEngine->level()->sceneManager()->destroyQuery(mVolQuery);
-            mVolQuery=NULL;
+            mVolQuery=nullptr;
         }
     }
 

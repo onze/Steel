@@ -36,13 +36,12 @@ namespace Steel
     const Ogre::String Engine::COLORED_DEBUG="Engine::coloredDebug";
 
     Engine::Engine(Ogre::String confFilename)
-        : mRootDir("."), mConfig(confFilename),
-          mRoot(NULL), mRenderWindow(NULL), mInputMan(),
-          mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(NULL), mRayCaster(NULL), mEditMode(false),
+    : mRootDir("."), mConfig(confFilename),
+          mRoot(nullptr), mRenderWindow(nullptr), mInputMan(),
+          mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(nullptr), mRayCaster(nullptr), mEditMode(false),
           mCommands(std::list<std::vector<Ogre::String> >())
     {
-        mRootDir = File::getCurrentDirectory();
-        mConfig = ConfigFile(mRootDir.subfile(mConfig.file().fileName()));
+        setRootDir(File::getCurrentDirectory());
     }
 
     Engine::~Engine()
@@ -69,12 +68,12 @@ namespace Steel
 
     Level *Engine::setCurrentLevel(Level *newLevel)
     {
-        if (NULL != mLevel && NULL != newLevel && mLevel->name() == newLevel->name())
+        if (nullptr != mLevel && nullptr != newLevel && mLevel->name() == newLevel->name())
         {
             Debug::warning("Engine::setCurrentLevel(): ")(newLevel->name())(" is already set as current.").endl();
             return mLevel;
         }
-        if (NULL != mLevel)
+        if (nullptr != mLevel)
         {
             fireOnLevelUnsetEvent();
             // TODO: tell the level it is unset, instead of doing stuff it knows better about
@@ -86,7 +85,7 @@ namespace Steel
 
         loadConfig(mConfig);
 
-        if (NULL != newLevel)
+        if (nullptr != newLevel)
             fireOnLevelSetEvent();
         return previous;
     }
@@ -187,7 +186,7 @@ namespace Steel
         }
         // we need at least one renderer to do anything useful
         Ogre::RenderSystem *renderSystem = renderers[0];
-        if (NULL == renderSystem)
+        if (nullptr == renderSystem)
         {
             throw std::runtime_error("Could not find a valid renderer.");
         }
@@ -219,7 +218,7 @@ namespace Steel
         mRoot->clearEventTimes();
 
         mRayCaster = new RayCaster(this);
-        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), mRootDir.subfile("data/ui"), &mInputMan, mRenderWindow, this);
+        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), uiDir(), &mInputMan, mRenderWindow, this);
 
         setCurrentLevel(createLevel("DefaultLevel"));
 
@@ -256,28 +255,28 @@ namespace Steel
             return;
         }
         Debug::log("Engine::shutdown()...").endl();
-        if(NULL!=mRayCaster)
+        if(nullptr!=mRayCaster)
         {
             delete mRayCaster;
-            mRayCaster=NULL;
+            mRayCaster=nullptr;
         }
         mUI.shutdown();
         mInputMan.shutdown();
-        if (mLevel != NULL)
+        if (mLevel != nullptr)
         {
             delete mLevel;
-            mLevel = NULL;
+            mLevel = nullptr;
         }
-        if (mRenderWindow != NULL)
+        if (mRenderWindow != nullptr)
         {
             delete mRenderWindow;
-            mRenderWindow = NULL;
+            mRenderWindow = nullptr;
         }
         File::shutdown();
-        if (NULL != mRenderWindow)
+        if (nullptr != mRenderWindow)
         {
             Ogre::Root::getSingletonPtr()->destroyRenderTarget(mRenderWindow);
-            mRenderWindow = NULL;
+            mRenderWindow = nullptr;
         }
         Ogre::Root::getSingletonPtr()->shutdown();
         Debug::log("Steel: done").endl();
@@ -334,7 +333,7 @@ namespace Steel
             // update file watching
             File::dispatchEvents();
 
-            if (NULL != mLevel)
+            if (nullptr != mLevel)
                 mLevel->update(float(timer.getMilliseconds() - graphicsStart) / 1000.f);
             else
                 SignalManager::instance().fireEmittedSignals();
@@ -640,6 +639,7 @@ namespace Steel
         else
             std::cout << (s + rootdir.fullPath()) << std::endl;
         mRootDir = rootdir;
+        mConfig = mRootDir.subfile(mConfig.file().fileName());
     }
 
     void Engine::startEditMode()

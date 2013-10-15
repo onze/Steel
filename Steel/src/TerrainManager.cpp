@@ -21,10 +21,10 @@ namespace Steel
 {
 
     TerrainManager::TerrainManager():Ogre::FrameListener(), 
-    mSceneManager(NULL), mResourceGroupName("TerrainManager-defaultResourceGroup-name"), 
+    mSceneManager(nullptr), mResourceGroupName("TerrainManager-defaultResourceGroup-name"), 
     mLoadingState(INIT), mListeners(std::set<TerrainManagerEventListener *>()), 
-    mTerrainGlobals(NULL), mTerrainGroup(NULL), mTerrainsImported(false),
-    mPath(""), mTerrainPhysicsMan(NULL)
+    mTerrainGlobals(nullptr), mTerrainGroup(nullptr), mTerrainsImported(false),
+    mPath(""), mTerrainPhysicsMan(nullptr)
     {
     }
 
@@ -77,13 +77,13 @@ namespace Steel
 
     void TerrainManager::shutdown()
     {
-        if (NULL != mTerrainPhysicsMan)
+        if (nullptr != mTerrainPhysicsMan)
         {
             delete mTerrainPhysicsMan;
-            mTerrainPhysicsMan = NULL;
+            mTerrainPhysicsMan = nullptr;
         }
         Ogre::Root::getSingletonPtr()->removeFrameListener(this);
-        if (NULL != mTerrainGroup)
+        if (nullptr != mTerrainGroup)
         {
             if (READY != mLoadingState)
             {
@@ -93,7 +93,7 @@ namespace Steel
                 {
 
                     Ogre::Terrain *terrain = it.getNext()->instance;
-                    if (NULL == terrain)
+                    if (nullptr == terrain)
                         continue;
                     if (terrain->isDerivedDataUpdateInProgress())
                     {
@@ -106,11 +106,11 @@ namespace Steel
             }
             mTerrainGroup->removeAllTerrains();
             OGRE_DELETE mTerrainGroup;
-            mTerrainGroup = NULL;
+            mTerrainGroup = nullptr;
         }
 
-        mTerrainGlobals = NULL;
-        mSceneManager = NULL;
+        mTerrainGlobals = nullptr;
+        mSceneManager = nullptr;
         auto rgm = Ogre::ResourceGroupManager::getSingletonPtr();
         if (rgm->resourceGroupExists(mResourceGroupName))
         {
@@ -131,7 +131,7 @@ namespace Steel
         mLoadingState = INIT;
 
         mTerrainGlobals = Ogre::TerrainGlobalOptions::getSingletonPtr();
-        if (NULL == mTerrainGlobals)
+        if (nullptr == mTerrainGlobals)
             mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
         mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneManager, 
                                                     Ogre::Terrain::ALIGN_X_Z, 
@@ -196,7 +196,7 @@ namespace Steel
         {
             Ogre::TerrainGroup::TerrainSlot *slot = it.getNext();
             Ogre::Terrain *terrain = slot->instance;
-            if (NULL == terrain)
+            if (nullptr == terrain)
             {
                 // all slots should have a terrain attached to them.
                 Debug::error("TerrainManager::toJson(): slot ")(slot->x)("x")(slot->y)(
@@ -564,7 +564,7 @@ namespace Steel
             // as for now, we only use defaults for those values
             idata->layerDeclaration = mTerrainGroup->getDefaultImportSettings().layerDeclaration;
             idata->layerList.assign(terrainSlotData.layerList.begin(), terrainSlotData.layerList.end());
-            if (mTerrainGroup->getTerrain(x, y) != NULL)
+            if (mTerrainGroup->getTerrain(x, y) != nullptr)
                 mTerrainGroup->removeTerrain(x, y);
             mTerrainGroup->defineTerrain(x, y, idata);
             mTerrainsImported = true;
@@ -619,7 +619,7 @@ namespace Steel
             {
                 Ogre::Terrain* terrain = ti.getNext()->instance;
                 updateBlendMaps(terrain);
-                if (NULL == mTerrainPhysicsMan->getTerrainFor(terrain))
+                if (nullptr == mTerrainPhysicsMan->getTerrainFor(terrain))
                     mTerrainPhysicsMan->createTerrainFor(terrain);
             }
         }
@@ -732,11 +732,11 @@ namespace Steel
 
     Ogre::TerrainGroup::RayResult TerrainManager::intersectRay(const Ogre::Ray& ray)
     {
-        Ogre::TerrainGroup::RayResult result(false, NULL, Ogre::Vector3::ZERO);
-        if (mTerrainGroup != NULL)
+        Ogre::TerrainGroup::RayResult result(false, nullptr, Ogre::Vector3::ZERO);
+        if (mTerrainGroup != nullptr)
         {
             result = mTerrainGroup->rayIntersects(ray);
-            result.terrain = NULL;
+            result.terrain = nullptr;
         }
         return result;
     }

@@ -14,27 +14,27 @@
 
 namespace Steel
 {
-    UI::UI():Rocket::Core::SystemInterface(),Ogre::RenderQueueListener(),EngineEventListener(),
-        mInputMan(NULL),mWindow(NULL),mWidth(0),mHeight(0),
-        mRocketRenderInterface(NULL),mMainContext(NULL),
-        mKeyIdentifiers(KeyIdentifierMap()),mEditor(),mHUD(),mUIDataDir(),mEditMode(false)
+    UI::UI(): Rocket::Core::SystemInterface(), Ogre::RenderQueueListener(), EngineEventListener(),
+        mInputMan(nullptr), mWindow(nullptr), mWidth(0), mHeight(0),
+        mRocketRenderInterface(nullptr), mMainContext(nullptr),
+        mKeyIdentifiers(KeyIdentifierMap()), mEditor(), mHUD(), mUIDataDir(), mEditMode(false)
     {
-        mTimer=Ogre::Timer();
+        mTimer = Ogre::Timer();
         buildKeyMaps();
     }
 
-    UI::UI(const UI& other)
+    UI::UI(const UI &other)
     {
-        mInputMan=other.mInputMan;
-        mTimer=other.mTimer;
-        mRocketRenderInterface=other.mRocketRenderInterface;
-        mMainContext=other.mMainContext;
-        mEditor=other.mEditor;
-        mHUD=other.mHUD;
-        mWidth=other.mWidth;
-        mHeight=other.mHeight;
-        mKeyIdentifiers=other.mKeyIdentifiers;
-        mEditMode=other.mEditMode;
+        mInputMan = other.mInputMan;
+        mTimer = other.mTimer;
+        mRocketRenderInterface = other.mRocketRenderInterface;
+        mMainContext = other.mMainContext;
+        mEditor = other.mEditor;
+        mHUD = other.mHUD;
+        mWidth = other.mWidth;
+        mHeight = other.mHeight;
+        mKeyIdentifiers = other.mKeyIdentifiers;
+        mEditMode = other.mEditMode;
     }
 
     UI::~UI()
@@ -42,20 +42,21 @@ namespace Steel
         shutdown();
     }
 
-    UI& UI::operator=(const UI& other)
+    UI &UI::operator=(const UI &other)
     {
-        if(mMainContext!=NULL && mMainContext!=other.mMainContext)
+        if(mMainContext != nullptr && mMainContext != other.mMainContext)
         {
             mMainContext->RemoveReference();
-            mMainContext=other.mMainContext;
+            mMainContext = other.mMainContext;
             mMainContext->AddReference();
         }
-        mEditor=other.mEditor;
-        mHUD=other.mHUD;
-        mWidth=other.mWidth;
-        mHeight=other.mHeight;
-        mKeyIdentifiers=other.mKeyIdentifiers;
-        mEditMode=other.mEditMode;
+
+        mEditor = other.mEditor;
+        mHUD = other.mHUD;
+        mWidth = other.mWidth;
+        mHeight = other.mHeight;
+        mKeyIdentifiers = other.mKeyIdentifiers;
+        mEditMode = other.mEditMode;
         return *this;
     }
 
@@ -76,25 +77,27 @@ namespace Steel
         return mTimer.getMilliseconds() * 0.001f;
     }
 
-    bool UI::LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message)
+    bool UI::LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String &message)
     {
-        Ogre::String intro="[Rocket] ";
-        switch (type)
+        Ogre::String intro = "[Rocket] ";
+
+        switch(type)
         {
             case Rocket::Core::Log::LT_ERROR:
             case Rocket::Core::Log::LT_ASSERT:
-                Debug::error(intro+message.CString()).endl();
+                Debug::error(intro)(message).endl();
                 break;
 
             case Rocket::Core::Log::LT_WARNING:
-                Debug::warning(intro+message.CString()).endl();
+                Debug::warning(intro)(message).endl();
                 break;
 
             case Rocket::Core::Log::LT_ALWAYS:
             default:
-                Debug::log(intro+message.CString()).endl();
+                Debug::log(intro)(message).endl();
                 break;
         }
+
         return false;
     }
 
@@ -103,21 +106,26 @@ namespace Steel
         stopEditMode();
         mHUD.shutdown();
         mEditor.shutdown();
-        if(mMainContext!=NULL)
+
+        if(mMainContext != nullptr)
         {
             mMainContext->UnloadAllMouseCursors();
             mMainContext->UnloadAllDocuments();
             mMainContext->RemoveReference();
-            mMainContext=NULL;
+            mMainContext = nullptr;
         }
-        if(mInputMan!=NULL)
-            mInputMan=NULL;
+
+        if(mInputMan != nullptr)
+            mInputMan = nullptr;
+
         Rocket::Core::Shutdown();
-        if(mRocketRenderInterface!=NULL)
+
+        if(mRocketRenderInterface != nullptr)
         {
             delete mRocketRenderInterface;
-            mRocketRenderInterface=NULL;
+            mRocketRenderInterface = nullptr;
         }
+
         mEngine->removeEngineEventListener(this);
     }
 
@@ -129,22 +137,22 @@ namespace Steel
                   Engine *engine)
     {
         Debug::log("UI::init()").endl();
-        mWidth=width;
-        mHeight=height;
-        mUIDataDir=UIDataDir.subfile("current");
-        mInputMan=inputMan;
-        mWindow=window;
-        mEngine=engine;
+        mWidth = width;
+        mHeight = height;
+        mUIDataDir = UIDataDir.subfile("current");
+        mInputMan = inputMan;
+        mWindow = window;
+        mEngine = engine;
 
-        mEditMode=false;
+        mEditMode = false;
         mEngine->addEngineEventListener(this);
 
         //rocket init
-        auto orm=Ogre::ResourceGroupManager::getSingletonPtr();
-        orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI",true);
-        bool firstInit=mRocketRenderInterface==NULL;
+        auto orm = Ogre::ResourceGroupManager::getSingletonPtr();
+        orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI", true);
+        bool firstInit = mRocketRenderInterface == nullptr;
 
-        mRocketRenderInterface=new RenderInterfaceOgre3D(mWidth,mHeight,mEngine);
+        mRocketRenderInterface = new RenderInterfaceOgre3D(mWidth, mHeight, mEngine);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
 
 
@@ -177,25 +185,26 @@ namespace Steel
 
     void UI::startEditMode()
     {
-        mEditMode=true;
+        mEditMode = true;
         mEditor.show();
     }
 
     void UI::stopEditMode()
     {
-        mEditMode=false;
+        mEditMode = false;
         mEditor.hide();
     }
 
     // Called from Ogre before a queue group is rendered.
     void UI::renderQueueStarted(Ogre::uint8 queueGroupId,
-                                const Ogre::String& invocation,
-                                bool& ROCKET_UNUSED(skipThisInvocation))
+                                const Ogre::String &invocation,
+                                bool &ROCKET_UNUSED(skipThisInvocation))
     {
-        if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
+        if(queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
         {
             mHUD.context()->Update();
             mMainContext->Update();
+
             if(mEditMode)
                 mEditor.context()->Update();
 
@@ -203,6 +212,7 @@ namespace Steel
 
             mHUD.context()->Render();
             mMainContext->Render();
+
             if(mEditMode)
                 mEditor.context()->Render();
         }
@@ -210,15 +220,15 @@ namespace Steel
 
     // Called from Ogre after a queue group is rendered.
     void UI::renderQueueEnded(Ogre::uint8 ROCKET_UNUSED(queueGroupId),
-                              const Ogre::String& ROCKET_UNUSED(invocation),
-                              bool& ROCKET_UNUSED(repeatThisInvocation))
+                              const Ogre::String &ROCKET_UNUSED(invocation),
+                              bool &ROCKET_UNUSED(repeatThisInvocation))
     {
     }
 
     // Configures Ogre's rendering system for rendering RocketUI.
     void UI::configureRenderSystem()
     {
-        Ogre::RenderSystem* render_system = Ogre::Root::getSingleton().getRenderSystem();
+        Ogre::RenderSystem *render_system = Ogre::Root::getSingleton().getRenderSystem();
         // Set up the projection and view matrices.
         Ogre::Matrix4 projection_matrix;
         buildProjectionMatrix(projection_matrix);
@@ -268,7 +278,7 @@ namespace Steel
     }
 
     // Builds an OpenGL-style orthographic projection matrix.
-    void UI::buildProjectionMatrix(Ogre::Matrix4& projection_matrix)
+    void UI::buildProjectionMatrix(Ogre::Matrix4 &projection_matrix)
     {
         float z_near = -1;
         float z_far = 1;
@@ -277,21 +287,21 @@ namespace Steel
 
         // Set up matrices.
         projection_matrix[0][0] = 2.0f / mWindow->getWidth();
-        projection_matrix[0][3]= -1.0000000f;
-        projection_matrix[1][1]= -2.0f / mWindow->getHeight();
-        projection_matrix[1][3]= 1.0000000f;
-        projection_matrix[2][2]= -2.0f / (z_far - z_near);
-        projection_matrix[3][3]= 1.0000000f;
+        projection_matrix[0][3] = -1.0000000f;
+        projection_matrix[1][1] = -2.0f / mWindow->getHeight();
+        projection_matrix[1][3] = 1.0000000f;
+        projection_matrix[2][2] = -2.0f / (z_far - z_near);
+        projection_matrix[3][3] = 1.0000000f;
     }
 
-    bool UI::keyPressed(const OIS::KeyEvent& evt)
+    bool UI::keyPressed(const OIS::KeyEvent &evt)
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
-        mMainContext->ProcessKeyDown(keyIdentifier ,getKeyModifierState());
+        mMainContext->ProcessKeyDown(keyIdentifier , getKeyModifierState());
 
-        if (evt.text >= 32)
+        if(evt.text >= 32)
             mMainContext->ProcessTextInput((Rocket::Core::word) evt.text);
-        else if (keyIdentifier == Rocket::Core::Input::KI_RETURN)
+        else if(keyIdentifier == Rocket::Core::Input::KI_RETURN)
             mMainContext->ProcessTextInput((Rocket::Core::word) '\n');
 
         if(mEditMode)
@@ -300,12 +310,12 @@ namespace Steel
         return true;
     }
 
-    bool UI::keyReleased(const OIS::KeyEvent& evt)
+    bool UI::keyReleased(const OIS::KeyEvent &evt)
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
-        int keyModifierState=getKeyModifierState();
+        int keyModifierState = getKeyModifierState();
 
-        mMainContext->ProcessKeyUp(keyIdentifier ,keyModifierState);
+        mMainContext->ProcessKeyUp(keyIdentifier , keyModifierState);
 
         if(mEditMode)
             mEditor.keyReleased(evt);
@@ -313,45 +323,53 @@ namespace Steel
         return true;
     }
 
-    bool UI::mouseMoved(const OIS::MouseEvent& evt)
+    bool UI::mouseMoved(const OIS::MouseEvent &evt)
     {
         int key_modifier_state = getKeyModifierState();
         mMainContext->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
+
         if(mEditMode)
         {
             mEditor.context()->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
             mEditor.mouseMoved(evt);
         }
-        if (evt.state.Z.rel != 0)
+
+        if(evt.state.Z.rel != 0)
         {
             mMainContext->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
+
             if(mEditMode)
                 mEditor.context()->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
         }
+
         return true;
     }
 
-    bool UI::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    bool UI::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     {
 //         Debug::log("mousePressed at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
         mMainContext->ProcessMouseButtonDown((int) id, getKeyModifierState());
+
         if(mEditMode)
         {
             mEditor.context()->ProcessMouseButtonDown((int) id, getKeyModifierState());
-            mEditor.mousePressed(evt,id);
+            mEditor.mousePressed(evt, id);
         }
+
         return true;
     }
 
-    bool UI::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    bool UI::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     {
 //         Debug::log("mouseReleased at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
         mMainContext->ProcessMouseButtonUp((int) id, getKeyModifierState());
+
         if(mEditMode)
         {
             mEditor.context()->ProcessMouseButtonUp((int) id, getKeyModifierState());
-            mEditor.mouseReleased(evt,id);
+            mEditor.mouseReleased(evt, id);
         }
+
         return true;
     }
 
@@ -523,26 +541,31 @@ namespace Steel
     {
         int modifier_state = 0;
 
-        if (mInputMan->isModifierDown(OIS::Keyboard::Ctrl))
+        if(mInputMan->isModifierDown(OIS::Keyboard::Ctrl))
             modifier_state |= Rocket::Core::Input::KM_CTRL;
-        if (mInputMan->isModifierDown(OIS::Keyboard::Shift))
+
+        if(mInputMan->isModifierDown(OIS::Keyboard::Shift))
             modifier_state |= Rocket::Core::Input::KM_SHIFT;
-        if (mInputMan->isModifierDown(OIS::Keyboard::Alt))
+
+        if(mInputMan->isModifierDown(OIS::Keyboard::Alt))
             modifier_state |= Rocket::Core::Input::KM_ALT;
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 
-        if (GetKeyState(VK_CAPITAL) > 0)
+        if(GetKeyState(VK_CAPITAL) > 0)
             modifier_state |= Rocket::Core::Input::KM_CAPSLOCK;
-        if (GetKeyState(VK_NUMLOCK) > 0)
+
+        if(GetKeyState(VK_NUMLOCK) > 0)
             modifier_state |= Rocket::Core::Input::KM_NUMLOCK;
-        if (GetKeyState(VK_SCROLL) > 0)
+
+        if(GetKeyState(VK_SCROLL) > 0)
             modifier_state |= Rocket::Core::Input::KM_SCROLLLOCK;
 
 #elif OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 
         UInt32 key_modifiers = GetCurrentEventKeyModifiers();
-        if (key_modifiers & (1 << alphaLockBit))
+
+        if(key_modifiers & (1 << alphaLockBit))
             modifier_state |= Rocket::Core::Input::KM_CAPSLOCK;
 
 #elif OGRE_PLATFORM == OGRE_PLATFORM_LINUX

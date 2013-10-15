@@ -18,7 +18,7 @@ namespace Steel
         public:
             inline static SignalManager &instance()
             {
-                if(NULL==SignalManager::sInstance)
+                if(nullptr==SignalManager::sInstance)
                     SignalManager::sInstance=new SignalManager();
                 return *SignalManager::sInstance;
             }
@@ -30,15 +30,15 @@ namespace Steel
             void unregisterListener(const Signal signal, SignalListener* listener);
 
             /// Registers the signal to be fired before next frame (recommended).
-            void emit(const Signal signal, SignalEmitter* src=NULL);
-            inline void emit(const Ogre::String& signal, SignalEmitter* src=NULL)
+            void emit(const Signal signal, SignalEmitter* src=nullptr);
+            inline void emit(const Ogre::String& signal, SignalEmitter* src=nullptr)
             {
                 emit(toSignal(signal), src);
             }
 
             /// Immediatly calls all registered listeners of the given signal.
-            void fire(const Signal signal, SignalEmitter* src=NULL);
-            inline void fire(const Ogre::String& signal, SignalEmitter* src=NULL)
+            void fire(const Signal signal, SignalEmitter* src=nullptr);
+            inline void fire(const Ogre::String& signal, SignalEmitter* src=nullptr)
             {
                 fire(toSignal(signal), src);
             }

@@ -14,7 +14,7 @@ namespace Steel
     AgentManager::~AgentManager()
     {
         deleteAllAgents();
-        mLevel=NULL;
+        mLevel=nullptr;
         mAgents.clear();
     }
 
@@ -52,7 +52,7 @@ namespace Steel
 
     Agent *AgentManager::newAgent(AgentId &id)
     {
-        Agent *t = NULL;
+        Agent *t = nullptr;
         // check is not already taken
         if(isIdFree(id))
         {
@@ -67,7 +67,7 @@ namespace Steel
     {
         std::map<AgentId, Agent *>::iterator it = mAgents.find(id);
         if (it == mAgents.end())
-            return NULL;
+            return nullptr;
         return it->second;
     }
 
