@@ -27,144 +27,145 @@ namespace Steel
      */
     class Agent
     {
-        public:
-            static const char *TAGS_ATTRIBUTES;
+    public:
+        static const char *TAGS_ATTRIBUTE;
+        static const char *ID_ATTRIBUTE;
 
-            Agent(AgentId id, Level *level);
-            virtual ~Agent();
-            Agent(const Agent &t);
-            /// shallow copy
-            Agent &operator=(const Agent &);
+        Agent(AgentId id, Level *level);
+        virtual ~Agent();
+        Agent(const Agent &t);
+        /// shallow copy
+        Agent &operator=(const Agent &);
 
-            inline AgentId id()
-            {
-                return mId;
-            }
-            inline bool isFree()
-            {
-                return mId==INVALID_ID;
-            }
+        inline AgentId id()
+        {
+            return mId;
+        }
+        inline bool isFree()
+        {
+            return mId == INVALID_ID;
+        }
 
-            void init(AgentId id);
-            void cleanup();
+        void init(AgentId id);
+        void cleanup();
 
-            /// Setup new Agent according to data in the json serialization.
-            bool fromJson(Json::Value &models);
-            Json::Value toJson();
+        /// Setup new Agent according to data in the json serialization.
+        bool fromJson(Json::Value &models);
+        Json::Value toJson();
 
-            /// Assigns a model to the agent for the given type.
-            bool linkToModel(ModelType modelType, ModelId modelId);
-            /// Opposite of linkToModel
-            void unlinkFromModel(ModelType modelType);
+        /// Assigns a model to the agent for the given type.
+        bool linkToModel(ModelType modelType, ModelId modelId);
+        /// Opposite of linkToModel
+        void unlinkFromModel(ModelType modelType);
 
-            /// Returns an address to the model of the given type, if any. returns nullptr otherwise.
-            Model *model(ModelType modelType) const;
-            /// Return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
-            ModelId modelId(ModelType modelType) const;
+        /// Returns an address to the model of the given type, if any. returns nullptr otherwise.
+        Model *model(ModelType modelType) const;
+        /// Return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
+        ModelId modelId(ModelType modelType) const;
 
-            /// Return all ids of all contained model types.
-            std::map<ModelType, ModelId> &modelsIds()
-            {
-                return mModelIds;
-            }
+        /// Return all ids of all contained model types.
+        std::map<ModelType, ModelId> &modelsIds()
+        {
+            return mModelIds;
+        }
 
-            /// Shortcut to Agent::model(MT_OGRE).
-            inline OgreModel *ogreModel() const
-            {
-                return (OgreModel *) model(MT_OGRE);
-            }
-            /// Shortcut to Agent::modelId(MT_OGRE).
-            inline ModelId ogreModelId() const
-            {
-                return modelId(MT_OGRE);
-            }
+        /// Shortcut to Agent::model(MT_OGRE).
+        inline OgreModel *ogreModel() const
+        {
+            return (OgreModel *) model(MT_OGRE);
+        }
+        /// Shortcut to Agent::modelId(MT_OGRE).
+        inline ModelId ogreModelId() const
+        {
+            return modelId(MT_OGRE);
+        }
 
-            /// Shortcut to Agent::model(MT_PHYSICS).
-            inline PhysicsModel *physicsModel() const
-            {
-                return (PhysicsModel *) model(MT_PHYSICS);
-            }
-            /// Shortcut to Agent::modelId(MT_PHYSICS).
-            inline ModelId physicsModelId() const
-            {
-                return modelId(MT_PHYSICS);
-            }
+        /// Shortcut to Agent::model(MT_PHYSICS).
+        inline PhysicsModel *physicsModel() const
+        {
+            return (PhysicsModel *) model(MT_PHYSICS);
+        }
+        /// Shortcut to Agent::modelId(MT_PHYSICS).
+        inline ModelId physicsModelId() const
+        {
+            return modelId(MT_PHYSICS);
+        }
 
-            /// Shortcut to Agent::model(MT_LOCATION).
-            inline LocationModel *locationModel() const
-            {
-                return (LocationModel *) model(MT_LOCATION);
-            }
-            /// Shortcut to Agent::modelId(MT_LOCATION).
-            inline ModelId locationModelId() const
-            {
-                return modelId(MT_LOCATION);
-            }
+        /// Shortcut to Agent::model(MT_LOCATION).
+        inline LocationModel *locationModel() const
+        {
+            return (LocationModel *) model(MT_LOCATION);
+        }
+        /// Shortcut to Agent::modelId(MT_LOCATION).
+        inline ModelId locationModelId() const
+        {
+            return modelId(MT_LOCATION);
+        }
 
-            inline bool isSelected()
-            {
-                return mIsSelected;
-            }
+        inline bool isSelected()
+        {
+            return mIsSelected;
+        }
 
-            /**
-             * Make an agent selected or not.
-             * Being (de)selected can have different effects on the agent's models.
-             */
-            void setSelected(bool selected);
+        /**
+         * Make an agent selected or not.
+         * Being (de)selected can have different effects on the agent's models.
+         */
+        void setSelected(bool selected);
 
-            //////////////////////////////////////////////////////////////////////
-            // OgreModel/PhysicsModel shortcuts
-            
-            Ogre::Vector3 position() const;
-            Ogre::Quaternion rotation() const;
-            Ogre::Vector3 scale() const;
+        //////////////////////////////////////////////////////////////////////
+        // OgreModel/PhysicsModel shortcuts
 
-            /// Translates the agent by the given vector.
-            void move(const Ogre::Vector3 &dpos);
-            /// Rotate the agent by r.x in the x axis, etc.
-            void rotate(const Ogre::Vector3 &rot);
-            /// Rotate the agent by the given quaternion
-            void rotate(const Ogre::Quaternion &q);
-            /// Rescale the agent by the given factor (current_scale*given_scale).
-            void rescale(const Ogre::Vector3& sca);
+        Ogre::Vector3 position() const;
+        Ogre::Quaternion rotation() const;
+        Ogre::Vector3 scale() const;
 
-            void setPosition(const Ogre::Vector3 &pos);
-            void setRotation(const Ogre::Quaternion &rot);
-            void setScale(const Ogre::Vector3 &sca);
-            
-            //////////////////////////////////////////////////////////////////////
-            // LocationModel shortcuts
-            
-            /// Shortcut to LocationModel()->setPath. Will attach to a new model if needed.
-            bool setPath(Ogre::String const &name);
-            void unsetPath();
-            bool hasPath();
-            
-            //////////////////////////////////////////////////////////////////////
-            // tagging shortcuts
-            void tag(Tag tag);
-            void tag(std::set<Tag> tags);
-            void untag(Steel::Tag tag);
-            void untag(std::set<Tag> tags);
-            std::set<Tag> tags() const;
+        /// Translates the agent by the given vector.
+        void move(const Ogre::Vector3 &dpos);
+        /// Rotate the agent by r.x in the x axis, etc.
+        void rotate(const Ogre::Vector3 &rot);
+        /// Rotate the agent by the given quaternion
+        void rotate(const Ogre::Quaternion &q);
+        /// Rescale the agent by the given factor (current_scale*given_scale).
+        void rescale(const Ogre::Vector3 &sca);
 
-        private:
-            /// Unique id.
-            AgentId mId;
+        void setPosition(const Ogre::Vector3 &pos);
+        void setRotation(const Ogre::Quaternion &rot);
+        void setScale(const Ogre::Vector3 &sca);
 
-            /// Ptr to the level the agent is in.
-            Level *mLevel;
+        //////////////////////////////////////////////////////////////////////
+        // LocationModel shortcuts
 
-            std::map<ModelType, ModelId> mModelIds;
+        /// Shortcut to LocationModel()->setPath. Will attach to a new model if needed.
+        bool setPath(Ogre::String const &name);
+        void unsetPath();
+        bool hasPath();
 
-            /// state flag
-            bool mIsSelected;
+        //////////////////////////////////////////////////////////////////////
+        // tagging shortcuts
+        void tag(Tag tag);
+        void tag(std::set<Tag> tags);
+        void untag(Steel::Tag tag);
+        void untag(std::set<Tag> tags);
+        std::set<Tag> tags() const;
 
-            /**
-             * The agent's tags. Since some tags are refs to the agent models,
-             * a ref count (map value) is kept, to support unlinking from model.
-             */
-            std::map<Tag, unsigned> mTags;
+    private:
+        /// Unique id.
+        AgentId mId;
+
+        /// Ptr to the level the agent is in.
+        Level *mLevel;
+
+        std::map<ModelType, ModelId> mModelIds;
+
+        /// state flag
+        bool mIsSelected;
+
+        /**
+         * The agent's tags. Since some tags are refs to the agent models,
+         * a ref count (map value) is kept, to support unlinking from model.
+         */
+        std::map<Tag, unsigned> mTags;
     };
 
 }
