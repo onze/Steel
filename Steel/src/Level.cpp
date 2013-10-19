@@ -431,7 +431,7 @@ namespace Steel
             return false;
         }
 
-        if(!mTerrainMan.fromJson(root[Level::TERRAIN_ATTRIBUTE]]))
+        if(!mTerrainMan.fromJson(root[Level::TERRAIN_ATTRIBUTE]))
         {
             Debug::error(logName())(": could not deserialize terrain.").endl();
             return false;

@@ -25,175 +25,175 @@ namespace Steel
 
     class Level: public TerrainManagerEventListener
     {
-        private:
-            Level();
-            Level(Level &level);
-            Level &operator=(const Level &level);
-            
-            static const char *BACKGROUND_COLOR_ATTRIBUTE;
-            static const char *NAME_ATTRIBUTE;
-            static const char *CAMERA_ATTRIBUTE;
-            static const char *TERRAIN_ATTRIBUTE;
-            static const char *AGENTS_ATTRIBUTE;
-            static const char *MODELS_ATTRIBUTE;
+    private:
+        Level();
+        Level(Level &level);
+        Level &operator=(const Level &level);
 
-        public:
-            Level(Engine *engine, File path, Ogre::String name);
-            virtual ~Level();
+        static const char *BACKGROUND_COLOR_ATTRIBUTE;
+        static const char *NAME_ATTRIBUTE;
+        static const char *CAMERA_ATTRIBUTE;
+        static const char *TERRAIN_ATTRIBUTE;
+        static const char *AGENTS_ATTRIBUTE;
+        static const char *MODELS_ATTRIBUTE;
 
-            /// Read properties in the given string and set them where they should.
-            bool deserialize(Ogre::String &s);
+    public:
+        Level(Engine *engine, File path, Ogre::String name);
+        virtual ~Level();
 
-            /// Ffills the list of AgentId with agents that own nodes in the the given list.
-            void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *>& nodes, Selection& selection);
+        /// Read properties in the given string and set them where they should.
+        bool deserialize(Ogre::String &s);
 
-            /// Returns the name of the json file that contains this level's properies.
-            File getSavefile();
+        /// Ffills the list of AgentId with agents that own nodes in the the given list.
+        void getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, Selection &selection);
 
-            bool isOver();
+        /// Returns the name of the json file that contains this level's properies.
+        File getSavefile();
 
-            /// Links an agent to a model.
-            bool linkAgentToModel(AgentId aid, ModelType mType, ModelId mid);
-            /// Triggered by an agent that linked to a model.
-            bool onAgentLinkedToModel(AgentId aid, ModelType mtype, ModelId mid);
+        bool isOver();
 
-            /**
-             * loads a level serialization string from a file and restore the state it represents.
-             * Return true is the loading went successfully, false otherwise.
-             */
-            bool load();
+        /// Links an agent to a model.
+        bool linkAgentToModel(AgentId aid, ModelType mType, ModelId mid);
+        /// Triggered by an agent that linked to a model.
+        bool onAgentLinkedToModel(AgentId aid, ModelType mtype, ModelId mid);
 
-            virtual void onTerrainEvent(TerrainManager::LoadingState state);
+        /**
+         * loads a level serialization string from a file and restore the state it represents.
+         * Return true is the loading went successfully, false otherwise.
+         */
+        bool load();
 
-            /// execute a serialized command
-            void processCommand(std::vector<Ogre::String> command);
+        virtual void onTerrainEvent(TerrainManager::LoadingState state);
 
-            /// Allows a manager to register itself to the level
-            void registerManager(ModelType type, ModelManager *manager);
+        /// execute a serialized command
+        void processCommand(std::vector<Ogre::String> command);
 
-            /**
-             * save a seralization string into a file that can be loaded and read back with a call to load.
-             * Return true if the saving went successfully.
-             */
-            bool save();
-            /// Collects level's agents' properties and put them in a string.
-            void serialize(Ogre::String &s);
+        /// Allows a manager to register itself to the level
+        void registerManager(ModelType type, ModelManager *manager);
 
-            /// Main loop iteration.
-            void update(float timestep);
+        /**
+         * save a seralization string into a file that can be loaded and read back with a call to load.
+         * Return true if the saving went successfully.
+         */
+        bool save();
+        /// Collects level's agents' properties and put them in a string.
+        void serialize(Ogre::String &s);
 
-            //getters
-            inline Ogre::ColourValue backgroundColor()
-            {
-                return mBackgroundColor;
-            }
+        /// Main loop iteration.
+        void update(float timestep);
 
-            /// Player camera. For now there's only one camera per level.
-            inline Camera *camera()
-            {
-                return mCamera;
-            }
+        //getters
+        inline Ogre::ColourValue backgroundColor()
+        {
+            return mBackgroundColor;
+        }
 
-            inline Ogre::String name()
-            {
-                return mName;
-            }
+        /// Player camera. For now there's only one camera per level.
+        inline Camera *camera()
+        {
+            return mCamera;
+        }
 
-            inline File path()
-            {
-                return mPath;
-            }
+        inline Ogre::String name()
+        {
+            return mName;
+        }
 
-            inline Ogre::SceneNode *levelRoot()
-            {
-                return mLevelRoot;
-            }
+        inline File path()
+        {
+            return mPath;
+        }
 
-            ///Return the level's model manager for the given type.
-            ModelManager *modelManager(ModelType modelType);
+        inline Ogre::SceneNode *levelRoot()
+        {
+            return mLevelRoot;
+        }
 
-            inline OgreModelManager *ogreModelMan()
-            {
-                return mOgreModelMan;
-            }
+        ///Return the level's model manager for the given type.
+        ModelManager *modelManager(ModelType modelType);
 
-            inline PhysicsModelManager *physicsModelMan()
-            {
-                return mPhysicsModelMan;
-            }
+        inline OgreModelManager *ogreModelMan()
+        {
+            return mOgreModelMan;
+        }
 
-            inline Ogre::SceneManager *sceneManager()
-            {
-                return mSceneManager;
-            }
+        inline PhysicsModelManager *physicsModelMan()
+        {
+            return mPhysicsModelMan;
+        }
 
-            inline TerrainManager *terrainManager()
-            {
-                return &mTerrainMan;
-            }
+        inline Ogre::SceneManager *sceneManager()
+        {
+            return mSceneManager;
+        }
 
-            inline BTModelManager *BTModelMan()
-            {
-                return mBTModelMan;
-            }
+        inline TerrainManager *terrainManager()
+        {
+            return &mTerrainMan;
+        }
 
-            inline AgentManager *agentMan()
-            {
-                return mAgentMan;
-            }
+        inline BTModelManager *BTModelMan()
+        {
+            return mBTModelMan;
+        }
 
-            inline SelectionManager *selectionMan()
-            {
-                return mSelectionMan;
-            }
+        inline AgentManager *agentMan()
+        {
+            return mAgentMan;
+        }
 
-            inline LocationModelManager *locationMan()
-            {
-                return mLocationMan;
-            }
+        inline SelectionManager *selectionMan()
+        {
+            return mSelectionMan;
+        }
 
-        private:
-            /// name used in debug output
-            Ogre::String logName();
+        inline LocationModelManager *locationMan()
+        {
+            return mLocationMan;
+        }
 
-            //not owned
-            Engine *mEngine;
+    private:
+        /// name used in debug output
+        Ogre::String logName();
 
-            //owned
-            /// what displays the level camera
-            Ogre::Viewport *mViewport;
+        //not owned
+        Engine *mEngine;
 
-            /// level folder (where the level manages its own resources)
-            File mPath;
+        //owned
+        /// what displays the level camera
+        Ogre::Viewport *mViewport;
 
-            /// level name (i.e. name of the folder its loads its resources from)
-            Ogre::String mName;
+        /// level folder (where the level manages its own resources)
+        File mPath;
 
-            /// default color
-            Ogre::ColourValue mBackgroundColor;
+        /// level name (i.e. name of the folder its loads its resources from)
+        Ogre::String mName;
 
-            /// Pointer to steel's global scene manager.
-            Ogre::SceneManager *mSceneManager;
+        /// default color
+        Ogre::ColourValue mBackgroundColor;
 
-            /// root node of the level. All level-dependant entities are its children.
-            Ogre::SceneNode *mLevelRoot;
+        /// Pointer to steel's global scene manager.
+        Ogre::SceneManager *mSceneManager;
 
-            /// Maps ModelType to managers
-            std::map<ModelType, ModelManager *> mManagers;
+        /// root node of the level. All level-dependant entities are its children.
+        Ogre::SceneNode *mLevelRoot;
 
-            // actual managers
-            AgentManager *mAgentMan;
-            OgreModelManager *mOgreModelMan;
-            PhysicsModelManager *mPhysicsModelMan;
-            BTModelManager *mBTModelMan;
-            TerrainManager mTerrainMan;
-            SelectionManager *mSelectionMan;
-            LocationModelManager *mLocationMan;
+        /// Maps ModelType to managers
+        std::map<ModelType, ModelManager *> mManagers;
 
-            /// Main camera
-            Camera *mCamera;
+        // actual managers
+        AgentManager *mAgentMan;
+        OgreModelManager *mOgreModelMan;
+        PhysicsModelManager *mPhysicsModelMan;
+        BTModelManager *mBTModelMan;
+        TerrainManager mTerrainMan;
+        SelectionManager *mSelectionMan;
+        LocationModelManager *mLocationMan;
 
-            Ogre::Light *mMainLight;
+        /// Main camera
+        Camera *mCamera;
+
+        Ogre::Light *mMainLight;
     };
 }
 
