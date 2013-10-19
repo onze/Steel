@@ -39,6 +39,11 @@ namespace Steel
     const char *Editor::SELECTION_PATH_INFO_BOX = "selectionPathsInfoBox";
     const char *Editor::SELECTIONS_PATH_EDIT_BOX = "selection_path_editbox";
 
+    const char *Editor::MODELS_ATTRIBUTE = "models";
+    const char *Editor::MODEL_TYPE_ATTRIBUTE = "modelType";
+    const char *Editor::MODEL_PATH_ATTRIBUTE = "path";
+    const char *Editor::MODEL_REF_OVERRIDE_ATTRIBUTE = "overrides";
+
     Editor::Editor(): UIPanel("Editor", "data/ui/current/editor/editor.rml"),
         mEngine(nullptr), mUI(nullptr), mInputMan(nullptr), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
@@ -215,21 +220,23 @@ namespace Steel
         }
         else if(node.isObject())
         {
-            if(node.isMember(Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE) && JsonUtils::asBool(node[Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE], false))
+            if(node.isMember(Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE) &&
+                    JsonUtils::asBool(node[Editor::DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE], false))
                 return true;
 
             // dict:: process each value
             for(auto it = node.begin(); it != node.end(); ++it)
             {
+                Ogre::String mamberName = it.memberName();
+
                 if(!dynamicFillSerialization(*it, aid))
                     return false;
             }
         }
-        else
+        else if(node.isString())
         {
             Ogre::String svalue, new_svalue;
             svalue = new_svalue = node.asString();
-
 
             if(svalue.at(0) != '$')
                 new_svalue = svalue;
@@ -429,8 +436,8 @@ namespace Steel
         if(INVALID_ID == aid)
         {
             // will end up pointing to the agent owning all created models
-            if(!root.isArray() && !root.isMember("aid"))
-                aid = JsonUtils::asUnsignedLong(root["aid"], INVALID_ID);
+            if(!root.isArray() && root.isMember(Agent::ID_ATTRIBUTE))
+                aid = JsonUtils::asUnsignedLong(root[Agent::ID_ATTRIBUTE], INVALID_ID);
             else
             {
                 Level *level = mEngine->level();
@@ -443,6 +450,8 @@ namespace Steel
                 aid = mEngine->level()->agentMan()->newAgent();
             }
         }
+
+        assert(INVALID_ID != aid);
 
         Ogre::String instancitationType = file.extension();
 
@@ -475,17 +484,23 @@ namespace Steel
             return false;
         }
 
-        Json::Value models = root["models"];
+        if(!root.isMember(Editor::MODELS_ATTRIBUTE))
+        {
+            Debug::error(intro)("member ").quotes(Editor::MODELS_ATTRIBUTE)(" not found. Aborting.").endl();
+            return false;
+        }
+
+        Json::Value models = root[Editor::MODELS_ATTRIBUTE];
 
         if(models.isNull())
         {
-            Debug::warning(intro)("\"models\' attribute is null. Aborting.");
+            Debug::warning(intro).quotes(Editor::MODELS_ATTRIBUTE)(" attribute is null. Aborting.");
             return false;
         }
 
         if(!models.isArray())
         {
-            Debug::warning(intro)("\"models\' attribute is not an array. Aborting.");
+            Debug::warning(intro).quotes(Editor::MODELS_ATTRIBUTE)(" attribute is not an array. Aborting.");
             return false;
         }
 
@@ -496,16 +511,15 @@ namespace Steel
             Json::Value refNode = *it, modelNode;
 
             // if path is there, it's a reference
-            bool hasPathMember = refNode.isMember("path");
+            bool hasPathMember = refNode.isMember(Editor::MODEL_PATH_ATTRIBUTE);
 
             if(hasPathMember)
             {
-                Json::Value pathValue = refNode["path"];
+                Json::Value pathValue = refNode[Editor::MODEL_PATH_ATTRIBUTE];
 
                 if(!pathValue.isString())
                 {
-                    Debug::warning(intro)("Could not read reference path \"")
-                    (refNode["path"].toStyledString())("\" as string. Aborting").endl();
+                    Debug::warning(intro)("Could not read reference path ").quotes(pathValue)(" as string. Aborting").endl();
                     revertAgent = true;
                     break;
                 }
@@ -513,7 +527,7 @@ namespace Steel
                 // load the referee
                 Ogre::String path = "";
                 resolveReferencePaths(pathValue.asString(), path);
-                File file = mEngine->resourcesDir().subfile(path);
+                File file = mEngine->dataDir().subfile(path);
 
                 if(!file.readInto(modelNode, false))
                 {
@@ -523,13 +537,13 @@ namespace Steel
                 }
 
                 // possibly add attributes overrides
-                if(refNode.isMember("overrides"))
+                if(refNode.isMember(Editor::MODEL_REF_OVERRIDE_ATTRIBUTE))
                 {
-                    Json::Value overrides = refNode["overrides"];
+                    Json::Value overrides = refNode[Editor::MODEL_REF_OVERRIDE_ATTRIBUTE];
 
                     if(!overrides.isObject())
                     {
-                        Debug::error(intro)("invalid overrides:")(overrides)(". Aborting").endl();
+                        Debug::error(intro)("invalid overrides:")(overrides)(". Was expecting an object. Aborting").endl();
                         revertAgent = true;
                         break;
                     }
@@ -542,7 +556,7 @@ namespace Steel
 
             if(INVALID_ID == aid)
             {
-                Json::Value value = modelNode["modelType"];
+                Json::Value value = modelNode[Editor::MODEL_TYPE_ATTRIBUTE];
 
                 if(value.isNull() || !value.isString() || value.asString() != modelTypesAsString[MT_OGRE])
                 {
@@ -565,16 +579,6 @@ namespace Steel
                 revertAgent = true;
                 break;
             }
-
-//        Ogre::String path;
-//        resolveReferencePaths(value.asString(), path);
-//        path = mEngine->resourcesDir().subfile(path).fullPath();
-//        File file(path);
-//        if (!instanciateResource(file, aid))
-//        {
-//            Debug::error(intro)("Could not resolve path \"")(path)("\". Skipping reference.").endl();
-//            continue;
-//        }
         }
 
         if(revertAgent)
@@ -662,11 +666,24 @@ namespace Steel
             return false;
         }
 
-        Json::Value node = root["models"];
+        if(!root.isObject())
+        {
+            Debug::error(intro)("Expecting object content. Aborting.").endl();
+            return false;
+        }
+
+        if(!root.isMember(Editor::MODELS_ATTRIBUTE))
+        {
+            Debug::error(intro)("member ").quotes(Editor::MODELS_ATTRIBUTE)(" not found. Aborting.").endl();
+            return false;
+        }
+
+
+        Json::Value node = root[Editor::MODELS_ATTRIBUTE];
 
         if(!node.isArray() || node.isNull())
         {
-            Debug::warning(intro)("\"models\" attribute is not valid (expecting a non-empty array).").endl();
+            Debug::warning(intro).quotes(Editor::MODELS_ATTRIBUTE)(" attribute is not valid (expecting a non-empty array).").endl();
             return false;
         }
 
@@ -677,7 +694,7 @@ namespace Steel
 
             if(INVALID_ID == aid)
             {
-                Json::Value value = modelNode["modelType"];
+                Json::Value value = modelNode[Editor::MODEL_TYPE_ATTRIBUTE];
 
                 if(value.isNull() || value.asCString() != modelTypesAsString[MT_OGRE])
                 {
@@ -709,11 +726,11 @@ namespace Steel
             return false;
         }
 
-        Json::Value value = root["modelType"];
+        Json::Value value = root[Editor::MODEL_TYPE_ATTRIBUTE];
 
         if(value.isNull())
         {
-            Debug::error("serialization is missing a \"modelType\" value. Aborted.").endl();
+            Debug::error("serialization is missing a ").quotes(Editor::MODEL_TYPE_ATTRIBUTE)(" value. Aborted.").endl();
             return false;
         }
 
