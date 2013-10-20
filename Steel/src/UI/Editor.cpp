@@ -556,6 +556,13 @@ namespace Steel
 
             if(INVALID_ID == aid)
             {
+                if(!modelNode.isObject())
+                {
+                    Debug::error(intro)("serialization is not a json object. Aborting.").endl();
+                    revertAgent = true;
+                    break;
+                }
+
                 Json::Value value = modelNode[Editor::MODEL_TYPE_ATTRIBUTE];
 
                 if(value.isNull() || !value.isString() || value.asString() != modelTypesAsString[MT_OGRE])
@@ -723,6 +730,12 @@ namespace Steel
         if(level == nullptr)
         {
             Debug::error(intro)("no level to instanciate stuff in.").endl();
+            return false;
+        }
+
+        if(!root.isObject())
+        {
+            Debug::error("expecting a json object. Aborting.").endl();
             return false;
         }
 
