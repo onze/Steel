@@ -67,7 +67,7 @@ namespace Steel
         virtual ~Editor();
         virtual Editor &operator=(const Editor &other);
 
-        void init(unsigned int width, unsigned int height, Engine *engine = nullptr, UI *ui = nullptr, InputManager *inputMan = nullptr);
+        void init(unsigned int width, unsigned int height, Steel::Engine *engine = nullptr, Steel::UI *ui = nullptr);
     protected:
         // this init should not be called from outside, since it does not have all necessary parameters. It is called upon UIPanel::reload though.
         virtual void init(unsigned int width, unsigned int height);
@@ -146,11 +146,11 @@ namespace Steel
         /// take a rocket event and dispatch it to process*Event
         void ProcessEvent(Rocket::Core::Event &event);
         ///general command processing method. dispatches the work to other process
-        void processCommand(Ogre::String rawCommand);
+        bool processCommand(Ogre::String rawCommand);
         ///general command processing method. dispatches the work to other process
-        void processCommand(std::vector<Ogre::String> command);
+        bool processCommand(std::vector< Ogre::String > command);
         /// submethod processing ui commands concerning options
-        void processOptionCommand(std::vector<Ogre::String> command);
+        bool processOptionCommand(std::vector< Ogre::String > command);
 
         //implements the OIS keyListener and mouseListener, as this allows the UI to pass them on as they arrive.
         bool keyPressed(const OIS::KeyEvent &evt);

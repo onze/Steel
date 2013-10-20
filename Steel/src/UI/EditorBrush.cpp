@@ -47,7 +47,7 @@ namespace Steel
     {
     }
 
-    EditorBrush::EditorBrush(const EditorBrush& other)
+    EditorBrush::EditorBrush(const EditorBrush &other)
     {
         throw std::runtime_error("EditorBrush::EditorBrush(const EditorBrush&) not implemented");
     }
@@ -59,8 +59,8 @@ namespace Steel
 
     void EditorBrush::loadConfig(ConfigFile const &config)
     {
-        mTerraScale = Ogre::StringConverter::parseVector3(config.getSetting(EditorBrush::TERRA_SCALE),mTerraScale);
-        mTerraScaleFactor = config.getSettingAsFloat(EditorBrush::TERRA_SCALE_FACTOR,mTerraScaleFactor);
+        mTerraScale = Ogre::StringConverter::parseVector3(config.getSetting(EditorBrush::TERRA_SCALE), mTerraScale);
+        mTerraScaleFactor = config.getSettingAsFloat(EditorBrush::TERRA_SCALE_FACTOR, mTerraScaleFactor);
         setMode((BrushMode) config.getSettingAsUnsignedLong(EditorBrush::MODE, (unsigned long) mMode));
     }
 
@@ -71,13 +71,13 @@ namespace Steel
         config.setSetting(EditorBrush::MODE, Ogre::StringConverter::toString(mMode));
     }
 
-    EditorBrush& EditorBrush::operator=(const EditorBrush& other)
+    EditorBrush &EditorBrush::operator=(const EditorBrush &other)
     {
         throw std::runtime_error("EditorBrush::operator=() not implemented");
         return *this;
     }
 
-    bool EditorBrush::operator==(const EditorBrush& other) const
+    bool EditorBrush::operator==(const EditorBrush &other) const
     {
         throw std::runtime_error("EditorBrush::operator==() not implemented");
         return false;
@@ -93,7 +93,7 @@ namespace Steel
 
     void EditorBrush::shutdown()
     {
-        if (nullptr != mSelectionBox)
+        if(nullptr != mSelectionBox)
         {
             OgreUtils::destroySceneNode(mSelectionBox->getParentSceneNode());
             delete mSelectionBox;
@@ -103,23 +103,26 @@ namespace Steel
 
     float EditorBrush::intensity()
     {
-        if (sTerraBrushVisual == nullptr)
+        if(sTerraBrushVisual == nullptr)
             return .0f;
+
         return sTerraBrushVisual->getScale().y / 3.f;
     }
 
     float EditorBrush::radius()
     {
-        if (sTerraBrushVisual == nullptr)
+        if(sTerraBrushVisual == nullptr)
             return .0f;
+
         return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
     }
 
     Selection EditorBrush::mousePressedSelectionUpdate(Ogre::Vector2 mPos, OIS::MouseButtonID id)
     {
         auto level = mEngine->level();
-        SelectionManager *selectionMan=level->selectionMan();
-        switch (id)
+        SelectionManager *selectionMan = level->selectionMan();
+
+        switch(id)
         {
             case OIS::MB_Left:
             {
@@ -128,14 +131,14 @@ namespace Steel
                 mEngine->pickAgents(selection, mPos.x, mPos.y);
 
                 // click on nothing
-                if (selection.size() == 0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                if(selection.size() == 0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
                     level->selectionMan()->clearSelection();
-                else if (selectionMan->hasSelection())
+                else if(selectionMan->hasSelection())
                 {
                     // clicked a new agent
-                    if (selectionMan->isSelected(selection.front()))
+                    if(selectionMan->isSelected(selection.front()))
                     {
-                        if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                        if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
                             selectionMan->removeFromSelection(selection);
                     }
                     else
@@ -147,7 +150,7 @@ namespace Steel
                     //Debug::log("EditorBrush::mousePressed(): selection position: ")(selectionMan->selectionPosition()).endl();
                 }
 
-                if (selectionMan->hasSelection())
+                if(selectionMan->hasSelection())
                 {
                     mIsDraggingSelection = true;
                     // saved so that we know what to reset properties to
@@ -163,30 +166,37 @@ namespace Steel
                     Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
                     mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize, mPos / screenSize);
                 }
+
                 break;
             }
+
             case OIS::MB_Right:
+
                 // cancel current selection dragging (translate, etc)
-                if (mIsDraggingSelection)
+                if(mIsDraggingSelection)
                 {
                     mIsDraggingSelectionCancelled = true;
                     selectionMan->setSelectionPositions(mSelectionPosBeforeTransformation);
                     selectionMan->setSelectionRotations(mSelectionRotBeforeTransformation);
                     selectionMan->setSelectionScales(mSelectionScaleBeforeTransformation);
                 }
+
                 break;
+
             default:
                 break;
         }
+
         return selectionMan->selection();
     }
 
-    bool EditorBrush::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    bool EditorBrush::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     {
         mContinuousModeActivated = false;
         auto level = mEngine->level();
+
 //         SelectionManager *selectionMan=level->selectionMan();
-        switch (mMode)
+        switch(mMode)
         {
             case TRANSLATE:
             case ROTATE:
@@ -196,57 +206,69 @@ namespace Steel
                 mousePressedSelectionUpdate(mPos, id);
                 break;
             }
+
             case TERRAFORM:
                 mContinuousModeActivated = true;
-                switch (id)
+
+                switch(id)
                 {
                     case OIS::MB_Middle:
                     {
                         Ogre::Terrain *terrain;
                         auto pos = level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(sTerraBrushVisual->getPosition(), &terrain);
+
                         // keep last valid value
-                        if (terrain != nullptr)
+                        if(terrain != nullptr)
                             mSelectedTerrainHeight = pos;
+
                         break;
                     }
+
                     default:
                         break;
                 }
+
                 break;
+
             case LINK:
             {
                 AgentId aid = mEditor->agentIdUnderMouse();
 
-                Agent *agent=level->agentMan()->getAgent(aid);
-                if(nullptr==agent)
+                Agent *agent = level->agentMan()->getAgent(aid);
+
+                if(nullptr == agent)
                     break;
-                if(INVALID_ID==agent->modelId(MT_LOCATION))
+
+                if(INVALID_ID == agent->modelId(MT_LOCATION))
                     break;
 
                 mFirstLinkedAgent = aid;
                 mContinuousModeActivated = true;
                 break;
             }
+
             default:
                 break;
         }
+
         // not used
         return true;
     }
 
-    bool EditorBrush::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    bool EditorBrush::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     {
-        static const Ogre::String intro="in EditorBrush::mouseReleased(): ";
+        static const Ogre::String intro = "in EditorBrush::mouseReleased(): ";
         auto level = mEngine->level();
-        SelectionManager *selectionMan=level->selectionMan();
-        switch (mMode)
+        SelectionManager *selectionMan = level->selectionMan();
+
+        switch(mMode)
         {
             case TRANSLATE:
             case ROTATE:
             case SCALE:
-                if (id == OIS::MB_Left)
+                if(id == OIS::MB_Left)
                 {
-                    if (mIsSelecting)
+                    if(mIsSelecting)
                     {
                         Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
                         mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize,
@@ -254,12 +276,15 @@ namespace Steel
 
                         std::list<AgentId> selection;
                         mSelectionBox->performSelection(selection, mEngine->level()->camera()->cam());
-                        if (selection.size() > 0)
+
+                        if(selection.size() > 0)
                             selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
+
                         mSelectionBox->setVisible(false);
                         mIsSelecting = false;
                     }
-                    if (mIsDraggingSelection)
+
+                    if(mIsDraggingSelection)
                     {
                         mIsDraggingSelection = false;
                         mIsDraggingSelectionCancelled = false;
@@ -267,43 +292,53 @@ namespace Steel
                         mSelectionRotBeforeTransformation = selectionMan->selectionRotations();
                     }
                 }
+
                 break;
+
             case TERRAFORM:
             {
-                if (mContinuousModeActivated)
+                if(mContinuousModeActivated)
                 {
                     //now might be the right time to update blendmaps
-                    for (auto it = mModifiedTerrains.begin(); it != mModifiedTerrains.end(); ++it)
+                    for(auto it = mModifiedTerrains.begin(); it != mModifiedTerrains.end(); ++it)
                     {
                         Ogre::Terrain *terrain = *it;
                         terrain->update(true);
                         level->terrainManager()->updateBlendMaps(terrain);
 //                             level->terrainManager()->updateHeightmap(terrain);
                         continue;
-                        for (int index = 1; index < terrain->getLayerCount(); ++index)
+
+                        for(int index = 1; index < terrain->getLayerCount(); ++index)
                             terrain->getLayerBlendMap(index)->dirty();
-                        for (int index = 1; index < terrain->getLayerCount(); ++index)
+
+                        for(int index = 1; index < terrain->getLayerCount(); ++index)
                             terrain->getLayerBlendMap(index)->update();
+
                         terrain->updateDerivedData(true);
                     }
                 }
+
                 break;
             }
+
             case LINK:
                 if(mContinuousModeActivated)
                 {
                     AgentId aid = mEditor->agentIdUnderMouse();
-                    if(INVALID_ID==aid)
+
+                    if(INVALID_ID == aid)
                         break;
 
-                    if(aid==mFirstLinkedAgent)
+                    if(aid == mFirstLinkedAgent)
                         break;
 
                     ModelId dst = level->agentMan()->getAgent(aid)->modelId(MT_LOCATION);
-                    if(INVALID_ID==dst)
+
+                    if(INVALID_ID == dst)
                         break;
 
-                    ModelId src=level->agentMan()->getAgent(mFirstLinkedAgent)->modelId(MT_LOCATION);
+                    ModelId src = level->agentMan()->getAgent(mFirstLinkedAgent)->modelId(MT_LOCATION);
+
                     if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                     {
                         if(level->locationMan()->unlinkLocations(src, dst))
@@ -319,13 +354,16 @@ namespace Steel
                             Debug::error(intro)("could not link source LocationModel ")(src)(" to ")(dst).endl();
                     }
                 }
+
                 break;
+
             case NONE:
             default:
                 break;
         }
+
         // clean linking mode state
-        mFirstLinkedAgent=INVALID_ID;
+        mFirstLinkedAgent = INVALID_ID;
         mLinkingLine->clear();
         mLinkingLine->update();
 
@@ -334,10 +372,10 @@ namespace Steel
         return true;
     }
 
-    bool EditorBrush::mouseMoved(const OIS::MouseEvent& evt)
+    bool EditorBrush::mouseMoved(const OIS::MouseEvent &evt)
     {
-        Level *level=mEngine->level();
-        SelectionManager *selectionMan=level->selectionMan();
+        Level *level = mEngine->level();
+        SelectionManager *selectionMan = level->selectionMan();
         Ogre::Real x = float(evt.state.X.abs);
         Ogre::Real y = float(evt.state.Y.abs);
         Ogre::Real _x = x - float(evt.state.X.rel);
@@ -346,31 +384,34 @@ namespace Steel
         Ogre::Real h = float(mEditor->height());
 
         // resize
-        if (mMode == TERRAFORM)
+        if(mMode == TERRAFORM)
         {
-            if (sTerraBrushVisual == nullptr)
+            if(sTerraBrushVisual == nullptr)
                 getBrush(TERRAFORM);
-            if (sTerraBrushVisual != nullptr)
+
+            if(sTerraBrushVisual != nullptr)
             {
-                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                 {
                     checkTerraScaleFactorValue();
+
                     // height
-                    if (evt.state.Z.rel > 0)
+                    if(evt.state.Z.rel > 0)
                         mTerraScale.y *= mTerraScaleFactor;
-                    else if (evt.state.Z.rel < 0)
+                    else if(evt.state.Z.rel < 0)
                         mTerraScale.y /= mTerraScaleFactor;
                 }
-                else if (mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                else if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
                 {
                     checkTerraScaleFactorValue();
+
                     //surface
-                    if (evt.state.Z.rel > 0)
+                    if(evt.state.Z.rel > 0)
                     {
                         mTerraScale.x *= mTerraScaleFactor;
                         mTerraScale.z *= mTerraScaleFactor;
                     }
-                    else if (evt.state.Z.rel < 0)
+                    else if(evt.state.Z.rel < 0)
                     {
                         mTerraScale.x /= mTerraScaleFactor;
                         mTerraScale.z /= mTerraScaleFactor;
@@ -379,16 +420,17 @@ namespace Steel
                 else
                 {
                     // height+surface
-                    if (evt.state.Z.rel > 0)
+                    if(evt.state.Z.rel > 0)
                         mTerraScale *= mTerraScaleFactor;
-                    else if (evt.state.Z.rel < 0)
+                    else if(evt.state.Z.rel < 0)
                         mTerraScale /= mTerraScaleFactor;
                 }
+
                 sTerraBrushVisual->setScale(mTerraScale);
             }
         }
 
-        if (evt.state.buttonDown(OIS::MB_Left))
+        if(evt.state.buttonDown(OIS::MB_Left))
         {
             if(mContinuousModeActivated)
             {
@@ -398,33 +440,38 @@ namespace Steel
                     {
                         if(level->agentMan()->isIdFree(mFirstLinkedAgent))
                             break;
+
                         // draw a link between source and cursor
                         mLinkingLine->clear();
-                        Agent *agent=level->agentMan()->getAgent(mFirstLinkedAgent);
-                        Ogre::Vector2 srcPos=level->camera()->screenPosition(agent->position());
+                        Agent *agent = level->agentMan()->getAgent(mFirstLinkedAgent);
+                        Ogre::Vector2 srcPos = level->camera()->screenPosition(agent->position());
                         // ortho view -> invert y axis
-                        srcPos.y=1.f-srcPos.y;
+                        srcPos.y = 1.f - srcPos.y;
                         // then rescale from [0,1] to [-1,1]
-                        srcPos=srcPos*2.f-1.f;
+                        srcPos = srcPos * 2.f - 1.f;
                         mLinkingLine->addPoint(srcPos);
-                        Ogre::Vector2 dstPos(x/w,1.f-y/h);
-                        dstPos=dstPos*2.f-1.f;
+                        Ogre::Vector2 dstPos(x / w, 1.f - y / h);
+                        dstPos = dstPos * 2.f - 1.f;
                         mLinkingLine->addPoint(dstPos);
                         mLinkingLine->update();
                         break;
                     }
+
                     default:
                         break;
                 }
             }
-            if (mIsDraggingSelection)
+
+            if(mIsDraggingSelection)
             {
-                if (selectionMan->hasSelection())
+                if(selectionMan->hasSelection())
                 {
                     std::list<ModelId> selection;
                     mEngine->pickAgents(selection, evt.state.X.abs, evt.state.Y.abs);
-                    if (mIsDraggingSelectionCancelled)
+
+                    if(mIsDraggingSelectionCancelled)
                         return true;
+
                     Ogre::Vector3 selectionPos = selectionMan->selectionPosition();
                     Ogre::Vector3 src, dst;
                     Ogre::Vector3 camPos = mEngine->level()->camera()->camNode()->getPosition();
@@ -433,13 +480,13 @@ namespace Steel
                     Ogre::Plane vPlane = Ogre::Plane(dirToCam, selectionPos);
                     Ogre::Plane hPlane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos);
 
-                    switch (mMode)
+                    switch(mMode)
                     {
                         case TRANSLATE:
                         {
-                            if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                            if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                             {
-                                if (mousePlaneProjection(vPlane, _x / w, _y / h, src)
+                                if(mousePlaneProjection(vPlane, _x / w, _y / h, src)
                                         && mousePlaneProjection(vPlane, x / w, y / h, dst))
                                 {
                                     selectionMan->moveSelection(Ogre::Vector3(.0f, (dst - src).y, .0f));
@@ -447,7 +494,7 @@ namespace Steel
                             }
                             else
                             {
-                                if (mousePlaneProjection(hPlane, _x / w, _y / h, src)
+                                if(mousePlaneProjection(hPlane, _x / w, _y / h, src)
                                         && mousePlaneProjection(hPlane, x / w, y / h, dst))
                                 {
                                     auto dpos = dst - src;
@@ -457,12 +504,14 @@ namespace Steel
                             }
                         }
                         break;
+
                         case ROTATE:
                         {
-                            if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                            if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                             {
                                 Ogre::Plane plane = Ogre::Plane(dirToCam, (camPos + selectionPos) / 2.f);
-                                if (mousePlaneProjection(plane, _x / w, _y / h, src)
+
+                                if(mousePlaneProjection(plane, _x / w, _y / h, src)
                                         && mousePlaneProjection(plane, x / w, y / h, dst))
                                 {
                                     src -= selectionPos;
@@ -473,7 +522,7 @@ namespace Steel
                             }
                             else
                             {
-                                if (mousePlaneProjection(hPlane, _x / w, _y / h, src)
+                                if(mousePlaneProjection(hPlane, _x / w, _y / h, src)
                                         && mousePlaneProjection(hPlane, x / w, y / h, dst))
                                 {
                                     src -= selectionPos;
@@ -489,13 +538,15 @@ namespace Steel
                             }
                         }
                         break;
+
                         case SCALE:
                         {
-                            if (mousePlaneProjection(hPlane, _x / w, _y / h, src)
+                            if(mousePlaneProjection(hPlane, _x / w, _y / h, src)
                                     && mousePlaneProjection(hPlane, x / w, y / h, dst))
                             {
                                 Ogre::Real factor = selectionPos.distance(dst) / selectionPos.distance(src);
-                                if (mInputMan->isKeyDown(OIS::KC_LSHIFT))
+
+                                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                                     selectionMan->expandSelection(
                                         selectionPos.distance(dst) - selectionPos.distance(src));
                                 else
@@ -503,15 +554,18 @@ namespace Steel
                             }
                         }
                         break;
+
                         case TERRAFORM:
                             // not only done when the mouse moves, but also when it stays at the same place with a button held down,
                             // hence, implemented in frameRenderingQueued
                             break;
+
                         default:
                             break;
                     } //end of switch (mMode)
                 } //end of if(selectionMan->hasSelection())
             } // end of if(mIsDraggingSelection)
+
             if(mIsSelecting)
             {
                 Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
@@ -519,13 +573,14 @@ namespace Steel
                                           mInputMan->mousePos() / screenSize);
             }// end of if(mIsSelecting)
         } //end of if(evt.state.buttonDown(OIS::MB_Left))
+
         // not used
         return true;
     }
 
     void EditorBrush::checkTerraScaleFactorValue()
     {
-        if(Ogre::Math::Abs(mTerraScaleFactor-1.f)<0.001)
+        if(Ogre::Math::Abs(mTerraScaleFactor - 1.f) < 0.001)
         {
             Debug::warning("EditorBrush::TerraScaleFactor value is very close to 1 (");
             Debug::warning(mTerraScaleFactor)("). Terraforming might prove hard. Set it to x>1.1 in the conf.").endl();
@@ -536,11 +591,13 @@ namespace Steel
     {
         Ogre::Ray ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x, y);
         std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-        if (result.first)
+
+        if(result.first)
         {
             pos = ray.getPoint(result.second);
             return true;
         }
+
         return false;
     }
 
@@ -556,21 +613,25 @@ namespace Steel
 
         // terraform does not need a selection
         //TODO: put this in a proper terraform method
-        if (mMode == TERRAFORM)
+        if(mMode == TERRAFORM)
         {
-            if (sTerraBrushVisual == nullptr)
+            if(sTerraBrushVisual == nullptr)
                 getBrush(TERRAFORM);
+
             auto level = mEngine->level();
-            if (level != nullptr && sTerraBrushVisual != nullptr)
+
+            if(level != nullptr && sTerraBrushVisual != nullptr)
             {
                 // move
                 auto ray = mEngine->level()->camera()->cam()->getCameraToViewportRay(x / w, y / h);
                 auto hitTest = level->terrainManager()->intersectRay(ray);
-                if (hitTest.hit)
+
+                if(hitTest.hit)
                 {
                     sTerraBrushVisual->setVisible(true);
                     sTerraBrushVisual->setPosition(hitTest.position);
-                    if (mContinuousModeActivated)
+
+                    if(mContinuousModeActivated)
                     {
                         // action !
                         Ogre::TerrainGroup::TerrainList newTids;
@@ -578,13 +639,16 @@ namespace Steel
                         Ogre::Real _intensity = intensity();
                         Ogre::Real _radius = radius();
                         TerrainManager::RaiseMode rMode = TerrainManager::RELATIVE;
-                        if (mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Right))
+
+                        if(mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Right))
                             _intensity = -_intensity;
-                        if (mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Middle))
+
+                        if(mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Middle))
                         {
                             rMode = TerrainManager::ABSOLUTE;
                             hitTest.position.y = mSelectedTerrainHeight;
                         }
+
                         newTids = level->terrainManager()->raiseTerrainAt(hitTest.position, _intensity, _radius, rMode,
                                   mRaiseShape);
                         mModifiedTerrains.insert(newTids.begin(), newTids.end());
@@ -596,93 +660,117 @@ namespace Steel
             else
                 Debug::warning("EditorBrush::frameRenderingQueued() no level, really ?").endl();
         }
+
         return true;
     }
 
-    void EditorBrush::processCommand(std::vector<Ogre::String> command)
+    bool EditorBrush::processCommand(std::vector<Ogre::String> command)
     {
         static const Ogre::String intro = "EditorBrush::processCommand(): ";
-        if (command[0] == "mode")
+
+        if(command[0] == "mode")
         {
             command.erase(command.begin());
+
             // drop terraform brush model
-            if (command[0] == "translate")
+            if(command[0] == "translate")
                 setMode(TRANSLATE);
-            else if (command[0] == "rotate")
+            else if(command[0] == "rotate")
                 setMode(ROTATE);
-            else if (command[0] == "scale")
+            else if(command[0] == "scale")
                 setMode(SCALE);
-            else if (command[0] == "terraform")
+            else if(command[0] == "terraform")
                 setMode(TERRAFORM);
-            else if (command[0] == "link")
+            else if(command[0] == "link")
                 setMode(LINK);
             else
-                Debug::warning(intro)("unknown mode ").quotes(StringUtils::join(command,".")).endl();
+            {
+                Debug::warning(intro)("unknown mode ").quotes(StringUtils::join(command, ".")).endl();
+                return false;
+            }
         }
-        else if (command[0] == "terrabrush")
+        else if(command[0] == "terrabrush")
         {
             command.erase(command.begin());
-            if (command.size() > 0 && command[0] == "distribution")
+
+            if(command.size() > 0 && command[0] == "distribution")
             {
                 command.erase(command.begin());
-                if (command.size() == 0)
+
+                if(command.size() == 0)
                 {
                     Debug::warning(intro)("terrabrush needs a distribution").endl();
-                    return;
+                    return false;
                 }
-                if (command[0] == "uniform")
+
+                if(command[0] == "uniform")
                     mRaiseShape = TerrainManager::RaiseShape::UNIFORM;
-                else if (command[0] == "round")
+                else if(command[0] == "round")
                     mRaiseShape = TerrainManager::RaiseShape::ROUND;
-                else if (command[0] == "sinh")
+                else if(command[0] == "sinh")
                     mRaiseShape = TerrainManager::RaiseShape::SINH;
-                else if (command[0] == "triangular")
+                else if(command[0] == "triangular")
                     mRaiseShape = TerrainManager::RaiseShape::TRANGULAR;
                 else
                 {
                     Debug::warning("EditorBrush::processCommand(): unknown terrabrush distribution").endl();
-                    return;
+                    return false;
                 }
+            }
+            else
+            {
+                Debug::warning("EditorBrush::processCommand(): unknown terrabrush command: ")(command).endl();
+                return false;
             }
         }
         else
         {
             Debug::warning("EditorBrush::processCommand(): unknown command: ")(command).endl();
+            return false;
         }
+
+        return true;
     }
 
     void EditorBrush::setMode(BrushMode mode)
     {
-        if (mode == mMode)
+        if(mode == mMode)
             return;
 
         // now we know we are setting a new mode
         dropBrush();
-        if (mMode == TERRAFORM)
+
+        if(mMode == TERRAFORM)
             Ogre::Root::getSingletonPtr()->removeFrameListener(this);
 
-        switch (mode)
+        switch(mode)
         {
             case TRANSLATE:
                 mMode = TRANSLATE;
                 break;
+
             case ROTATE:
                 mMode = ROTATE;
                 break;
+
             case SCALE:
                 mMode = SCALE;
                 break;
+
             case TERRAFORM:
                 mMode = TERRAFORM;
                 getBrush(TERRAFORM);
                 Ogre::Root::getSingletonPtr()->addFrameListener(this);
                 break;
+
             case LINK:
-                mMode=LINK;
+                mMode = LINK;
                 break;
+
             case NONE:
                 mMode = NONE;
                 break;
+
             default:
                 Debug::warning("in EditorBrush::setMode(): ")("unknown mode ").quotes(mode).endl();
                 mMode = NONE;
@@ -692,21 +780,24 @@ namespace Steel
 
     void EditorBrush::getBrush(BrushMode mode)
     {
-        switch (mMode)
+        switch(mMode)
         {
             case TERRAFORM:
-                if (sTerraBrushVisual == nullptr)
+                if(sTerraBrushVisual == nullptr)
                 {
                     auto level = mEngine->level();
-                    if (level != nullptr)
+
+                    if(level != nullptr)
                     {
                         auto sm = level->sceneManager();
                         Ogre::MeshPtr mesh = Cylinder::getMesh(sm, 1, 1);
-                        Ogre::Entity* entity;
-                        if (sm->hasEntity("cylinderEntity"))
+                        Ogre::Entity *entity;
+
+                        if(sm->hasEntity("cylinderEntity"))
                             entity = sm->getEntity("cylinderEntity");
                         else
                             entity = sm->createEntity("cylinderEntity", mesh);
+
                         sTerraBrushVisual = level->levelRoot()->createChildSceneNode("terraBrushVisual");
 
                         Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().create("terraBrushVisual_material",
@@ -728,8 +819,10 @@ namespace Steel
                 }
                 else
                     sTerraBrushVisual->setVisible(true);
+
                 sTerraBrushVisual->setScale(mTerraScale);
                 break;
+
             default:
                 break;
         }
@@ -737,16 +830,18 @@ namespace Steel
 
     void EditorBrush::dropBrush()
     {
-        switch (mMode)
+        switch(mMode)
         {
             case TERRAFORM:
-                if (sTerraBrushVisual != nullptr)
+                if(sTerraBrushVisual != nullptr)
                 {
                     OgreUtils::destroySceneNode(sTerraBrushVisual);
                     sTerraBrushVisual = nullptr;
                 }
+
                 mModifiedTerrains.clear();
                 break;
+
             default:
                 break;
         }
@@ -765,14 +860,14 @@ namespace Steel
 
     void EditorBrush::onHide()
     {
-        if (nullptr != mSelectionBox)
+        if(nullptr != mSelectionBox)
         {
             OgreUtils::destroySceneNode(mSelectionBox->getParentSceneNode());
             delete mSelectionBox;
             mSelectionBox = nullptr;
         }
 
-        if (nullptr != mLinkingLine)
+        if(nullptr != mLinkingLine)
         {
             mLinkingLine->clear();
             mEngine->level()->levelRoot()->detachObject(mLinkingLine);
@@ -787,8 +882,9 @@ namespace Steel
 
     void EditorBrush::popMode()
     {
-        if (mModeStack.size() == 0)
+        if(mModeStack.size() == 0)
             return;
+
         BrushMode mode = mModeStack.back();
         mModeStack.pop_back();
         setMode(mode);
@@ -800,4 +896,5 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 

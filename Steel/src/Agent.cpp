@@ -298,8 +298,11 @@ namespace Steel
         }
 
         // tags
-        auto _tags = tags();
-        root[Agent::TAGS_ATTRIBUTE] = JsonUtils::toJson(TagManager::instance().fromTags(_tags));
+        if(mTags.size())
+        {
+            auto _tags = tags();
+            root[Agent::TAGS_ATTRIBUTE] = JsonUtils::toJson(TagManager::instance().fromTags(_tags));
+        }
         return root;
     }
 

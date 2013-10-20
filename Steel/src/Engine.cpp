@@ -32,11 +32,11 @@
 
 namespace Steel
 {
-    const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT="Engine::nonEditModeGrabsInput";
-    const Ogre::String Engine::COLORED_DEBUG="Engine::coloredDebug";
+    const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT = "Engine::nonEditModeGrabsInput";
+    const Ogre::String Engine::COLORED_DEBUG = "Engine::coloredDebug";
 
     Engine::Engine(Ogre::String confFilename)
-    : mRootDir("."), mConfig(confFilename),
+        : mRootDir("."), mConfig(confFilename),
           mRoot(nullptr), mRenderWindow(nullptr), mInputMan(),
           mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(nullptr), mRayCaster(nullptr), mEditMode(false),
           mCommands(std::list<std::vector<Ogre::String> >())
@@ -57,7 +57,8 @@ namespace Steel
     void Engine::removeEngineEventListener(EngineEventListener *listener)
     {
         auto it = mListeners.find(listener);
-        if (it != mListeners.end())
+
+        if(it != mListeners.end())
             mListeners.erase(it);
     }
 
@@ -68,12 +69,13 @@ namespace Steel
 
     Level *Engine::setCurrentLevel(Level *newLevel)
     {
-        if (nullptr != mLevel && nullptr != newLevel && mLevel->name() == newLevel->name())
+        if(nullptr != mLevel && nullptr != newLevel && mLevel->name() == newLevel->name())
         {
             Debug::warning("Engine::setCurrentLevel(): ")(newLevel->name())(" is already set as current.").endl();
             return mLevel;
         }
-        if (nullptr != mLevel)
+
+        if(nullptr != mLevel)
         {
             fireOnLevelUnsetEvent();
             // TODO: tell the level it is unset, instead of doing stuff it knows better about
@@ -85,8 +87,9 @@ namespace Steel
 
         loadConfig(mConfig);
 
-        if (nullptr != newLevel)
+        if(nullptr != newLevel)
             fireOnLevelSetEvent();
+
         return previous;
     }
 
@@ -140,7 +143,7 @@ namespace Steel
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         mConfig.load();
 
-        Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG,true));
+        Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG, true));
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
         mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), "");
@@ -155,18 +158,21 @@ namespace Steel
         Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
 
         Ogre::String secName, typeName, archName;
-        while (seci.hasMoreElements())
+
+        while(seci.hasMoreElements())
         {
             secName = seci.peekNextKey();
             Ogre::ConfigFile::SettingsMultiMap *settings = seci.getNext();
             Ogre::ConfigFile::SettingsMultiMap::iterator i;
-            for (i = settings->begin(); i != settings->end(); ++i)
+
+            for(i = settings->begin(); i != settings->end(); ++i)
             {
                 typeName = i->first;
                 archName = i->second;
                 Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName, true);
             }
         }
+
         auto orm = Ogre::ResourceGroupManager::getSingletonPtr();
         File dir = dataDir();
         orm->addResourceLocation(dir.fullPath(), "FileSystem", "Steel", true);
@@ -180,16 +186,20 @@ namespace Steel
 
         // setup a renderer
         Ogre::RenderSystemList renderers = mRoot->getAvailableRenderers();
-        if (renderers.empty())
+
+        if(renderers.empty())
         {
             throw std::runtime_error("Could not find a valid renderer.");
         }
+
         // we need at least one renderer to do anything useful
         Ogre::RenderSystem *renderSystem = renderers[0];
-        if (nullptr == renderSystem)
+
+        if(nullptr == renderSystem)
         {
             throw std::runtime_error("Could not find a valid renderer.");
         }
+
         mRoot->setRenderSystem(renderSystem);
 
         return 0;
@@ -199,7 +209,8 @@ namespace Steel
     {
         Debug::log("Engine::postWindowingSetup()").endl().indent();
         int init_code = File::init();
-        if (init_code != 0)
+
+        if(init_code != 0)
         {
             Debug::error("Engine::postWindowingSetup(): error initializing File system.");
             return init_code;
@@ -228,14 +239,15 @@ namespace Steel
 
         // engine ready.
         // unit testing
-        if (Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
+        if(Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
         {
             Debug::log("Starting unit tests...").endl();
             bool abortOnFail = Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests_abort_on_fail"), true);
             bool all_passed = startTests(this, abortOnFail);
-            if (!all_passed)
+
+            if(!all_passed)
             {
-                if (abortOnFail)
+                if(abortOnFail)
                 {
                     Debug::error("Aborting.");
                     Debug::log(" (Set Engine::utests_abort_on_fail to true in the config to ignore unit tests results)").endl();
@@ -243,41 +255,51 @@ namespace Steel
                 }
             }
         }
+
         return 0;
     }
 
     void Engine::shutdown()
     {
         saveConfig(mConfig);
-        if (mIsInMainLoop && !mMustAbortMainLoop)
+
+        if(mIsInMainLoop && !mMustAbortMainLoop)
         {
             mMustAbortMainLoop = true;
             return;
         }
+
         Debug::log("Engine::shutdown()...").endl();
-        if(nullptr!=mRayCaster)
+
+        if(nullptr != mRayCaster)
         {
             delete mRayCaster;
-            mRayCaster=nullptr;
+            mRayCaster = nullptr;
         }
+
         mUI.shutdown();
         mInputMan.shutdown();
-        if (mLevel != nullptr)
+
+        if(mLevel != nullptr)
         {
             delete mLevel;
             mLevel = nullptr;
         }
-        if (mRenderWindow != nullptr)
+
+        if(mRenderWindow != nullptr)
         {
             delete mRenderWindow;
             mRenderWindow = nullptr;
         }
+
         File::shutdown();
-        if (nullptr != mRenderWindow)
+
+        if(nullptr != mRenderWindow)
         {
             Ogre::Root::getSingletonPtr()->destroyRenderTarget(mRenderWindow);
             mRenderWindow = nullptr;
         }
+
         Ogre::Root::getSingletonPtr()->shutdown();
         Debug::log("Steel: done").endl();
     }
@@ -285,14 +307,16 @@ namespace Steel
     void Engine::fireOnLevelSetEvent()
     {
         std::vector<EngineEventListener *> listeners(mListeners.begin(), mListeners.end());
-        for (auto it = listeners.begin(); it != listeners.end(); ++it)
+
+        for(auto it = listeners.begin(); it != listeners.end(); ++it)
             (*it)->onLevelSet(mLevel);
     }
 
     void Engine::fireOnLevelUnsetEvent()
     {
         std::vector<EngineEventListener *> listeners(mListeners.begin(), mListeners.end());
-        for (auto it = listeners.begin(); it != listeners.end(); ++it)
+
+        for(auto it = listeners.begin(); it != listeners.end(); ++it)
             (*it)->onLevelUnset(mLevel);
     }
 
@@ -310,6 +334,7 @@ namespace Steel
 //         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Ogre/seaweed.model");
 //         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Btree models/patrol.model");
 //         mUI.editor().processCommand("instanciate./media/a0/cpp/1210/usmb/install_dir/data/resources/Model composites/utest_sequence.model_refs");
+        //registerCommand("editor.instanciate./media/a0/cpp/1210/usmb/install_dir/data/resources/Model composites/rock_big.model_refs");
 
         const double ms2us = 1000.;
 
@@ -317,23 +342,24 @@ namespace Steel
         long unsigned frameStart, graphicsStart, engineStart;
         frameStart = graphicsStart = engineStart = timer.getMilliseconds();
 
-        while (!mMustAbortMainLoop)
+        while(!mMustAbortMainLoop)
         {
             processAllCommands();
 
             frameStart = engineStart;
             mMustAbortMainLoop = !mRoot->_fireFrameStarted();
 
-            if (!processInputs())
+            if(!processInputs())
             {
                 mIsInMainLoop = false;
                 mMustAbortMainLoop = true;
                 return false;
             }
+
             // update file watching
             File::dispatchEvents();
 
-            if (nullptr != mLevel)
+            if(nullptr != mLevel)
                 mLevel->update(float(timer.getMilliseconds() - graphicsStart) / 1000.f);
             else
                 SignalManager::instance().fireEmittedSignals();
@@ -345,7 +371,8 @@ namespace Steel
             mRoot->_updateAllRenderTargets();
             mRenderWindow->update();
             mRoot->_fireFrameRenderingQueued();
-            if (!mRoot->_fireFrameEnded())
+
+            if(!mRoot->_fireFrameEnded())
                 break;
 
             engineStart = timer.getMilliseconds();
@@ -354,31 +381,33 @@ namespace Steel
 
             double dt = 1000. / 30. - mStats.lastFullFrameDuration;
 
-            if (dt > 0)
+            if(dt > 0)
                 usleep(static_cast<useconds_t>(dt * ms2us));
 
-            if (singleLoop)
+            if(singleLoop)
                 break;
         }
+
         mIsInMainLoop = false;
         return true;
     }
 
-    bool Engine::keyPressed(const OIS::KeyEvent& evt)
+    bool Engine::keyPressed(const OIS::KeyEvent &evt)
     {
         return true;
     }
 
-    bool Engine::keyReleased(const OIS::KeyEvent& evt)
+    bool Engine::keyReleased(const OIS::KeyEvent &evt)
     {
-        if (mEditMode)
+        if(mEditMode)
         {
             //EDITOR MODE
-            switch (evt.key)
+            switch(evt.key)
             {
                 case OIS::KC_GRAVE:
                     stopEditMode();
                     break;
+
                 default:
 //                     Debug::log("Engine::keyReleased: ")(evt.key).endl();
                     break;
@@ -387,11 +416,12 @@ namespace Steel
         else
         {
             //GAMING MODE
-            switch (evt.key)
+            switch(evt.key)
             {
                 case OIS::KC_GRAVE:
                     startEditMode();
                     break;
+
                 case OIS::KC_R:
                 case OIS::KC_S:
                 default:
@@ -399,20 +429,21 @@ namespace Steel
                     break;
             }
         }
+
         return true;
     }
 
-    bool Engine::mouseMoved(const OIS::MouseEvent& evt)
+    bool Engine::mouseMoved(const OIS::MouseEvent &evt)
     {
         return true;
     }
 
-    bool Engine::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    bool Engine::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     {
         return true;
     }
 
-    bool Engine::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
+    bool Engine::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     {
         return true;
     }
@@ -424,7 +455,8 @@ namespace Steel
         Ogre::Real _x = float(x) / float(mRenderWindow->getWidth());
         Ogre::Real _y = float(y) / float(mRenderWindow->getHeight());
         Ogre::Ray ray = mLevel->camera()->cam()->getCameraToViewportRay(_x, _y);
-        if (!mRayCaster->fromRay(ray, nodes))
+
+        if(!mRayCaster->fromRay(ray, nodes))
         {
             return;
         }
@@ -435,21 +467,23 @@ namespace Steel
 
     bool Engine::processInputs()
     {
-        if (mMustAbortMainLoop)
+        if(mMustAbortMainLoop)
             return false;
+
         //update inputs
         mInputMan.update();
 
         //process keyboard
         bool moveCam = false;
         float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
-        for (std::list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end();
+
+        for(std::list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end();
                 ++it)
         {
-            if (mEditMode)
+            if(mEditMode)
             {
                 // ONLY IN edit mode
-                switch (*it)
+                switch(*it)
                 {
                     default:
                         break;
@@ -457,63 +491,74 @@ namespace Steel
             }
             else
             {
-                if (mInputMan.isModifierDown(OIS::Keyboard::Ctrl))
+                if(mInputMan.isModifierDown(OIS::Keyboard::Ctrl))
                     speed *= 2.f;
+
                 // ONLY NOT IN edit mode
-                switch (*it)
+                switch(*it)
                 {
                     case OIS::KC_W:
                         dz -= speed;
                         moveCam = true;
                         break;
+
                     case OIS::KC_A:
                         dx -= speed;
                         moveCam = true;
                         break;
+
                     case OIS::KC_S:
                         dz += speed;
                         moveCam = true;
                         break;
+
                     case OIS::KC_D:
                         dx += speed;
                         moveCam = true;
                         break;
+
                     case OIS::KC_SPACE:
                         dy += speed;
                         moveCam = true;
                         break;
+
                     case OIS::KC_LSHIFT:
                         dy -= speed;
                         moveCam = true;
                         break;
+
                     default:
                         break;
                 }
             }
+
             // ALL THE TIME
-            switch (*it)
+            switch(*it)
             {
                 case OIS::KC_ESCAPE:
                     return false;
                     break;
+
                 default:
                     break;
             }
         }
 
-        if (moveCam)
+        if(moveCam)
             mLevel->camera()->translate(dx, dy, dz, speed);
 
         //process mouse
-        if (mInputMan.hasMouseMoved())
+        if(mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
-            if (!mEditMode)
+
+            if(!mEditMode)
             {
                 mLevel->camera()->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
 //                 Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
             }
         }
+
         mInputMan.resetFrameBasedData();
         return true;
 
@@ -521,61 +566,79 @@ namespace Steel
 
     bool Engine::processCommand(std::vector<Ogre::String> command)
     {
-        if (command[0] == "level")
+        if(command[0] == "level")
         {
             command.erase(command.begin());
             mLevel->processCommand(command);
         }
-        if (command[0] == "editor")
+        else if(command[0] == "ui")
         {
             command.erase(command.begin());
-            mUI.editor().processCommand(command);
+            return mUI.processCommand(command);
         }
-        else if (command[0] == "reloadConfig")
+        else if(command[0] == "editor")
+        {
+            command.erase(command.begin());
+            return mUI.editor().processCommand(command);
+        }
+        else if(command[0] == "reloadConfig")
         {
             loadConfig(mConfig);
         }
-        else if (command[0] == "set_level")
+        else if(command[0] == "set_level")
         {
-            if (command.size() > 1)
+            if(command.size() > 1)
             {
                 auto newName = StringUtils::join(command, ".", 1);
-                if (newName != mLevel->name())
+
+                if(newName != mLevel->name())
                 {
                     // params should be valid now
                     Level *level = createLevel(newName);
                     Level *prev = setCurrentLevel(level);
-                    if (level->getSavefile().exists())
+
+                    if(level->getSavefile().exists())
                         level->load();
+
                     delete prev;
                 }
                 else
                 {
                     Debug::warning("Engine::processCommand(): a new level requires a new name. Command was:");
                     Debug::warning(StringUtils::join(command, ".")).endl();
+                    return false;
                 }
             }
             else
             {
                 Debug::warning("Engine::processCommand(): invalid command (missing level name ?):");
                 Debug::warning(StringUtils::join(command, ".")).endl();
+                return false;
             }
+        }
+        else if(command[0] == "register")
+        {
+            command.erase(command.begin());
+            registerCommand(command);
         }
         else
         {
             Debug::warning("Engine::processCommand(): unknown command ");
             Debug::warning(StringUtils::join(command, ".")).endl();
+            return false;
         }
+
         return true;
     }
 
     void Engine::processAllCommands()
     {
-        while (!mCommands.empty())
+        while(!mCommands.empty())
         {
             std::vector<Ogre::String> command = mCommands.front();
             mCommands.pop_front();
-            if (!processCommand(command))
+
+            if(!processCommand(command))
                 break;
         }
     }
@@ -614,11 +677,12 @@ namespace Steel
     void Engine::resizeWindow(int width, int height)
     {
 
-        if (mRenderWindow)
+        if(mRenderWindow)
         {
             mRenderWindow->resize(width, height);
             mRenderWindow->windowMovedOrResized();
-            if (mLevel->camera())
+
+            if(mLevel->camera())
             {
                 Ogre::Real aspectRatio = Ogre::Real(width) / Ogre::Real(height);
                 mLevel->camera()->cam()->setAspectRatio(aspectRatio);
@@ -634,10 +698,12 @@ namespace Steel
     void Engine::setRootDir(File rootdir)
     {
         std::string s = "Steel::Engine: setting application root dir to ";
-        if (Debug::isInit)
+
+        if(Debug::isInit)
             Debug::log(s)(rootdir.fullPath()).endl();
         else
             std::cout << (s + rootdir.fullPath()) << std::endl;
+
         mRootDir = rootdir;
         mConfig = mRootDir.subfile(mConfig.file().fileName());
     }
@@ -655,7 +721,7 @@ namespace Steel
 //         Debug::log("Engine::stopEditMode()").endl();
         mEditMode = false;
         mUI.stopEditMode();
-        mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT,true));
+        mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
     }
 
 }

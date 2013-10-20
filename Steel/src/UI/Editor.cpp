@@ -34,7 +34,7 @@ namespace Steel
 
     const char *Editor::SELECTION_TAGS_INFO_BOX = "selectionTagsInfoBox";
     const char *Editor::SELECTIONS_TAG_EDIT_BOX = "selection_tags_editbox";
-    const char *Editor::AGENT_TAG_ITEM_NAME = "agentTagItem";
+    const char *Editor::AGENT_TAG_ITEM_NAME = "agenttagitem";
 
     const char *Editor::SELECTION_PATH_INFO_BOX = "selectionPathsInfoBox";
     const char *Editor::SELECTIONS_PATH_EDIT_BOX = "selection_path_editbox";
@@ -118,21 +118,21 @@ namespace Steel
 
     void Editor::init(unsigned int width, unsigned int height)
     {
-        init(width, height, nullptr, nullptr, nullptr);
+        init(width, height, nullptr, nullptr);
     }
 
-    void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui, InputManager *inputMan)
+    void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui)
     {
         Debug::log("Editor::init()").endl();
 
         if(nullptr != engine)
+        {
             mEngine = engine;
+            mInputMan = engine->inputMan();
+        }
 
         if(nullptr != ui)
             mUI = ui;
-
-        if(nullptr != inputMan)
-            mInputMan = inputMan;
 
         mDataDir = mUI->dataDir().subfile("editor").fullPath();
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
@@ -943,7 +943,18 @@ namespace Steel
                 break;
 
             case OIS::KC_DELETE:
-                selectionMan->deleteSelection();
+            {
+                auto child = mDocument->GetElementById("editor");
+
+                if(nullptr == child || !child->IsPseudoClassSet("focus"))
+                {
+                    selectionMan->deleteSelection();
+                }
+            }
+            break;
+
+            case OIS::KC_F5:
+                processCommand("engine.register.ui.reload");
                 break;
 
             default:
@@ -1275,8 +1286,7 @@ namespace Steel
 
             if(inputField == nullptr)
             {
-                Debug::error(
-                    "Editor::processClickEvent(): can't find level name input field with id=\"level_name\". Aborted.").endl();
+                Debug::error("Editor::processClickEvent(): can't find level name input field with id=\"level_name\". Aborted.").endl();
                 return;
             }
 
@@ -1306,7 +1316,7 @@ namespace Steel
                 return;
             }
         }
-        else if(Ogre::StringUtil::startsWith(rawCommand, "selection.tag.unset."))
+        else if(Ogre::StringUtil::startsWith(rawCommand, "selection.tag.unset"))
         {
             // valid command, nothing to add
         }
@@ -1444,16 +1454,16 @@ namespace Steel
             processCommand(rawCommand);
     }
 
-    void Editor::processCommand(Ogre::String rawCommand)
+    bool Editor::processCommand(Ogre::String rawCommand)
     {
         if("NoValue" == rawCommand)
-            return;
+            return true;
 
         Debug::log("Editor::processCommand(raw=")(rawCommand)(")").endl();
-        processCommand(StringUtils::split(std::string(rawCommand), std::string(".")));
+        return processCommand(StringUtils::split(std::string(rawCommand), std::string(".")));
     }
 
-    void Editor::processCommand(std::vector<Ogre::String> command)
+    bool Editor::processCommand(std::vector<Ogre::String> command)
     {
         Ogre::String intro = "in Editor::processCommand(): ";
 
@@ -1472,20 +1482,23 @@ namespace Steel
             else if(command[0] == "options")
             {
                 command.erase(command.begin());
-                processOptionCommand(command);
+                return processOptionCommand(command);
             }
             else
-                Debug::warning(intro)("unkown command.").endl();
+            {
+                Debug::warning(intro)("unkown command: ")(command).endl();
+                return false;
+            }
         }
         else if(command[0] == "editorbrush")
         {
             command.erase(command.begin());
-            mBrush.processCommand(command);
+            return mBrush.processCommand(command);
         }
         else if(command[0] == "engine")
         {
             command.erase(command.begin());
-            mEngine->processCommand(command);
+            return mEngine->processCommand(command);
         }
         else if(command[0] == "instanciate")
         {
@@ -1496,19 +1509,20 @@ namespace Steel
             {
                 Debug::error(intro)("command \"")(command);
                 Debug::error("\" contains no file !").endl();
-                return;
+                return false;
             }
 
             File file(StringUtils::join(command, "."));
 
             if(file.exists())
             {
-                instanciateResource(file);
+                return instanciateResource(file);
             }
             else
             {
                 Debug::warning(intro)("file \"")(file)("\" not found for command \"");
                 Debug::warning(command)("\". Aborted.").endl();
+                return false;
             }
         }
         else if(command[0] == "selection")
@@ -1519,9 +1533,8 @@ namespace Steel
             {
                 if(command.size() < 2)
                 {
-                    Debug::error(intro)("command \"")(command);
-                    Debug::error("\" is incomplete").endl();
-                    return;
+                    Debug::error(intro)("command ").quotes(command)(" is incomplete").endl();
+                    return false;
                 }
 
                 command.erase(command.begin());// tag
@@ -1533,7 +1546,7 @@ namespace Steel
                     if(command.size() == 0)
                     {
                         Debug::error(intro)("no tag to set").endl();
-                        return;
+                        return false;
                     }
 
                     if(nullptr != level && selectionMan->hasSelection())
@@ -1545,6 +1558,8 @@ namespace Steel
                         if(nullptr != form)
                             form->Focus();
                     }
+                    else
+                        return false;
                 }
                 else if(command[0] == "unset")
                 {
@@ -1554,7 +1569,7 @@ namespace Steel
                     if(command.size() == 0)
                     {
                         Debug::error(intro)("no tag to unset").endl();
-                        return;
+                        return false;
                     }
 
                     if(nullptr != mEngine->level() && mEngine->level()->selectionMan()->hasSelection())
@@ -1565,10 +1580,17 @@ namespace Steel
 
                         if(nullptr != form)
                             form->Focus();
+
+                        return true;
                     }
+                    else
+                        return false;
                 }
                 else
+                {
                     Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
+                    return false;
+                }
             }
             else if(command[0] == "path")
             {
@@ -1576,7 +1598,7 @@ namespace Steel
                 {
                     Debug::error(intro)("command \"")(command);
                     Debug::error("\" is incomplete").endl();
-                    return;
+                    return false;
                 }
 
                 command.erase(command.begin());// path
@@ -1588,18 +1610,19 @@ namespace Steel
                     if(command.size() == 0)
                     {
                         Debug::error(intro)("no path to set").endl();
-                        return;
+                        return false;
                     }
 
                     if(!selectionMan->hasSelection() || selectionMan->selection().size() > 1)
                     {
                         Debug::error(intro)("need to select 1 model linked to a LocationModel.").endl();
+                        return false;
                     }
 
                     Agent *agent = level->agentMan()->getAgent(selectionMan->selection().front());
 
                     if(nullptr == agent)
-                        return;
+                        return false;
 
                     agent->setPath(StringUtils::join(command, "."));
                     refreshSelectionPathWidget();
@@ -1610,19 +1633,30 @@ namespace Steel
                     Agent *agent = level->agentMan()->getAgent(selectionMan->selection().front());
 
                     if(nullptr == agent)
-                        return;
+                        return false;
 
                     agent->unsetPath();
                     refreshSelectionPathWidget();
                 }
                 else
-                    Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
+                {
+                    Debug::warning(intro)("unknown path command: \"")(command)("\".").endl();
+                    return false;
+                }
             }
             else
-                Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
+            {
+                Debug::warning(intro)("unknown selection command: \"")(command)("\".").endl();
+                return false;
+            }
         }
         else
-            Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
+        {
+            Debug::warning(intro)("unknown editor command: \"")(command)("\".").endl();
+            return false;
+        }
+
+        return true;
     }
 
     Ogre::String Editor::getFormControlInputValue(Ogre::String elementId)
@@ -1642,7 +1676,7 @@ namespace Steel
         {
             Debug::error("in Editor::getFormControlInputValue(): trying to use elem with id ").quotes(elementId)
             (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
-            return nullptr;
+            return "";
         }
 
         Rocket::Controls::ElementFormControlInput *form = static_cast<Rocket::Controls::ElementFormControlInput *>(elem);
@@ -1676,10 +1710,10 @@ namespace Steel
         return form;
     }
 
-    void Editor::processOptionCommand(std::vector<Ogre::String> command)
+    bool Editor::processOptionCommand(std::vector<Ogre::String> command)
     {
         if(command.size() == 0)
-            return;
+            return false;
 
         if(command[0] == "resourceGroupsInfos")
             OgreUtils::resourceGroupsInfos();
@@ -1689,8 +1723,12 @@ namespace Steel
             Debug::log("flag DebugEvent ")(mDebugEvents ? "activated" : "deactivated").endl();
         }
         else
+        {
             Debug::warning("Editor::processOptionCommand(): unknown command: ")(command).endl();
+            return false;
+        }
 
+        return true;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

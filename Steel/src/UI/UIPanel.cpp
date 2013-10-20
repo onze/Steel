@@ -97,6 +97,7 @@ namespace Steel
 
     void UIPanel::onFileChangeEvent(File file)
     {
+        Debug::log("reloading content from file ")(file);
         reloadContent();
     }
 
@@ -127,13 +128,13 @@ namespace Steel
 
     void UIPanel::shutdown()
     {
-        for(auto it = mDependencies.begin(); it != mDependencies.end(); ++it)
+        while(mDependencies.size())
         {
-            (*it)->removeFileListener(this);
-            delete(*it);
+            auto begin = *mDependencies.begin();
+            begin->removeFileListener(this);
+            delete begin;
+            mDependencies.erase(mDependencies.begin());
         }
-
-        mDependencies.clear();
 
         if(nullptr != mDocument)
         {

@@ -73,7 +73,7 @@ namespace Steel
             void onHide();
 
             /// command interface
-            void processCommand(std::vector<Ogre::String> command);
+            bool processCommand(std::vector< Ogre::String > command);
 
             /// saves the current editing mode
             void pushMode();

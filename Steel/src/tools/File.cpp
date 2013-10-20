@@ -25,7 +25,6 @@
 
 namespace Steel
 {
-// the syscall read is hidden by File::read in Steel::File's scope :p
     auto SYSCALL_ALIAS_read = read;
 
 #if defined(_WIN32)
@@ -126,6 +125,7 @@ namespace Steel
 
     void File::shutdown()
     {
+        // stops the File::poolAndNotify loop
         sInotifyFD = -1;
     }
 
@@ -256,8 +256,8 @@ namespace Steel
 
             if(it_event == sListeners.end())
             {
-                sStaticLock.unlock();
                 sNotificationList.pop_front();
+                sStaticLock.unlock();
                 continue;
             }
 
@@ -274,18 +274,25 @@ namespace Steel
 
     void File::addFileListener(FileEventListener *listener)
     {
-        File::addFileListener(this, listener);
+//         File::addFileListener(this, listener);
     }
 
     void File::removeFileListener(FileEventListener *listener)
     {
-        File::removeFileListener(this, listener);
+//         File::removeFileListener(this, listener);
     }
 
 // static
     void File::addFileListener(File *file, FileEventListener *listener)
     {
         sStaticLock.lock();
+        
+//         if(!file->isDir())
+//             file->setPath(file->parentDir());
+//         Poco::DirectoryWatcher watcher(file->fullPath());
+        
+        
+        
         int wd = inotify_add_watch(sInotifyFD, file->fullPath().c_str(), IN_MODIFY);
         FileEvent fileEvent(wd, IN_MODIFY);
 //         Debug::log("File::addFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();

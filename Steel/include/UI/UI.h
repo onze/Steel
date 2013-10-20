@@ -1,6 +1,8 @@
 #ifndef STEEL_UI_H
 #define STEEL_UI_H
 
+#include <vector>
+
 #include <Rocket/Core.h>
 #include <OgreSceneManager.h>
 #include <OgreRenderQueueListener.h>
@@ -8,8 +10,8 @@
 
 #include "UI/Editor.h"
 #include "UI/HUD.h"
-#include <tools/File.h>
-#include <EngineEventListener.h>
+#include "tools/File.h"
+#include "EngineEventListener.h"
 
 namespace Steel
 {
@@ -39,6 +41,9 @@ namespace Steel
 
             void startEditMode();
             void stopEditMode();
+            
+            bool processCommand(std::vector<Ogre::String> command);
+            void reload();
 
             //those 4 methods are direcly copied from the libRocket ogre sample
             /// Called from Ogre before a queue group is rendered.

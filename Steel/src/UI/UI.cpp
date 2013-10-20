@@ -71,6 +71,29 @@ namespace Steel
         mEditor.saveConfig(config);
         mHUD.saveConfig(config);
     }
+    
+    bool UI::processCommand(std::vector<Ogre::String> command)
+    {
+        if(command[0] == "reload")
+        {
+            reload();
+        }
+        else
+        {
+            Debug::warning("UI::processCommand(): unknown command ");
+            Debug::warning(StringUtils::join(command, ".")).endl();
+            return false;
+        }
+        return true;
+    }
+    
+    void UI::reload()
+    {
+        Debug::log("UI::reload()").endl();
+        
+        mHUD.reloadContent();
+        mEditor.reloadContent();
+    }
 
     float UI::GetElapsedTime()
     {
@@ -174,7 +197,7 @@ namespace Steel
             Rocket::Debugger::SetVisible(true);
 
         //UI init
-        mEditor.init(mWidth, mHeight, mEngine, this, mInputMan);
+        mEditor.init(mWidth, mHeight, mEngine, this);
         mHUD.init(mWidth, mHeight, mEngine, this);
 
         orm->initialiseResourceGroup("UI");
