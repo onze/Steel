@@ -13,16 +13,16 @@
 
 namespace Steel
 {
-    const Ogre::String OgreModel::POSITION_ATTRIBUTE="position";
-    const Ogre::String OgreModel::ROTATION_ATTRIBUTE="rotation";
-    const Ogre::String OgreModel::SCALE_ATTRIBUTE="scale";
-    const Ogre::String OgreModel::ENTITY_MESH_NAME_ATTRIBUTE="entityMeshName";
-    
-    const Ogre::String OgreModel::MISSING_MATERIAL_NAME="_missing_material_";
-    const Ogre::String OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE="materialOverride";
-    
+    const Ogre::String OgreModel::POSITION_ATTRIBUTE = "position";
+    const Ogre::String OgreModel::ROTATION_ATTRIBUTE = "rotation";
+    const Ogre::String OgreModel::SCALE_ATTRIBUTE = "scale";
+    const Ogre::String OgreModel::ENTITY_MESH_NAME_ATTRIBUTE = "entityMeshName";
+
+    const Ogre::String OgreModel::MISSING_MATERIAL_NAME = "_missing_material_";
+    const Ogre::String OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE = "materialOverride";
+
     OgreModel::OgreModel(): Model(),
-        mSceneNode(nullptr), mEntity(nullptr),mSceneManager(nullptr)
+        mSceneManager(nullptr), mSceneNode(nullptr), mEntity(nullptr), mHasMaterialOverride(false)
     {
 
     }
@@ -34,30 +34,34 @@ namespace Steel
                          Ogre::String const &resourceGroupName
                         )
     {
-        mSceneManager=sceneManager;
+        mSceneManager = sceneManager;
         // handle
-        Ogre::ResourceGroupManager *rgm=Ogre::ResourceGroupManager::getSingletonPtr();
+        Ogre::ResourceGroupManager *rgm = Ogre::ResourceGroupManager::getSingletonPtr();
 
-        if(!rgm->resourceExists(resourceGroupName,meshName))
+        if(!rgm->resourceExists(resourceGroupName, meshName))
             rgm->declareResource(meshName, "FileSystem", resourceGroupName);
 
-        const bool withRestore=nullptr!=mSceneNode;
+        const bool withRestore = nullptr != mSceneNode;
         Ogre::Any any;
+
         if(withRestore)
         {
             any = mSceneNode->getUserAny();
-            if (mEntity != nullptr)
+
+            if(mEntity != nullptr)
             {
                 mEntity->detachFromParent();
                 mSceneManager->destroyEntity(mEntity);
                 mEntity = nullptr;
             }
-            if (mSceneNode != nullptr)
+
+            if(mSceneNode != nullptr)
             {
                 OgreUtils::destroySceneNode(mSceneNode);
                 mSceneNode = nullptr;
             }
         }
+
         mEntity = sceneManager->createEntity(meshName);
 
 
@@ -70,20 +74,22 @@ namespace Steel
         {
             mSceneNode->setUserAny(any);
         }
+
         return true;
     }
 
     OgreModel::OgreModel(const OgreModel &o): Model(o),
-    mSceneNode(o.mSceneNode),mEntity(o.mEntity),mSceneManager(o.mSceneManager)
+        mSceneManager(o.mSceneManager), mSceneNode(o.mSceneNode), mEntity(o.mEntity), mHasMaterialOverride(o.mHasMaterialOverride)
     {
     }
 
     OgreModel &OgreModel::operator=(const OgreModel &o)
     {
         Model::operator=(o);
-        mEntity = o.mEntity;
+        mSceneManager = o.mSceneManager;
         mSceneNode = o.mSceneNode;
-        mSceneManager=o.mSceneManager;
+        mEntity = o.mEntity;
+        mHasMaterialOverride = o.mHasMaterialOverride;
         return *this;
     }
 
@@ -93,17 +99,21 @@ namespace Steel
 
     void OgreModel::cleanup()
     {
-        if (mEntity != nullptr)
+        if(mEntity != nullptr)
         {
             mEntity->detachFromParent();
             mSceneManager->destroyEntity(mEntity);
             mEntity = nullptr;
         }
-        if (mSceneNode != nullptr)
+
+        if(mSceneNode != nullptr)
         {
             OgreUtils::destroySceneNode(mSceneNode);
             mSceneNode = nullptr;
         }
+
+        mHasMaterialOverride = false;
+
         Model::cleanup();
     }
 
@@ -141,7 +151,7 @@ namespace Steel
 
     void OgreModel::rotate(const Ogre::Quaternion &q)
     {
-        mSceneNode->rotate(q,Ogre::Node::TS_WORLD);
+        mSceneNode->rotate(q, Ogre::Node::TS_WORLD);
     }
 
     void OgreModel::setNodeAny(Steel::AgentId aid)
@@ -173,16 +183,21 @@ namespace Steel
 
     void OgreModel::toJson(Json::Value &node)
     {
-        if (mSceneNode == nullptr)
+        if(mSceneNode == nullptr)
         {
             Debug::error("OgreModel::toJson() called while mSceneNode is nullptr !");
             return;
         }
+
         //TODO: use abbreviated keys for release
         node[OgreModel::POSITION_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getPosition());
         node[OgreModel::ROTATION_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getOrientation());
         node[OgreModel::SCALE_ATTRIBUTE] = JsonUtils::toJson(mSceneNode->getScale());
         node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE] = Json::Value(mEntity->getMesh()->getName());
+
+        if(mHasMaterialOverride)
+            node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE] = Json::Value(mEntity->getSubEntity(0)->getMaterialName());
+
         serializeTags(node);
     }
 
@@ -193,59 +208,65 @@ namespace Steel
         return false;
     }
 
-    bool OgreModel::fromJson(const Json::Value& node, Ogre::SceneNode* levelRoot, Ogre::SceneManager* sceneManager, const Ogre::String& resourceGroupName)
+    bool OgreModel::fromJson(const Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager, const Ogre::String &resourceGroupName)
     {
-        Ogre::String intro="in OgreModel::fromJson(): ";
+        Ogre::String intro = "in OgreModel::fromJson(): ";
         // data to gather
         Ogre::String meshName;
         Ogre::Vector3 pos;
         Ogre::Quaternion rot;
-        Ogre::Vector3 scale=Ogre::Vector3::UNIT_SCALE;
+        Ogre::Vector3 scale = Ogre::Vector3::UNIT_SCALE;
 
         Json::Value value;
         bool allWasFine = true;
 
         // gather it
         value = node[OgreModel::POSITION_ATTRIBUTE];
-        if (value.isNull())
+
+        if(value.isNull())
             Debug::error(intro)("position is null: no translation applied.").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node[OgreModel::ROTATION_ATTRIBUTE];
-        if (value.isNull())
+
+        if(value.isNull())
             Debug::warning(intro)("rotation is null: no rotation applied.").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
 
         value = node[OgreModel::SCALE_ATTRIBUTE];
-        if (value.isNull())
+
+        if(value.isNull())
             Debug::warning(intro)("scale is null: no scaling applied.").endl();
         else
             scale = Ogre::StringConverter::parseVector3(value.asString());
 
         value = node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE];
-        if (value.isNull() && !(allWasFine = false))
+
+        if(value.isNull() && !(allWasFine = false))
             Debug::error(intro)("field ").quotes(OgreModel::ENTITY_MESH_NAME_ATTRIBUTE)(" is null.").endl();
         else
             meshName = Ogre::String(value.asString());
 
-        Ogre::String materialName="";
+        Ogre::String materialName = "";
+
         if(node.isMember(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE))
         {
             value = node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE];
+
             if(!value.isString())
                 Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is not a string.").endl();
-            else if (value.isNull())
+            else if(value.isNull())
                 Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
             else
                 materialName = Ogre::String(value.asString());
         }
 
         // agentTags
-        allWasFine&=deserializeTags(node);
+        allWasFine &= deserializeTags(node);
 
-        if (!allWasFine)
+        if(!allWasFine)
         {
             Debug::error("json was:").endl()(node.toStyledString()).endl();
             Debug::error("model deserialisation aborted.").endl();
@@ -254,17 +275,18 @@ namespace Steel
 
         // now whether we have minor changes (and we apply them directly), or major ones (cleanup, then init).
         // lets start with major ones
-        if (mEntity == nullptr || meshName != mEntity->getMesh()->getName())
+        if(mEntity == nullptr || meshName != mEntity->getMesh()->getName())
         {
             // make sure we've been called with all arguments, because they're all needed now
-            if (levelRoot == nullptr || sceneManager == nullptr)
+            if(levelRoot == nullptr || sceneManager == nullptr)
             {
                 Debug::error(intro)("a new mesh is required, but sceneManager or levelRoot are nullptr.");
                 Debug::error(" Aborting.").endl();
                 return false;
             }
+
             // make sure the new meshName is valid
-            if (meshName.length()==0 || !Ogre::ResourceGroupManager::getSingletonPtr()->resourceExistsInAnyGroup(meshName))
+            if(meshName.length() == 0 || !Ogre::ResourceGroupManager::getSingletonPtr()->resourceExistsInAnyGroup(meshName))
             {
                 Debug::error(intro)("new mesh name is not valid:")(meshName).endl();
                 return false;
@@ -282,23 +304,27 @@ namespace Steel
             setScale(scale);
         }
 
-        if(""!=materialName)
+        if(Ogre::StringUtil::BLANK != materialName)
         {
-            setMaterial(materialName);
+            setMaterial(materialName, resourceGroupName);
         }
+
         return true;
     }
 
-    void OgreModel::setMaterial(Ogre::String resName)
+    void OgreModel::setMaterial(Ogre::String resName, Ogre::String const &resourceGroupName)
     {
-        Ogre::MaterialManager *mm=Ogre::MaterialManager::getSingletonPtr();
+        Ogre::MaterialManager *mm = Ogre::MaterialManager::getSingletonPtr();
         Ogre::MaterialPtr mat;
+
         if(!mm->resourceExists(resName))
         {
             Debug::error("in OgreModel::setMaterial(): material ").quotes(resName)(" does not exist. Using default.").endl();
-            resName=OgreModel::MISSING_MATERIAL_NAME;
+            resName = OgreModel::MISSING_MATERIAL_NAME;
         }
+
         mEntity->setMaterial(mm->getByName(resName));
+        mHasMaterialOverride = true;
     }
 
 }

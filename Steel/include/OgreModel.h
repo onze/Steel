@@ -73,7 +73,7 @@ namespace Steel
             virtual void toJson(Json::Value &node);
 
             /// Dynamically change the material used by the underlying model.
-            void setMaterial(Ogre::String resName);
+            void setMaterial(Ogre::String resName, const Ogre::String &resourceGroupName);
 
             // getters
             inline Ogre::Entity* entity()
@@ -87,9 +87,13 @@ namespace Steel
 
             virtual void cleanup();
         protected:
+            // not owned
+            Ogre::SceneManager *mSceneManager;
+            
+            // owned
             Ogre::SceneNode *mSceneNode;
             Ogre::Entity *mEntity;
-            Ogre::SceneManager *mSceneManager;
+            bool mHasMaterialOverride;
     };
 
 }
