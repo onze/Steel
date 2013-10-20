@@ -15,9 +15,13 @@ namespace Steel
     {
 
         public:
+            /// AgentId of the previous location in this location's path.
             static const char *SOURCE_ATTRIBUTE;
+            /// AgentId of the next location in this location's path.
             static const char *DESTINATION_ATTRIBUTE;
+            /// Agent this location refers to.
             static const char *ATTACHED_AGENT_ATTRIBUTE;
+            /// Name of the path this location is part of.
             static const char *PATH_ATTRIBUTE;
 
             LocationModel();
