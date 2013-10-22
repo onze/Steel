@@ -43,7 +43,9 @@ namespace Steel
           mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(.0f),
           mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()),
           mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(nullptr),
-          mLinkingLine(nullptr)
+          mLinkingLine(nullptr),
+          mLinkingSourceAgentValidationFn(nullptr), mLinkingDestinationAgentValidationFn(nullptr),
+          mLinkingValidatedCallbackFn(nullptr), mLinkingValidatedAlternateCallbackFn(nullptr)
     {
     }
 
@@ -99,6 +101,11 @@ namespace Steel
             delete mSelectionBox;
             mSelectionBox = nullptr;
         }
+
+        mLinkingSourceAgentValidationFn = nullptr;
+        mLinkingDestinationAgentValidationFn = nullptr;
+        mLinkingValidatedCallbackFn = nullptr;
+        mLinkingValidatedAlternateCallbackFn = nullptr;
     }
 
     float EditorBrush::intensity()
@@ -234,12 +241,7 @@ namespace Steel
             {
                 AgentId aid = mEditor->agentIdUnderMouse();
 
-                Agent *agent = level->agentMan()->getAgent(aid);
-
-                if(nullptr == agent)
-                    break;
-
-                if(INVALID_ID == agent->modelId(MT_LOCATION))
+                if(nullptr == mLinkingSourceAgentValidationFn || !mLinkingSourceAgentValidationFn(aid))
                     break;
 
                 mFirstLinkedAgent = aid;
@@ -332,26 +334,29 @@ namespace Steel
                     if(aid == mFirstLinkedAgent)
                         break;
 
-                    ModelId dst = level->agentMan()->getAgent(aid)->modelId(MT_LOCATION);
-
-                    if(INVALID_ID == dst)
+                    if(nullptr == mLinkingDestinationAgentValidationFn || !mLinkingDestinationAgentValidationFn(aid))
                         break;
-
-                    ModelId src = level->agentMan()->getAgent(mFirstLinkedAgent)->modelId(MT_LOCATION);
 
                     if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                     {
-                        if(level->locationMan()->unlinkLocations(src, dst))
-                            Debug::error(intro)("unlinked LocationModel ")(src)(" and ")(dst).endl();
-                        else
-                            Debug::error(intro)("could not unlink LocationModel ")(src)(" and ")(dst).endl();
+                        if(nullptr != mLinkingValidatedAlternateCallbackFn)
+                        {
+                            if(mLinkingValidatedAlternateCallbackFn(mFirstLinkedAgent, aid))
+                                Debug::log(intro)("link operation succeeded.").endl();
+                            else
+                                Debug::log(intro)("link operation failed.").endl();
+                        }
                     }
                     else
                     {
-                        if(level->locationMan()->linkLocations(src, dst))
-                            Debug::error(intro)("linked source LocationModel ")(src)(" to ")(dst).endl();
-                        else
-                            Debug::error(intro)("could not link source LocationModel ")(src)(" to ")(dst).endl();
+                        if(nullptr != mLinkingValidatedCallbackFn)
+                        {
+
+                            if(mLinkingValidatedCallbackFn(mFirstLinkedAgent, aid))
+                                Debug::log(intro)("alternate link operation succeeded.").endl();
+                            else
+                                Debug::log(intro)("alternate link operation failed.").endl();
+                        }
                     }
                 }
 
@@ -682,7 +687,10 @@ namespace Steel
             else if(command[0] == "terraform")
                 setMode(TERRAFORM);
             else if(command[0] == "link")
-                setMode(LINK);
+            {
+                command.erase(command.begin());
+                processLinkCommand(command);
+            }
             else
             {
                 Debug::warning(intro)("unknown mode ").quotes(StringUtils::join(command, ".")).endl();
@@ -732,6 +740,46 @@ namespace Steel
         return true;
     }
 
+    bool EditorBrush::processLinkCommand(std::vector<Ogre::String> command)
+    {
+
+        static const Ogre::String intro = "EditorBrush::processCommand(): ";
+
+        if(command.size() == 0)
+        {
+            Debug::error(intro)("empty link command").endl();
+            return false;
+        }
+
+        if(command[0] == "build_path")
+        {
+            setLinkingMode(std::bind(&AgentManager::agentCanBePathSource, mEngine->level()->agentMan(), std::placeholders::_1),
+                           std::bind(&AgentManager::agentCanBePathDestination, mEngine->level()->agentMan(), std::placeholders::_1),
+                           std::bind(&LocationModelManager::linkAgents, mEngine->level()->locationMan(), std::placeholders::_1, std::placeholders::_2),
+                           std::bind(&LocationModelManager::unlinkAgents, mEngine->level()->locationMan(), std::placeholders::_1, std::placeholders::_2)
+                          );
+        }
+        else
+        {
+            Debug::error(intro)("unknown linking command ").quotes(command).endl();
+            return false;
+        }
+
+        return true;
+    }
+
+    void EditorBrush::setLinkingMode(std::function<bool(AgentId srcAid)> sourceAgentValidation,
+                                     std::function<bool(AgentId dstAid)> destinationAgentValidation,
+                                     std::function<bool(AgentId srcAid, AgentId const dstAid)> linkingValidatedCallbackFn,
+                                     std::function<bool(AgentId srcAid, AgentId const dstAid)> linkingValidatedAlternateCallbackFn)
+    {
+        setMode(LINK);
+        mLinkingSourceAgentValidationFn = sourceAgentValidation;
+        mLinkingDestinationAgentValidationFn = destinationAgentValidation;
+        mLinkingValidatedCallbackFn = linkingValidatedCallbackFn;
+        mLinkingValidatedAlternateCallbackFn = linkingValidatedAlternateCallbackFn;
+    }
+
     void EditorBrush::setMode(BrushMode mode)
     {
         if(mode == mMode)
@@ -775,6 +823,14 @@ namespace Steel
                 Debug::warning("in EditorBrush::setMode(): ")("unknown mode ").quotes(mode).endl();
                 mMode = NONE;
                 break;
+        }
+
+        if(LINK != mMode)
+        {
+            mLinkingDestinationAgentValidationFn = nullptr;
+            mLinkingSourceAgentValidationFn = nullptr;
+            mLinkingValidatedCallbackFn = nullptr;
+            mLinkingValidatedAlternateCallbackFn = nullptr;
         }
     }
 

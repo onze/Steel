@@ -2,6 +2,7 @@
 #define STEEL_EDITORBRUSH_H
 
 #include <vector>
+#include <functional>
 
 #include <OIS.h>
 #include <OgreQuaternion.h>
@@ -44,6 +45,7 @@ namespace Steel
             {
                 NONE = 0, TRANSLATE, ROTATE, SCALE, TERRAFORM, LINK
             };
+            
             EditorBrush();
             EditorBrush(const EditorBrush& other);
             virtual ~EditorBrush();
@@ -89,6 +91,25 @@ namespace Steel
             {
                 return mMode;
             }
+            
+            /**
+             * Sets the brush in linking mode:
+            * - upon clicking an agent, sourceAgentValidation is called with the 
+            * agent id as argument. If the callback returns false, the process is 
+            * cancelled.
+            * - upon releasing the mouse on another agent, destinationAgentValidation 
+            * is called with the agent id as argument. If the callback returns false, 
+            * the process is cancelled.
+            * - if both callback returned true, linkingValidatedCallbackFn is called 
+            * with both agents as arguments. If shift is hold at the time the mouse 
+            * is released, linkingValidatedAlternateCallbackFn is called instead. These 
+            * callbacks return codes are not currently used for anything.
+            */
+            void setLinkingMode(std::function<bool(AgentId srcAid)> sourceAgentValidation,
+                                std::function<bool(AgentId dstAid)> destinationAgentValidation,
+                                std::function<bool(AgentId srcAid, AgentId dstAid)> linkingValidatedCallbackFn ,
+                                std::function<bool(AgentId srcAid, AgentId const dstAid)> linkingValidatedAlternateCallbackFn = nullptr);
+            
             //setters
             void setMode(BrushMode mode);
 
@@ -116,6 +137,8 @@ namespace Steel
             void checkTerraScaleFactorValue();
             /// Updates the SelectionManager's selection, and sets mIsSelecting.
             Selection mousePressedSelectionUpdate(Ogre::Vector2 mPos, OIS::MouseButtonID id);
+            /// Internal helper method to switch to the right linking mode.
+            bool processLinkCommand(std::vector<Ogre::String> command);
 
             //not owned
             Engine *mEngine;
@@ -161,6 +184,11 @@ namespace Steel
             AgentId mFirstLinkedAgent;
             /// Line drawn during linking (of LocationModel, etc)
             DynamicLines *mLinkingLine;
+            
+            std::function<bool(AgentId const srcAid)> mLinkingSourceAgentValidationFn;
+            std::function<bool(AgentId const dstAid)> mLinkingDestinationAgentValidationFn;
+            std::function<bool(AgentId const srcAid, AgentId const dstAid)> mLinkingValidatedCallbackFn;
+            std::function<bool(AgentId const srcAid, AgentId const dstAid)> mLinkingValidatedAlternateCallbackFn;
     };
 }
 #endif // STEEL_EDITORBRUSH_H

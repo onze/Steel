@@ -31,9 +31,12 @@ namespace Steel
             /// Same treatment as parent class, plus some postprocessing.
             std::vector<ModelId> fromJson(Json::Value &models);
             bool fromSingleJson(Json::Value &model, ModelId &mid);
-
+            
+            bool linkAgents(AgentId srcAgentId, AgentId dstAgentId);
             /// Link 2 locations together.
             bool linkLocations(ModelId srcId, ModelId dstId);
+            
+            bool unlinkAgents(AgentId srcAgentId, AgentId dstAgentId);
             /// Unlinks 2 locations iff they were linked to each other. Return true if they were.
             bool unlinkLocations(ModelId mid0, ModelId mid1);
             /// Unlinks a location from its source anf destination.

@@ -29,10 +29,14 @@ namespace Steel
             AgentId newAgent();
 
             /// Returns a pointer to the agent whose id's given, or nullptr if there's no such agent.
-            Agent *getAgent(AgentId id);
+            Agent *getAgent(AgentId id) const;
 
             void deleteAgent(AgentId id);
             void deleteAllAgents();
+            
+            /// Path building condition on source agent
+            bool agentCanBePathSource(AgentId const aid) const;
+            bool agentCanBePathDestination(AgentId const aid) const;
 
         private:
             /// Creates an empty agent with the given id.
