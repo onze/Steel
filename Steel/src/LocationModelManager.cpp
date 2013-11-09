@@ -78,6 +78,12 @@ namespace Steel
             Debug::error(intro)("destination model ")(dstId)(" is not valid.").endl();
             return false;
         }
+        
+        if(srcId==dstId)
+        {
+            Debug::error("LocationModelManager::linkLocations(): src is dst. Aborting.").endl();
+            return false;
+        }
 
         if(!src->addDestination(dstId))
         {
@@ -101,12 +107,17 @@ namespace Steel
     bool LocationModelManager::unlinkAgents(AgentId srcAgentId, AgentId dstAgentId)
     {
         Agent *src = mLevel->agentMan()->getAgent(srcAgentId);
-        Agent *dst = mLevel->agentMan()->getAgent(srcAgentId);
+        Agent *dst = mLevel->agentMan()->getAgent(dstAgentId);
 
         if(nullptr == src || nullptr == dst)
         {
             Debug::error("LocationModelManager::unlinkAgents(): an agent id is invalid: src=")
             (srcAgentId)(", dst:")(dstAgentId)(". Aborting.").endl();
+            return false;
+        }
+        else if(srcAgentId==dstAgentId)
+        {
+            Debug::error("LocationModelManager::unlinkAgents(): src is dst. Aborting.").endl();
             return false;
         }
 
@@ -115,7 +126,7 @@ namespace Steel
 
     void LocationModelManager::unlinkLocation(ModelId mid)
     {
-        static const Ogre::String intro = "in LocationModelManager::linkLocation(): ";
+        static const Ogre::String intro = "in LocationModelManager::unlinkLocation(): ";
 
         LocationModel *model = at(mid);
 
