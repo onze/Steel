@@ -6,14 +6,14 @@
 
 namespace Steel
 {
-    SignalManager* SignalManager::sInstance = nullptr;
+    SignalManager *SignalManager::sInstance = nullptr;
 
     SignalManager::SignalManager(): mNextSignal(0L), mSignalsMap(std::map<Ogre::String, Signal>())
 #ifdef DEBUG
         , mInverseSignalsMap(std::map<Signal, Ogre::String>())
 #endif
-        , mListeners(std::map<Signal, std::set<SignalListener*>>()),
-        mEmittedSignals(std::set<std::pair<Signal, SignalEmitter*>>())
+        , mListeners(std::map<Signal, std::set<SignalListener *>>()),
+        mEmittedSignals(std::set<std::pair<Signal, SignalEmitter *>>())
     {
     }
 
@@ -22,60 +22,62 @@ namespace Steel
 
     }
 
-    void SignalManager::emit(Signal signal, SignalEmitter* src)
+    void SignalManager::emit(Signal signal, SignalEmitter *src)
     {
-        mEmittedSignals.insert(std::pair<Signal, SignalEmitter*>(signal, src));
+        mEmittedSignals.insert(std::pair<Signal, SignalEmitter *>(signal, src));
     }
 
     void SignalManager::fireEmittedSignals()
     {
         if(mEmittedSignals.size())
         {
-            decltype(mEmittedSignals) copy(mEmittedSignals.begin(),mEmittedSignals.end());
+            decltype(mEmittedSignals) copy(mEmittedSignals.begin(), mEmittedSignals.end());
             mEmittedSignals.clear();
+
             while(copy.size())
             {
-                auto kv=copy.begin();
+                auto kv = copy.begin();
                 fire(kv->first, kv->second);
                 copy.erase(kv);
             }
         }
     }
 
-    void SignalManager::fire(Signal signal, SignalEmitter* src)
+    void SignalManager::fire(Signal signal, SignalEmitter *src)
     {
-        std::map<Signal, std::set<SignalListener*>>::iterator it=mListeners.find(signal);
-        if(mListeners.end()==it)
+        std::map<Signal, std::set<SignalListener *>>::iterator it = mListeners.find(signal);
+
+        if(mListeners.end() == it)
             return;
 
-        std::set<SignalListener*> listeners(it->second);
-        for(auto& listener: listeners)
+        std::set<SignalListener *> listeners(it->second);
+
+        for(auto & listener : listeners)
         {
             listener->_onSignal(signal, src);
         }
     }
 
-    Signal SignalManager::toSignal(const Ogre::String& signal)
+    Signal SignalManager::toSignal(const Ogre::String &signal)
     {
-        Signal returnedValue=INVALID_SIGNAL;
+        Signal returnedValue = INVALID_SIGNAL;
 
-        auto it=mSignalsMap.find(signal);
-        if(mSignalsMap.end()==it)
+        auto it = mSignalsMap.find(signal);
+
+        if(mSignalsMap.end() == it)
         {
-            mSignalsMap[signal]=returnedValue=mNextSignal;
-#ifdef DEBUG
-            mInverseSignalsMap[mNextSignal]=signal;
-#endif
+            mSignalsMap[signal] = returnedValue = mNextSignal;
+            mInverseSignalsMap[mNextSignal] = signal;
             ++mNextSignal;
         }
         else
         {
-            returnedValue=it->second;
+            returnedValue = it->second;
         }
+
         return returnedValue;
     }
 
-#ifdef DEBUG
     Ogre::String SignalManager::fromSignal(const Signal signal)
     {
         if(INVALID_SIGNAL == signal)
@@ -83,41 +85,36 @@ namespace Steel
             return "<INVALID_SIGNAL>";
         }
 
-        auto it=mInverseSignalsMap.find(signal);
-        if(mInverseSignalsMap.end()!=it)
+        auto it = mInverseSignalsMap.find(signal);
+
+        if(mInverseSignalsMap.end() != it)
         {
             return it->second;
         }
 
         return "unknown signal";
     }
-#endif
 
-    void SignalManager::registerListener(const Signal signal, SignalListener* listener)
+    void SignalManager::registerListener(const Signal signal, SignalListener *listener)
     {
-        if(nullptr==listener)
+        if(nullptr == listener)
         {
             Debug::warning("in SignalManager::registerListener(): trying to insert a nullptr listener for signal ");
             Debug::warning(signal)(" / ")(fromSignal(signal)).endl();
             return;
         }
-        //TODO: use this when g++ implements it
-        //mListeners.emplace(signal,std::set<SignalListener *>()).first->second.insert(listener);
 
-        auto signal_it=mListeners.find(signal);
-        if(mListeners.end()==signal_it)
-        {
-            mListeners[signal]=std::set<SignalListener*>();
-        }
-        mListeners.find(signal)->second.insert(listener);
+        mListeners.emplace(signal, std::set<SignalListener *>()).first->second.insert(listener);
     }
 
-    void SignalManager::unregisterListener(const Signal signal, SignalListener* listener)
+    void SignalManager::unregisterListener(const Signal signal, SignalListener *listener)
     {
-        if(nullptr==listener)
+        if(nullptr == listener)
             return;
-        auto signal_it=mListeners.find(signal);
-        if(mListeners.end()!=signal_it)
+
+        auto signal_it = mListeners.find(signal);
+
+        if(mListeners.end() != signal_it)
         {
             mListeners[signal].erase(listener);
         }

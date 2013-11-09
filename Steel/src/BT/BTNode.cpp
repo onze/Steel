@@ -4,36 +4,34 @@
 
 namespace Steel
 {
-    const char *BTNode::AGENT_SPEC_ATTRIBUTE="agentSpec";
+    const char *BTNode::AGENT_SPEC_ATTRIBUTE = "agentSpec";
 
     BTNode::BTNode(BTShapeToken const &token):
-        mState(READY),mToken(token)
+        mState(READY), mToken(token)
     {
-
     }
 
-    BTNode::BTNode(const BTNode& o):mState(o.mState),mToken(o.mToken)
+    BTNode::BTNode(const BTNode &o): mState(o.mState), mToken(o.mToken)
     {
-
     }
 
     BTNode::~BTNode()
     {
-
     }
 
-    BTNode& BTNode::operator=(const BTNode& o)
+    BTNode &BTNode::operator=(const BTNode &o)
     {
-        if(this==&o)
+        if(this == &o)
             return *this;
-        mState=o.mState;
-        mToken=o.mToken;
+
+        mState = o.mState;
+        mToken = o.mToken;
         return *this;
     }
 
-    bool BTNode::operator==(const BTNode& o) const
+    bool BTNode::operator==(const BTNode &o) const
     {
-        return mState==o.mState && mToken==o.mToken;
+        return mState == o.mState && mToken == o.mToken;
     }
 
     BTState BTNode::state()
@@ -43,32 +41,37 @@ namespace Steel
 
     bool BTNode::reset()
     {
-        Ogre::String intro="BTNode::reset(): ";
+        Ogre::String intro = "BTNode::reset(): ";
 
         File contentFile(mToken.contentFile);
+
         if(!contentFile.exists())
         {
             Debug::error(intro)("token.contentFile \"")(contentFile)("\"does not exists. ");
             Debug::error("Aborting reset.").endl();
             return false;
         }
-        Ogre::String content=contentFile.read(true);
 
-        if(content.length()>0)
+        Ogre::String content = contentFile.read(true);
+
+        if(content.length() > 0)
         {
             Json::Value root;
+
             if(!Json::Reader().parse(content, root, false))
             {
                 Debug::error(intro)("content of file ")(contentFile);
                 Debug::error(" is not valid json, aborting reset. Content was:").endl()(contentFile.read()).endl();
                 return false;
             }
-            if(!parseNodeContent(root))
+
+            if(!this->parseNodeContent(root))
             {
                 Debug::warning(intro)("Could not parse content properly.").endl();
                 return false;
             }
         }
+
         return true;
     }
 
@@ -76,18 +79,18 @@ namespace Steel
     {
         return true;
     }
-    
+
     BTStateIndex BTNode::firstChildIndex()
     {
-        return mToken.begin+1;
+        return mToken.begin + 1;
     }
-    
+
     BTStateIndex BTNode::lastChildIndex()
     {
-        return mToken.end-1;
+        return mToken.end - 1;
     }
-    
-    void BTNode::run(float timestep)
+
+    void BTNode::run(BTModel *btModel, float timestep)
     {
         mState = SKIPT_TO;
     }
@@ -97,14 +100,14 @@ namespace Steel
         return firstChildIndex();
     }
 
-    void BTNode::childReturned(BTNode const * const child, BTState state)
+    void BTNode::childReturned(BTNode const *const child, BTState state)
     {
-        mState=state;
+        mState = state;
     }
 
     void BTNode::onParentNotified()
     {
-        mState=READY;
+        mState = READY;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

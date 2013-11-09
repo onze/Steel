@@ -146,7 +146,7 @@ namespace Steel
         Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG, true));
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
-        mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), "");
+        mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), Ogre::StringUtil::BLANK);
 
         // setup resources
         // Load resource paths from config file
@@ -261,8 +261,6 @@ namespace Steel
 
     void Engine::shutdown()
     {
-        saveConfig(mConfig);
-
         if(mIsInMainLoop && !mMustAbortMainLoop)
         {
             mMustAbortMainLoop = true;

@@ -11,7 +11,7 @@ namespace Steel
         JsonUtils::updateObject(src, dst, false, true);
     }
 
-    void JsonUtils::updateObject(Json::Value const &src, Json::Value &dst, 
+    void JsonUtils::updateObject(Json::Value const &src, Json::Value &dst,
                                  bool const overrideDuplicates,
                                  bool const warnOnDuplicates)
     {
@@ -20,21 +20,20 @@ namespace Steel
         if(src.isNull() || dst.isNull() || !src.isObject() || !dst.isObject())
             return;
 
-        auto names = src.getMemberNames();
         bool detectDuplicates = overrideDuplicates || warnOnDuplicates;
 
-        for(auto it = names.begin(); it != names.end(); ++it)
+        for(auto const & name : src.getMemberNames())
         {
-            if(detectDuplicates && dst.isMember(*it))
+            if(detectDuplicates && dst.isMember(name))
             {
                 if(warnOnDuplicates)
-                    Debug::warning(intro)("duplicate key \"")(*it)("\"").endl();
+                    Debug::warning(intro)("duplicate key \"")(name)("\"").endl();
 
                 if(!overrideDuplicates)
                     continue;
             }
 
-            dst[*it] = src[*it];
+            dst[name] = src[name];
         }
     }
 
@@ -92,13 +91,28 @@ namespace Steel
 
     std::list<Ogre::String> JsonUtils::asStringsList(Json::Value const &value, std::list<Ogre::String> defaultValue, Ogre::String defaultItemValue)
     {
+        if(value.isNull() || !value.isArray())
+            return defaultValue;
+
         std::list<Ogre::String> output;
 
-        if(value.isArray())
-            for(Json::ValueIterator it = value.begin(); it != value.end(); ++it)
-                output.push_back(asString(*it, defaultItemValue));
-        else
-            output.insert(output.end(), defaultValue.begin(), defaultValue.end());
+        for(Json::ValueIterator it = value.begin(); it != value.end(); ++it)
+            output.push_back(asString(*it, defaultItemValue));
+
+        return output;
+    }
+
+    std::list<ModelId> JsonUtils::asModelIdList(const Json::Value &value,
+            std::list<ModelId> defaultValue,
+            ModelId defaultItemValue)
+    {
+        if(value.isNull() || !value.isArray())
+            return defaultValue;
+
+        std::list<ModelId> output;
+
+        for(Json::ValueIterator it = value.begin(); it != value.end(); ++it)
+            output.push_back(asModelId(*it, defaultItemValue));
 
         return output;
     }
@@ -112,6 +126,32 @@ namespace Steel
         auto tagsList = TagManager::instance().toTags(stringTags);
         std::set<Tag> tags(tagsList.begin(), tagsList.end());
         return tags;
+    }
+
+    std::set<unsigned long> JsonUtils::asUnsignedLongSet(const Json::Value &value, const std::set<unsigned long> defaultValue, unsigned long defaultItemValue)
+    {
+        if(value.isNull() || !value.isArray())
+            return defaultValue;
+
+        std::set<unsigned long> output;
+
+        for(Json::ValueIterator it = value.begin(); it != value.end(); ++it)
+            output.insert(asUnsignedLong(*it, defaultItemValue));
+
+        return output;
+    }
+
+    std::map<Ogre::String, Ogre::String> JsonUtils::asStringStringMap(const Json::Value &value)
+    {
+        std::map<Ogre::String, Ogre::String> map;
+
+        if(value.isNull() || !value.isObject())
+            return map;
+
+        for(auto const & name : value.getMemberNames())
+            map.emplace(Ogre::String(name), asString(value[name], Ogre::StringUtil::BLANK));
+
+        return map;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

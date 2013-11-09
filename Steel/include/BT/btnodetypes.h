@@ -55,7 +55,7 @@ namespace Steel
     class BTShapeToken
     {
         public:
-            //BTShapeToken():type(BTUnknownToken),begin(0UL),end(0UL),contentFile(""){}
+//             BTShapeToken():type(BTUnknownToken),begin(0UL),end(0UL),contentFile(Ogre::StringUtil::BLANK){}
 
             BTShapeTokenType type;
             /// node index of the token

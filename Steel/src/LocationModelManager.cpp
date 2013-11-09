@@ -2,6 +2,7 @@
 #include <tools/DynamicLines.h>
 #include <Agent.h>
 #include <Level.h>
+#include <AgentManager.h>
 
 namespace Steel
 {
@@ -20,56 +21,6 @@ namespace Steel
         }
 
         mDebugLines.clear();
-    }
-
-    ModelId LocationModelManager::newModel()
-    {
-        ModelId id = allocateModel();
-
-        if(!mModels[id].init(this))
-        {
-            deallocateModel(id);
-            id = INVALID_ID;
-        }
-
-        return id;
-    }
-
-    std::vector<ModelId> LocationModelManager::fromJson(Json::Value &models)
-    {
-        auto ret = _ModelManager<LocationModel>::fromJson(models);
-        static const Ogre::String intro = "in LocationModelManager::fromJson(): ";
-        // post processing:
-        // - check all connections and delete/warn about invalid ones
-        // - build debug lines from connected models
-        LocationModel *current, *dst;
-        ModelId dstId;
-
-        for(ModelId id = firstId(); id < lastId(); ++id)
-        {
-            current = at(id);
-
-            if(nullptr == current)
-                continue;
-
-            if(!current->hasDestination())
-                continue;
-
-            dstId = current->destination();
-            dst = at(dstId);
-
-            if(nullptr == dst)
-            {
-                Debug::error(intro)("source model ")(id)(" has invalid destination ")(dstId)
-                (". Unlinking.").endl();
-                current->unsetDestination();
-                continue;
-            }
-
-            updateDebugLine(id, dstId);
-        }
-
-        return ret;
     }
 
     bool LocationModelManager::fromSingleJson(Json::Value &model, ModelId &id)
@@ -96,20 +47,17 @@ namespace Steel
 
         if(nullptr == src || nullptr == dst)
         {
-            Debug::error("LocationModelManager::linkAgents(): an agent id is invalid: src=")(srcAgentId)(", dst:")(dstAgentId).endl();
+            Debug::error("LocationModelManager::linkAgents(): an agent id is invalid: src=")
+            (srcAgentId)(", dst:")(dstAgentId)(". Aborting.").endl();
             return false;
         }
 
         // allocate new models for agents if necessary
         if(INVALID_ID == src->locationModelId())
-        {
             src->linkToModel(MT_LOCATION, newModel());
-        }
 
         if(INVALID_ID == dst->locationModelId())
-        {
             dst->linkToModel(MT_LOCATION, newModel());
-        }
 
         return linkLocations(src->locationModelId(), dst->locationModelId());
     }
@@ -131,32 +79,22 @@ namespace Steel
             return false;
         }
 
-        if(src->hasDestination())
+        if(!src->addDestination(dstId))
         {
-            Debug::error(intro)("source model ")(srcId)(" already have a destination: ")(dstId).endl();
+            Debug::error(intro)("source model ")(srcId)(" cannot take model ")
+            (dstId)(" as a new destination. Aborting").endl();
             return false;
         }
 
-        if(dst->hasSource())
+        if(!dst->addSource(srcId))
         {
-            Debug::error(intro)("destination model ")(dstId)(" already have a source: ")(srcId).endl();
+            Debug::error(intro)("destination model ")(dstId)(" cannot take model ")
+            (srcId)(" as a new source. Aborting").endl();
+            src->removeDestination(dstId);
             return false;
         }
 
-        if(!src->setDestination(dstId))
-        {
-            Debug::error(intro)("source model ")(srcId)(" cannot use a new destination.").endl();
-            return false;
-        }
-
-        if(!dst->setSource(srcId))
-        {
-            Debug::error(intro)("destination model ")(dstId)(" cannot use a new source.").endl();
-            src->unsetDestination();
-            return false;
-        }
-
-        updateDebugLine(srcId, dstId);
+        updateDebugLine(makeKey(srcId, dstId));
         return true;
     }
 
@@ -167,7 +105,8 @@ namespace Steel
 
         if(nullptr == src || nullptr == dst)
         {
-            Debug::error("LocationModelManager::unlinkAgents(): an agent id is invalid: src=")(srcAgentId)(", dst:")(dstAgentId).endl();
+            Debug::error("LocationModelManager::unlinkAgents(): an agent id is invalid: src=")
+            (srcAgentId)(", dst:")(dstAgentId)(". Aborting.").endl();
             return false;
         }
 
@@ -186,11 +125,25 @@ namespace Steel
             return;
         }
 
-        if(model->hasSource())
-            unlinkLocations(mid, model->source());
+        for(auto const & aid : model->sources())
+        {
+            Agent *agent = mLevel->agentMan()->getAgent(aid);
 
-        if(model->hasDestination())
-            unlinkLocations(mid, model->destination());
+            if(nullptr == agent)
+                continue;
+
+            unlinkLocations(agent->locationModelId(), mid);
+        }
+
+        for(auto const & aid : model->destinations())
+        {
+            Agent *agent = mLevel->agentMan()->getAgent(aid);
+
+            if(nullptr == agent)
+                continue;
+
+            unlinkLocations(mid, agent->locationModelId());
+        }
     }
 
     bool LocationModelManager::unlinkLocations(ModelId mid0, ModelId mid1)
@@ -211,35 +164,30 @@ namespace Steel
             return false;
         }
 
-        if(m0->destination() == mid1 && m1->source() == mid0)
-        {
-            m0->unsetDestination();
-            m1->unsetSource();
+        AgentId aid0 = m0->attachedAgent();
+        AgentId aid1 = m1->attachedAgent();
 
-            if(!(m1->destination() == mid0 && m0->source() == mid1))
-                removeDebugLine(mid0, mid1);
+        if(m0->hasSource(aid1))
+            m0->removeSource(aid1);
 
-            return true;
-        }
+        if(m1->hasSource(aid0))
+            m1->removeSource(aid0);
 
-        if(m1->destination() == mid0 && m0->source() == mid1)
-        {
-            m1->unsetDestination();
-            m0->unsetSource();
+        if(m0->hasDestination(aid1))
+            m0->removeDestination(aid1);
 
-            if(!(m0->destination() == mid1 && m1->source() == mid0))
-                removeDebugLine(mid0, mid1);
+        if(m1->hasSource(aid0))
+            m1->removeSource(aid0);
 
-            return true;
-        }
+        removeDebugLine(mid0, mid1);
+        removeDebugLine(mid1, mid0);
 
         return false;
     }
 
     ModelPair LocationModelManager::makeKey(ModelId mid0, ModelId mid1)
     {
-        // have mid0<mid1, so that one pair has one single possible key in mDebugLines
-        return mid0 > mid1 ? ModelPair(mid1, mid0) : ModelPair(mid0, mid1);
+        return ModelPair(mid0, mid1);
     }
 
     void LocationModelManager::removeDebugLine(ModelId mid0, ModelId mid1)
@@ -249,9 +197,8 @@ namespace Steel
 
         auto key = makeKey(mid0, mid1);
         DynamicLines *line;
-        getDebugLine(mid0, mid1, line);
 
-        if(nullptr != line)
+        if(getDebugLine(key, line))
         {
             line->clear();
             line->update();
@@ -262,15 +209,14 @@ namespace Steel
         mDebugLines.erase(key);
     }
 
-    bool LocationModelManager::getDebugLine(ModelId mid0, ModelId mid1, DynamicLines *&line)
+    bool LocationModelManager::getDebugLine(ModelPair const &key, DynamicLines *&line)
     {
-        ModelPair key = makeKey(mid0, mid1);
         auto it = mDebugLines.find(key);
 
         if(mDebugLines.end() == it)
         {
             line = new DynamicLines();
-            auto ret = mDebugLines.insert(std::pair<ModelPair, DynamicLines *>(key, line));
+            auto ret = mDebugLines.emplace(key, line);
 
             if(!ret.second)
             {
@@ -310,37 +256,122 @@ namespace Steel
             return;
 
         model->setPosition(pos);
-        updateDebugLine(mid);
+        updateDebugLines(mid);
     }
 
-    void LocationModelManager::updateDebugLine(ModelId mid)
+    void LocationModelManager::updateDebugLines(ModelId mid)
     {
         LocationModel *model = at(mid);
 
         if(nullptr == model)
             return;
 
-        if(model->hasSource())
-            updateDebugLine(model->source(), mid);
+        std::list<ModelPair> keys;
 
-        if(model->hasDestination())
-            updateDebugLine(mid, model->destination());
+        for(AgentId const aid : model->sources())
+        {
+            Agent *agent = mLevel->agentMan()->getAgent(aid);
+
+            if(nullptr == agent)
+                continue;
+
+            keys.push_back(makeKey(agent->locationModelId(), mid));
+        }
+
+        for(AgentId const aid : model->destinations())
+        {
+            Agent *agent = mLevel->agentMan()->getAgent(aid);
+
+            if(nullptr == agent)
+                continue;
+
+            keys.push_back(makeKey(mid, agent->locationModelId()));
+        }
+
+        for(auto const & key : keys)
+            updateDebugLine(key);
     }
 
-    void LocationModelManager::updateDebugLine(ModelId srcId, ModelId dstId)
+    void LocationModelManager::updateDebugLine(ModelPair const &key)
     {
-        if(!(isValid(srcId) && isValid(dstId)))
+        if(!(isValid(key.first) && isValid(key.second)))
             return;
 
         DynamicLines *line = nullptr;
 
-        if(getDebugLine(srcId, dstId, line))
+        if(getDebugLine(key, line))
         {
             line->clear();
-            line->addPoint(at(srcId)->position());
-            line->addPoint(at(dstId)->position());
+            line->addPoint(at(key.first)->position());
+            line->addPoint(at(key.second)->position());
             line->update();
         }
+    }
+
+    void LocationModelManager::setModelPath(ModelId mid, LocationPathName const &name)
+    {
+        static const Ogre::String intro = "in LocationModelManager::setModelPath(): ";
+
+        if(LocationModel::EMPTY_PATH == name)
+        {
+            Debug::error(intro)("path name cannot be the empty string").endl();
+            return;
+        }
+
+        LocationModel *model = at(mid);
+
+        if(nullptr == model)
+            return;
+
+        model->_setPath(name);
+
+        // model is the default root of its path
+        if(INVALID_ID == pathRoot(name))
+        {
+            setPathRoot(model->attachedAgent());
+        }
+    }
+
+    void LocationModelManager::unsetModelPath(ModelId mid)
+    {
+        LocationModel *model = at(mid);
+
+        if(nullptr == model)
+            return;
+
+        auto name = model->path();
+
+        if(LocationModel::EMPTY_PATH != name)
+        {
+            model->_setPath(LocationModel::EMPTY_PATH);
+            mPathsRoots.erase(name);
+        }
+    }
+
+    bool LocationModelManager::hasModelPath(ModelId mid)
+    {
+        return isValid(mid) && at(mid)->hasPath();
+    }
+
+    void LocationModelManager::setPathRoot(AgentId aid, bool force/* = false*/)
+    {
+        Agent *agent = mLevel->agentMan()->getAgent(aid);
+
+        if(nullptr == agent)
+            return;
+
+        auto name = agent->locationPath();
+
+        if(force)
+            mPathsRoots.erase(name);
+
+        mPathsRoots.emplace(name, aid);
+    }
+
+    AgentId LocationModelManager::pathRoot(LocationPathName const &name)
+    {
+        auto it = mPathsRoots.find(name);
+        return mPathsRoots.end() == it ? INVALID_ID : it->second;
     }
 }
 

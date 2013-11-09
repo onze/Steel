@@ -45,7 +45,7 @@ namespace Steel
 
     Ogre::String BTStateStream::debugName()
     {
-        return "<BTStateStream "+Ogre::StringConverter::toString(this)+">";
+        return "<BTStateStream @"+Ogre::StringConverter::toString(reinterpret_cast<long>(this))+">";
     }
 
     bool BTStateStream::init(BTShapeStream *shapeStream)
@@ -229,7 +229,7 @@ namespace Steel
         if(index>=mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" index out of range.").endl();
-            return {BTUnknownToken,0UL,0UL,""};
+            return {BTUnknownToken,0UL,0UL,Ogre::StringUtil::BLANK};
             //return BTShapeToken();
         }
         return mShapeStream->mData.at((size_t)index);

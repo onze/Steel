@@ -14,10 +14,10 @@ extern ContactDestroyedCallback gContactDestroyedCallback;
 
 namespace Steel
 {
-    PhysicsModelManager::PhysicsModelManager(Level * level,btDynamicsWorld* world):_ModelManager<PhysicsModel>(level),
-        mLevel(level), mWorld(nullptr)
+    PhysicsModelManager::PhysicsModelManager(Level *level, btDynamicsWorld *world): _ModelManager<PhysicsModel>(level),
+        mWorld(nullptr)
     {
-        mWorld=world;
+        mWorld = world;
 
         // allows for ghost functionality (hitbox/triggers)
         mWorld->getPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
@@ -25,35 +25,36 @@ namespace Steel
 
     PhysicsModelManager::~PhysicsModelManager()
     {
-        mWorld=nullptr;
-        mLevel=nullptr;
+        mWorld = nullptr;
     }
 
     ModelId PhysicsModelManager::newModel()
     {
-        ModelId mid=allocateModel();
+        ModelId mid = allocateModel();
         return mid;
     }
 
     //p* as in physics*
     bool PhysicsModelManager::onAgentLinkedToModel(Agent *agent, ModelId pmid)
     {
-        Ogre::String intro=logName()+"::onLinked(): ";
+        Ogre::String intro = logName() + "::onLinked(): ";
 
-        PhysicsModel *pmodel=at(pmid);
+        PhysicsModel *pmodel = at(pmid);
 #ifdef DEBUG
-        assert(agent->modelId(MT_PHYSICS)==pmid);
-        assert(agent->model(MT_PHYSICS)==pmodel);
+        assert(agent->modelId(MT_PHYSICS) == pmid);
+        assert(agent->model(MT_PHYSICS) == pmodel);
 #endif
 
-        ModelId omid=agent->ogreModelId();
-        if(INVALID_ID==omid)
+        ModelId omid = agent->ogreModelId();
+
+        if(INVALID_ID == omid)
         {
             Debug::error(intro)("Invalid OgreModel id for agent ")(agent->id()).endl();
             return false;
         }
-        OgreModel *omodel=mLevel->ogreModelMan()->at(omid);
-        pmodel->init(mWorld,omodel);
+
+        OgreModel *omodel = mLevel->ogreModelMan()->at(omid);
+        pmodel->init(mWorld, omodel);
         pmodel->setUserPointer(agent);
 
         // stop the physics simulation in case the agent is selected
@@ -65,9 +66,9 @@ namespace Steel
     void PhysicsModelManager::update(float timestep)
     {
         // TODO: OPT: use an update list, updated upon model init/cleanup ?
-        for(auto &model:mModels)
+        for(auto & model : mModels)
         {
-            if(model.refCount()>0)
+            if(model.refCount() > 0)
                 model.update(timestep, this);
         }
     }

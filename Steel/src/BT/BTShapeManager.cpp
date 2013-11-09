@@ -13,7 +13,7 @@ namespace Steel
 
     }
 
-    BTShapeManager::BTShapeManager(const BTShapeManager& other)
+    BTShapeManager::BTShapeManager(const BTShapeManager &other)
     {
 
     }
@@ -23,12 +23,12 @@ namespace Steel
 
     }
 
-    BTShapeManager& BTShapeManager::operator=(const BTShapeManager& other)
+    BTShapeManager &BTShapeManager::operator=(const BTShapeManager &other)
     {
         return *this;
     }
 
-    bool BTShapeManager::operator==(const BTShapeManager& other) const
+    bool BTShapeManager::operator==(const BTShapeManager &other) const
     {
         return false;
     }
@@ -36,35 +36,38 @@ namespace Steel
     BTShapeStream *BTShapeManager::getBTShapeStream(Ogre::String streamName)
     {
         // already built ?
-        auto it=mStreamMap.find(streamName);
-        if(mStreamMap.end()!=it)
+        auto it = mStreamMap.find(streamName);
+
+        if(mStreamMap.end() != it)
         {
             return &(*it).second;
         }
+
         return nullptr;
     }
 
     bool BTShapeManager::buildShapeStream(Ogre::String streamName,
-                                          Steel::File &rootFile,
+                                          Steel::File const &rootFile,
                                           BTShapeStream *&streamPtr)
     {
         BTShapeStreamMap::iterator it;
+
         // already built ?
-        if(nullptr != (streamPtr=getBTShapeStream(streamName)))
+        if(nullptr != (streamPtr = getBTShapeStream(streamName)))
             return true;
 
         BTShapeStream stream;
-        stream.mName=streamName;
+        stream.mName = streamName;
         // walk the file hierarchy depth first, using the fringe as buffer.
         std::list<BTFileNode> fringe;
         fringe.push_front(BTFileNode(true));
         fringe.push_front(BTFileNode(rootFile));
-        unsigned int currentIndex=0;
+        unsigned int currentIndex = 0;
         std::stack<unsigned int> stack;
 
         while(fringe.size())
         {
-            BTFileNode file=fringe.front();
+            BTFileNode file = fringe.front();
             fringe.pop_front();
 
             if(isIgnored(file))
@@ -73,31 +76,32 @@ namespace Steel
             if(file.isGuard())
             {
                 // popped back to root ?
-                if(stack.size()==0)
+                if(stack.size() == 0)
                     break;
-                stream.mData[stack.top()].end=currentIndex;
+
+                stream.mData[stack.top()].end = currentIndex;
                 stack.pop();
                 continue;
             }
 
             // push the token to the stream
-            stream.mData.push_back( {file.shapeTokenType(),currentIndex,0,file.descriptor().fullPath()});
+            stream.mData.push_back( {file.shapeTokenType(), currentIndex, 0, file.descriptor().fullPath()});
 
             // add childNodes to fringe for them to be processed next.
-            std::vector<BTFileNode> childNodes=file.childNodes();
-            fringe.insert(fringe.begin(),childNodes.begin(),childNodes.end());
+            std::vector<BTFileNode> childNodes = file.childNodes();
+            fringe.insert(fringe.begin(), childNodes.begin(), childNodes.end());
             stack.push(currentIndex);
             ++currentIndex;
         }
 
-        mStreamMap[streamName]=stream;
-        streamPtr=&(mStreamMap[streamName]);
+        mStreamMap[streamName] = stream;
+        streamPtr = &(mStreamMap[streamName]);
         return true;
     }
 
     bool BTShapeManager::isIgnored(const BTFileNode &file)
     {
-        return Ogre::StringUtil::startsWith(file.fileName(),"__");
+        return Ogre::StringUtil::startsWith(file.fileName(), "__");
     }
 
     void BTShapeManager::clearCachedStreams()

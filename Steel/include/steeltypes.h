@@ -32,6 +32,7 @@ namespace Steel
         MT_PHYSICS,
         MT_BT,
         MT_LOCATION,
+        MT_BLACKBOARD,
 
         //MT_LAST should stay last (to enable looping).
         MT_LAST
@@ -54,6 +55,9 @@ namespace Steel
         BS_CONVEXHULL,
         BS_TRIMESH,
     };
+    
+    /// Name of a path made of linked LocationModels.
+    typedef Ogre::String LocationPathName;
 }
 
 #endif

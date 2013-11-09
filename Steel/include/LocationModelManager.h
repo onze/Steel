@@ -13,49 +13,70 @@
 namespace Steel
 {
     class DynamicLines;
-    class LocationModelManager:public _ModelManager<LocationModel>
+    class Level;
+    class LocationModelManager: public _ModelManager<LocationModel>
     {
-        public:
-            LocationModelManager(Level *level);
-            virtual ~LocationModelManager();
+    public:
+        LocationModelManager(Level *level);
+        virtual ~LocationModelManager();
 
-            /// modelType associated with this Manager
-            virtual inline ModelType modelType()
-            {
-                return MT_LOCATION;
-            }
-            
-            /// Creates a new model and returns its id.
-            ModelId newModel();
+        /// modelType associated with this Manager
+        virtual inline ModelType modelType()
+        {
+            return MT_LOCATION;
+        }
 
-            /// Same treatment as parent class, plus some postprocessing.
-            std::vector<ModelId> fromJson(Json::Value &models);
-            bool fromSingleJson(Json::Value &model, ModelId &mid);
-            
-            bool linkAgents(AgentId srcAgentId, AgentId dstAgentId);
-            /// Link 2 locations together.
-            bool linkLocations(ModelId srcId, ModelId dstId);
-            
-            bool unlinkAgents(AgentId srcAgentId, AgentId dstAgentId);
-            /// Unlinks 2 locations iff they were linked to each other. Return true if they were.
-            bool unlinkLocations(ModelId mid0, ModelId mid1);
-            /// Unlinks a location from its source anf destination.
-            void unlinkLocation(ModelId mid);
+        bool fromSingleJson(Json::Value &model, ModelId &mid);
+        bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 
-            bool onAgentLinkedToModel(Agent *agent, ModelId mid);
+        /////////////////////////////////////////////////
+        // Specific to model linking
+        bool linkAgents(AgentId srcAgentId, AgentId dstAgentId);
+        /// Link 2 locations together.
+        bool linkLocations(ModelId srcId, ModelId dstId);
+        /// Unlinks 2 agents' locations iff they were linked to each other. Return true if they were.
+        bool unlinkAgents(AgentId srcAgentId, AgentId dstAgentId);
+        /// Unlinks 2 locations iff they were linked to each other. Return true if they were.
+        bool unlinkLocations(ModelId mid0, ModelId mid1);
+        /// Unlinks a location from its source anf destination.
+        void unlinkLocation(ModelId mid);
 
-            void moveLocation(ModelId mid, Ogre::Vector3 const &pos);
-            /// Updates the debug lines (from source, to destination) of the given model.
-            void updateDebugLine(ModelId mid);
-            /// Updates the debug line between 2 models, if it exists.
-            void updateDebugLine(ModelId srcId, ModelId dstId);
+        /////////////////////////////////////////////////
+        // Location path manipulations
+        /// Set the path name of a model and all others models linked to it. Name cannot be the empty string.
+        void setModelPath(ModelId mid, LocationPathName const &name);
+        /// Removes all location models from the path, and removes this path.
+        void unsetModelPath(ModelId mid);
+        /// Returns true if the given model is part of a path.
+        bool hasModelPath(ModelId mid);
+        /**
+         * Sets a root agent for a given path. A root is automatically set when a path is assigned
+         * to a location. If force is true, overwrite any existing previous value.
+         */
+        void setPathRoot(AgentId aid, bool force = false);
+        /// Internals. Removes the path root. Does not check if other models beong to this path.
+        void _unsetPathRoot();
+        /// Returns the root of the path, as an AgentId.
+        AgentId pathRoot(LocationPathName const &name);
 
-        private:
-            ModelPair makeKey(ModelId mid0, ModelId mid1);
-            bool getDebugLine(ModelId mid0, ModelId mid1, DynamicLines *&line);
-            void removeDebugLine(ModelId mid0, ModelId mid1);
-            // owned
-            std::map<ModelPair, DynamicLines *> mDebugLines;
+        /////////////////////////////////////////////////
+        // misc
+        void moveLocation(ModelId mid, Ogre::Vector3 const &pos);
+        /// Updates the debug lines of the given model.
+        void updateDebugLines(ModelId mid);
+        /// Updates the debug line between 2 models, if one exists.
+        void updateDebugLine(ModelPair const &key);
+
+    private:
+        /// The pair content is (src, dst)
+        ModelPair makeKey(ModelId mid0, ModelId mid1);
+        bool getDebugLine(ModelPair const &key, DynamicLines *&line);
+        void removeDebugLine(ModelId mid0, ModelId mid1);
+        // owned
+        std::map<ModelPair, DynamicLines *> mDebugLines;
+
+        /// keys if a path name, value is the id of the agent attached to the root LocationModel.
+        std::map<LocationPathName, AgentId> mPathsRoots;
 
 
     };

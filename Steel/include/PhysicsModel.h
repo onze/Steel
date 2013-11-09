@@ -17,7 +17,6 @@ namespace Steel
     class PhysicsModelManager;
     class OgreModel;
     class Agent;
-    class Level;
     /**
      * Physic representation of an OgreModel (can't work without it as of now)
      */

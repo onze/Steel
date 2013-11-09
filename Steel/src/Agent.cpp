@@ -18,14 +18,19 @@
 #include "TagManager.h"
 #include "LocationModelManager.h"
 #include "PhysicsModel.h"
+#include <BTModel.h>
+#include <BTModelManager.h>
+#include <AgentManager.h>
 
 namespace Steel
 {
     const char *Agent::TAGS_ATTRIBUTE = "tags";
     const char *Agent::ID_ATTRIBUTE = "aid";
+    const char *Agent::BEHAVIORS_STACK_ATTRIBUTE = "behaviorsStack";
 
     Agent::Agent(AgentId id, Steel::Level *level): mId(id), mLevel(level),
-        mModelIds(std::map<ModelType, ModelId>()), mIsSelected(false), mTags(std::map<Tag, unsigned>())
+        mModelIds(std::map<ModelType, ModelId>()), mIsSelected(false), mTags(std::map<Tag, unsigned>()),
+        mBehaviorsStack()
     {
     }
 
@@ -39,18 +44,17 @@ namespace Steel
         while(mModelIds.size())
             unlinkFromModel(mModelIds.begin()->first);
 
+        mBehaviorsStack.clear();
+
         mTags.clear();
         mLevel = nullptr;
         mId = INVALID_ID;
     }
 
     Agent::Agent(const Agent &o)
-        : mId(o.mId), mLevel(o.mLevel), mModelIds(o.mModelIds), mIsSelected(o.mIsSelected), mTags(o.mTags)
+        : mId(o.mId), mLevel(o.mLevel), mModelIds(o.mModelIds), mIsSelected(o.mIsSelected), mTags(o.mTags),
+          mBehaviorsStack(o.mBehaviorsStack)
     {
-        if(this == &o)
-            return;
-
-        this->operator=(o);
     }
 
     Agent &Agent::operator=(const Agent &o)
@@ -89,6 +93,8 @@ namespace Steel
             setSelected(mIsSelected);
         }
 
+        mBehaviorsStack = o.mBehaviorsStack;
+
         return *this;
     }
 
@@ -124,6 +130,9 @@ namespace Steel
             Debug::warning("Agent::fromJson(): agent ")(mId)(" linked with (")(nModels)(" models, ");
             Debug::warning(nExpected)(" were expected. Json string:").endl()(value).endl();
         }
+
+        // behaviors
+        mBehaviorsStack = JsonUtils::asModelIdList(value[Agent::BEHAVIORS_STACK_ATTRIBUTE], std::list<ModelId>(), INVALID_ID);
 
         // tags
         mTags.clear();
@@ -231,11 +240,16 @@ namespace Steel
         // dependencies first
         ModelManager *mm = mLevel->modelManager(mType);
 
+        // pre unlinking
         switch(mType)
         {
             case MT_OGRE:
-                unlinkFromModel(MT_PHYSICS);
+                while(INVALID_ID != btModelId())
+                    popBT();
+
+                unlinkFromModel(MT_BT);
                 unlinkFromModel(MT_LOCATION);
+                unlinkFromModel(MT_PHYSICS);
                 break;
 
             case MT_LOCATION:
@@ -244,6 +258,7 @@ namespace Steel
 
             case MT_BT:
             case MT_PHYSICS:
+            case MT_BLACKBOARD:
             case MT_FIRST:
             case MT_LAST:
                 break;
@@ -252,6 +267,51 @@ namespace Steel
         untag(mm->modelTags(mid));
         mm->decRef(mid);
         mModelIds.erase(it);
+    }
+
+    bool Agent::popBT()
+    {
+        if(0 == mBehaviorsStack.size())
+            return false;
+
+        unlinkFromModel(MT_BT);
+        auto mid = mBehaviorsStack.back();
+        mBehaviorsStack.pop_back();
+        bool ok = linkToModel(MT_BT, mid);
+        ok &= nullptr != btModel();
+
+        // stack had added an extra ref to keep it alive
+        if(ok)
+            btModel()->decRef();
+
+        return ok;
+    }
+
+    bool Agent::pushBT(ModelId btid)
+    {
+        static const Ogre::String intro = "Agent::pushBT(): ";
+
+        // validate parameter
+        if(!mLevel->BTModelMan()->isValid(btid))
+        {
+            Debug::log(intro)("won't push invalid id ").quotes(btid)(". Aborting.").endl();
+            return false;
+        }
+
+        // save current
+        BTModel *model = btModel();
+
+        if(nullptr != model)
+        {
+            model->pause();
+            // keep alive
+            model->incRef();
+            mBehaviorsStack.push_back(btModelId());
+            unlinkFromModel(MT_BT);
+        }
+
+        // set given on as current
+        return linkToModel(MT_BT, btid);
     }
 
     Model *Agent::model(ModelType mType) const
@@ -282,6 +342,11 @@ namespace Steel
         if(nullptr != pm)
             pm->setSelected(selected);
 
+        BTModel *btm = btModel();
+
+        if(nullptr != btm)
+            btm->setSelected(selected);
+
         mIsSelected = selected;
     }
 
@@ -303,6 +368,12 @@ namespace Steel
             auto _tags = tags();
             root[Agent::TAGS_ATTRIBUTE] = JsonUtils::toJson(TagManager::instance().fromTags(_tags));
         }
+
+        if(mBehaviorsStack.size())
+        {
+            root[Agent::BEHAVIORS_STACK_ATTRIBUTE] = JsonUtils::toJson(mBehaviorsStack);
+        }
+
         return root;
     }
 
@@ -340,7 +411,7 @@ namespace Steel
         auto lmodel = locationModel();
 
         if(nullptr != lmodel)
-            mLevel->locationMan()->moveLocation(locationModelId(), position());
+            mLevel->locationModelMan()->moveLocation(locationModelId(), position());
     }
 
     void Agent::rotate(const Ogre::Vector3 &rot)
@@ -387,7 +458,7 @@ namespace Steel
         auto lmodel = locationModel();
 
         if(nullptr != lmodel)
-            mLevel->locationMan()->moveLocation(locationModelId(), position());
+            mLevel->locationModelMan()->moveLocation(locationModelId(), position());
     }
 
     void Agent::setRotation(const Ogre::Quaternion &rot)
@@ -411,13 +482,13 @@ namespace Steel
             pmodel->setScale(sca);
     }
 
-    bool Agent::setPath(Ogre::String const &name)
+    bool Agent::setLocationPath(LocationPathName const &name)
     {
         auto model = locationModel();
 
         if(nullptr == model)
         {
-            auto locationMan = mLevel->locationMan();
+            auto locationMan = mLevel->locationModelMan();
 
             if(nullptr == locationMan)
                 return false;
@@ -427,20 +498,21 @@ namespace Steel
             model = locationModel();
         }
 
-        return model->setPath(name);
+        mLevel->locationModelMan()->setModelPath(locationModelId(), name);
+        return true;
     }
 
-    void Agent::unsetPath()
+    void Agent::unsetLocationPath()
     {
-        auto model = locationModel();
-
-        if(nullptr == model)
-            return;
-
-        model->unsetPath();
+        mLevel->locationModelMan()->unsetModelPath(locationModelId());
     }
 
-    bool Agent::hasPath()
+    Ogre::String Agent::locationPath()
+    {
+        return hasLocationPath() ? locationModel()->path() : LocationModel::EMPTY_PATH;
+    }
+
+    bool Agent::hasLocationPath()
     {
         auto model = locationModel();
 
@@ -448,6 +520,82 @@ namespace Steel
             return false;
 
         return model->hasPath();
+    }
+
+    bool Agent::setBTPath(Ogre::String const &name)
+    {
+        return true;
+    }
+
+    void Agent::unsetBTPath()
+    {
+
+    }
+
+    bool Agent::hasBTPath()
+    {
+        return INVALID_ID != btModelId() && btModel()->hasPath();
+    }
+
+    bool Agent::followNewPath(AgentId aid)
+    {
+        static const Ogre::String intro = "Agent::followNewPath(): ";
+
+        Agent *target;
+
+        if(nullptr == (target = mLevel->agentMan()->getAgent(aid)))
+        {
+            Debug::error(intro)("cannot follow invalid agent ").quotes(aid)(". Aborting.").endl();
+            return false;
+        }
+
+        Ogre::String targetPath = target->locationPath();
+
+        if(LocationModel::EMPTY_PATH == targetPath)
+        {
+            Debug::error(intro)("target with id ").quotes(aid)(" has no path set. Aborting.").endl();
+            return false;
+        }
+
+        ModelId newBTModelId = INVALID_ID;
+        Ogre::String path = mLevel->BTModelMan()->genericFollowPathModelPath();
+
+        if(!mLevel->BTModelMan()->buildFromFile(path, newBTModelId))
+        {
+            Debug::error(intro)("could not retrieve a BTModel for bt file ")
+            .quotes(path)(". Aborting.").endl();
+            return false;
+        }
+
+        BTModel *newBTModel = mLevel->BTModelMan()->at(newBTModelId);
+
+        if(INVALID_ID == newBTModelId || nullptr == newBTModel)
+        {
+            Debug::error(intro)("caanot get pointer to model ").quotes(newBTModelId)(". Aborting.").endl();
+            return false;
+        }
+
+        newBTModel->setPath(targetPath);
+
+        pushBT(newBTModelId);
+
+//         mBehaviorsStack
+
+//         TODO: implement me ! and other method up there too:
+//          move BTPath stuff to the agent. The path following bt should be shared among agents, and owned (via an extra refcount) by the locationModelManager.
+
+        return true;
+    }
+
+    bool Agent::stopFollowingPath(AgentId aid)
+    {
+//         Agent *pathAgent;
+//         if(nullptr == (pathAgent = mLevel->agentMan()->getAgent(aid)))
+        return true;
+
+//         Ogre::String path = pathAgent->locationPath();
+
+//         return true;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

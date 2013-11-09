@@ -32,6 +32,8 @@
 #include "AgentManager.h"
 #include "SelectionManager.h"
 #include "LocationModelManager.h"
+#include "BlackBoardModelManager.h"
+#include "BTModelManager.h"
 
 namespace Steel
 {
@@ -46,7 +48,8 @@ namespace Steel
         mEngine(engine), mViewport(nullptr), mPath(path.subfile(name)), mName(name),
         mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(nullptr), mLevelRoot(nullptr),
         mManagers(std::map<ModelType, ModelManager *>()), mAgentMan(nullptr), mOgreModelMan(nullptr),
-        mPhysicsModelMan(nullptr), mBTModelMan(nullptr), mTerrainMan(), mSelectionMan(nullptr), mLocationMan(nullptr),
+        mPhysicsModelMan(nullptr), mBTModelMan(nullptr), mTerrainMan(), mSelectionMan(nullptr), mLocationModelMan(nullptr),
+        mBlackBoardModelManagerMan(nullptr),
         mCamera(nullptr), mMainLight(nullptr)
     {
         Debug::log(logName() + "()").endl();
@@ -87,7 +90,8 @@ namespace Steel
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
-        mLocationMan = new LocationModelManager(this);
+        mLocationModelMan = new LocationModelManager(this);
+        mBlackBoardModelManagerMan = new BlackBoardModelManager(this);
 
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
@@ -95,6 +99,10 @@ namespace Steel
     Level::~Level()
     {
         Debug::log(logName() + ".~Level()").endl();
+        
+        mBlackBoardModelManagerMan->clear();
+        delete mBlackBoardModelManagerMan;
+        mBlackBoardModelManagerMan = nullptr;
 
         mBTModelMan->clear();
         delete mBTModelMan;
@@ -105,9 +113,9 @@ namespace Steel
         mPhysicsModelMan = nullptr;
         mTerrainMan.shutdown();
 
-        mLocationMan->clear();
-        delete mLocationMan;
-        mLocationMan = nullptr;
+        mLocationModelMan->clear();
+        delete mLocationModelMan;
+        mLocationModelMan = nullptr;
 
         mOgreModelMan->clear();
         delete mOgreModelMan;
@@ -221,7 +229,7 @@ namespace Steel
     {
         Debug::log(logName() + ".save():").endl();
 
-        Ogre::String s = "";
+        Ogre::String s = Ogre::StringUtil::BLANK;
         serialize(s);
 
         File savefile = getSavefile();

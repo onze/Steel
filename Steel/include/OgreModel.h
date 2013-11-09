@@ -11,7 +11,7 @@
 
 namespace Steel
 {
-
+    
     class OgreModel: public Model
     {
         public:
@@ -86,6 +86,7 @@ namespace Steel
             }
 
             virtual void cleanup();
+            
         protected:
             // not owned
             Ogre::SceneManager *mSceneManager;

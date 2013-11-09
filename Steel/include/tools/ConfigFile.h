@@ -23,7 +23,7 @@ namespace Steel
             virtual ConfigFile& operator=(const ConfigFile& other);
             virtual bool operator==(const ConfigFile& other) const;
 
-            Ogre::String getSetting(Ogre::String const &key, Ogre::String const &defaultValue="") const;
+            Ogre::String getSetting(Ogre::String const &key, Ogre::String const &defaultValue=Ogre::StringUtil::BLANK) const;
             int getSettingAsBool(Ogre::String const &key, bool defaultValue=false) const;
             int getSettingAsInt(Ogre::String const &key, int defaultValue=0) const;
             float getSettingAsFloat(Ogre::String const &key, float defaultValue=.0f) const;

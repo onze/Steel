@@ -5,6 +5,7 @@
 #include <exception>
 #include <map>
 
+#include <list>
 #include <json/json.h>
 #include <OgreString.h>
 #include <OgreVector3.h>
@@ -15,9 +16,12 @@ namespace Steel
 {
     class Level;
     class Model;
+    
     class OgreModel;
     class PhysicsModel;
     class LocationModel;
+    class BTModel;
+    class BlackBoardModel;
 
     /**
      * Agent is the base class of Steel objects.
@@ -30,6 +34,7 @@ namespace Steel
     public:
         static const char *TAGS_ATTRIBUTE;
         static const char *ID_ATTRIBUTE;
+        static const char *BEHAVIORS_STACK_ATTRIBUTE;
 
         Agent(AgentId id, Level *level);
         virtual ~Agent();
@@ -37,14 +42,8 @@ namespace Steel
         /// shallow copy
         Agent &operator=(const Agent &);
 
-        inline AgentId id()
-        {
-            return mId;
-        }
-        inline bool isFree()
-        {
-            return mId == INVALID_ID;
-        }
+        inline AgentId id() {return mId;}
+        inline bool isFree() {return mId == INVALID_ID;}
 
         void init(AgentId id);
         void cleanup();
@@ -64,54 +63,45 @@ namespace Steel
         ModelId modelId(ModelType modelType) const;
 
         /// Return all ids of all contained model types.
-        std::map<ModelType, ModelId> &modelsIds()
-        {
-            return mModelIds;
-        }
+        std::map<ModelType, ModelId> &modelsIds() {return mModelIds;}
 
-        /// Shortcut to Agent::model(MT_OGRE).
-        inline OgreModel *ogreModel() const
-        {
-            return (OgreModel *) model(MT_OGRE);
-        }
-        /// Shortcut to Agent::modelId(MT_OGRE).
-        inline ModelId ogreModelId() const
-        {
-            return modelId(MT_OGRE);
-        }
+        inline OgreModel *ogreModel() const {return (OgreModel *) model(MT_OGRE);}
+        inline ModelId ogreModelId() const {return modelId(MT_OGRE);}
 
-        /// Shortcut to Agent::model(MT_PHYSICS).
-        inline PhysicsModel *physicsModel() const
-        {
-            return (PhysicsModel *) model(MT_PHYSICS);
-        }
-        /// Shortcut to Agent::modelId(MT_PHYSICS).
-        inline ModelId physicsModelId() const
-        {
-            return modelId(MT_PHYSICS);
-        }
+        inline PhysicsModel *physicsModel() const {return (PhysicsModel *) model(MT_PHYSICS);}
+        inline ModelId physicsModelId() const {return modelId(MT_PHYSICS);}
 
-        /// Shortcut to Agent::model(MT_LOCATION).
-        inline LocationModel *locationModel() const
-        {
-            return (LocationModel *) model(MT_LOCATION);
-        }
-        /// Shortcut to Agent::modelId(MT_LOCATION).
-        inline ModelId locationModelId() const
-        {
-            return modelId(MT_LOCATION);
-        }
+        inline LocationModel *locationModel() const {return (LocationModel *) model(MT_LOCATION);}
+        inline ModelId locationModelId() const {return modelId(MT_LOCATION);}
 
-        inline bool isSelected()
-        {
-            return mIsSelected;
-        }
+        inline BTModel *btModel() const {return (BTModel *) model(MT_BT);}
+        inline ModelId btModelId() const {return modelId(MT_BT);}
+        
+        inline BlackBoardModel *blackBoardModel() const {return (BlackBoardModel *) model(MT_BLACKBOARD);}
+        inline ModelId blackBoardModelId() const {return modelId(MT_BLACKBOARD);}
+
+        inline bool isSelected() {return mIsSelected;}
 
         /**
          * Make an agent selected or not.
          * Being (de)selected can have different effects on the agent's models.
          */
         void setSelected(bool selected);
+        
+        bool setBTPath(Ogre::String const &name);
+        void unsetBTPath();
+        bool hasBTPath();
+        /**
+         * Sets a new BTModel as current one (pushing any previously set one on the stack). 
+         * This bt makes the agent follow the path which the given agent belongs to.
+         * Returns operation success.
+         */
+        bool followNewPath(AgentId aid);
+        bool stopFollowingPath(AgentId aid);
+        /// Pushes the current BT (if any) on the stack, and set the given one as current. Returns operation success.
+        bool pushBT(ModelId btid);
+        /// Stops&forgets the current bt, and restores last pushed bt as current one. Returns operation success.
+        bool popBT();
 
         //////////////////////////////////////////////////////////////////////
         // OgreModel/PhysicsModel shortcuts
@@ -137,9 +127,16 @@ namespace Steel
         // LocationModel shortcuts
 
         /// Shortcut to LocationModel()->setPath. Will attach to a new model if needed.
-        bool setPath(Ogre::String const &name);
-        void unsetPath();
-        bool hasPath();
+        bool setLocationPath(const Steel::LocationPathName &name);
+        void unsetLocationPath();
+        Ogre::String locationPath();
+        bool hasLocationPath();
+
+        //////////////////////////////////////////////////////////////////////
+        // BTModel shortcuts
+        
+        //////////////////////////////////////////////////////////////////////
+        // BlackBoardModel shortcuts
 
         //////////////////////////////////////////////////////////////////////
         // tagging shortcuts
@@ -150,6 +147,7 @@ namespace Steel
         std::set<Tag> tags() const;
 
     private:
+        
         /// Unique id.
         AgentId mId;
 
@@ -166,6 +164,9 @@ namespace Steel
          * a ref count (map value) is kept, to support unlinking from model.
          */
         std::map<Tag, unsigned> mTags;
+        
+        /// Stack of behaviors. Current one is in mModelIds though.
+        std::list<ModelId> mBehaviorsStack;
     };
 
 }

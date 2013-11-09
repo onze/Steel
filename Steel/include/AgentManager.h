@@ -37,6 +37,11 @@ namespace Steel
             /// Path building condition on source agent
             bool agentCanBePathSource(AgentId const aid) const;
             bool agentCanBePathDestination(AgentId const aid) const;
+            
+            bool agentHasBTPath(AgentId aid);
+            bool agentCanBeAssignedBTPath(AgentId aid);
+            bool assignBTPath(AgentId movableAid, AgentId pathAid);
+            bool unassignBTPath(AgentId movableAid, AgentId pathAid);
 
         private:
             /// Creates an empty agent with the given id.

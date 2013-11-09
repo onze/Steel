@@ -249,7 +249,7 @@ namespace Steel
         else
             meshName = Ogre::String(value.asString());
 
-        Ogre::String materialName = "";
+        Ogre::String materialName = Ogre::StringUtil::BLANK;
 
         if(node.isMember(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE))
         {

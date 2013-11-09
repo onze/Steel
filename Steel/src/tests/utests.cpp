@@ -40,8 +40,8 @@ namespace Steel
         assert(dst[0]==src);
         assert(dst.size()==1);
 
-        dst=StringUtils::split("",sep2);
-        assert(dst[0]=="");
+        dst=StringUtils::split(Ogre::StringUtil::BLANK,sep2);
+        assert(dst[0]==Ogre::StringUtil::BLANK);
         assert(dst.size()==1);
 
         dst=StringUtils::split(src,sep0);
@@ -57,7 +57,7 @@ namespace Steel
 
         assert(src==StringUtils::join(StringUtils::split(src,sep0),sep0));
         assert("a.b"==StringUtils::join(StringUtils::split("a.b;c",";"),".",0,-1));
-        assert(""==StringUtils::join(StringUtils::split("a;b;c","."),".",0,-1));
+        assert(Ogre::StringUtil::BLANK==StringUtils::join(StringUtils::split("a;b;c","."),".",0,-1));
         assert("a;b;c"==StringUtils::join(StringUtils::split("a;b;c",";"),";"));
 
         Debug::log("tests_StringUtils(): passed").endl();
@@ -75,7 +75,7 @@ namespace Steel
             file.rm();
 
         ConfigFile cf(path);
-        assert(cf.getSetting("iop")=="");
+        assert(cf.getSetting("iop")==Ogre::StringUtil::BLANK);
         Ogre::String ret,value="haha";
         cf.setSetting("iop",value);
         ret=cf.getSetting("iop");
@@ -85,7 +85,7 @@ namespace Steel
         auto cf2=ConfigFile(path2);
         cf=cf2;
         ret=cf.getSetting("iop");
-        assert(ret=="");
+        assert(ret==Ogre::StringUtil::BLANK);
         cf=ConfigFile(path);
         ret=cf.getSetting("iop");
         assert(ret==value);

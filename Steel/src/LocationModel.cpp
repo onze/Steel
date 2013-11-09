@@ -12,15 +12,17 @@ namespace Steel
     const char *LocationModel::ATTACHED_AGENT_ATTRIBUTE = "attachedAgent";
     const char *LocationModel::PATH_ATTRIBUTE = "path";
 
+    const LocationPathName LocationModel::EMPTY_PATH = Ogre::StringUtil::BLANK;
+
     LocationModel::LocationModel(): Model(),
-        mLocationModelMan(nullptr), mSource(INVALID_ID), mDestination(INVALID_ID), mAttachedAgent(INVALID_ID),
-        mPosition(Ogre::Vector3::ZERO), mPath("")
+        mLocationModelMan(nullptr), mSources(), mDestinations(), mAttachedAgent(INVALID_ID),
+        mPosition(Ogre::Vector3::ZERO), mPath(LocationModel::EMPTY_PATH)
     {
 
     }
 
-    LocationModel::LocationModel(const LocationModel& o): Model(o),
-        mLocationModelMan(o.mLocationModelMan), mSource(o.mSource), mDestination(o.mDestination), mAttachedAgent(o.mAttachedAgent),
+    LocationModel::LocationModel(const LocationModel &o): Model(o),
+        mLocationModelMan(o.mLocationModelMan), mSources(o.mSources), mDestinations(o.mDestinations), mAttachedAgent(o.mAttachedAgent),
         mPosition(o.mPosition), mPath(o.mPath)
     {
 
@@ -33,86 +35,83 @@ namespace Steel
 
     void LocationModel::cleanup()
     {
-        if(hasSource())
-            unsetSource();
-        if(hasDestination())
-            unsetDestination();
-        
+        mSources.clear();
+        mDestinations.clear();
+
         mLocationModelMan = nullptr;
-        mSource = mDestination = INVALID_ID;
         mAttachedAgent = INVALID_ID;
         mPosition = Ogre::Vector3::ZERO;
-        mPath = "";
+        mPath = LocationModel::EMPTY_PATH;
         Model::cleanup();
     }
 
 
-    LocationModel& LocationModel::operator=(const LocationModel& o)
+    LocationModel &LocationModel::operator=(const LocationModel &o)
     {
         Model::operator=(o);
-        mLocationModelMan=o.mLocationModelMan;
-        mSource=o.mSource;
-        mDestination=o.mDestination;
-        mAttachedAgent=o.mAttachedAgent;
-        mPosition=o.mPosition;
-        mPath=o.mPath;
+        mLocationModelMan = o.mLocationModelMan;
+        mSources = o.mSources;
+        mDestinations = o.mDestinations;
+        mAttachedAgent = o.mAttachedAgent;
+        mPosition = o.mPosition;
+        mPath = o.mPath;
         return *this;
     }
 
-    bool LocationModel::operator==(const LocationModel& o) const
+    bool LocationModel::operator==(const LocationModel &o) const
     {
         return Model::operator==(o) &&
-               mLocationModelMan==o.mLocationModelMan &&
-               mSource==o.mSource &&
-               mDestination==o.mDestination &&
-               mAttachedAgent==o.mAttachedAgent &&
-               mPosition==o.mPosition &&
-               mPath==o.mPath;
+               mLocationModelMan == o.mLocationModelMan &&
+               mSources == o.mSources &&
+               mDestinations == o.mDestinations &&
+               mAttachedAgent == o.mAttachedAgent &&
+               mPosition == o.mPosition &&
+               mPath == o.mPath;
     }
 
-    bool LocationModel::fromJson(const Json::Value& node)
+    bool LocationModel::fromJson(const Json::Value &node)
     {
         throw std::runtime_error("LocationModel::fromJson should not be used, use LocationModel::fromJson");
     }
 
-    bool LocationModel::init(LocationModelManager* const locationModelMan)
+    bool LocationModel::init(LocationModelManager *const locationModelMan)
     {
         mLocationModelMan = locationModelMan;
         return nullptr != mLocationModelMan;
     }
 
-    bool LocationModel::fromJson(const Json::Value& node, LocationModelManager * const locationModelMan)
+    bool LocationModel::fromJson(const Json::Value &node, LocationModelManager *const locationModelMan)
     {
-        unsetSource();
-        unsetDestination();
+        mSources.clear();
+        mDestinations.clear();
 
         if(!deserializeTags(node))
             return false;
 
         if(node.isMember(LocationModel::SOURCE_ATTRIBUTE))
-            mSource=JsonUtils::asUnsignedLong(node[LocationModel::SOURCE_ATTRIBUTE],INVALID_ID);
+            mSources = JsonUtils::asUnsignedLongSet(node[LocationModel::SOURCE_ATTRIBUTE], std::set<AgentId>(), INVALID_ID);
 
         if(node.isMember(LocationModel::DESTINATION_ATTRIBUTE))
-            mDestination=JsonUtils::asUnsignedLong(node[LocationModel::DESTINATION_ATTRIBUTE],INVALID_ID);
+            mDestinations = JsonUtils::asUnsignedLongSet(node[LocationModel::DESTINATION_ATTRIBUTE], std::set<AgentId>(), INVALID_ID);
 
         if(node.isMember(LocationModel::ATTACHED_AGENT_ATTRIBUTE))
-            mAttachedAgent=(AgentId)JsonUtils::asUnsignedLong(node[LocationModel::ATTACHED_AGENT_ATTRIBUTE],INVALID_ID);
+            mAttachedAgent = (AgentId)JsonUtils::asUnsignedLong(node[LocationModel::ATTACHED_AGENT_ATTRIBUTE], INVALID_ID);
 
         if(node.isMember(LocationModel::PATH_ATTRIBUTE))
-            mPath=JsonUtils::asString(node[LocationModel::PATH_ATTRIBUTE],"");
+            mPath = JsonUtils::asString(node[LocationModel::PATH_ATTRIBUTE], LocationModel::EMPTY_PATH);
 
         return init(locationModelMan);
     }
 
     void LocationModel::toJson(Json::Value &node)
     {
-        if(INVALID_ID!=mSource)
-            node[LocationModel::SOURCE_ATTRIBUTE] = JsonUtils::toJson(source());
+        if(mSources.size() > 0)
+            node[LocationModel::SOURCE_ATTRIBUTE] = JsonUtils::toJson(mSources);
 
-        if(INVALID_ID!=mDestination)
-            node[LocationModel::DESTINATION_ATTRIBUTE] = JsonUtils::toJson(destination());
+        if(mDestinations.size() > 0)
+            node[LocationModel::DESTINATION_ATTRIBUTE] = JsonUtils::toJson(mDestinations);
 
-        if(INVALID_ID!=mAttachedAgent)
+        if(INVALID_ID != mAttachedAgent)
             node[LocationModel::ATTACHED_AGENT_ATTRIBUTE] = JsonUtils::toJson(mAttachedAgent);
 
         if(hasPath())
@@ -121,57 +120,81 @@ namespace Steel
         serializeTags(node);
     }
 
-    bool LocationModel::setDestination(ModelId mid)
+    bool LocationModel::addDestination(ModelId mid)
     {
-        LocationModel *dst=mLocationModelMan->at(mid);
-        if(nullptr==dst)
+        LocationModel *dst = mLocationModelMan->at(mid);
+
+        if(nullptr == dst)
+            return false;
+
+        // propagate path if either has one and not the other
+        if(!propagatePath(this, dst))
         {
-            mDestination = INVALID_ID;
+            Debug::warning("in LocationModel::addDestination(): cannot propagate paths. Aborting.").endl();
             return false;
         }
-        mDestination=mid;
 
-        if(hasPath())
-            if(!dst->setPath(mPath))
-                return false;
+        mDestinations.insert(mid);
         return true;
     }
 
-    void LocationModel::unsetDestination()
+    void LocationModel::removeDestination(AgentId aid)
     {
-        mDestination=INVALID_ID;
+        mDestinations.erase(aid);
     }
 
-    bool LocationModel::setSource(ModelId mid)
+    bool LocationModel::propagatePath(LocationModel *m0, LocationModel *m1)
     {
-        LocationModel *src=mLocationModelMan->at(mid);
-        if(nullptr==src)
+        if(m0->hasPath())
         {
-            mSource = INVALID_ID;
-            return false;
+            if(m1->hasPath())
+            {
+                if(m1->path() != m0->path())
+                {
+                    return false;
+                }
+            }
+            else
+                m1->_setPath(m0->path());
         }
-        mSource=mid;
+        else if(m1->hasPath())
+            m0->_setPath(m1->path());
 
-        if(hasPath() && !src->hasPath())
-            if(!src->setPath(mPath))
-                return false;
         return true;
     }
 
-    void LocationModel::unsetSource()
+    bool LocationModel::addSource(ModelId mid)
     {
-        mSource=INVALID_ID;
-        unsetPath();
+        LocationModel *src = mLocationModelMan->at(mid);
+
+        if(nullptr == src)
+            return false;
+
+
+        if(!propagatePath(this, src))
+        {
+            Debug::warning("in LocationModel::addSource(): cannot propagate paths. Aborting.").endl();
+            return false;
+        }
+
+        mSources.insert(mid);
+
+        return true;
+    }
+
+    void LocationModel::removeSource(AgentId aid)
+    {
+        mSources.erase(aid);
     }
 
     void LocationModel::attachAgent(AgentId aid)
     {
-        mAttachedAgent=aid;
+        mAttachedAgent = aid;
     }
 
     void LocationModel::setPosition(Ogre::Vector3 const &pos)
     {
-        mPosition=pos;
+        mPosition = pos;
     }
 
     Ogre::Vector3 LocationModel::position()
@@ -186,51 +209,49 @@ namespace Steel
 //         return position;
     }
 
-    bool LocationModel::setPath(Ogre::String const &name)
+    void LocationModel::applyToNetWork(std::function<void(LocationModel *)> f)
     {
-        return _setPath(name, false);
+        std::set<LocationModel *> network;
+        insertNetworkModels(network);
+        std::for_each(network.begin(), network.end(), f);
     }
 
-    void LocationModel::unsetPath()
+    void LocationModel::insertNetworkModels(std::set<LocationModel *> &network)
     {
-        _setPath("", true);
-    }
+        std::set<LocationModel *> fringe;
+        fringe.insert(this);
 
-    bool LocationModel::_setPath(Ogre::String const &name, bool force)
-    {
-        static const Ogre::String intro="in LocationModel::setPath(): ";
-        
-        std::stack<LocationModel *> fringe;
-        fringe.push(this);
-        
-            
-        if("" == name && !force)
+        auto agentMan = mLocationModelMan->level()->agentMan();
+        auto insertLocationModelsInFringeIfNotInNetwork = [&network, &fringe, agentMan](std::set<AgentId> const & nodes)->void
         {
-            Debug::error(intro)("path name cannot be the empty string").endl();
-            return false;
-        }
-            
+            for(auto const & aid : nodes)
+            {
+                Agent *agent = agentMan->getAgent(aid);
+
+                if(nullptr == agent || INVALID_ID == agent->locationModelId() || network.end() != network.find(agent->locationModel()))
+                    continue;
+
+                fringe.insert(agent->locationModel());
+            }
+        };
+
         while(fringe.size())
         {
-            LocationModel *model=fringe.top();
-            fringe.pop();
+            LocationModel *model = *fringe.begin();
+            fringe.erase(fringe.begin());
 
-            if(nullptr==model)
-                continue;
-                
-            // already set: assuming next nodes also are
-            if(name == model->mPath)
+            if(nullptr == model)
                 continue;
 
-            model->mPath=name;
-            
-            // propagate
-            if(model->hasSource())
-                fringe.push(mLocationModelMan->at(model->mSource));
-            if(model->hasDestination())
-                fringe.push(mLocationModelMan->at(model->mDestination));
+            network.insert(model);
+            insertLocationModelsInFringeIfNotInNetwork(model->sources());
+            insertLocationModelsInFringeIfNotInNetwork(model->destinations());
         }
-        return true;
+    }
+
+    void LocationModel::_setPath(const Steel::LocationPathName &name)
+    {
+        applyToNetWork(std::bind([&name](LocationModel * model)->void {model->mPath = name;}, std::placeholders::_1));
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -5,11 +5,9 @@
 #include <list>
 
 #include "steeltypes.h"
-//#include "BTModelManager.h"
 #include "tools/File.h"
 #include "TerrainManager.h"
 #include "TerrainManagerEventListener.h"
-#include "BTModelManager.h"
 
 namespace Steel
 {
@@ -21,6 +19,8 @@ namespace Steel
     class OgreModelManager;
     class PhysicsModelManager;
     class LocationModelManager;
+    class BTModelManager;
+    class BlackBoardModelManager;
     class SelectionManager;
 
     class Level: public TerrainManagerEventListener
@@ -112,45 +112,15 @@ namespace Steel
         ///Return the level's model manager for the given type.
         ModelManager *modelManager(ModelType modelType);
 
-        inline OgreModelManager *ogreModelMan()
-        {
-            return mOgreModelMan;
-        }
-
-        inline PhysicsModelManager *physicsModelMan()
-        {
-            return mPhysicsModelMan;
-        }
-
-        inline Ogre::SceneManager *sceneManager()
-        {
-            return mSceneManager;
-        }
-
-        inline TerrainManager *terrainManager()
-        {
-            return &mTerrainMan;
-        }
-
-        inline BTModelManager *BTModelMan()
-        {
-            return mBTModelMan;
-        }
-
-        inline AgentManager *agentMan()
-        {
-            return mAgentMan;
-        }
-
-        inline SelectionManager *selectionMan()
-        {
-            return mSelectionMan;
-        }
-
-        inline LocationModelManager *locationMan()
-        {
-            return mLocationMan;
-        }
+        inline OgreModelManager *ogreModelMan(){return mOgreModelMan;}
+        inline PhysicsModelManager *physicsModelMan(){return mPhysicsModelMan;}
+        inline Ogre::SceneManager *sceneManager(){return mSceneManager;}
+        inline TerrainManager *terrainManager(){return &mTerrainMan;}
+        inline BTModelManager *BTModelMan(){return mBTModelMan;}
+        inline AgentManager *agentMan(){return mAgentMan;}
+        inline SelectionManager *selectionMan(){return mSelectionMan;}
+        inline LocationModelManager *locationModelMan(){return mLocationModelMan;}
+        inline BlackBoardModelManager *blackBoardModelMan(){return mBlackBoardModelManagerMan;}
 
     private:
         /// name used in debug output
@@ -188,7 +158,8 @@ namespace Steel
         BTModelManager *mBTModelMan;
         TerrainManager mTerrainMan;
         SelectionManager *mSelectionMan;
-        LocationModelManager *mLocationMan;
+        LocationModelManager *mLocationModelMan;
+        BlackBoardModelManager *mBlackBoardModelManagerMan;
 
         /// Main camera
         Camera *mCamera;

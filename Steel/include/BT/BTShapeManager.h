@@ -35,7 +35,7 @@ namespace Steel
              * @param stream pointer to the created shape stream.
              * @return true if no error occured.
              */
-            bool buildShapeStream(Ogre::String streamName, Steel::File& rootFile, Steel::BTShapeStream*& stream);
+            bool buildShapeStream(Ogre::String streamName, Steel::File const &rootFile, Steel::BTShapeStream*& stream);
 
             /// Returns a pointer to a cached stream, or nullptr if no stream with the given name has been built.
             BTShapeStream *getBTShapeStream(Ogre::String streamName);

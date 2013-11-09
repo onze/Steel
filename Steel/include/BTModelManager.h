@@ -12,27 +12,35 @@ namespace Steel
     class Level;
     class BTModelManager: public _ModelManager<BTModel>
     {
-        public:
-            BTModelManager(Level *level, Ogre::String mPath);
-            virtual ~BTModelManager();
+    public:
 
-            bool fromSingleJson(Json::Value &root, ModelId &id);
-            virtual ModelType modelType();
+        BTModelManager(Level *level, Ogre::String mPath);
+        virtual ~BTModelManager();
 
-            /**
-             * Reads the file system at the given directory, build the corresponding BTree,
-             * and returns the id of a BTModel executing it.
-             */
-            bool buildFromFile(Steel::File& rootFile, Steel::ModelId& id);
+        bool fromSingleJson(Json::Value &root, ModelId &id);
+        virtual ModelType modelType();
 
-            /// Main loop iteration. Update each BT model.
-            void update(float timestep);
+        /**
+         * Reads the file system at the given directory, build the corresponding BTree,
+         * and returns the id of a BTModel executing it.
+         */
+        bool buildFromFile(Steel::File const &rootFile, Steel::ModelId &id);
 
-        protected:
-            // owned
-            BTShapeManager mBTShapeMan;
-            /// Path to BT folder
-            File mBasePath;
+        /// Main loop iteration. Update each BT model.
+        void update(float timestep);
+
+        /// Fullpath of the BT implementing default path following.
+        Ogre::String genericFollowPathModelPath();
+        
+        bool onAgentLinkedToModel(Agent *agent, ModelId mid);
+
+    protected:
+        /// Name of the BT implementing default path following.
+        static const Ogre::String GENERIC_FOLLOW_PATH_MODEL_NAME;
+        // owned
+        BTShapeManager mBTShapeMan;
+        /// Path to BT folder
+        File mBasePath;
     };
 
 }

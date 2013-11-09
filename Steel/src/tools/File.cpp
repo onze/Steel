@@ -41,12 +41,11 @@ namespace Steel
 //std::thread File::sNotifier(File::poolAndNotify);
 
     File::File()
-        : mPath(""), mBaseName(""), mExtension("")
+        : mPath(Ogre::StringUtil::BLANK), mBaseName(Ogre::StringUtil::BLANK), mExtension(Ogre::StringUtil::BLANK)
     {
     }
 
     File::File(const char *fullpath)
-        : mPath(""), mBaseName(""), mExtension("")
     {
         Ogre::StringUtil::splitFullFilename(Ogre::String(fullpath), mBaseName, mExtension, mPath);
         // #ifdef __unix
@@ -59,7 +58,6 @@ namespace Steel
     }
 
     File::File(Ogre::String fullPath)
-        : mPath(""), mBaseName(""), mExtension("")
     {
         //mPath will end with a slash
         Ogre::StringUtil::splitFullFilename(fullPath, mBaseName, mExtension, mPath);
@@ -237,11 +235,6 @@ namespace Steel
         sListeners.clear();
         sStaticLock.unlock();
     }
-
-    /*Ogre::String File::relpath(File comp)
-     {
-     return "";
-     }*/
 
     void File::dispatchEvents()
     {

@@ -164,9 +164,7 @@ namespace Steel
                         break;
                     }
 
-                    //TODO: clean code when gcc implements map::emplace
-                    if(mEmitOnTag.find(tag) == mEmitOnTag.end())
-                        mEmitOnTag[tag] = std::set<Tag>();
+                    mEmitOnTag.emplace(tag, std::set<Tag>());
 
                     for(Json::ValueIterator it = signals.begin(); it != signals.end(); ++it)
                     {

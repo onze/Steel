@@ -107,13 +107,45 @@ namespace Steel
     bool AgentManager::agentCanBePathSource(AgentId const aid) const
     {
         Agent *agent = getAgent(aid);
-        return nullptr == agent ? false : INVALID_ID == agent->locationModelId() || !agent->locationModel()->hasDestination();
+        return nullptr == agent ? false : true;
     }
 
     bool AgentManager::agentCanBePathDestination(AgentId const aid) const
     {
         Agent *agent = getAgent(aid);
-        return nullptr == agent ? false : INVALID_ID == agent->locationModelId() || !agent->locationModel()->hasSource();
+        return nullptr == agent ? false : true;
+    }
+
+    bool AgentManager::agentHasBTPath(AgentId aid)
+    {
+        Agent *agent = getAgent(aid);
+        return nullptr == agent ? false : agent->hasBTPath();
+    }
+
+    bool AgentManager::agentCanBeAssignedBTPath(AgentId aid)
+    {
+        return !agentHasBTPath(aid);
+    }
+
+    bool AgentManager::assignBTPath(AgentId movableAid, AgentId pathAid)
+    {
+        Agent *movableAgent;
+
+        if(nullptr == (movableAgent = getAgent(movableAid)))
+            return false;
+        
+        return movableAgent->followNewPath(pathAid);
+    }
+
+    bool AgentManager::unassignBTPath(AgentId movableAid, AgentId pathAid)
+    {
+        
+        Agent *movableAgent;
+        
+        if(nullptr == (movableAgent = getAgent(movableAid)))
+            return true;
+        
+        return movableAgent->stopFollowingPath(pathAid);
     }
 
 }

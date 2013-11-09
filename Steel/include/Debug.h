@@ -31,7 +31,7 @@ namespace Steel
             DebugObject()
             {
                 mLog = nullptr;
-                mMsg = "";
+                mMsg = Ogre::StringUtil::BLANK;
                 mIndents = 0;
             }
             DebugObject(Ogre::Log *log)
@@ -56,7 +56,7 @@ namespace Steel
             {
                 return mLog->getName();
             }
-            void setColors(Ogre::String pre = "", Ogre::String post = "")
+            void setColors(Ogre::String pre = Ogre::StringUtil::BLANK, Ogre::String post = Ogre::StringUtil::BLANK)
             {
                 mPre = pre;
                 mPost = post;
@@ -300,7 +300,7 @@ namespace Steel
             {
                 mIndents += 1;
 
-                if(mMsg == "")
+                if(mMsg == Ogre::StringUtil::BLANK)
                     for(int i = 0; i < mIndents; ++i)
                         mMsg.append(DebugObject::sIndentString);
 
@@ -311,7 +311,7 @@ namespace Steel
             {
                 mIndents = mIndents > 0 ? mIndents - 1 : 0;
 
-                if(mIndents > 0 && mMsg == "")
+                if(mIndents > 0 && mMsg == Ogre::StringUtil::BLANK)
                     for(int i = 0; i < mIndents; ++i)
                         mMsg.append(DebugObject::sIndentString);
 
