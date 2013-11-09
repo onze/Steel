@@ -525,7 +525,7 @@ namespace Steel
                 }
 
                 // load the referee
-                Ogre::String path = "";
+                Ogre::String path = Ogre::StringUtil::BLANK;
                 resolveReferencePaths(pathValue.asString(), path);
                 File file = mEngine->dataDir().subfile(path);
 
@@ -1637,7 +1637,7 @@ namespace Steel
                     if(nullptr == agent)
                         return false;
 
-                    agent->setPath(StringUtils::join(command, "."));
+                    agent->setLocationPath(StringUtils::join(command, "."));
                     refreshSelectionPathWidget();
                 }
                 else if(command[0] == "unset")
@@ -1648,7 +1648,7 @@ namespace Steel
                     if(nullptr == agent)
                         return false;
 
-                    agent->unsetPath();
+                    agent->unsetLocationPath();
                     refreshSelectionPathWidget();
                 }
                 else

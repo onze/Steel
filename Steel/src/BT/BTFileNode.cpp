@@ -79,8 +79,8 @@ namespace Steel
                 if(BTShapeTokenTypeAsString[it]==desc.fileName())
                     return it;
         }
-        Debug::warning("in BTFileNode::shapeTokenType(): unknown token type for file ")(fullPath()).endl()
-        ("with descriptor ")(desc.fullPath())(":").endl()
+        Debug::warning("in BTFileNode::shapeTokenType(): unknown token type for file ")
+        (*this)(" with descriptor ")(desc.fullPath())(":").endl()
         (desc.read()).endl();
         return BTUnknownToken;
     }

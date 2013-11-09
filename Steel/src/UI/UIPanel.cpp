@@ -12,7 +12,7 @@ namespace Steel
 
     UIPanel::UIPanel():
         Rocket::Core::EventListener(), mWidth(0), mHeight(0),
-        mContext(nullptr), mContextName(""), mDocumentFile(""), mDocument(nullptr),
+        mContext(nullptr), mContextName(Ogre::StringUtil::BLANK), mDocumentFile(Ogre::StringUtil::BLANK), mDocument(nullptr),
         mAutoReload(false), mDependencies(std::set<File *>())
     {
     }

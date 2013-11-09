@@ -241,8 +241,9 @@ namespace Steel
             {
                 AgentId aid = mEditor->agentIdUnderMouse();
 
-                if(nullptr == mLinkingSourceAgentValidationFn || !mLinkingSourceAgentValidationFn(aid))
-                    break;
+                if(nullptr != mLinkingSourceAgentValidationFn)
+                    if(!mLinkingSourceAgentValidationFn(aid))
+                        break;
 
                 mFirstLinkedAgent = aid;
                 mContinuousModeActivated = true;
@@ -334,28 +335,28 @@ namespace Steel
                     if(aid == mFirstLinkedAgent)
                         break;
 
-                    if(nullptr == mLinkingDestinationAgentValidationFn || !mLinkingDestinationAgentValidationFn(aid))
-                        break;
+                    if(nullptr != mLinkingDestinationAgentValidationFn)
+                        if(!mLinkingDestinationAgentValidationFn(aid))
+                            break;
 
                     if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
                     {
                         if(nullptr != mLinkingValidatedAlternateCallbackFn)
                         {
                             if(mLinkingValidatedAlternateCallbackFn(mFirstLinkedAgent, aid))
-                                Debug::log(intro)("link operation succeeded.").endl();
+                                Debug::log(intro)("alternate link operation succeeded.").endl();
                             else
-                                Debug::log(intro)("link operation failed.").endl();
+                                Debug::log(intro)("alternate link operation failed.").endl();
                         }
                     }
                     else
                     {
                         if(nullptr != mLinkingValidatedCallbackFn)
                         {
-
                             if(mLinkingValidatedCallbackFn(mFirstLinkedAgent, aid))
-                                Debug::log(intro)("alternate link operation succeeded.").endl();
+                                Debug::log(intro)("link operation succeeded.").endl();
                             else
-                                Debug::log(intro)("alternate link operation failed.").endl();
+                                Debug::log(intro)("link operation failed.").endl();
                         }
                     }
                 }
@@ -755,8 +756,16 @@ namespace Steel
         {
             setLinkingMode(std::bind(&AgentManager::agentCanBePathSource, mEngine->level()->agentMan(), std::placeholders::_1),
                            std::bind(&AgentManager::agentCanBePathDestination, mEngine->level()->agentMan(), std::placeholders::_1),
-                           std::bind(&LocationModelManager::linkAgents, mEngine->level()->locationMan(), std::placeholders::_1, std::placeholders::_2),
-                           std::bind(&LocationModelManager::unlinkAgents, mEngine->level()->locationMan(), std::placeholders::_1, std::placeholders::_2)
+                           std::bind(&LocationModelManager::linkAgents, mEngine->level()->locationModelMan(), std::placeholders::_1, std::placeholders::_2),
+                           std::bind(&LocationModelManager::unlinkAgents, mEngine->level()->locationModelMan(), std::placeholders::_1, std::placeholders::_2)
+                          );
+        }
+        else if(command[0] == "assign_path")
+        {
+            setLinkingMode(std::bind(&AgentManager::agentCanBeAssignedBTPath, mEngine->level()->agentMan(), std::placeholders::_1),
+                           std::bind(&LocationModelManager::hasModelPath, mEngine->level()->locationModelMan(), std::placeholders::_1),
+                           std::bind(&AgentManager::assignBTPath, mEngine->level()->agentMan(), std::placeholders::_1, std::placeholders::_2),
+                           std::bind(&AgentManager::unassignBTPath, mEngine->level()->agentMan(), std::placeholders::_1, std::placeholders::_2)
                           );
         }
         else
