@@ -754,16 +754,16 @@ namespace Steel
 
         if(command[0] == "build_path")
         {
-            setLinkingMode(std::bind(&AgentManager::agentCanBePathSource, mEngine->level()->agentMan(), std::placeholders::_1),
-                           std::bind(&AgentManager::agentCanBePathDestination, mEngine->level()->agentMan(), std::placeholders::_1),
+            setLinkingMode(nullptr,//std::bind(&AgentManager::agentCanBePathSource, mEngine->level()->agentMan(), std::placeholders::_1),
+                           nullptr,//std::bind(&AgentManager::agentCanBePathDestination, mEngine->level()->agentMan(), std::placeholders::_1),
                            std::bind(&LocationModelManager::linkAgents, mEngine->level()->locationModelMan(), std::placeholders::_1, std::placeholders::_2),
                            std::bind(&LocationModelManager::unlinkAgents, mEngine->level()->locationModelMan(), std::placeholders::_1, std::placeholders::_2)
                           );
         }
         else if(command[0] == "assign_path")
         {
-            setLinkingMode(std::bind(&AgentManager::agentCanBeAssignedBTPath, mEngine->level()->agentMan(), std::placeholders::_1),
-                           std::bind(&LocationModelManager::hasModelPath, mEngine->level()->locationModelMan(), std::placeholders::_1),
+            setLinkingMode(nullptr,//std::bind(&AgentManager::agentCanBeAssignedBTPath, mEngine->level()->agentMan(), std::placeholders::_1),
+                           nullptr,//std::bind(&AgentManager::agentHasLocationPath, mEngine->level()->agentMan(), std::placeholders::_1),
                            std::bind(&AgentManager::assignBTPath, mEngine->level()->agentMan(), std::placeholders::_1, std::placeholders::_2),
                            std::bind(&AgentManager::unassignBTPath, mEngine->level()->agentMan(), std::placeholders::_1, std::placeholders::_2)
                           );
