@@ -42,6 +42,8 @@ namespace Steel
             bool agentCanBeAssignedBTPath(AgentId aid);
             bool assignBTPath(AgentId movableAid, AgentId pathAid);
             bool unassignBTPath(AgentId movableAid, AgentId pathAid);
+            
+            bool agentHasLocationPath(AgentId aid);
 
         private:
             /// Creates an empty agent with the given id.

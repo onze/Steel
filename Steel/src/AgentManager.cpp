@@ -121,6 +121,12 @@ namespace Steel
         Agent *agent = getAgent(aid);
         return nullptr == agent ? false : agent->hasBTPath();
     }
+    
+    bool AgentManager::agentHasLocationPath(AgentId aid)
+    {
+        Agent *agent = getAgent(aid);
+        return nullptr == agent ? false : agent->hasLocationPath();
+    }
 
     bool AgentManager::agentCanBeAssignedBTPath(AgentId aid)
     {
