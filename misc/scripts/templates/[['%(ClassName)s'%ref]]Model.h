@@ -19,10 +19,11 @@ namespace Steel
             virtual [['%(ClassName)s'%ref]]Model& operator=(const [['%(ClassName)s'%ref]]Model& o);
             virtual bool operator==(const [['%(ClassName)s'%ref]]Model& o) const;
             
-            virtual inline ModelType modelType()
+            static ModelType modelType()
             {
                 return MT_[[('%(TypeName)s'%ref).upper()]];
             }
+            virtual bool init([['%(ClassName)s'%ref]]Manager *manager);
             virtual bool fromJson(Json::Value &node);
             virtual void toJson(Json::Value &node) const;
             virtual void cleanup();

@@ -21,7 +21,7 @@ namespace Steel
         
         if(!mModels[id].fromJson(model))
         {
-            deallocate(id);
+            deallocateModel(id);
             id = INVALID_ID;
             return false;
         }

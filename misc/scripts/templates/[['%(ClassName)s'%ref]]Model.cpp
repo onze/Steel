@@ -29,17 +29,21 @@ namespace Steel
     {
         return Model::operator==(o);
     }
+    
+    bool [['%(ClassName)s'%ref]]Model::init([['%(ClassName)s'%ref]]ModelManager const *manager)
+    {
+        return true;
+    }
 
     bool [['%(ClassName)s'%ref]]Model::fromJson(Json::Value &root)
     {
-        deserializeTags(root)
+        deserializeTags(root);
         return true;
     }
     
     void [['%(ClassName)s'%ref]]Model::toJson(Json::Value &root) const
     {
-        serializeTags(root)
-        return true;
+        serializeTags(root);
     }
     
     void [['%(ClassName)s'%ref]]Model::cleanup()
