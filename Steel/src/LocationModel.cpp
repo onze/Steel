@@ -35,8 +35,8 @@ namespace Steel
 
     void LocationModel::cleanup()
     {
-        mSources.clear();
-        mDestinations.clear();
+        removeAllSources();
+        removeAllDestinations();
 
         mLocationModelMan = nullptr;
         mAttachedAgent = INVALID_ID;
@@ -140,7 +140,22 @@ namespace Steel
 
     void LocationModel::removeDestination(AgentId aid)
     {
-        mDestinations.erase(aid);
+        if(mDestinations.erase(aid)>0)
+        {
+            Agent *agent = mLocationModelMan->level()->agentMan()->getAgent(aid);
+            if(nullptr==agent)
+                return;
+            LocationModel *model = agent->locationModel();
+            if(nullptr==agent)
+                return;
+            model->removeSource(attachedAgent());
+        }
+    }
+    
+    void LocationModel::removeAllDestinations()
+    {
+        while(hasAnyDestination())
+            removeDestination(*mDestinations.begin());
     }
 
     bool LocationModel::propagatePath(LocationModel *m0, LocationModel *m1)
@@ -181,10 +196,25 @@ namespace Steel
 
         return true;
     }
-
+    
     void LocationModel::removeSource(AgentId aid)
     {
-        mSources.erase(aid);
+        if(mSources.erase(aid)>0)
+        {
+            Agent *agent = mLocationModelMan->level()->agentMan()->getAgent(aid);
+            if(nullptr==agent)
+                return;
+            LocationModel *model = agent->locationModel();
+            if(nullptr==agent)
+                return;
+            model->removeDestination(attachedAgent());
+        }
+    }
+    
+    void LocationModel::removeAllSources()
+    {
+        while(hasAnySource())
+            removeSource(*mSources.begin());
     }
 
     void LocationModel::attachAgent(AgentId aid)
