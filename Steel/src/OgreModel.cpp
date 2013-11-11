@@ -288,7 +288,7 @@ namespace Steel
             // make sure the new meshName is valid
             if(meshName.length() == 0 || !Ogre::ResourceGroupManager::getSingletonPtr()->resourceExistsInAnyGroup(meshName))
             {
-                Debug::error(intro)("new mesh name is not valid:")(meshName).endl();
+                Debug::error(intro)("could not find resource ").quotes(meshName)(" in any group. Aborting.").endl();
                 return false;
             }
 

@@ -269,22 +269,23 @@ namespace Steel
         mModelIds.erase(it);
     }
 
-    bool Agent::popBT()
+    void Agent::popBT()
     {
-        if(0 == mBehaviorsStack.size())
-            return false;
+        if(INVALID_ID != btModelId())
+            unlinkFromModel(MT_BT);
 
-        unlinkFromModel(MT_BT);
+        if(0 == mBehaviorsStack.size())
+            return;
+
         auto mid = mBehaviorsStack.back();
         mBehaviorsStack.pop_back();
-        bool ok = linkToModel(MT_BT, mid);
-        ok &= nullptr != btModel();
 
         // stack had added an extra ref to keep it alive
-        if(ok)
+        if(linkToModel(MT_BT, mid))
+        {
             btModel()->decRef();
-
-        return ok;
+            btModel()->unpause();
+        }
     }
 
     bool Agent::pushBT(ModelId btid)
@@ -304,7 +305,7 @@ namespace Steel
         if(nullptr != model)
         {
             model->pause();
-            // keep alive
+            // keep it alive after it is unlinked
             model->incRef();
             mBehaviorsStack.push_back(btModelId());
             unlinkFromModel(MT_BT);
@@ -327,7 +328,7 @@ namespace Steel
     ModelId Agent::modelId(ModelType mType) const
     {
         auto it = mModelIds.find(mType);
-        return (it == mModelIds.end() ? INVALID_ID : it->second);
+        return it == mModelIds.end() ? INVALID_ID : it->second;
     }
 
     void Agent::setSelected(bool selected)
@@ -575,27 +576,45 @@ namespace Steel
             return false;
         }
 
-        newBTModel->setPath(targetPath);
-
+        // model must be linked to agent before it is assigned a path,
+        // so that a blackboard is available from the start
         pushBT(newBTModelId);
-
-//         mBehaviorsStack
-
-//         TODO: implement me ! and other method up there too:
-//          move BTPath stuff to the agent. The path following bt should be shared among agents, and owned (via an extra refcount) by the locationModelManager.
-
+        newBTModel->setPath(targetPath);
         return true;
     }
 
     bool Agent::stopFollowingPath(AgentId aid)
     {
-//         Agent *pathAgent;
-//         if(nullptr == (pathAgent = mLevel->agentMan()->getAgent(aid)))
+        static Ogre::String intro = "in Agent::stopFollowingPath(): ";
+
+        Agent *pathAgent;
+
+        if(nullptr == (pathAgent = mLevel->agentMan()->getAgent(aid)))
+        {
+            Debug::error(intro)("was asked to stop following an invalid AgentId ")(aid)(". Aborting").endl();
+            return false;
+        }
+
+        if(!pathAgent->hasLocationPath())
+        {
+            Debug::error(intro)("target agent ")(aid)(" has no location path to unfollow. Aborting").endl();
+            return false;
+        }
+
+        if(pathAgent->locationPath() != BTPath())
+        {
+            Debug::error(intro)("target agent ")(aid)("'s location path ").quotes(pathAgent->locationPath())
+            (" is different from selected agents (").quotes(BTPath())("). Aborting").endl();
+            return false;
+        }
+
+        popBT();
         return true;
+    }
 
-//         Ogre::String path = pathAgent->locationPath();
-
-//         return true;
+    Ogre::String Agent::BTPath()
+    {
+        return nullptr == btModel() ? LocationModel::EMPTY_PATH : btModel()->path();
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

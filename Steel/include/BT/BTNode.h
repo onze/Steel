@@ -40,7 +40,7 @@ namespace Steel
             }
 
             /// Current state of the node. Can be overwritten by subclasses if needed.
-            virtual BTState state();
+            virtual BTNodeState state();
 
             BTStateIndex firstChildIndex();
             BTStateIndex lastChildIndex();
@@ -63,7 +63,7 @@ namespace Steel
              * Defaults to updating the node's state.
              * Meant to be overwritten.
              */
-            virtual void childReturned(BTNode const * const node, BTState state);
+            virtual void childReturned(BTNode const * const node, BTNodeState state);
 
             /**
              * Called after run, once the parent has been notified of the node's state.
@@ -80,7 +80,7 @@ namespace Steel
             virtual bool parseNodeContent(Json::Value &root);
 
             // owned
-            BTState mState;
+            BTNodeState mState;
             BTShapeToken mToken;
     };
 }

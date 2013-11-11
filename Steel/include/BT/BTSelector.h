@@ -29,7 +29,7 @@ namespace Steel
                 return mCurrentChildNodeIndex;
             }
         protected:
-            BTState mState;
+            BTNodeState mState;
             BTShapeToken mToken;
             unsigned mCurrentChildNodeIndex;
     };

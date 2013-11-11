@@ -13,40 +13,40 @@ namespace Steel
      */
     class BTSequence: public BTNode
     {
-        private:
-            /**
-             * Max number of times a loop through children is initiated.
-             * Defaults to 0, meaning an undefinitely.
-             * If set, after the limit is reached, freezes its state to its last value.
-             */
-            static const char *MAX_LOOPS_ATTRIBUTE;
+    private:
+        /**
+         * Max number of times a loop through children is initiated.
+         * Defaults to 0, meaning an undefinitely.
+         * If set, after the limit is reached, freezes its state to its last value.
+         */
+        static const char *MAX_LOOPS_ATTRIBUTE;
 
-        public:
-            inline static BTShapeTokenType tokenType()
-            {
-                return BTSequenceToken;
-            }
+    public:
+        inline static BTShapeTokenType tokenType()
+        {
+            return BTSequenceToken;
+        }
 
-            BTSequence(BTShapeToken const &token);
-            virtual ~BTSequence();
+        BTSequence(BTShapeToken const &token);
+        virtual ~BTSequence();
 
-            BTStateIndex nodeSkippedTo();
-            void childReturned(BTNode const * const node, Steel::BTState state);
-            void onParentNotified();
+        BTStateIndex nodeSkippedTo();
+        void childReturned(BTNode const *const node, BTNodeState state);
+        void onParentNotified();
 
-            inline BTStateIndex currentChildNodeIndex()
-            {
-                return mCurrentChildNodeIndex;
-            }
+        inline BTStateIndex currentChildNodeIndex()
+        {
+            return mCurrentChildNodeIndex;
+        }
 
-            bool parseNodeContent(Json::Value &root);
+        bool parseNodeContent(Json::Value &root);
 
-        private:
-            /// Loops currentChildNodeIndex() through children indices
-            BTStateIndex switchToNextChild(const Steel::BTNode*const child);
-            BTStateIndex mCurrentChildNodeIndex;
-            unsigned mNLoops;
-            unsigned mMaxLoops;
+    private:
+        /// Loops currentChildNodeIndex() through children indices
+        BTStateIndex switchToNextChild(const BTNode *const child);
+        BTStateIndex mCurrentChildNodeIndex;
+        unsigned mNLoops;
+        unsigned mMaxLoops;
     };
 }
 

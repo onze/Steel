@@ -22,6 +22,8 @@ namespace Steel
     class ModelManager
     {
         public:
+            static const char *MODELS_ATTRIBUTES;
+            
             virtual Model *at(ModelId id)=0;
 
             virtual void incRef(ModelId id)=0;

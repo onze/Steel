@@ -23,7 +23,7 @@ namespace Steel
     void BTDebug::run(float timestep)
     {
         Debug::log("BTDebug<")(reinterpret_cast<unsigned long>(this))("> >> \"")(mDebugText)("\"").endl();
-        mState=SUCCESS;
+        mState=BTNodeState::SUCCESS;
     }
 
     bool BTDebug::parseNodeContent(Json::Value &root)

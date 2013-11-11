@@ -40,6 +40,7 @@ namespace Steel
                         this->cleanup();
                 }
             }
+            
             inline bool isFree() const
             {
                 return mRefCount == 0L;

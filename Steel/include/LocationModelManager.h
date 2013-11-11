@@ -16,6 +16,8 @@ namespace Steel
     class Level;
     class LocationModelManager: public _ModelManager<LocationModel>
     {
+        /// Holds paths roots
+        static const char *PATH_ROOTS_ATTRIBUTE;
     public:
         LocationModelManager(Level *level);
         virtual ~LocationModelManager();
@@ -26,7 +28,9 @@ namespace Steel
             return MT_LOCATION;
         }
 
+        std::vector<ModelId> fromJson(Json::Value &model);
         bool fromSingleJson(Json::Value &model, ModelId &mid);
+        void toJson(Json::Value &object);
         bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 
         /////////////////////////////////////////////////

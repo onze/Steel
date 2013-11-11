@@ -24,7 +24,7 @@ namespace Steel
                 BTShapeTokenTypeAsString__data+sizeof(BTShapeTokenTypeAsString__data)/sizeof(Ogre::String)
     );
     
-    Ogre::String BTStateAsString__data[] =
+    Ogre::String BTNodeStateAsString__data[] =
     {
         "READY",
         "RUNNING",
@@ -33,9 +33,9 @@ namespace Steel
         "SKIP_TO"
     };
     
-    std::vector<Ogre::String> BTStateAsString = std::vector<Ogre::String> (
-        BTStateAsString__data,
-        BTStateAsString__data+sizeof(BTStateAsString__data)/sizeof(Ogre::String)
+    std::vector<Ogre::String> BTNodeStateAsString = std::vector<Ogre::String> (
+        BTNodeStateAsString__data,
+        BTNodeStateAsString__data+sizeof(BTNodeStateAsString__data)/sizeof(Ogre::String)
     );
 
 }

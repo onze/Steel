@@ -80,16 +80,16 @@ namespace Steel
     {
         mSignalReceived=false;
         if(mIsNonBlocking)
-            mState=FAILURE;
+            mState=BTNodeState::FAILURE;
         else
-            mState=RUNNING;
+            mState=BTNodeState::RUNNING;
     }
 
     void BTSignalListener::switchOpened()
     {
         mSignalReceived=true;
         // goto child
-        mState=SKIPT_TO;
+        mState=BTNodeState::SKIPT_TO;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

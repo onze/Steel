@@ -69,7 +69,7 @@ namespace Steel
     void BlackBoardModel::setVariable(Ogre::String const &name, AgentId const &value)
     {
         mVariables.erase(name);
-        mVariables[name] = value;
+        mVariables[name] = Ogre::StringConverter::toString(value);
     }
 
     Ogre::String BlackBoardModel::getStringVariable(Ogre::String const &name)
@@ -90,6 +90,11 @@ namespace Steel
             return INVALID_ID;
 
         return (AgentId) Ogre::StringConverter::parseUnsignedLong(it->second, INVALID_ID);
+    }
+    
+    void BlackBoardModel::unsetVariable(Ogre::String const &name)
+    {
+        mVariables.erase(name);
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

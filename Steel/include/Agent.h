@@ -101,7 +101,7 @@ namespace Steel
         /// Pushes the current BT (if any) on the stack, and set the given one as current. Returns operation success.
         bool pushBT(ModelId btid);
         /// Stops&forgets the current bt, and restores last pushed bt as current one. Returns operation success.
-        bool popBT();
+        void popBT();
 
         //////////////////////////////////////////////////////////////////////
         // OgreModel/PhysicsModel shortcuts
@@ -134,6 +134,7 @@ namespace Steel
 
         //////////////////////////////////////////////////////////////////////
         // BTModel shortcuts
+        Ogre::String BTPath();
         
         //////////////////////////////////////////////////////////////////////
         // BlackBoardModel shortcuts

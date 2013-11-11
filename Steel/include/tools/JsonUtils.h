@@ -6,6 +6,7 @@
 #include <set>
 
 #include <json/json.h>
+#include <OgreVector3.h>
 #include <OgreString.h>
 #include <OgreStringConverter.h>
 #include <steeltypes.h>
@@ -80,15 +81,15 @@ namespace Steel
         {
             return Json::Value(value.c_str());
         }
-        
+
         template<class V>
         static Json::Value toJson(std::map<Ogre::String, V> const &container)
         {
             Json::Value value;
-            
-            for(auto const & item: container)
+
+            for(auto const & item : container)
                 value[item.first.c_str()] = toJson(item.second);
-                
+
             return value;
         }
 
@@ -104,30 +105,35 @@ namespace Steel
             return value;
         }
 
-        static bool asBool(Json::Value const &value, bool defaultValue);
-        static bool asInt(Json::Value const &value, int defaultValue);
-        static float asFloat(Json::Value const &value, float defaultValue);
-        static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue);
+        static bool asBool(Json::Value const &value, bool defaultValue = false);
+        static bool asInt(Json::Value const &value, int defaultValue = 0);
+        static float asFloat(Json::Value const &value, float defaultValue = .0f);
+        static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue = 0);
         static inline ModelId asModelId(Json::Value const &value, unsigned long defaultValue) {return asUnsignedLong(value, defaultValue);};
-        static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue);
+        static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue = Ogre::StringUtil::BLANK);
+        static Ogre::Vector3 asVector3(Json::Value const &value, const Ogre::Vector3 &defaultValue = Ogre::Vector3::ZERO);
 
         static std::list<Ogre::String> asStringsList(const Json::Value &value,
                 std::list< Ogre::String > defaultValue = std::list< Ogre::String >(),
-                                                     Ogre::String defaultItemValue = Ogre::StringUtil::BLANK);
-        
+                Ogre::String defaultItemValue = Ogre::StringUtil::BLANK);
+
         static std::set<Tag> asTagsSet(const Json::Value &value,
                                        const std::set<Tag> defaultValue = std::set<Tag>());
-        
+
         static std::set<unsigned long> asUnsignedLongSet(const Json::Value &value,
-                                               const std::set<unsigned long> defaultValue = std::set<unsigned long>(),
-                                               unsigned long defaultItemValue = 0
-                                              );
+                std::set<unsigned long> defaultValue = std::set<unsigned long>(),
+                unsigned long defaultItemValue = 0);
+
+        static std::list<unsigned long> asUnsignedLongList(const Json::Value &value,
+                std::list<unsigned long> defaultValue = std::list<unsigned long>(),
+                unsigned long defaultItemValue = 0);
 
         static std::list<ModelId> asModelIdList(const Json::Value &value,
                                                 std::list<ModelId> defaultValue = std::list<ModelId>(),
                                                 ModelId defaultItemValue = INVALID_ID);
 
         static std::map<Ogre::String, Ogre::String> asStringStringMap(const Json::Value &value);
+        static std::map<Ogre::String, unsigned long> asStringUnsignedLongMap(const Json::Value &value);
 
 
     private:

@@ -42,7 +42,7 @@ namespace Steel
     const char *Level::CAMERA_ATTRIBUTE = "camera";
     const char *Level::TERRAIN_ATTRIBUTE = "terrain";
     const char *Level::AGENTS_ATTRIBUTE = "agents";
-    const char *Level::MODELS_ATTRIBUTE = "models";
+    const char *Level::MANAGERS_ATTRIBUTE = "managers";
 
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
         mEngine(engine), mViewport(nullptr), mPath(path.subfile(name)), mName(name),
@@ -379,18 +379,18 @@ namespace Steel
             mm->toJson(models[modelTypesAsString[modelType]]);
         }
 
-        root[Level::MODELS_ATTRIBUTE] = models;
+        root[Level::MANAGERS_ATTRIBUTE] = models;
         Debug::log("all models done.").unIndent().endl();
 
         Debug::log("serialization done").unIndent().endl();
         s = root.toStyledString();
-        Debug::log(s).endl();
+//         Debug::log(s).endl();
     }
 
     bool Level::deserialize(Ogre::String &s)
     {
         Debug::log(logName() + ".deserialize():").endl().indent();
-        Debug::log(s).endl();
+//         Debug::log(s).endl();
         Json::Reader reader;
         Json::Value root;
         bool parsingOk = reader.parse(s, root, false);
@@ -446,7 +446,7 @@ namespace Steel
         }
 
         Debug::log("instanciate ALL the models ! \\o/").endl();
-        Json::Value dict = root[Level::MODELS_ATTRIBUTE];
+        Json::Value dict = root[Level::MANAGERS_ATTRIBUTE];
 
         if(dict.isNull())
         {
@@ -514,9 +514,10 @@ namespace Steel
         mTerrainMan.update(timestep);
         // assume mTerrainMan's btWorld has been updated
         mPhysicsModelMan->update(timestep);
-        SignalManager::instance().fireEmittedSignals();
         // actually needed ?
         //mOgreModelMan.update(timestep);
+        //mLocationModelMan.update(timestep);
+        SignalManager::instance().fireEmittedSignals();
         mBTModelMan->update(timestep);
     }
 

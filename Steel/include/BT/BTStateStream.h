@@ -17,9 +17,9 @@ namespace Steel
     {
         public:
             BTStateStream();
-            BTStateStream(const BTStateStream& other);
+            BTStateStream(BTStateStream const & other);
             virtual ~BTStateStream();
-            virtual BTStateStream& operator=(const BTStateStream& other);
+            virtual BTStateStream& operator=(BTStateStream const &other);
 
             bool init(BTShapeStream *shapeStream);
 
@@ -61,12 +61,12 @@ namespace Steel
             // owned
             /// Tells the offset of each state
             std::vector<size_t> mStateOffsets;
+            
+            /// total size of mData
+            size_t mDataSize;
 
             /// Raw BTState storage.
             void *mData;
-
-            /// total size of mData
-            size_t mDataSize;
     };
 }
 #endif // BTSTATESTREAM_H

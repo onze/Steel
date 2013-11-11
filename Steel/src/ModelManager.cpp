@@ -10,5 +10,6 @@
 
 namespace Steel
 {
+    const char *ModelManager::MODELS_ATTRIBUTES = "models";
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

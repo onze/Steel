@@ -175,7 +175,12 @@ namespace Steel
                 this->operator()("]").unIndent();
                 return *this;
             }
-
+            
+            DebugObject &operator()(BTNodeState state)
+            {
+                return (*this)(BTNodeStateAsString[static_cast<int>(state)]);
+            }
+            
             DebugObject &operator()(BTNode *const node)
             {
                 if(nullptr == node)

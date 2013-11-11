@@ -1,11 +1,14 @@
 #include "LocationModelManager.h"
 #include <tools/DynamicLines.h>
+#include <tools/JsonUtils.h>
 #include <Agent.h>
 #include <Level.h>
 #include <AgentManager.h>
 
 namespace Steel
 {
+    const char *LocationModelManager::PATH_ROOTS_ATTRIBUTE = "pathRoots";
+
     LocationModelManager::LocationModelManager(Level *level):
         _ModelManager<LocationModel>(level)
     {
@@ -23,6 +26,12 @@ namespace Steel
         mDebugLines.clear();
     }
 
+    std::vector<ModelId> LocationModelManager::fromJson(Json::Value &root)
+    {
+        mPathsRoots = JsonUtils::asStringUnsignedLongMap(root[LocationModelManager::PATH_ROOTS_ATTRIBUTE]);
+        return _ModelManager<LocationModel>::fromJson(root[ModelManager::MODELS_ATTRIBUTES]);
+    }
+
     bool LocationModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
         id = allocateModel(id);
@@ -38,6 +47,18 @@ namespace Steel
         }
 
         return true;
+    }
+
+    void LocationModelManager::toJson(Json::Value &root)
+    {
+        if(mPathsRoots.size())
+            root[LocationModelManager::PATH_ROOTS_ATTRIBUTE] = JsonUtils::toJson(mPathsRoots);
+
+        Json::Value models;
+        _ModelManager<LocationModel>::toJson(models);
+
+        if(!models.isNull())
+            root[ModelManager::MODELS_ATTRIBUTES] = models;
     }
 
     bool LocationModelManager::linkAgents(AgentId srcAgentId, AgentId dstAgentId)
@@ -78,8 +99,8 @@ namespace Steel
             Debug::error(intro)("destination model ")(dstId)(" is not valid.").endl();
             return false;
         }
-        
-        if(srcId==dstId)
+
+        if(srcId == dstId)
         {
             Debug::error("LocationModelManager::linkLocations(): src is dst. Aborting.").endl();
             return false;
@@ -115,7 +136,7 @@ namespace Steel
             (srcAgentId)(", dst:")(dstAgentId)(". Aborting.").endl();
             return false;
         }
-        else if(srcAgentId==dstAgentId)
+        else if(srcAgentId == dstAgentId)
         {
             Debug::error("LocationModelManager::unlinkAgents(): src is dst. Aborting.").endl();
             return false;
@@ -198,7 +219,7 @@ namespace Steel
 
     ModelPair LocationModelManager::makeKey(ModelId mid0, ModelId mid1)
     {
-        return ModelPair(mid0, mid1);
+        return mid0 <= mid1 ? ModelPair(mid0, mid1) : ModelPair(mid1, mid0);
     }
 
     void LocationModelManager::removeDebugLine(ModelId mid0, ModelId mid1)
@@ -299,8 +320,7 @@ namespace Steel
             keys.push_back(makeKey(mid, agent->locationModelId()));
         }
 
-        for(auto const & key : keys)
-            updateDebugLine(key);
+        std::for_each(keys.begin(), keys.end(), std::bind(&LocationModelManager::updateDebugLine, this, std::placeholders::_1));
     }
 
     void LocationModelManager::updateDebugLine(ModelPair const &key)

@@ -1,7 +1,7 @@
 #ifndef STEEL_BTMODEL_H_
 #define STEEL_BTMODEL_H_
 
-#include <stack>
+#include <list>
 #include <json/json.h>
 
 #include "BT/btnodetypes.h"
@@ -26,8 +26,14 @@ namespace Steel
     class BTModel: public Model
     {
     public:
+        /// Name of the BT this model is running
         static const char *SHAPE_NAME_ATTRIBUTE;
-
+        /// Currently running state
+        static const char *CURRENT_STATE_INDEX_ATTRIBUTE;
+        /// Stack of current run
+        static const char *STATES_STACK_ATTRIBUTE;
+        
+        
         BTModel();
         BTModel(const BTModel &m);
         BTModel &operator=(const BTModel &m);
@@ -60,6 +66,7 @@ namespace Steel
 
         /// Sets the model's current path
         void setPath(Ogre::String const &name);
+        void unsetPath();
         Ogre::String path();
         bool hasPath();
 
@@ -76,10 +83,16 @@ namespace Steel
         // BlackBoardModel shortcuts
         void setVariable(Ogre::String const &name, Ogre::String const &value);
         void setVariable(Ogre::String const &name, AgentId const &value);
+        void unsetVariable(Ogre::String const &name);
         Ogre::String getStringVariable(Ogre::String const &name, Ogre::String const &defaultValue=Ogre::StringUtil::BLANK);
         AgentId getAgentIdVariable(const Ogre::String &name, const Steel::AgentId &defaultValue = INVALID_ID);
         
         inline Level *level(){return mLevel;}
+        inline Ogre::String shapeName(){return mStateStream.shapeStream()->mName;}
+        
+        /// Sets wich agent owns this model
+        inline AgentId ownerAgent(){return mOwnerAgent;}
+        inline void setOwnerAgent(AgentId aid){mOwnerAgent=aid;}
         
     protected:
         /**
@@ -87,27 +100,27 @@ namespace Steel
          * follows. This is the name the default path following BTree looks for.
          */
         static const Ogre::String CURRENT_PATH_NAME_VARIABLE;
+        /// Link the owner agent with a newly created blackboard model, and returns a pointer to it
+        BlackBoardModel *getOwnerAgentABlackboard();
         
         // not owned
+        AgentId mOwnerAgent;
         /// BLackboard the model is using as memory
         ModelId mBlackBoardModelId;
         Level *mLevel;
         
         // owned
-        /// See SHAPE_NAME_ATTRIBUTE
-        Ogre::String mShapeName;
-
         /// states, aligned with the shape stream.
         BTStateStream mStateStream;
 
         /// Index of the currently running node, within the StateStream.
         BTStateIndex mCurrentStateIndex;
-        std::stack<BTStateIndex> mStatesStack;
+        std::list<BTStateIndex> mStatesStack;
         
         /// Volatile state (not serialized). Can be undone.
         bool mPaused;
         
-        /// Volatile state (not serialized) Cannot be undone.
+        /// Volatile state (not serialized). Cannot be undone.
         bool mKilled;
     };
 

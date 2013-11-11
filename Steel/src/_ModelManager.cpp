@@ -36,7 +36,7 @@ namespace Steel
     template<class M>
     M *_ModelManager<M>::at(ModelId id)
     {
-        if (!isValid(id))
+        if(!isValid(id))
             return nullptr;
 
         return &(mModels[id]);
@@ -45,36 +45,38 @@ namespace Steel
     template<class M>
     void _ModelManager<M>::incRef(ModelId id)
     {
-        if (id >= mModels.size())
+        if(id >= mModels.size())
         {
             Debug::error(logName() + "::incRef(): modelId ")(id)("\" does not exist.").endl();
             return;
         }
+
         mModels[id].incRef();
     }
 
     template<class M>
     void _ModelManager<M>::decRef(ModelId id)
     {
-        if (id >= mModels.size())
+        if(id >= mModels.size())
         {
             Debug::error(logName() + "::decRef(): modelId ")(id)("\" does not exist.").endl();
             return;
         }
-        if (!isValid(id))
+
+        if(!isValid(id))
             return;
 
         mModels[id].decRef();
 
         //TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
-        if (mModels[id].isFree())
+        if(mModels[id].isFree())
             mModelsFreeList.push_front(id);
     }
 
     template<class M>
     ModelId _ModelManager<M>::allocateModel()
     {
-        ModelId mid=INVALID_ID;
+        ModelId mid = INVALID_ID;
         return allocateModel(mid);
     }
 
@@ -83,7 +85,7 @@ namespace Steel
     {
         if(INVALID_ID == mid)
         {
-            if (mModelsFreeList.size() > 0)
+            if(mModelsFreeList.size() > 0)
             {
                 mid = mModelsFreeList.front();
                 mModelsFreeList.pop_front();
@@ -99,7 +101,8 @@ namespace Steel
             if(isFree(mid))
             {
                 // user asked for an already existing free slot: remove from free list
-                auto it=std::find(mModelsFreeList.begin(), mModelsFreeList.end(), mid);
+                auto it = std::find(mModelsFreeList.begin(), mModelsFreeList.end(), mid);
+
                 if(mModelsFreeList.end() != it)
                     mModelsFreeList.erase(it);
             }
@@ -111,14 +114,15 @@ namespace Steel
         else
         {
             while(mModels.capacity() <= mid)
-                mModels.reserve(mModels.capacity()*2);
-            
+                mModels.reserve(mModels.capacity() * 2);
+
             for(ModelId i = mModels.size(); i < mid; ++i)
                 mModelsFreeList.push_back(i);
-            
+
             if(mModels.size() <= mid)
-                mModels.resize(mid+1, M());
+                mModels.resize(mid + 1, M());
         }
+
         return mid;
     }
 
@@ -130,6 +134,7 @@ namespace Steel
             mModels[id].cleanup();
             mModelsFreeList.push_back(id);
         }
+
 #ifdef DEBUG
         assert(mModels[id].isFree());
 #endif
@@ -139,9 +144,10 @@ namespace Steel
     void _ModelManager<M>::clear()
     {
         // deallocate all models
-        for(Model &model:mModels)
+        for(Model & model : mModels)
             if(!model.isFree())
                 model.cleanup();
+
         // remove space
         mModels.clear();
         mModelsFreeList.clear();
@@ -166,16 +172,20 @@ namespace Steel
     std::vector<ModelId> _ModelManager<M>::fromJson(Json::Value &models)
     {
         std::vector<ModelId> ids;
-        for (Json::ValueIterator it = models.begin(); it != models.end(); ++it)
+
+        for(Json::ValueIterator it = models.begin(); it != models.end(); ++it)
         {
             //TODO: implement id remapping, so that we stay in a low id range
             Json::Value value = *it;
-            ModelId mid=INVALID_ID;
-            mid=Ogre::StringConverter::parseUnsignedLong(it.memberName(), INVALID_ID);
+            ModelId mid = INVALID_ID;
+            mid = Ogre::StringConverter::parseUnsignedLong(it.memberName(), INVALID_ID);
+
             if(!this->fromSingleJson(value, mid))
                 Debug::error(logName())("could not deserialize model ")(mid).endl();
+
             ids.push_back(mid);
         }
+
         return ids;
     }
 
@@ -183,52 +193,37 @@ namespace Steel
     bool _ModelManager<M>::fromSingleJson(Json::Value &model, ModelId &id)
     {
         id = allocateModel(id);
-        if (!mModels[id].fromJson(model))
+
+        if(!mModels[id].fromJson(model))
         {
             deallocateModel(id);
             id = INVALID_ID;
             return false;
         }
+
         return true;
     }
 
     template<class M>
     void _ModelManager<M>::toJson(Json::Value &root)
     {
-//         Debug::log("_ModelManager(): ")(mModels.size())(" models in stock").endl();
-        for (ModelId id = firstId(); id < lastId(); ++id)
+        if(mModels.size())
         {
-            Model *m = (Model *) &(mModels[id]);
-            if (m->isFree())
-                continue;
-            // makes sure the serailization exist, even if empty, otherwise the child will be forgotten forever.
-            Json::Value node(Json::objectValue);
-            m->toJson(node);
-            root[Ogre::StringConverter::toString(id)]=node;
+            for(ModelId id = firstId(); id < lastId(); ++id)
+            {
+                Model *m = (Model *) & (mModels[id]);
+
+                if(m->isFree())
+                    continue;
+
+                // makes sure the serailization exist, even if empty, otherwise the child will be forgotten forever.
+                Json::Value node(Json::objectValue);
+                m->toJson(node);
+                root[Ogre::StringConverter::toString(id)] = node;
+            }
         }
     }
 
-//     template<class M>
-//     bool _ModelManager<M>::linkAgentToModel(AgentId aid, ModelId mid)
-//     {
-//         Agent *agent = mLevel->getAgent(aid);
-//         if(!agent->linkToModel(modelType(),mid))
-//         {
-//             Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
-//             Debug::error("): agent could not link to model.Aborted.").endl();
-//             return false;
-//         }
-//
-//         if(!onAgentLinkedToModel(aid,mid))
-//         {
-//             agent->unlinkFromModel(modelType());
-//             Debug::error("_ModelManager::linkAgentToModel(")(aid)(" to ")(mid);
-//             Debug::error("): specialized linking errored. Agent unlinked. Aborted.").endl();
-//             return false;
-//         }
-//
-//         return incRef(mid);
-//     }
     /// Returns true if the linking was ok to the manager's pov.
     template<class M>
     bool _ModelManager<M>::onAgentLinkedToModel(Agent *agent, ModelId mid)
@@ -241,9 +236,11 @@ namespace Steel
     std::set<Tag> _ModelManager<M>::modelTags(ModelId mid)
     {
         std::set<Tag> output;
-        M *model=at(mid);
-        if(nullptr==model)
+        M *model = at(mid);
+
+        if(nullptr == model)
             return output;
+
         return model->tags();
     }
 }

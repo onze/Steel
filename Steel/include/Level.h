@@ -35,7 +35,7 @@ namespace Steel
         static const char *CAMERA_ATTRIBUTE;
         static const char *TERRAIN_ATTRIBUTE;
         static const char *AGENTS_ATTRIBUTE;
-        static const char *MODELS_ATTRIBUTE;
+        static const char *MANAGERS_ATTRIBUTE;
 
     public:
         Level(Engine *engine, File path, Ogre::String name);

@@ -7,7 +7,7 @@ namespace Steel
     const char *BTNode::AGENT_SPEC_ATTRIBUTE = "agentSpec";
 
     BTNode::BTNode(BTShapeToken const &token):
-        mState(READY), mToken(token)
+    mState(BTNodeState::READY), mToken(token)
     {
     }
 
@@ -34,7 +34,7 @@ namespace Steel
         return mState == o.mState && mToken == o.mToken;
     }
 
-    BTState BTNode::state()
+    BTNodeState BTNode::state()
     {
         return mState;
     }
@@ -92,7 +92,7 @@ namespace Steel
 
     void BTNode::run(BTModel *btModel, float timestep)
     {
-        mState = SKIPT_TO;
+        mState = BTNodeState::SKIPT_TO;
     }
 
     BTStateIndex BTNode::nodeSkippedTo()
@@ -100,14 +100,14 @@ namespace Steel
         return firstChildIndex();
     }
 
-    void BTNode::childReturned(BTNode const *const child, BTState state)
+    void BTNode::childReturned(BTNode const *const child, BTNodeState state)
     {
         mState = state;
     }
 
     void BTNode::onParentNotified()
     {
-        mState = READY;
+        mState = BTNodeState::READY;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

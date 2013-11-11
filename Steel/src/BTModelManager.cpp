@@ -67,6 +67,11 @@ namespace Steel
             return false;
         }
 
+        if(!mModels[id].fromJson(root))
+        {
+            return false;
+        }
+
         // agentTags
         if(!mModels[id].deserializeTags(root))
         {
@@ -128,17 +133,7 @@ namespace Steel
         if(nullptr == model)
             return false;
 
-        // assign a blackboard to the agent
-        ModelId bbMid = agent->blackBoardModelId();
-
-        if(INVALID_ID == bbMid)
-        {
-            bbMid = mLevel->blackBoardModelMan()->newModel();
-            return agent->linkToModel(MT_BLACKBOARD, bbMid);
-        }
-
-        // tell the btmodel about it
-        model->setBlackboardModelId(bbMid);
+        model->setOwnerAgent(agent->id());
         return true;
     }
 

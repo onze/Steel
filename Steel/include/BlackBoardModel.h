@@ -31,6 +31,7 @@ namespace Steel
         
         void setVariable(Ogre::String const &name, Ogre::String const &value);
         void setVariable(Ogre::String const &name, AgentId const &value);
+        void unsetVariable(Ogre::String const &name);
         Ogre::String getStringVariable(Ogre::String const &name);
         AgentId getAgentIdVariable(Ogre::String const &name);
 

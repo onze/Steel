@@ -7,7 +7,7 @@
 namespace Steel
 {
     /// BTNodes state values.
-    enum BTState
+    enum class BTNodeState : int
     {
         // Should stay first enum value
         _FIRST = -1,
@@ -20,7 +20,7 @@ namespace Steel
     };
 
     /// Allows for slow lookup. Aligned on BTShapeTokenType.
-    extern std::vector<Ogre::String> BTStateAsString;
+    extern std::vector<Ogre::String> BTNodeStateAsString;
 
     /// tells the type of processing a node does.
     enum BTShapeTokenType

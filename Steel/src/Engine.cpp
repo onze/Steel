@@ -333,6 +333,7 @@ namespace Steel
 //         mUI.editor().processCommand("engine.level.instanciate./media/a0/cpp/1210/usmb/install_dir/data/models/Btree models/patrol.model");
 //         mUI.editor().processCommand("instanciate./media/a0/cpp/1210/usmb/install_dir/data/resources/Model composites/utest_sequence.model_refs");
         //registerCommand("editor.instanciate./media/a0/cpp/1210/usmb/install_dir/data/resources/Model composites/rock_big.model_refs");
+        //registerCommand("editor.instanciate./media/a0/cpp/1210/usmb/install_dir/data/resources/Model composites/waypoint_red.model_refs");
 
         const double ms2us = 1000.;
 

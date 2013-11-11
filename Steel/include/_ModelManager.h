@@ -30,8 +30,8 @@ namespace Steel
          * ModelIds are meant for this, as seen in Agent.h/cpp.
          */
         virtual M *at(ModelId id);
-        
-        virtual ModelId newModel(){return allocateModel();};
+
+        virtual ModelId newModel() {return allocateModel();};
 
         /// Increments the ref count of the given model.
         virtual void incRef(ModelId id);
@@ -75,8 +75,8 @@ namespace Steel
 
         /// Returns the model tags, or an empty set if the given id is not valid.
         virtual std::set<Tag> modelTags(ModelId mid);
-        
-        inline Level *level(){return mLevel;}
+
+        inline Level *level() {return mLevel;}
 
     protected:
         /// Returns the lowest Id currently in use
