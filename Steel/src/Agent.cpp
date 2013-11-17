@@ -265,7 +265,7 @@ namespace Steel
         }
 
         untag(mm->modelTags(mid));
-        mm->decRef(mid);
+        mm->onAgentUnlinkedFromModel(this, mid);
         mModelIds.erase(it);
     }
 

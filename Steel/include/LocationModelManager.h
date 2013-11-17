@@ -16,6 +16,7 @@ namespace Steel
     class Level;
     class LocationModelManager: public _ModelManager<LocationModel>
     {
+        typedef _ModelManager<LocationModel> super;
         /// Holds paths roots
         static const char *PATH_ROOTS_ATTRIBUTE;
     public:
@@ -32,6 +33,7 @@ namespace Steel
         bool fromSingleJson(Json::Value &model, ModelId &mid);
         void toJson(Json::Value &object);
         bool onAgentLinkedToModel(Agent *agent, ModelId mid);
+        void onAgentUnlinkedFromModel(Agent *agent, ModelId mid);
 
         /////////////////////////////////////////////////
         // Specific to model linking
@@ -42,7 +44,7 @@ namespace Steel
         bool unlinkAgents(AgentId srcAgentId, AgentId dstAgentId);
         /// Unlinks 2 locations iff they were linked to each other. Return true if they were.
         bool unlinkLocations(ModelId mid0, ModelId mid1);
-        /// Unlinks a location from its source anf destination.
+        /// Unlinks a location from its sources and destinations.
         void unlinkLocation(ModelId mid);
 
         /////////////////////////////////////////////////
@@ -75,7 +77,10 @@ namespace Steel
         /// The pair content is (src, dst)
         ModelPair makeKey(ModelId mid0, ModelId mid1);
         bool getDebugLine(ModelPair const &key, DynamicLines *&line);
-        void removeDebugLine(ModelId mid0, ModelId mid1);
+        void removeDebugLines(ModelId mid);
+        void removeDebugLine(ModelPair const &key);
+        /// Returns all debug lines keys involving the given model id.
+        std::list<ModelPair> collectModelPairs(ModelId mid);
         // owned
         std::map<ModelPair, DynamicLines *> mDebugLines;
 

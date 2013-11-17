@@ -211,8 +211,8 @@ namespace Steel
         if(m1->hasSource(aid0))
             m1->removeSource(aid0);
 
-        removeDebugLine(mid0, mid1);
-        removeDebugLine(mid1, mid0);
+        removeDebugLine(makeKey(mid0, mid1));
+        removeDebugLine(makeKey(mid1, mid0));
 
         return false;
     }
@@ -221,13 +221,17 @@ namespace Steel
     {
         return mid0 <= mid1 ? ModelPair(mid0, mid1) : ModelPair(mid1, mid0);
     }
-
-    void LocationModelManager::removeDebugLine(ModelId mid0, ModelId mid1)
+    
+    void LocationModelManager::removeDebugLines(ModelId mid)
     {
-        if(INVALID_ID == mid0 || INVALID_ID == mid1)
-            return;
+        std::list<ModelPair> keys = collectModelPairs(mid);
+        std::for_each(keys.begin(), keys.end(), std::bind(&LocationModelManager::removeDebugLine, this, std::placeholders::_1));
+    }
 
-        auto key = makeKey(mid0, mid1);
+    void LocationModelManager::removeDebugLine(ModelPair const &key)
+    {
+        if(INVALID_ID == key.first || INVALID_ID == key.second)
+            return;
         DynamicLines *line;
 
         if(getDebugLine(key, line))
@@ -280,6 +284,12 @@ namespace Steel
         return true;
     }
 
+    void LocationModelManager::onAgentUnlinkedFromModel(Agent *agent, ModelId mid)
+    {
+        removeDebugLines(mid);
+        super::onAgentUnlinkedFromModel(agent, mid);
+    }
+
     void LocationModelManager::moveLocation(ModelId mid, Ogre::Vector3 const &pos)
     {
         LocationModel *model = at(mid);
@@ -291,35 +301,40 @@ namespace Steel
         updateDebugLines(mid);
     }
 
-    void LocationModelManager::updateDebugLines(ModelId mid)
+    std::list<ModelPair> LocationModelManager::collectModelPairs(ModelId mid)
     {
+        std::list<ModelPair> keys;
         LocationModel *model = at(mid);
 
-        if(nullptr == model)
-            return;
-
-        std::list<ModelPair> keys;
-
-        for(AgentId const aid : model->sources())
+        if(nullptr != model)
         {
-            Agent *agent = mLevel->agentMan()->getAgent(aid);
+            for(AgentId const aid : model->sources())
+            {
+                Agent *agent = mLevel->agentMan()->getAgent(aid);
 
-            if(nullptr == agent)
-                continue;
+                if(nullptr == agent)
+                    continue;
 
-            keys.push_back(makeKey(agent->locationModelId(), mid));
+                keys.push_back(makeKey(agent->locationModelId(), mid));
+            }
+
+            for(AgentId const aid : model->destinations())
+            {
+                Agent *agent = mLevel->agentMan()->getAgent(aid);
+
+                if(nullptr == agent)
+                    continue;
+
+                keys.push_back(makeKey(mid, agent->locationModelId()));
+            }
         }
 
-        for(AgentId const aid : model->destinations())
-        {
-            Agent *agent = mLevel->agentMan()->getAgent(aid);
+        return keys;
+    }
 
-            if(nullptr == agent)
-                continue;
-
-            keys.push_back(makeKey(mid, agent->locationModelId()));
-        }
-
+    void LocationModelManager::updateDebugLines(ModelId mid)
+    {
+        std::list<ModelPair> keys = collectModelPairs(mid);
         std::for_each(keys.begin(), keys.end(), std::bind(&LocationModelManager::updateDebugLine, this, std::placeholders::_1));
     }
 

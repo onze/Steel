@@ -231,6 +231,13 @@ namespace Steel
         // no problem with that
         return true;
     }
+    
+    /// Returns true if the linking was ok to the manager's pov.
+    template<class M>
+    void _ModelManager<M>::onAgentUnlinkedFromModel(Agent *agent, ModelId mid)
+    {
+        decRef(mid);
+    }
 
     template<class M>
     std::set<Tag> _ModelManager<M>::modelTags(ModelId mid)
