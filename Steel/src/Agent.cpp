@@ -377,23 +377,35 @@ namespace Steel
 
         return root;
     }
-
+    
     Ogre::Vector3 Agent::position() const
     {
-        auto omodel = ogreModel();
-        return nullptr == omodel ? Ogre::Vector3::ZERO : omodel->position();
+        auto model = ogreModel();
+        return nullptr == model ? Ogre::Vector3::ZERO : model->position();
     }
 
     Ogre::Quaternion Agent::rotation() const
     {
-        auto omodel = ogreModel();
-        return nullptr == omodel ? Ogre::Quaternion::ZERO : omodel->rotation();
+        auto model = ogreModel();
+        return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
     }
 
     Ogre::Vector3 Agent::scale() const
     {
-        auto omodel = ogreModel();
-        return nullptr == omodel ? Ogre::Vector3::ZERO : omodel->scale();
+        auto model = ogreModel();
+        return nullptr == model ? Ogre::Vector3::ZERO : model->scale();
+    }
+    
+    Ogre::Vector3 Agent::velocity() const
+    {
+        auto model = physicsModel();
+        return nullptr == model ? Ogre::Vector3::ZERO : model->velocity();
+    }
+    
+    float Agent::mass() const
+    {
+        auto model = physicsModel();
+        return model->mass();
     }
 
     void Agent::move(const Ogre::Vector3 &dpos)
@@ -413,6 +425,22 @@ namespace Steel
 
         if(nullptr != lmodel)
             mLevel->locationModelMan()->moveLocation(locationModelId(), position());
+    }
+    
+    void Agent::applyCentralImpulse(Ogre::Vector3 const &f)
+    {
+        auto model = physicsModel();
+        
+        if(nullptr != model)
+            model->applyCentralImpulse(f);
+    }
+    
+    void Agent::applyCentralForce(Ogre::Vector3 const &f)
+    {
+        auto model = physicsModel();
+        
+        if(nullptr != model)
+            model->applyCentralForce(f);
     }
 
     void Agent::rotate(const Ogre::Vector3 &rot)

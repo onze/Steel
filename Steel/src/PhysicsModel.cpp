@@ -21,6 +21,17 @@
 namespace Steel
 {
     const Ogre::String PhysicsModel::MASS_ATTRIBUTE = "mass";
+    const float PhysicsModel::DEFAULT_MODEL_MASS= .0f;
+
+    const Ogre::String PhysicsModel::FRICTION_ATTRIBUTE = "friction";
+    const float PhysicsModel::DEFAULT_MODEL_FRICTION = 0.5f;
+
+    const Ogre::String PhysicsModel::DAMPING_ATTRIBUTE = "damping";
+    const float PhysicsModel::DEFAULT_MODEL_DAMPING = .0f;
+    
+    const Ogre::String PhysicsModel::LEVITATE_ATTRIBUTE = "levitate";
+    const bool PhysicsModel::DEFAULT_MODEL_LEVITATE = false;
+
     const Ogre::String PhysicsModel::BBOX_SHAPE_ATTRIBUTE = "shape";
     const Ogre::String PhysicsModel::GHOST_ATTRIBUTE = "ghost";
     const Ogre::String PhysicsModel::EMIT_ON_TAG_ATTRIBUTE = "emitOnHitIfTagged";
@@ -32,8 +43,10 @@ namespace Steel
 
     PhysicsModel::PhysicsModel(): Model(), SignalEmitter(),
         mWorld(nullptr), mBody(nullptr),
-        mMass(.0f), mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE),
-        mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(std::map<Tag, std::set<Signal>>()), mCollidingAgents(std::set<AgentId>())
+        mMass(PhysicsModel::DEFAULT_MODEL_MASS), mFriction(PhysicsModel::DEFAULT_MODEL_FRICTION), mDamping(PhysicsModel::DEFAULT_MODEL_DAMPING),
+        mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE),
+        mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(std::map<Tag, std::set<Signal>>()), mCollidingAgents(std::set<AgentId>()),
+        mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE)
     {
 
     }
@@ -96,6 +109,8 @@ namespace Steel
             mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
         }
 
+        mBody->setFriction(mFriction);
+        mBody->setDamping(mDamping, mDamping);
         mWorld->addRigidBody(mBody);
 
         if(mEmitOnTag.size())
@@ -121,7 +136,9 @@ namespace Steel
         Json::Value value;
         bool allWasFine = true;
 
-        mMass = JsonUtils::asFloat(root[PhysicsModel::MASS_ATTRIBUTE], 0.f);
+        mMass = JsonUtils::asFloat(root[PhysicsModel::MASS_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_MASS);
+        mFriction = JsonUtils::asFloat(root[PhysicsModel::FRICTION_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_FRICTION);
+        mDamping = JsonUtils::asFloat(root[PhysicsModel::DAMPING_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_DAMPING);
 
         auto shape = JsonUtils::asString(root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE], Ogre::String(BBOX_SHAPE_NAME_SPHERE));
         mShape = BBoxShapeFromString(shape);
@@ -184,6 +201,8 @@ namespace Steel
                 }
             }
         }
+        
+        mLevitate = JsonUtils::asBool(root[PhysicsModel::LEVITATE_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_LEVITATE);
 
         // agentTags
         allWasFine &= deserializeTags(root);
@@ -240,6 +259,9 @@ namespace Steel
         {
             collisionCheck(manager);
         }
+        
+        if(mLevitate)
+            applyCentralForce(Ogre::Vector3::UNIT_Y*mMass);
     }
 
     void PhysicsModel::setUserPointer(Agent *agent)
@@ -472,7 +494,18 @@ namespace Steel
 
     void PhysicsModel::toJson(Json::Value &node)
     {
-        node[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
+        if(PhysicsModel::DEFAULT_MODEL_MASS != mMass)
+            node[PhysicsModel::MASS_ATTRIBUTE] = JsonUtils::toJson(mMass);
+
+        if(PhysicsModel::DEFAULT_MODEL_FRICTION != mFriction)
+            node[PhysicsModel::FRICTION_ATTRIBUTE] = JsonUtils::toJson(mFriction);
+
+        if(PhysicsModel::DEFAULT_MODEL_DAMPING != mDamping)
+            node[PhysicsModel::DAMPING_ATTRIBUTE] = JsonUtils::toJson(mDamping);
+        
+        if(PhysicsModel::DEFAULT_MODEL_LEVITATE != mLevitate)
+            node[PhysicsModel::LEVITATE_ATTRIBUTE] = JsonUtils::toJson(mLevitate);
+
         node[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(StringShapeFromBBox(mShape));
 
         if(mIsGhost)
@@ -576,14 +609,29 @@ namespace Steel
             toRigidBody();
     }
 
-    void PhysicsModel::rescale(const Ogre::Vector3 &sca)
+    void PhysicsModel::rescale(Ogre::Vector3 const &sca)
     {
         mBody->getCollisionShape()->setLocalScaling(mBody->getCollisionShape()->getLocalScaling() * BtOgre::Convert::toBullet(sca));
     }
 
-    void PhysicsModel::setScale(const Ogre::Vector3 &sca)
+    void PhysicsModel::setScale(Ogre::Vector3 const &sca)
     {
         mBody->getCollisionShape()->setLocalScaling(BtOgre::Convert::toBullet(sca));
+    }
+
+    Ogre::Vector3 PhysicsModel::velocity()
+    {
+        return BtOgre::Convert::toOgre(mBody->getLinearVelocity());
+    }
+
+    void PhysicsModel::applyCentralImpulse(Ogre::Vector3 const &f)
+    {
+        mBody->applyCentralImpulse(BtOgre::Convert::toBullet(f));
+    }
+    
+    void PhysicsModel::applyCentralForce(Ogre::Vector3 const &f)
+    {
+        mBody->applyCentralForce(BtOgre::Convert::toBullet(f));
     }
 
 }

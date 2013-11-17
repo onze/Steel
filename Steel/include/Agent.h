@@ -105,13 +105,18 @@ namespace Steel
 
         //////////////////////////////////////////////////////////////////////
         // OgreModel/PhysicsModel shortcuts
-
         Ogre::Vector3 position() const;
         Ogre::Quaternion rotation() const;
         Ogre::Vector3 scale() const;
+        Ogre::Vector3 velocity() const;
+        float mass() const;
 
         /// Translates the agent by the given vector.
         void move(const Ogre::Vector3 &dpos);
+        /// shortcut to PhysicsModel::applyImpulse
+        void applyCentralImpulse(Ogre::Vector3 const &f);
+        /// shortcut to PhysicsModel::applyCentralForce
+        void applyCentralForce(Ogre::Vector3 const &f);
         /// Rotate the agent by r.x in the x axis, etc.
         void rotate(const Ogre::Vector3 &rot);
         /// Rotate the agent by the given quaternion
@@ -122,7 +127,7 @@ namespace Steel
         void setPosition(const Ogre::Vector3 &pos);
         void setRotation(const Ogre::Quaternion &rot);
         void setScale(const Ogre::Vector3 &sca);
-
+        
         //////////////////////////////////////////////////////////////////////
         // LocationModel shortcuts
 

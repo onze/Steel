@@ -23,8 +23,22 @@ namespace Steel
     class PhysicsModel: public Model, SignalEmitter
     {
     public:
-        /// The object's mass
+        /// The object's mass.
         static const Ogre::String MASS_ATTRIBUTE;
+        static const float DEFAULT_MODEL_MASS;
+        
+        /// The object's friction. Friction is essentially damping, but it only applies when two bodies are touching instead of all the time like with linear and angular damping
+        static const Ogre::String FRICTION_ATTRIBUTE;
+        static const float DEFAULT_MODEL_FRICTION;
+        
+        /// If true, the model will compensate for gravity each frame.
+        static const Ogre::String LEVITATE_ATTRIBUTE;
+        static const bool DEFAULT_MODEL_LEVITATE;
+        
+        /// The object's damping. Damping affects how the body moves through the world in any given direction. Having linear damping at zero (the default) means objects will keep moving until friction slows them down. At higher values, they would slow down even if they don't touch anything. Angular damping is similar, but applies to angular motion (ie. rotation)
+        static const Ogre::String DAMPING_ATTRIBUTE;
+        static const float DEFAULT_MODEL_DAMPING;
+        
         /// The shape of the model bounding box. Value should be one of BBOX_SHAPE_NAME_*
         static const Ogre::String BBOX_SHAPE_ATTRIBUTE;
         /// If true, collision with other objects does not affect them (ie hitbox).
@@ -60,18 +74,25 @@ namespace Steel
 
         void toKinematics();
         void toRigidBody();
+        
+        inline float mass() const {return mMass;}
 
-        void move(const Ogre::Vector3 &dpos);
-        void setPosition(const Ogre::Vector3 &pos);
+        void move(Ogre::Vector3 const &dpos);
+        void applyCentralImpulse(Ogre::Vector3 const &f);
+        void applyCentralForce(Ogre::Vector3 const &f);
+        void setPosition(Ogre::Vector3 const &pos);
 
-        void rescale(const Ogre::Vector3 &sca);
-        void setScale(const Ogre::Vector3 &sca);
+        void rescale(Ogre::Vector3 const &sca);
+        void setScale(Ogre::Vector3 const &sca);
 
         void setSelected(bool selected);
         void cleanup();
 
         void update(float timestep, PhysicsModelManager *manager);
         void setUserPointer(Agent *agent);
+        
+        /// Returns the linear velocity of the object
+        Ogre::Vector3 velocity();
     protected:
         /// Dispatches signals upon valid collisions.
         void collisionCheck(PhysicsModelManager *manager);
@@ -91,6 +112,8 @@ namespace Steel
         //owned
         btRigidBody *mBody;
         Ogre::Real mMass;
+        Ogre::Real mFriction;
+        Ogre::Real mDamping;
         bool mIsKinematics;
         /// kinematics/rigidBody states stack
         std::stack<bool> mStates;
@@ -105,6 +128,8 @@ namespace Steel
         std::map<Tag, std::set<Signal>> mEmitOnTag;
         /// other agents currently colliding with this one
         std::set<AgentId> mCollidingAgents;
+        /// See LEVITATE_ATTRIBUTE
+        bool mLevitate;
     };
 }
 #endif // STEEL_PHYSICSMODEL_H
