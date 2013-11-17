@@ -22,7 +22,7 @@ namespace Steel
     BTModel::BTModel():
         mOwnerAgent(INVALID_ID), mBlackBoardModelId(INVALID_ID), mLevel(nullptr),
         mStateStream(), mCurrentStateIndex(0), mStatesStack(),
-        mPaused(false), mKilled(false)
+        mPaused(false), mKilled(false), mDebug(false)
     {
     }
 
