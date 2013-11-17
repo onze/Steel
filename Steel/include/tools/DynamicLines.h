@@ -19,6 +19,8 @@ namespace Steel
         /// Constructor - see setOperationType() for description of argument.
             DynamicLines(OperationType opType = Ogre::RenderOperation::OT_LINE_STRIP);
             virtual ~DynamicLines();
+            
+            void setColor(Ogre::ColourValue color);
 
             /// Should 2D projection be used
             void setUse2D(bool mode);

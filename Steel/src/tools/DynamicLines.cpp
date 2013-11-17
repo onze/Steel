@@ -25,6 +25,16 @@ namespace Steel
     DynamicLines::~DynamicLines()
     {
     }
+    
+    void DynamicLines::setColor(Ogre::ColourValue color)
+    {
+        static int matIndex = 0;
+        String matName = "DL" + StringConverter::toString(matIndex++);
+        MaterialPtr materialPtr = MaterialManager::getSingleton().create(matName, 
+                                                                         ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+        materialPtr->setAmbient(color);
+        setMaterial(matName);
+    }
 
     void DynamicLines::setUse2D(bool mode)
     {

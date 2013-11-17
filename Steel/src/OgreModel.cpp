@@ -64,7 +64,6 @@ namespace Steel
 
         mEntity = sceneManager->createEntity(meshName);
 
-
         mSceneNode = levelRoot->createChildSceneNode(pos, rot);
         mSceneNode->attachObject(mEntity);
         mSceneNode->setInheritScale(false);
