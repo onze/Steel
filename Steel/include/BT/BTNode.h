@@ -4,7 +4,6 @@
 #include <json/json.h>
 
 #include "BT/btnodetypes.h"
-#include "AgentSpec.h"
 
 namespace Steel
 {
