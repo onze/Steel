@@ -1,10 +1,12 @@
 #include "AgentSpec.h"
 
+#include <OgreString.h>
+
 namespace Steel
 {
     const Ogre::String AgentSpec::TAG="tag";
 
-    AgentSpec::AgentSpec():mTag("")
+    AgentSpec::AgentSpec():mTag(Ogre::StringUtil::BLANK)
     {
 
     }
@@ -32,7 +34,7 @@ namespace Steel
 
     bool AgentSpec::parseJson(const Json::Value &root)
     {
-        mTag=root.isMember(AgentSpec::TAG)?root[AgentSpec::TAG].asCString():"";
+        mTag=root.isMember(AgentSpec::TAG)?root[AgentSpec::TAG].asCString():Ogre::StringUtil::BLANK;
         return true;
     }
 
