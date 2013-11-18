@@ -134,6 +134,10 @@ namespace Steel
             return false;
 
         model->setOwnerAgent(agent->id());
+
+        if(INVALID_ID != agent->blackBoardModelId())
+            model->setBlackboardModelId(agent->blackBoardModelId());
+
         return true;
     }
 

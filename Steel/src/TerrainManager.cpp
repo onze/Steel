@@ -16,12 +16,13 @@
 #include <TerrainManagerEventListener.h>
 #include <tools/JsonUtils.h>
 #include <TerrainPhysicsManager.h>
+#include <Level.h>
 
 namespace Steel
 {
 
     TerrainManager::TerrainManager():Ogre::FrameListener(), 
-    mSceneManager(nullptr), mResourceGroupName("TerrainManager-defaultResourceGroup-name"), 
+    mLevel(nullptr), mSceneManager(nullptr), mResourceGroupName("TerrainManager-defaultResourceGroup-name"), 
     mLoadingState(INIT), mListeners(std::set<TerrainManagerEventListener *>()), 
     mTerrainGlobals(nullptr), mTerrainGroup(nullptr), mTerrainsImported(false),
     mPath(Ogre::StringUtil::BLANK), mTerrainPhysicsMan(nullptr)
@@ -29,7 +30,7 @@ namespace Steel
     }
 
     TerrainManager::TerrainManager(const TerrainManager& o):
-    mSceneManager(o.mSceneManager), mResourceGroupName(o.mResourceGroupName), 
+    mLevel(o.mLevel), mSceneManager(o.mSceneManager), mResourceGroupName(o.mResourceGroupName), 
     mLoadingState(o.mLoadingState), mListeners(o.mListeners), 
     mTerrainGlobals(o.mTerrainGlobals), mTerrainGroup(o.mTerrainGroup), mTerrainsImported(o.mTerrainsImported), 
     mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan)
@@ -121,11 +122,12 @@ namespace Steel
         }
     }
 
-    void TerrainManager::init(Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager)
+    void TerrainManager::init(Level *level, Ogre::String resourceGroupName, File path, Ogre::SceneManager* sceneManager)
     {
         mSceneManager = sceneManager;
         mPath = path;
         mResourceGroupName = resourceGroupName;
+        mLevel = level;
 
         mTerrainsImported = false;
         mLoadingState = INIT;

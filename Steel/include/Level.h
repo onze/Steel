@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <list>
+#include <OgreVector3.h>
 
 #include "steeltypes.h"
 #include "tools/File.h"
@@ -36,6 +37,7 @@ namespace Steel
         static const char *TERRAIN_ATTRIBUTE;
         static const char *AGENTS_ATTRIBUTE;
         static const char *MANAGERS_ATTRIBUTE;
+        static const char *GRAVITY_ATTRIBUTE;
 
     public:
         Level(Engine *engine, File path, Ogre::String name);
@@ -83,44 +85,28 @@ namespace Steel
         void update(float timestep);
 
         //getters
-        inline Ogre::ColourValue backgroundColor()
-        {
-            return mBackgroundColor;
-        }
+        inline Ogre::ColourValue backgroundColor() const {return mBackgroundColor;}
 
         /// Player camera. For now there's only one camera per level.
-        inline Camera *camera()
-        {
-            return mCamera;
-        }
+        inline Camera *camera() const {return mCamera;}
 
-        inline Ogre::String name()
-        {
-            return mName;
-        }
-
-        inline File path()
-        {
-            return mPath;
-        }
-
-        inline Ogre::SceneNode *levelRoot()
-        {
-            return mLevelRoot;
-        }
+        inline Ogre::String name() const {return mName;}
+        inline File path() const {return mPath;}
+        inline Ogre::SceneNode *levelRoot() const {return mLevelRoot;}
+        inline Ogre::Vector3 gravity() const {return mGravity;}
 
         ///Return the level's model manager for the given type.
         ModelManager *modelManager(ModelType modelType);
 
-        inline OgreModelManager *ogreModelMan(){return mOgreModelMan;}
-        inline PhysicsModelManager *physicsModelMan(){return mPhysicsModelMan;}
-        inline Ogre::SceneManager *sceneManager(){return mSceneManager;}
-        inline TerrainManager *terrainManager(){return &mTerrainMan;}
-        inline BTModelManager *BTModelMan(){return mBTModelMan;}
-        inline AgentManager *agentMan(){return mAgentMan;}
-        inline SelectionManager *selectionMan(){return mSelectionMan;}
-        inline LocationModelManager *locationModelMan(){return mLocationModelMan;}
-        inline BlackBoardModelManager *blackBoardModelMan(){return mBlackBoardModelManagerMan;}
+        inline OgreModelManager *ogreModelMan() {return mOgreModelMan;}
+        inline PhysicsModelManager *physicsModelMan() {return mPhysicsModelMan;}
+        inline Ogre::SceneManager *sceneManager() {return mSceneManager;}
+        inline TerrainManager *terrainManager() {return &mTerrainMan;}
+        inline BTModelManager *BTModelMan() {return mBTModelMan;}
+        inline AgentManager *agentMan() {return mAgentMan;}
+        inline SelectionManager *selectionMan() {return mSelectionMan;}
+        inline LocationModelManager *locationModelMan() {return mLocationModelMan;}
+        inline BlackBoardModelManager *blackBoardModelMan() {return mBlackBoardModelManagerMan;}
 
     private:
         /// name used in debug output
@@ -165,6 +151,8 @@ namespace Steel
         Camera *mCamera;
 
         Ogre::Light *mMainLight;
+        /// See GRAVITY_ATTRIBUTE
+        Ogre::Vector3 mGravity;
     };
 }
 

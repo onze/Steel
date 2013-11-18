@@ -260,8 +260,8 @@ namespace Steel
             collisionCheck(manager);
         }
         
-        if(mLevitate)
-            applyCentralForce(Ogre::Vector3::UNIT_Y*mMass);
+//         if(mLevitate)
+//             applyCentralForce(Ogre::Vector3::UNIT_Y*.981);
     }
 
     void PhysicsModel::setUserPointer(Agent *agent)

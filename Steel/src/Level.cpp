@@ -43,6 +43,7 @@ namespace Steel
     const char *Level::TERRAIN_ATTRIBUTE = "terrain";
     const char *Level::AGENTS_ATTRIBUTE = "agents";
     const char *Level::MANAGERS_ATTRIBUTE = "managers";
+    const char *Level::GRAVITY_ATTRIBUTE = "gravity";
 
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
         mEngine(engine), mViewport(nullptr), mPath(path.subfile(name)), mName(name),
@@ -50,7 +51,8 @@ namespace Steel
         mManagers(std::map<ModelType, ModelManager *>()), mAgentMan(nullptr), mOgreModelMan(nullptr),
         mPhysicsModelMan(nullptr), mBTModelMan(nullptr), mTerrainMan(), mSelectionMan(nullptr), mLocationModelMan(nullptr),
         mBlackBoardModelManagerMan(nullptr),
-        mCamera(nullptr), mMainLight(nullptr)
+        mCamera(nullptr), mMainLight(nullptr),
+        mGravity(Ogre::Vector3::ZERO)
     {
         Debug::log(logName() + "()").endl();
 
@@ -72,8 +74,7 @@ namespace Steel
         Ogre::RenderWindow *window = mEngine->renderWindow();
         int zOrder = -1;
 
-        while(window->hasViewportWithZOrder(++zOrder))
-            ;
+        while(window->hasViewportWithZOrder(++zOrder));
 
         mViewport = window->addViewport(mCamera->cam(), zOrder);
         mViewport->setBackgroundColour(mBackgroundColor);
@@ -83,7 +84,7 @@ namespace Steel
         mCamera->cam()->setAspectRatio(aspectRatio);
 
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
-        mTerrainMan.init(mName + ".terrainManager", path.subfile(mName), mSceneManager);
+        mTerrainMan.init(this, mName + ".terrainManager", path.subfile(mName), mSceneManager);
 
         mSelectionMan = new SelectionManager(this);
         mAgentMan = new AgentManager(this);
@@ -99,7 +100,7 @@ namespace Steel
     Level::~Level()
     {
         Debug::log(logName() + ".~Level()").endl();
-        
+
         mBlackBoardModelManagerMan->clear();
         delete mBlackBoardModelManagerMan;
         mBlackBoardModelManagerMan = nullptr;
@@ -380,6 +381,8 @@ namespace Steel
         }
 
         root[Level::MANAGERS_ATTRIBUTE] = models;
+        root[Level::GRAVITY_ATTRIBUTE] = JsonUtils::toJson(mGravity);
+        
         Debug::log("all models done.").unIndent().endl();
 
         Debug::log("serialization done").unIndent().endl();
@@ -419,6 +422,8 @@ namespace Steel
             Debug::error("level name ").quotes(mName)(" does not match loaded data's ").quotes(value.asString())(" . Aborting.").endl();
             return false;
         }
+        
+        mGravity = JsonUtils::asVector3(root[Level::GRAVITY_ATTRIBUTE]);
 
         value = root[Level::BACKGROUND_COLOR_ATTRIBUTE];
 
