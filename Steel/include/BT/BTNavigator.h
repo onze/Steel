@@ -7,9 +7,15 @@
 #include <BT/BTNode.h>
 #include <steeltypes.h>
 
+namespace Ogre
+{
+    class SceneNode;
+}
+
 namespace Steel
 {
     class BTModel;
+    class DynamicLines;
     class BTNavigator: public BTNode
     {
         /// Where to look for a target
@@ -20,6 +26,9 @@ namespace Steel
 
         /// The speed at which to move the agent
         static const char *SPEED_ATTRIBUTE;
+        
+        /// Orient the OgreModel toward the current target.
+        static const char *LOOK_AT_TARGET;
 
     public:
         inline static BTShapeTokenType tokenType()
@@ -46,6 +55,9 @@ namespace Steel
         
         AgentId fromVariableStrategyTargetAgentFn(BTModel *btModel);
         AgentId noneStrategyTargetAgentFn(BTModel *btModel);
+        
+        void initDebugLines(Ogre::SceneNode *parentNode);
+        void deleteDebugLines();
 
         // not owned
         // owned
@@ -56,6 +68,14 @@ namespace Steel
         Ogre::String mTargetAgentIdVariable;
         AgentId mTargetAgent;
         Ogre::Real mSpeed;
+        bool mLookAtTarget;
+        /// Agent position last frame.
+        Ogre::Vector3 mPreviousPosition;
+        
+        /// points to the current target
+        DynamicLines *mDebugTargetLine;
+        /// represent the speed and direction of the model
+        DynamicLines *mDebugMoveLine;
     };
 }
 

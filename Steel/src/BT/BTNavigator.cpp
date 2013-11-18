@@ -1,9 +1,13 @@
 #include <assert.h>
 #include <iostream>
 
+#include <OgreQuaternion.h>
+#include <OgreSceneNode.h>
+
 #include "BT/BTNavigator.h"
 #include <Debug.h>
 #include <tools/JsonUtils.h>
+#include <tools/DynamicLines.h>
 #include <BTModel.h>
 #include <AgentManager.h>
 #include <Agent.h>
@@ -12,15 +16,17 @@ namespace Steel
 {
 
     const char *BTNavigator::TARGET_AGENT_ATTRIBUTE = "targetAgent";
+    const char *BTNavigator::SPEED_ATTRIBUTE = "speed";
+    const char *BTNavigator::LOOK_AT_TARGET = "lookAtTarget";
 
     const char *BTNavigator::TARGET_AGENT_ID_VARIABLE_ATTRIBUTE = "targetAgentIdVariable";
 
-    const char *BTNavigator::SPEED_ATTRIBUTE = "speed";
 
     BTNavigator::BTNavigator(const Steel::BTShapeToken &token) : BTNode(token),
         mTargetAgentStrategy(TargetAgentStrategy::None), mTargetAgentStrategyFn(nullptr),
         mTargetAgentIdVariable(Ogre::StringUtil::BLANK), mTargetAgent(INVALID_ID),
-        mSpeed(.0f)
+        mSpeed(.0f),
+        mDebugTargetLine(nullptr), mDebugMoveLine(nullptr)
     {
         setTargetAgentStrategyFunction(mTargetAgentStrategy);
     }
@@ -28,13 +34,39 @@ namespace Steel
     BTNavigator::BTNavigator(BTNavigator const &o): BTNode(o),
         mTargetAgentStrategy(o.mTargetAgentStrategy), mTargetAgentStrategyFn(nullptr),
         mTargetAgentIdVariable(o.mTargetAgentIdVariable), mTargetAgent(o.mTargetAgent),
-        mSpeed(o.mSpeed)
+        mSpeed(o.mSpeed), mDebugTargetLine(o.mDebugTargetLine), mDebugMoveLine(o.mDebugMoveLine)
     {
         setTargetAgentStrategyFunction(mTargetAgentStrategy);
     }
 
     BTNavigator::~BTNavigator()
     {
+        deleteDebugLines();
+    }
+
+    void BTNavigator::deleteDebugLines()
+    {
+        if(nullptr != mDebugTargetLine)
+        {
+            mDebugTargetLine->clear();
+
+            if(nullptr != mDebugTargetLine->getParentSceneNode())
+                mDebugTargetLine->getParentSceneNode()->detachObject(mDebugTargetLine);
+
+            delete mDebugTargetLine;
+            mDebugTargetLine = nullptr;
+        }
+
+        if(nullptr != mDebugMoveLine)
+        {
+            mDebugMoveLine->clear();
+
+            if(nullptr != mDebugMoveLine->getParentSceneNode())
+                mDebugMoveLine->getParentSceneNode()->detachObject(mDebugMoveLine);
+
+            delete mDebugMoveLine;
+            mDebugMoveLine = nullptr;
+        }
     }
 
     bool BTNavigator::parseNodeContent(Json::Value &root)
@@ -53,6 +85,8 @@ namespace Steel
         }
 
         mSpeed = JsonUtils::asFloat(root[BTNavigator::SPEED_ATTRIBUTE]);
+
+        mLookAtTarget = JsonUtils::asBool(root[BTNavigator::LOOK_AT_TARGET], false);
 
         return true;
     }
@@ -92,19 +126,49 @@ namespace Steel
         return INVALID_ID;
     }
 
+    void BTNavigator::initDebugLines(Ogre::SceneNode *parentNode)
+    {
+        if(nullptr == mDebugTargetLine)
+        {
+            mDebugTargetLine = new DynamicLines();
+            mDebugTargetLine->setColor(Ogre::ColourValue::White);
+            parentNode->attachObject(mDebugTargetLine);
+        }
+
+        if(nullptr == mDebugMoveLine)
+        {
+            mDebugMoveLine = new DynamicLines();
+            mDebugMoveLine->setColor(Ogre::ColourValue::Red);
+            parentNode->attachObject(mDebugMoveLine);
+        }
+    }
+
     void BTNavigator::run(BTModel *btModel, float timestep)
     {
         static Ogre::String intro = "in BTNavigator::run(): ";
+
+        Agent *agent = btModel->level()->agentMan()->getAgent(btModel->ownerAgent());
+
+        if(nullptr == agent)
+        {
+            Debug::error(intro)("owner agent ")(btModel->ownerAgent())(" does not exists. Aborting.").endl();
+            mState = BTNodeState::FAILURE;
+            return;
+        }
 
         switch(mState)
         {
             case BTNodeState::READY:
                 mTargetAgent = mTargetAgentStrategyFn(btModel);
                 mState = BTNodeState::RUNNING;
+                mPreviousPosition = agent->position() + agent->rotation() * Ogre::Vector3::UNIT_SCALE;
+
+                if(btModel->debug())
+                    initDebugLines(btModel->level()->levelRoot());
 
             case BTNodeState::RUNNING:
             {
-                Agent *targetAgent, *agent;
+                Agent *targetAgent;
 
                 if(nullptr == (targetAgent = btModel->level()->agentMan()->getAgent(mTargetAgent)))
                 {
@@ -113,23 +177,56 @@ namespace Steel
                     return;
                 }
 
-                if(nullptr == (agent = btModel->level()->agentMan()->getAgent(btModel->ownerAgent())))
-                {
-                    Debug::error(intro)("owner agent ")(btModel->ownerAgent())(" does not exists. Aborting.").endl();
-                    mState = BTNodeState::FAILURE;
-                    return;
-                }
-
                 // move
+                //WITH FORCES DUMBASS
+                auto position = agent->position();
                 auto targetPos = targetAgent->position();
-                Ogre::Vector3 direction = (targetPos - agent->position()).normalisedCopy();
-                agent->move(direction * mSpeed);
+                Ogre::Vector3 direction = ((position - mPreviousPosition).normalisedCopy() + (targetPos - position).normalisedCopy()) / 2.f;
+
+//                 agent->move(direction * mSpeed);
+                if(agent->velocity().length() < mSpeed)
+                    agent->applyCentralImpulse(direction * mSpeed * timestep);
+
+                // rotate
+                if(mLookAtTarget)
+                {
+//                     if(mPreviousPosition != position)
+                    {
+//                         Ogre::Vector3 direction = (position - mPreviousPosition).normalisedCopy();
+//                         agent->rotate(direction.getRotationTo(directionToTarget, Ogre::Vector3::UNIT_Y));
+                        //agent->rotate((agent->rotation()*Ogre::Vector3::UNIT_SCALE).getRotationTo(direction, Ogre::Vector3::UNIT_Y));
+                    }
+                }
 
                 // target reached ?
-                if(agent->position().squaredDistance(targetPos) < mSpeed * mSpeed)
+                if(agent->position().squaredDistance(targetPos) < .10)
                 {
                     mState = BTNodeState::SUCCESS;
+
+                    if(btModel->debug())
+                        deleteDebugLines();
                 }
+                else if(btModel->debug())
+                {
+                    if(nullptr != mDebugTargetLine)
+                    {
+                        mDebugTargetLine->clear();
+                        mDebugTargetLine->addPoint(position);
+                        mDebugTargetLine->addPoint(targetPos);
+                        mDebugTargetLine->update();
+                    }
+
+                    if(nullptr != mDebugMoveLine)
+                    {
+                        mDebugMoveLine->clear();
+                        mDebugMoveLine->addPoint(position);
+                        mDebugMoveLine->addPoint(position + direction * mSpeed * timestep);
+                        mDebugMoveLine->update();
+                    }
+                }
+
+
+                mPreviousPosition = position;
             }
             break;
 
