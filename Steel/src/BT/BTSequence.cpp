@@ -32,7 +32,7 @@ namespace Steel
         {
             Json::Value value = root[MAX_LOOPS_ATTRIBUTE];
 
-            if(value.isUInt() || value.isInt())
+            if(value.isUInt())
             {
                 mMaxLoops = value.asUInt();
                 mNLoops = 0;
