@@ -8,9 +8,9 @@ namespace Steel
     {
         "MT_OGRE",
         "MT_PHYSICS",
-        "MT_BT",
         "MT_LOCATION",
         "MT_BLACKBOARD",
+        "MT_BT",
     };
 
     std::vector<Ogre::String> modelTypesAsString = std::vector<Ogre::String> (

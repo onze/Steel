@@ -30,9 +30,9 @@ namespace Steel
         // MT_Ogre should be first of actual types, since this order is the loading order, and all models depend on OgreModels.
         MT_OGRE,
         MT_PHYSICS,
-        MT_BT,
         MT_LOCATION,
         MT_BLACKBOARD,
+        MT_BT,
 
         //MT_LAST should stay last (to enable looping).
         MT_LAST
