@@ -146,7 +146,7 @@ namespace Steel
             if(nullptr==agent)
                 return;
             LocationModel *model = agent->locationModel();
-            if(nullptr==agent)
+            if(nullptr==model)
                 return;
             model->removeSource(attachedAgent());
         }
@@ -205,7 +205,7 @@ namespace Steel
             if(nullptr==agent)
                 return;
             LocationModel *model = agent->locationModel();
-            if(nullptr==agent)
+            if(nullptr==model)
                 return;
             model->removeDestination(attachedAgent());
         }
