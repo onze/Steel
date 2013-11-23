@@ -117,10 +117,16 @@ namespace Steel
         void applyCentralImpulse(Ogre::Vector3 const &f);
         /// shortcut to PhysicsModel::applyCentralForce
         void applyCentralForce(Ogre::Vector3 const &f);
-        /// Rotate the agent by r.x in the x axis, etc.
+        void applyTorque(Ogre::Vector3 const &tq);
+        void applyTorqueImpulse(Ogre::Vector3 const &tq);
+        /// Rotate the graphic model by r.x in the x axis, etc. Does not impact the agent body rotation.
         void rotate(const Ogre::Vector3 &rot);
-        /// Rotate the agent by the given quaternion
+        /// Rotate the graphic model by the given quaternion. Does not impact the agent body rotation.
         void rotate(const Ogre::Quaternion &q);
+        /// Rotate the agents body (physics model)
+        void rotateBody(const Ogre::Quaternion &q);
+        void setBodyRotation(const Ogre::Quaternion &q);
+        Ogre::Quaternion bodyRotation();
         /// Rescale the agent by the given factor (current_scale*given_scale).
         void rescale(const Ogre::Vector3 &sca);
 

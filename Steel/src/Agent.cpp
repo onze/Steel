@@ -377,7 +377,7 @@ namespace Steel
 
         return root;
     }
-    
+
     Ogre::Vector3 Agent::position() const
     {
         auto model = ogreModel();
@@ -395,13 +395,13 @@ namespace Steel
         auto model = ogreModel();
         return nullptr == model ? Ogre::Vector3::ZERO : model->scale();
     }
-    
+
     Ogre::Vector3 Agent::velocity() const
     {
         auto model = physicsModel();
         return nullptr == model ? Ogre::Vector3::ZERO : model->velocity();
     }
-    
+
     float Agent::mass() const
     {
         auto model = physicsModel();
@@ -426,37 +426,79 @@ namespace Steel
         if(nullptr != lmodel)
             mLevel->locationModelMan()->moveLocation(locationModelId(), position());
     }
-    
+
     void Agent::applyCentralImpulse(Ogre::Vector3 const &f)
     {
         auto model = physicsModel();
-        
+
         if(nullptr != model)
             model->applyCentralImpulse(f);
     }
-    
+
+    void Agent::applyTorque(Ogre::Vector3 const &tq)
+    {
+        auto model = physicsModel();
+
+        if(nullptr != model)
+            model->applyTorque(tq);
+    }
+
+    void Agent::applyTorqueImpulse(Ogre::Vector3 const &tq)
+    {
+        auto model = physicsModel();
+
+        if(nullptr != model)
+            model->applyTorqueImpulse(tq);
+    }
+
     void Agent::applyCentralForce(Ogre::Vector3 const &f)
     {
         auto model = physicsModel();
-        
+
         if(nullptr != model)
             model->applyCentralForce(f);
     }
 
     void Agent::rotate(const Ogre::Vector3 &rot)
     {
-        auto omodel = ogreModel();
+        auto model = ogreModel();
 
-        if(nullptr != omodel)
-            omodel->rotate(rot);
+        if(nullptr != model)
+            model->rotate(rot);
     }
 
     void Agent::rotate(const Ogre::Quaternion &q)
     {
-        auto omodel = ogreModel();
+        auto model = ogreModel();
 
-        if(nullptr != omodel)
-            omodel->rotate(q);
+        if(nullptr != model)
+            model->rotate(q);
+    }
+
+    void Agent::rotateBody(const Ogre::Quaternion &q)
+    {
+        auto model = physicsModel();
+
+        if(nullptr != model)
+            model->rotate(q);
+    }
+    
+    void Agent::setBodyRotation(const Ogre::Quaternion &q)
+    {
+        auto model = physicsModel();
+        
+        if(nullptr != model)
+            model->setRotation(q);
+    }
+
+    Ogre::Quaternion Agent::bodyRotation()
+    {
+        auto model = physicsModel();
+
+        if(nullptr == model)
+            return Ogre::Quaternion::ZERO;
+
+        return model->rotation();
     }
 
     void Agent::rescale(const Ogre::Vector3 &sca)

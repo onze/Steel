@@ -21,16 +21,19 @@
 namespace Steel
 {
     const Ogre::String PhysicsModel::MASS_ATTRIBUTE = "mass";
-    const float PhysicsModel::DEFAULT_MODEL_MASS= .0f;
+    const float PhysicsModel::DEFAULT_MODEL_MASS = .0f;
 
     const Ogre::String PhysicsModel::FRICTION_ATTRIBUTE = "friction";
     const float PhysicsModel::DEFAULT_MODEL_FRICTION = 0.5f;
 
     const Ogre::String PhysicsModel::DAMPING_ATTRIBUTE = "damping";
     const float PhysicsModel::DEFAULT_MODEL_DAMPING = .0f;
-    
+
     const Ogre::String PhysicsModel::LEVITATE_ATTRIBUTE = "levitate";
     const bool PhysicsModel::DEFAULT_MODEL_LEVITATE = false;
+    
+    const Ogre::String PhysicsModel::ROTATION_FACTOR_ATTRIBUTE = "rotationFactor";
+    const float PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR= 1.0f;
 
     const Ogre::String PhysicsModel::BBOX_SHAPE_ATTRIBUTE = "shape";
     const Ogre::String PhysicsModel::GHOST_ATTRIBUTE = "ghost";
@@ -44,7 +47,7 @@ namespace Steel
     PhysicsModel::PhysicsModel(): Model(), SignalEmitter(),
         mWorld(nullptr), mBody(nullptr),
         mMass(PhysicsModel::DEFAULT_MODEL_MASS), mFriction(PhysicsModel::DEFAULT_MODEL_FRICTION), mDamping(PhysicsModel::DEFAULT_MODEL_DAMPING),
-        mIsKinematics(false), mStates(std::stack<bool>()), mShape(BS_SPHERE),
+        mIsKinematics(false), mRotationFactor(PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR), mStates(std::stack<bool>()), mShape(BS_SPHERE),
         mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(std::map<Tag, std::set<Signal>>()), mCollidingAgents(std::set<AgentId>()),
         mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE)
     {
@@ -139,6 +142,7 @@ namespace Steel
         mMass = JsonUtils::asFloat(root[PhysicsModel::MASS_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_MASS);
         mFriction = JsonUtils::asFloat(root[PhysicsModel::FRICTION_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_FRICTION);
         mDamping = JsonUtils::asFloat(root[PhysicsModel::DAMPING_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_DAMPING);
+        mRotationFactor = JsonUtils::asFloat(root[PhysicsModel::ROTATION_FACTOR_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR);
 
         auto shape = JsonUtils::asString(root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE], Ogre::String(BBOX_SHAPE_NAME_SPHERE));
         mShape = BBoxShapeFromString(shape);
@@ -201,7 +205,7 @@ namespace Steel
                 }
             }
         }
-        
+
         mLevitate = JsonUtils::asBool(root[PhysicsModel::LEVITATE_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_LEVITATE);
 
         // agentTags
@@ -259,7 +263,7 @@ namespace Steel
         {
             collisionCheck(manager);
         }
-        
+
 //         if(mLevitate)
 //             applyCentralForce(Ogre::Vector3::UNIT_Y*.981);
     }
@@ -502,9 +506,12 @@ namespace Steel
 
         if(PhysicsModel::DEFAULT_MODEL_DAMPING != mDamping)
             node[PhysicsModel::DAMPING_ATTRIBUTE] = JsonUtils::toJson(mDamping);
-        
+
         if(PhysicsModel::DEFAULT_MODEL_LEVITATE != mLevitate)
             node[PhysicsModel::LEVITATE_ATTRIBUTE] = JsonUtils::toJson(mLevitate);
+        
+        if(PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR!= mRotationFactor)
+            node[PhysicsModel::ROTATION_FACTOR_ATTRIBUTE] = JsonUtils::toJson(mRotationFactor);
 
         node[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(StringShapeFromBBox(mShape));
 
@@ -588,6 +595,60 @@ namespace Steel
         if(switchBack)
             toRigidBody();
     }
+    
+    Ogre::Quaternion PhysicsModel::rotation()
+    {
+        if(nullptr == mBody)
+            return Ogre::Quaternion::ZERO;
+        btTransform tr;
+        mBody->getMotionState()->getWorldTransform(tr);
+        return BtOgre::Convert::toOgre(tr.getRotation());
+    }
+
+    void PhysicsModel::rotate(Ogre::Quaternion const &q)
+    {
+        if(nullptr == mBody)
+            return;
+
+        btTransform tr;
+        tr.setIdentity();
+        tr.setRotation(BtOgre::Convert::toBullet(q));
+        mBody->getWorldTransform().operator*=(tr);
+        
+        if(0)
+        {
+        btMatrix3x3 &tr = mBody->getWorldTransform().getBasis();
+        Ogre::Matrix3 kRot;
+        q.ToRotationMatrix(kRot);
+        tr *= BtOgre::Convert::toBullet(kRot);
+        mBody->getWorldTransform().setBasis(tr);
+        }
+    }
+    
+    void PhysicsModel::setRotation(Ogre::Quaternion const &q)
+    {
+        if(nullptr == mBody || q.isNaN() || q==Ogre::Quaternion::ZERO)
+            return;
+        
+        btTransform tr;
+        mBody->getMotionState()->getWorldTransform(tr);
+        tr.setRotation(BtOgre::Convert::toBullet(q));
+        mBody->getMotionState()->setWorldTransform(tr);
+    }
+    
+    void PhysicsModel::applyTorque(Ogre::Vector3 const &tq)
+    {
+        if(nullptr == mBody)
+            return;
+        mBody->applyTorque(BtOgre::Convert::toBullet(tq)*mRotationFactor);
+    }
+    
+    void PhysicsModel::applyTorqueImpulse(Ogre::Vector3 const &tq)
+    {
+        if(nullptr == mBody)
+            return;
+        mBody->applyTorqueImpulse(BtOgre::Convert::toBullet(tq)*mRotationFactor);
+    }
 
     void PhysicsModel::setPosition(const Ogre::Vector3 &pos)
     {
@@ -628,7 +689,7 @@ namespace Steel
     {
         mBody->applyCentralImpulse(BtOgre::Convert::toBullet(f));
     }
-    
+
     void PhysicsModel::applyCentralForce(Ogre::Vector3 const &f)
     {
         mBody->applyCentralForce(BtOgre::Convert::toBullet(f));

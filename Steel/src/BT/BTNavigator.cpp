@@ -178,50 +178,57 @@ namespace Steel
                 }
 
                 // move
-                //WITH FORCES DUMBASS
                 auto position = agent->position();
                 auto targetPos = targetAgent->position();
-                Ogre::Vector3 direction = ((position - mPreviousPosition).normalisedCopy() + (targetPos - position).normalisedCopy()) / 2.f;
+                auto velocity = agent->velocity();
+                Ogre::Vector3 direction = (targetPos - position).normalisedCopy();
 
-//                 agent->move(direction * mSpeed);
-                if(agent->velocity().length() < mSpeed)
-                    agent->applyCentralImpulse(direction * mSpeed * timestep);
-
-                // rotate
-                if(mLookAtTarget)
+                if(velocity.squaredLength() < mSpeed * mSpeed)
                 {
-//                     if(mPreviousPosition != position)
-                    {
-//                         Ogre::Vector3 direction = (position - mPreviousPosition).normalisedCopy();
-//                         agent->rotate(direction.getRotationTo(directionToTarget, Ogre::Vector3::UNIT_Y));
-                        //agent->rotate((agent->rotation()*Ogre::Vector3::UNIT_SCALE).getRotationTo(direction, Ogre::Vector3::UNIT_Y));
-                    }
+                    agent->applyCentralImpulse(direction * mSpeed * timestep);
                 }
 
                 // target reached ?
-                if(agent->position().squaredDistance(targetPos) < .10)
+                if(agent->position().squaredDistance(targetPos) < .1)
                 {
                     mState = BTNodeState::SUCCESS;
 
                     if(btModel->debug())
                         deleteDebugLines();
                 }
-                else if(btModel->debug())
+                else
                 {
-                    if(nullptr != mDebugTargetLine)
+                    // rotate
+                    if(mLookAtTarget)
                     {
-                        mDebugTargetLine->clear();
-                        mDebugTargetLine->addPoint(position);
-                        mDebugTargetLine->addPoint(targetPos);
-                        mDebugTargetLine->update();
+                        Ogre::Quaternion bodyRotation = agent->bodyRotation();
+                        Ogre::Vector3 srcDir = bodyRotation*Ogre::Vector3::UNIT_Z;
+//                         srcDir.y=0;
+                        srcDir.normalise();
+                        
+                        agent->applyTorqueImpulse(srcDir.crossProduct(direction) * timestep);
+                        
+//                         Ogre::Quaternion dstRotation = srcDir.getRotationTo(direction);
+//                         agent->setBodyRotation(dstRotation*bodyRotation);
                     }
 
-                    if(nullptr != mDebugMoveLine)
+                    if(btModel->debug())
                     {
-                        mDebugMoveLine->clear();
-                        mDebugMoveLine->addPoint(position);
-                        mDebugMoveLine->addPoint(position + direction * mSpeed * timestep);
-                        mDebugMoveLine->update();
+                        if(nullptr != mDebugTargetLine)
+                        {
+                            mDebugTargetLine->clear();
+                            mDebugTargetLine->addPoint(position);
+                            mDebugTargetLine->addPoint(targetPos);
+                            mDebugTargetLine->update();
+                        }
+
+                        if(nullptr != mDebugMoveLine)
+                        {
+                            mDebugMoveLine->clear();
+                            mDebugMoveLine->addPoint(position);
+                            mDebugMoveLine->addPoint(position + velocity);
+                            mDebugMoveLine->update();
+                        }
                     }
                 }
 

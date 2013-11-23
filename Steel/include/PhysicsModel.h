@@ -39,6 +39,10 @@ namespace Steel
         static const Ogre::String DAMPING_ATTRIBUTE;
         static const float DEFAULT_MODEL_DAMPING;
         
+        /// Rotation angle multiplier
+        static const Ogre::String ROTATION_FACTOR_ATTRIBUTE;
+        static const float DEFAULT_MODEL_ROTATION_FACTOR;
+        
         /// The shape of the model bounding box. Value should be one of BBOX_SHAPE_NAME_*
         static const Ogre::String BBOX_SHAPE_ATTRIBUTE;
         /// If true, collision with other objects does not affect them (ie hitbox).
@@ -77,10 +81,16 @@ namespace Steel
         
         inline float mass() const {return mMass;}
 
+        void rotate(Ogre::Quaternion const &q);
+        void setRotation(Ogre::Quaternion const &q);
+        Ogre::Quaternion rotation();
+        void applyTorque(Ogre::Vector3 const &tq);
+        void applyTorqueImpulse(Ogre::Vector3 const &tq);
+        
+        void setPosition(Ogre::Vector3 const &pos);
         void move(Ogre::Vector3 const &dpos);
         void applyCentralImpulse(Ogre::Vector3 const &f);
         void applyCentralForce(Ogre::Vector3 const &f);
-        void setPosition(Ogre::Vector3 const &pos);
 
         void rescale(Ogre::Vector3 const &sca);
         void setScale(Ogre::Vector3 const &sca);
@@ -115,6 +125,7 @@ namespace Steel
         Ogre::Real mFriction;
         Ogre::Real mDamping;
         bool mIsKinematics;
+        float mRotationFactor;
         /// kinematics/rigidBody states stack
         std::stack<bool> mStates;
         /// Shape of the physic model representing the graphic model.
