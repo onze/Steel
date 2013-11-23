@@ -106,22 +106,23 @@ namespace Steel
             return false;
         }
 
-        if(!src->addDestination(dstId))
+        if(!src->addDestination(dst->attachedAgent()))
         {
             Debug::error(intro)("source model ")(srcId)(" cannot take model ")
-            (dstId)(" as a new destination. Aborting").endl();
+            (dstId)("'s agent ")(dst->attachedAgent())(") as a new destination. Aborting").endl();
             return false;
         }
 
-        if(!dst->addSource(srcId))
+        if(!dst->addSource(src->attachedAgent()))
         {
             Debug::error(intro)("destination model ")(dstId)(" cannot take model ")
-            (srcId)(" as a new source. Aborting").endl();
-            src->removeDestination(dstId);
+            (srcId)("'s agent ")(src->attachedAgent())(") as a new source. Aborting").endl();
+            src->removeDestination(dst->attachedAgent());
             return false;
         }
 
         updateDebugLine(makeKey(srcId, dstId));
+        updateDebugLine(makeKey(dstId, srcId));
         return true;
     }
 
@@ -143,39 +144,6 @@ namespace Steel
         }
 
         return unlinkLocations(src->locationModelId(), dst->locationModelId());
-    }
-
-    void LocationModelManager::unlinkLocation(ModelId mid)
-    {
-        static const Ogre::String intro = "in LocationModelManager::unlinkLocation(): ";
-
-        LocationModel *model = at(mid);
-
-        if(nullptr == model)
-        {
-            Debug::error(intro)("model ")(mid)(" is not valid.").endl();
-            return;
-        }
-
-        for(auto const & aid : model->sources())
-        {
-            Agent *agent = mLevel->agentMan()->getAgent(aid);
-
-            if(nullptr == agent)
-                continue;
-
-            unlinkLocations(agent->locationModelId(), mid);
-        }
-
-        for(auto const & aid : model->destinations())
-        {
-            Agent *agent = mLevel->agentMan()->getAgent(aid);
-
-            if(nullptr == agent)
-                continue;
-
-            unlinkLocations(mid, agent->locationModelId());
-        }
     }
 
     bool LocationModelManager::unlinkLocations(ModelId mid0, ModelId mid1)
@@ -216,10 +184,44 @@ namespace Steel
 
         return false;
     }
+    
+    void LocationModelManager::unlinkLocation(ModelId mid)
+    {
+        static const Ogre::String intro = "in LocationModelManager::unlinkLocation(): ";
+        
+        LocationModel *model = at(mid);
+        
+        if(nullptr == model)
+        {
+            Debug::error(intro)("model ")(mid)(" is not valid.").endl();
+            return;
+        }
+        
+        for(auto const & aid : model->sources())
+        {
+            Agent *agent = mLevel->agentMan()->getAgent(aid);
+            
+            if(nullptr == agent)
+                continue;
+            
+            unlinkLocations(agent->locationModelId(), mid);
+        }
+        
+        for(auto const & aid : model->destinations())
+        {
+            Agent *agent = mLevel->agentMan()->getAgent(aid);
+            
+            if(nullptr == agent)
+                continue;
+            
+            unlinkLocations(mid, agent->locationModelId());
+        }
+    }
 
     ModelPair LocationModelManager::makeKey(ModelId mid0, ModelId mid1)
     {
-        return mid0 <= mid1 ? ModelPair(mid0, mid1) : ModelPair(mid1, mid0);
+//         return mid0 <= mid1 ? ModelPair(mid0, mid1) : ModelPair(mid1, mid0);
+        return ModelPair(mid0, mid1);
     }
     
     void LocationModelManager::removeDebugLines(ModelId mid)
@@ -316,6 +318,7 @@ namespace Steel
                     continue;
 
                 keys.push_back(makeKey(agent->locationModelId(), mid));
+                keys.push_back(makeKey(mid, agent->locationModelId()));
             }
 
             for(AgentId const aid : model->destinations())
@@ -325,6 +328,7 @@ namespace Steel
                 if(nullptr == agent)
                     continue;
 
+                keys.push_back(makeKey(agent->locationModelId(), mid));
                 keys.push_back(makeKey(mid, agent->locationModelId()));
             }
         }

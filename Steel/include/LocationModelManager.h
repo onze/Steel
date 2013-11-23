@@ -38,7 +38,7 @@ namespace Steel
         /////////////////////////////////////////////////
         // Specific to model linking
         bool linkAgents(AgentId srcAgentId, AgentId dstAgentId);
-        /// Link 2 locations together.
+        /// Link 2 locations together (each is src and dst to the other one).
         bool linkLocations(ModelId srcId, ModelId dstId);
         /// Unlinks 2 agents' locations iff they were linked to each other. Return true if they were.
         bool unlinkAgents(AgentId srcAgentId, AgentId dstAgentId);
@@ -80,6 +80,7 @@ namespace Steel
         void removeDebugLines(ModelId mid);
         void removeDebugLine(ModelPair const &key);
         /// Returns all debug lines keys involving the given model id.
+        /// Returns a list of all pairs from the model to its destinations, and from the model's sources to it.
         std::list<ModelPair> collectModelPairs(ModelId mid);
         // owned
         std::map<ModelPair, DynamicLines *> mDebugLines;

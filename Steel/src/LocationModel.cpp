@@ -120,8 +120,14 @@ namespace Steel
         serializeTags(node);
     }
 
-    bool LocationModel::addDestination(ModelId mid)
+    bool LocationModel::addDestination(AgentId aid)
     {
+        Agent *agent = mLocationModelMan->level()->agentMan()->getAgent(aid);
+        
+        if(nullptr == agent)
+            return false;
+        
+        ModelId mid = agent->locationModelId();
         LocationModel *dst = mLocationModelMan->at(mid);
 
         if(nullptr == dst)
@@ -134,24 +140,28 @@ namespace Steel
             return false;
         }
 
-        mDestinations.insert(mid);
+        mDestinations.insert(aid);
         return true;
     }
 
     void LocationModel::removeDestination(AgentId aid)
     {
-        if(mDestinations.erase(aid)>0)
+        if(mDestinations.erase(aid) > 0)
         {
             Agent *agent = mLocationModelMan->level()->agentMan()->getAgent(aid);
-            if(nullptr==agent)
+
+            if(nullptr == agent)
                 return;
+
             LocationModel *model = agent->locationModel();
-            if(nullptr==model)
+
+            if(nullptr == model)
                 return;
+
             model->removeSource(attachedAgent());
         }
     }
-    
+
     void LocationModel::removeAllDestinations()
     {
         while(hasAnyDestination())
@@ -178,8 +188,14 @@ namespace Steel
         return true;
     }
 
-    bool LocationModel::addSource(ModelId mid)
+    bool LocationModel::addSource(AgentId aid)
     {
+        Agent *agent = mLocationModelMan->level()->agentMan()->getAgent(aid);
+
+        if(nullptr == agent)
+            return false;
+
+        ModelId mid = agent->locationModelId();
         LocationModel *src = mLocationModelMan->at(mid);
 
         if(nullptr == src)
@@ -192,25 +208,29 @@ namespace Steel
             return false;
         }
 
-        mSources.insert(mid);
+        mSources.insert(aid);
 
         return true;
     }
-    
+
     void LocationModel::removeSource(AgentId aid)
     {
-        if(mSources.erase(aid)>0)
+        if(mSources.erase(aid) > 0)
         {
             Agent *agent = mLocationModelMan->level()->agentMan()->getAgent(aid);
-            if(nullptr==agent)
+
+            if(nullptr == agent)
                 return;
+
             LocationModel *model = agent->locationModel();
-            if(nullptr==model)
+
+            if(nullptr == model)
                 return;
+
             model->removeDestination(attachedAgent());
         }
     }
-    
+
     void LocationModel::removeAllSources()
     {
         while(hasAnySource())
