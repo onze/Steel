@@ -51,14 +51,14 @@ namespace Steel
         void removeDestination(AgentId aid);
         void removeAllDestinations();
         inline bool hasAnyDestination() const{return mDestinations.size()>0;}
-        inline bool hasDestination(AgentId dst) const{return mDestinations.end()==mDestinations.find(dst);}
+        inline bool hasDestination(AgentId dst) const{return mDestinations.end()!=mDestinations.find(dst);}
 
         inline std::set<AgentId> sources() const{return mSources;}
         bool addSource(AgentId aid);
         void removeSource(AgentId aid);
         void removeAllSources();
         inline bool hasAnySource() const{return mSources.size()>0;}
-        inline bool hasSource(AgentId src) const{return mSources.end()==mSources.find(src);}
+        inline bool hasSource(AgentId src) const{return mSources.end()!=mSources.find(src);}
 
         void attachAgent(AgentId aid);
         inline AgentId attachedAgent(){return mAttachedAgent;}
