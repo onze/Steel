@@ -43,6 +43,10 @@ namespace Steel
         static const Ogre::String ROTATION_FACTOR_ATTRIBUTE;
         static const float DEFAULT_MODEL_ROTATION_FACTOR;
         
+        /// If non zero, multiplier to the force keeping the model's top upward.
+        static const Ogre::String KEEP_VERTICAL_FACTOR_ATTRIBUTE;
+        static const float DEFAULT_MODEL_KEEP_VERTICAL_FACTOR;
+        
         /// The shape of the model bounding box. Value should be one of BBOX_SHAPE_NAME_*
         static const Ogre::String BBOX_SHAPE_ATTRIBUTE;
         /// If true, collision with other objects does not affect them (ie hitbox).
@@ -126,6 +130,7 @@ namespace Steel
         Ogre::Real mDamping;
         bool mIsKinematics;
         float mRotationFactor;
+        float mKeepVerticalFactor;
         /// kinematics/rigidBody states stack
         std::stack<bool> mStates;
         /// Shape of the physic model representing the graphic model.
