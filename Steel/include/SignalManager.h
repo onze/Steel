@@ -15,59 +15,57 @@ namespace Steel
 
     class SignalManager
     {
-        public:
-            inline static SignalManager &instance()
-            {
-                if(nullptr==SignalManager::sInstance)
-                    SignalManager::sInstance=new SignalManager();
-                return *SignalManager::sInstance;
-            }
+    public:
+        inline static SignalManager &instance()
+        {
+            if(nullptr == SignalManager::sInstance)
+                SignalManager::sInstance = new SignalManager();
 
-            SignalManager();
-            virtual ~SignalManager();
+            return *SignalManager::sInstance;
+        }
 
-            void registerListener(const Signal signal, SignalListener* listener);
-            void unregisterListener(const Signal signal, SignalListener* listener);
+        SignalManager();
+        virtual ~SignalManager();
 
-            /// Registers the signal to be fired before next frame (recommended).
-            void emit(const Signal signal, SignalEmitter* src=nullptr);
-            inline void emit(const Ogre::String& signal, SignalEmitter* src=nullptr)
-            {
-                emit(toSignal(signal), src);
-            }
+        void registerListener(const Signal signal, SignalListener *listener);
+        void unregisterListener(const Signal signal, SignalListener *listener);
 
-            /// Immediatly calls all registered listeners of the given signal.
-            void fire(const Signal signal, SignalEmitter* src=nullptr);
-            inline void fire(const Ogre::String& signal, SignalEmitter* src=nullptr)
-            {
-                fire(toSignal(signal), src);
-            }
+        /// Registers the signal to be fired before next frame (recommended).
+        void emit(const Signal signal, SignalEmitter *src = nullptr);
+        inline void emit(const Ogre::String &signal, SignalEmitter *src = nullptr)
+        {
+            emit(toSignal(signal), src);
+        }
 
-            /// Fires all emitted signals.
-            void fireEmittedSignals();
+        /// Immediatly calls all registered listeners of the given signal.
+        void fire(const Signal signal, SignalEmitter *src = nullptr);
+        inline void fire(const Ogre::String &signal, SignalEmitter *src = nullptr)
+        {
+            fire(toSignal(signal), src);
+        }
 
-            Signal toSignal(const Ogre::String& signal);
-#ifdef DEBUG
-            Ogre::String fromSignal(const Signal signal);
-#endif
+        /// Fires all emitted signals.
+        void fireEmittedSignals();
 
-        private:
-            static SignalManager *sInstance;
+        Signal toSignal(const Ogre::String &signal);
+        Ogre::String fromSignal(const Signal signal);
 
-            /// Value of the next created signal.
-            Signal mNextSignal;
-            /// Maps string signals to long values, used internally.
-            std::map<Ogre::String, Signal> mSignalsMap;
-#ifdef DEBUG
-            /// mSignalsMap's reverse mapping, for debug purposes.
-            std::map<Signal, Ogre::String> mInverseSignalsMap;
-#endif
+    private:
+        static SignalManager *sInstance;
 
-            /// Instances to notify of emitted signals.
-            std::map<Signal, std::set<SignalListener*>> mListeners;
+        /// Value of the next created signal.
+        Signal mNextSignal;
+        /// Maps string signals to long values, used internally.
+        std::map<Ogre::String, Signal> mSignalsMap;
+        
+        /// mSignalsMap's reverse mapping, for debug purposes.
+        std::map<Signal, Ogre::String> mInverseSignalsMap;
 
-            /// Emitted signals
-            std::set<std::pair<Signal, SignalEmitter*>> mEmittedSignals;
+        /// Instances to notify of emitted signals.
+        std::map<Signal, std::set<SignalListener *>> mListeners;
+
+        /// Emitted signals
+        std::set<std::pair<Signal, SignalEmitter *>> mEmittedSignals;
     };
 }
 
