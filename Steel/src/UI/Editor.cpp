@@ -888,9 +888,9 @@ namespace Steel
         return true;
     }
 
-    bool Editor::keyPressed(const OIS::KeyEvent &evt)
+    bool Editor::keyPressed(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->getKeyIdentifier(key);
         mContext->ProcessKeyDown(keyIdentifier, mUI->getKeyModifierState());
 
         if(evt.text >= 32)
@@ -905,38 +905,39 @@ namespace Steel
         return true;
     }
 
-    bool Editor::keyReleased(const OIS::KeyEvent &evt)
+    bool Editor::keyReleased(Input::Code key, Input::Event const &evt)
     {
-        SelectionManager *selectionMan = mEngine->level()->selectionMan();
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->keyIdentifiers()[evt.key];
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->getKeyIdentifier(key);
         mContext->ProcessKeyUp(keyIdentifier, mUI->getKeyModifierState());
+
+        SelectionManager *selectionMan = mEngine->level()->selectionMan();
         Level *level = mEngine->level();
 
-        switch(evt.key)
+        switch(key)
         {
-            case OIS::KC_H:
-                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+            case Input::Code::KC_H:
+                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::TERRAFORM);
 
                 break;
 
-            case OIS::KC_L:
-                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+            case Input::Code::KC_L:
+                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::LINK);
 
                 break;
 
-            case OIS::KC_R:
-                if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+            case Input::Code::KC_R:
+                if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
                     reloadContent();
 
-                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::ROTATE);
 
                 break;
 
-            case OIS::KC_S:
-                if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+            case Input::Code::KC_S:
+                if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
                 {
                     if(level != nullptr)
                         level->save();
@@ -944,18 +945,18 @@ namespace Steel
                     mEngine->saveConfig(mEngine->config());
                 }
 
-                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::SCALE);
 
                 break;
 
-            case OIS::KC_T:
-                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+            case Input::Code::KC_T:
+                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                     mBrush.setMode(EditorBrush::TRANSLATE);
 
                 break;
 
-            case OIS::KC_DELETE:
+            case Input::Code::KC_DELETE:
             {
                 auto child = mDocument->GetElementById("editor");
 
@@ -966,7 +967,7 @@ namespace Steel
             }
             break;
 
-            case OIS::KC_F5:
+            case Input::Code::KC_F5:
                 processCommand("engine.register.ui.reload");
                 break;
 
@@ -975,13 +976,13 @@ namespace Steel
         }
 
         // numeric key pressed: handles memoing (keys: 1,2,3,...,0)
-        if(nullptr != mEngine && evt.key >= OIS::KC_1 && evt.key <= OIS::KC_0)
+        if(nullptr != mEngine && key >= Input::Code::KC_1 && key <= Input::Code::KC_0)
         {
             // OIS::KC_0 is the highest; the modulo makes it 0
-            int memoKey = (evt.key - OIS::KC_1 + 1) % 10;
+            int memoKey = ((int)key - (int)Input::Code::KC_1 + 1) % 10;
             Ogre::String memo = Ogre::StringConverter::toString(memoKey);
 
-            if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+            if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
                 selectionMan->saveSelectionToMemo(memo);
             else
                 selectionMan->selectMemo(memo);
@@ -990,31 +991,33 @@ namespace Steel
         return true;
     }
 
-    bool Editor::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
+    bool Editor::mousePressed(Input::Code button, Input::Event const &evt)
     {
-        if(!hitTest(evt.state.X.abs, evt.state.Y.abs, "menu"))
-            mBrush.mousePressed(evt, id);
+        if(!hitTest(evt.position.x, evt.position.y, "menu"))
+        {
+            mBrush.mousePressed(button, evt);
+        }
 
         return true;
     }
 
-    bool Editor::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
+    bool Editor::mouseReleased(Input::Code button, Input::Event const &evt)
     {
-        mBrush.mouseReleased(evt, id);
+        mBrush.mouseReleased(button, evt);
 
-        if(id == OIS::MB_Right)
+        if(button == Input::Code::MC_RIGHT)
             mFSResources->expandRows();
 
         return true;
     }
 
-    bool Editor::mouseMoved(const OIS::MouseEvent &evt)
+    bool Editor::mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt)
     {
-        bool hoveringMenu = hitTest(evt.state.X.abs, evt.state.Y.abs, "menu");
+        bool hoveringMenu = hitTest(position.x, position.y, "menu");
 
         if((!mIsDraggingFromMenu && !hoveringMenu) || (mBrush.isDragging() || mBrush.isInContiniousMode() || mBrush.isSelecting()))
         {
-            mBrush.mouseMoved(evt);
+            mBrush.mouseMoved(position, evt);
             Rocket::Core::Element *elem;
 
             elem = mDocument->GetElementById("editor_terrabrush_intensity");
@@ -1026,6 +1029,10 @@ namespace Steel
 
             if(elem != nullptr)
                 elem->SetInnerRML(Ogre::StringConverter::toString(mBrush.radius()).c_str());
+        }
+        else
+        {
+            mContext->ProcessMouseMove(position.x, position.y, mUI->getKeyModifierState());
         }
 
         return true;

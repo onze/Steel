@@ -8,12 +8,7 @@ namespace Steel
 {
     SignalManager *SignalManager::sInstance = nullptr;
 
-    SignalManager::SignalManager(): mNextSignal(0L), mSignalsMap(std::map<Ogre::String, Signal>())
-#ifdef DEBUG
-        , mInverseSignalsMap(std::map<Signal, Ogre::String>())
-#endif
-        , mListeners(std::map<Signal, std::set<SignalListener *>>()),
-        mEmittedSignals(std::set<std::pair<Signal, SignalEmitter *>>())
+    SignalManager::SignalManager(): mNextSignal(0L), mSignalsMap(), mInverseSignalsMap(), mListeners(), mEmittedSignals()
     {
     }
 
@@ -24,7 +19,7 @@ namespace Steel
 
     void SignalManager::emit(Signal signal, SignalEmitter *src)
     {
-        mEmittedSignals.insert(std::pair<Signal, SignalEmitter *>(signal, src));
+        mEmittedSignals.insert(std::make_pair(signal, src));
     }
 
     void SignalManager::fireEmittedSignals()
@@ -45,7 +40,7 @@ namespace Steel
 
     void SignalManager::fire(Signal signal, SignalEmitter *src)
     {
-        std::map<Signal, std::set<SignalListener *>>::iterator it = mListeners.find(signal);
+        auto it = mListeners.find(signal);
 
         if(mListeners.end() == it)
             return;

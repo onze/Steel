@@ -14,13 +14,13 @@
 
 namespace Steel
 {
-    UI::UI(): Rocket::Core::SystemInterface(), Ogre::RenderQueueListener(), EngineEventListener(),
+    UI::UI(): Rocket::Core::SystemInterface(), Ogre::RenderQueueListener(), EngineEventListener(), InputEventListener(),
         mInputMan(nullptr), mWindow(nullptr), mWidth(0), mHeight(0),
         mRocketRenderInterface(nullptr), mMainContext(nullptr),
         mKeyIdentifiers(KeyIdentifierMap()), mEditor(), mHUD(), mUIDataDir(), mEditMode(false)
     {
         mTimer = Ogre::Timer();
-        buildKeyMaps();
+        buildCodeMaps();
     }
 
     UI::UI(const UI &other)
@@ -35,6 +35,7 @@ namespace Steel
         mHeight = other.mHeight;
         mKeyIdentifiers = other.mKeyIdentifiers;
         mEditMode = other.mEditMode;
+        //TODO forbif copy (use save/load instead)
     }
 
     UI::~UI()
@@ -71,7 +72,7 @@ namespace Steel
         mEditor.saveConfig(config);
         mHUD.saveConfig(config);
     }
-    
+
     bool UI::processCommand(std::vector<Ogre::String> command)
     {
         if(command[0] == "reload")
@@ -84,13 +85,14 @@ namespace Steel
             Debug::warning(StringUtils::join(command, ".")).endl();
             return false;
         }
+
         return true;
     }
-    
+
     void UI::reload()
     {
         Debug::log("UI::reload()").endl();
-        
+
         mHUD.reloadContent();
         mEditor.reloadContent();
     }
@@ -169,6 +171,7 @@ namespace Steel
 
         mEditMode = false;
         mEngine->addEngineEventListener(this);
+        mInputMan->addInputEventListener(this);
 
         //rocket init
         auto orm = Ogre::ResourceGroupManager::getSingletonPtr();
@@ -317,9 +320,9 @@ namespace Steel
         projection_matrix[3][3] = 1.0000000f;
     }
 
-    bool UI::keyPressed(const OIS::KeyEvent &evt)
+    bool UI::keyPressed(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = getKeyIdentifier(key);
         mMainContext->ProcessKeyDown(keyIdentifier , getKeyModifierState());
 
         if(evt.text >= 32)
@@ -328,69 +331,90 @@ namespace Steel
             mMainContext->ProcessTextInput((Rocket::Core::word) '\n');
 
         if(mEditMode)
-            mEditor.keyPressed(evt);
+            mEditor.keyPressed(key, evt);
 
         return true;
     }
 
-    bool UI::keyReleased(const OIS::KeyEvent &evt)
+    bool UI::keyReleased(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mKeyIdentifiers[evt.key];
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = getKeyIdentifier(key);
         int keyModifierState = getKeyModifierState();
 
         mMainContext->ProcessKeyUp(keyIdentifier , keyModifierState);
 
         if(mEditMode)
-            mEditor.keyReleased(evt);
+            mEditor.keyReleased(key, evt);
 
         return true;
     }
 
-    bool UI::mouseMoved(const OIS::MouseEvent &evt)
+    bool UI::mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt)
     {
         int key_modifier_state = getKeyModifierState();
-        mMainContext->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
+        mMainContext->ProcessMouseMove(evt.position.x, evt.position.y, key_modifier_state);
 
         if(mEditMode)
         {
-            mEditor.context()->ProcessMouseMove(evt.state.X.abs, evt.state.Y.abs, key_modifier_state);
-            mEditor.mouseMoved(evt);
+            mEditor.mouseMoved(position, evt);
         }
+ 
+// TODO this is now a mouse press/release
+//         if(evt.state.Z.rel != 0)
+//         {
+//             mMainContext->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
+//
+//             if(mEditMode)
+//                 mEditor.context()->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
+//         }
+// ALSO, make the change in editorbrush in TERRAFORMING mode
 
-        if(evt.state.Z.rel != 0)
+        return true;
+    }
+    
+    Rocket::Core::Input::KeyIdentifier UI::getKeyIdentifier(Input::Code key) const
+    {
+        auto it = mKeyIdentifiers.find(key);
+        
+        if(mKeyIdentifiers.end() == it)
+            return Rocket::Core::Input::KeyIdentifier::KI_UNKNOWN;
+        
+        return it->second;
+    }
+
+    int UI::getMouseIdentifier(Input::Code button) const
+    {
+        auto it = mMouseIdentifiers.find(button);
+
+        if(mMouseIdentifiers.end() == it)
+            return 0; // left btn
+
+        return it->second;
+    }
+
+    bool UI::mousePressed(Input::Code button, Input::Event const &evt)
+    {
+        int btn = getMouseIdentifier(button);
+        mMainContext->ProcessMouseButtonDown(btn, getKeyModifierState());
+
+        if(mEditMode)
         {
-            mMainContext->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
-
-            if(mEditMode)
-                mEditor.context()->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
+            mEditor.context()->ProcessMouseButtonDown(btn, getKeyModifierState());
+            mEditor.mousePressed(button, evt);
         }
 
         return true;
     }
 
-    bool UI::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
+    bool UI::mouseReleased(Input::Code button, Input::Event const &evt)
     {
-//         Debug::log("mousePressed at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
-        mMainContext->ProcessMouseButtonDown((int) id, getKeyModifierState());
+        int btn = getMouseIdentifier(button);
+        mMainContext->ProcessMouseButtonUp(btn, getKeyModifierState());
 
         if(mEditMode)
         {
-            mEditor.context()->ProcessMouseButtonDown((int) id, getKeyModifierState());
-            mEditor.mousePressed(evt, id);
-        }
-
-        return true;
-    }
-
-    bool UI::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
-    {
-//         Debug::log("mouseReleased at ")(evt.state.X.abs)(" ")(evt.state.Y.abs).endl();
-        mMainContext->ProcessMouseButtonUp((int) id, getKeyModifierState());
-
-        if(mEditMode)
-        {
-            mEditor.context()->ProcessMouseButtonUp((int) id, getKeyModifierState());
-            mEditor.mouseReleased(evt, id);
+            mEditor.context()->ProcessMouseButtonUp(btn, getKeyModifierState());
+            mEditor.mouseReleased(button, evt);
         }
 
         return true;
@@ -411,166 +435,178 @@ namespace Steel
         mEditor.show();
     }
 
-    void UI::buildKeyMaps()
+    void UI::buildCodeMaps()
     {
-        mKeyIdentifiers[OIS::KC_UNASSIGNED] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_ESCAPE] = Rocket::Core::Input::KI_ESCAPE;
-        mKeyIdentifiers[OIS::KC_1] = Rocket::Core::Input::KI_1;
-        mKeyIdentifiers[OIS::KC_2] = Rocket::Core::Input::KI_2;
-        mKeyIdentifiers[OIS::KC_3] = Rocket::Core::Input::KI_3;
-        mKeyIdentifiers[OIS::KC_4] = Rocket::Core::Input::KI_4;
-        mKeyIdentifiers[OIS::KC_5] = Rocket::Core::Input::KI_5;
-        mKeyIdentifiers[OIS::KC_6] = Rocket::Core::Input::KI_6;
-        mKeyIdentifiers[OIS::KC_7] = Rocket::Core::Input::KI_7;
-        mKeyIdentifiers[OIS::KC_8] = Rocket::Core::Input::KI_8;
-        mKeyIdentifiers[OIS::KC_9] = Rocket::Core::Input::KI_9;
-        mKeyIdentifiers[OIS::KC_0] = Rocket::Core::Input::KI_0;
-        mKeyIdentifiers[OIS::KC_MINUS] = Rocket::Core::Input::KI_OEM_MINUS;
-        mKeyIdentifiers[OIS::KC_EQUALS] = Rocket::Core::Input::KI_OEM_PLUS;
-        mKeyIdentifiers[OIS::KC_BACK] = Rocket::Core::Input::KI_BACK;
-        mKeyIdentifiers[OIS::KC_TAB] = Rocket::Core::Input::KI_TAB;
-        mKeyIdentifiers[OIS::KC_Q] = Rocket::Core::Input::KI_Q;
-        mKeyIdentifiers[OIS::KC_W] = Rocket::Core::Input::KI_W;
-        mKeyIdentifiers[OIS::KC_E] = Rocket::Core::Input::KI_E;
-        mKeyIdentifiers[OIS::KC_R] = Rocket::Core::Input::KI_R;
-        mKeyIdentifiers[OIS::KC_T] = Rocket::Core::Input::KI_T;
-        mKeyIdentifiers[OIS::KC_Y] = Rocket::Core::Input::KI_Y;
-        mKeyIdentifiers[OIS::KC_U] = Rocket::Core::Input::KI_U;
-        mKeyIdentifiers[OIS::KC_I] = Rocket::Core::Input::KI_I;
-        mKeyIdentifiers[OIS::KC_O] = Rocket::Core::Input::KI_O;
-        mKeyIdentifiers[OIS::KC_P] = Rocket::Core::Input::KI_P;
-        mKeyIdentifiers[OIS::KC_LBRACKET] = Rocket::Core::Input::KI_OEM_4;
-        mKeyIdentifiers[OIS::KC_RBRACKET] = Rocket::Core::Input::KI_OEM_6;
-        mKeyIdentifiers[OIS::KC_RETURN] = Rocket::Core::Input::KI_RETURN;
-        mKeyIdentifiers[OIS::KC_LCONTROL] = Rocket::Core::Input::KI_LCONTROL;
-        mKeyIdentifiers[OIS::KC_A] = Rocket::Core::Input::KI_A;
-        mKeyIdentifiers[OIS::KC_S] = Rocket::Core::Input::KI_S;
-        mKeyIdentifiers[OIS::KC_D] = Rocket::Core::Input::KI_D;
-        mKeyIdentifiers[OIS::KC_F] = Rocket::Core::Input::KI_F;
-        mKeyIdentifiers[OIS::KC_G] = Rocket::Core::Input::KI_G;
-        mKeyIdentifiers[OIS::KC_H] = Rocket::Core::Input::KI_H;
-        mKeyIdentifiers[OIS::KC_J] = Rocket::Core::Input::KI_J;
-        mKeyIdentifiers[OIS::KC_K] = Rocket::Core::Input::KI_K;
-        mKeyIdentifiers[OIS::KC_L] = Rocket::Core::Input::KI_L;
-        mKeyIdentifiers[OIS::KC_SEMICOLON] = Rocket::Core::Input::KI_OEM_1;
-        mKeyIdentifiers[OIS::KC_APOSTROPHE] = Rocket::Core::Input::KI_OEM_7;
-        mKeyIdentifiers[OIS::KC_GRAVE] = Rocket::Core::Input::KI_OEM_3;
-        mKeyIdentifiers[OIS::KC_LSHIFT] = Rocket::Core::Input::KI_LSHIFT;
-        mKeyIdentifiers[OIS::KC_BACKSLASH] = Rocket::Core::Input::KI_OEM_5;
-        mKeyIdentifiers[OIS::KC_Z] = Rocket::Core::Input::KI_Z;
-        mKeyIdentifiers[OIS::KC_X] = Rocket::Core::Input::KI_X;
-        mKeyIdentifiers[OIS::KC_C] = Rocket::Core::Input::KI_C;
-        mKeyIdentifiers[OIS::KC_V] = Rocket::Core::Input::KI_V;
-        mKeyIdentifiers[OIS::KC_B] = Rocket::Core::Input::KI_B;
-        mKeyIdentifiers[OIS::KC_N] = Rocket::Core::Input::KI_N;
-        mKeyIdentifiers[OIS::KC_M] = Rocket::Core::Input::KI_M;
-        mKeyIdentifiers[OIS::KC_COMMA] = Rocket::Core::Input::KI_OEM_COMMA;
-        mKeyIdentifiers[OIS::KC_PERIOD] = Rocket::Core::Input::KI_OEM_PERIOD;
-        mKeyIdentifiers[OIS::KC_SLASH] = Rocket::Core::Input::KI_OEM_2;
-        mKeyIdentifiers[OIS::KC_RSHIFT] = Rocket::Core::Input::KI_RSHIFT;
-        mKeyIdentifiers[OIS::KC_MULTIPLY] = Rocket::Core::Input::KI_MULTIPLY;
-        mKeyIdentifiers[OIS::KC_LMENU] = Rocket::Core::Input::KI_LMENU;
-        mKeyIdentifiers[OIS::KC_SPACE] = Rocket::Core::Input::KI_SPACE;
-        mKeyIdentifiers[OIS::KC_CAPITAL] = Rocket::Core::Input::KI_CAPITAL;
-        mKeyIdentifiers[OIS::KC_F1] = Rocket::Core::Input::KI_F1;
-        mKeyIdentifiers[OIS::KC_F2] = Rocket::Core::Input::KI_F2;
-        mKeyIdentifiers[OIS::KC_F3] = Rocket::Core::Input::KI_F3;
-        mKeyIdentifiers[OIS::KC_F4] = Rocket::Core::Input::KI_F4;
-        mKeyIdentifiers[OIS::KC_F5] = Rocket::Core::Input::KI_F5;
-        mKeyIdentifiers[OIS::KC_F6] = Rocket::Core::Input::KI_F6;
-        mKeyIdentifiers[OIS::KC_F7] = Rocket::Core::Input::KI_F7;
-        mKeyIdentifiers[OIS::KC_F8] = Rocket::Core::Input::KI_F8;
-        mKeyIdentifiers[OIS::KC_F9] = Rocket::Core::Input::KI_F9;
-        mKeyIdentifiers[OIS::KC_F10] = Rocket::Core::Input::KI_F10;
-        mKeyIdentifiers[OIS::KC_NUMLOCK] = Rocket::Core::Input::KI_NUMLOCK;
-        mKeyIdentifiers[OIS::KC_SCROLL] = Rocket::Core::Input::KI_SCROLL;
-        mKeyIdentifiers[OIS::KC_NUMPAD7] = Rocket::Core::Input::KI_7;
-        mKeyIdentifiers[OIS::KC_NUMPAD8] = Rocket::Core::Input::KI_8;
-        mKeyIdentifiers[OIS::KC_NUMPAD9] = Rocket::Core::Input::KI_9;
-        mKeyIdentifiers[OIS::KC_SUBTRACT] = Rocket::Core::Input::KI_SUBTRACT;
-        mKeyIdentifiers[OIS::KC_NUMPAD4] = Rocket::Core::Input::KI_4;
-        mKeyIdentifiers[OIS::KC_NUMPAD5] = Rocket::Core::Input::KI_5;
-        mKeyIdentifiers[OIS::KC_NUMPAD6] = Rocket::Core::Input::KI_6;
-        mKeyIdentifiers[OIS::KC_ADD] = Rocket::Core::Input::KI_ADD;
-        mKeyIdentifiers[OIS::KC_NUMPAD1] = Rocket::Core::Input::KI_1;
-        mKeyIdentifiers[OIS::KC_NUMPAD2] = Rocket::Core::Input::KI_2;
-        mKeyIdentifiers[OIS::KC_NUMPAD3] = Rocket::Core::Input::KI_3;
-        mKeyIdentifiers[OIS::KC_NUMPAD0] = Rocket::Core::Input::KI_0;
-        mKeyIdentifiers[OIS::KC_DECIMAL] = Rocket::Core::Input::KI_DECIMAL;
-        mKeyIdentifiers[OIS::KC_OEM_102] = Rocket::Core::Input::KI_OEM_102;
-        mKeyIdentifiers[OIS::KC_F11] = Rocket::Core::Input::KI_F11;
-        mKeyIdentifiers[OIS::KC_F12] = Rocket::Core::Input::KI_F12;
-        mKeyIdentifiers[OIS::KC_F13] = Rocket::Core::Input::KI_F13;
-        mKeyIdentifiers[OIS::KC_F14] = Rocket::Core::Input::KI_F14;
-        mKeyIdentifiers[OIS::KC_F15] = Rocket::Core::Input::KI_F15;
-        mKeyIdentifiers[OIS::KC_KANA] = Rocket::Core::Input::KI_KANA;
-        mKeyIdentifiers[OIS::KC_ABNT_C1] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_CONVERT] = Rocket::Core::Input::KI_CONVERT;
-        mKeyIdentifiers[OIS::KC_NOCONVERT] = Rocket::Core::Input::KI_NONCONVERT;
-        mKeyIdentifiers[OIS::KC_YEN] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_ABNT_C2] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_NUMPADEQUALS] = Rocket::Core::Input::KI_OEM_NEC_EQUAL;
-        mKeyIdentifiers[OIS::KC_PREVTRACK] = Rocket::Core::Input::KI_MEDIA_PREV_TRACK;
-        mKeyIdentifiers[OIS::KC_AT] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_COLON] = Rocket::Core::Input::KI_OEM_1;
-        mKeyIdentifiers[OIS::KC_UNDERLINE] = Rocket::Core::Input::KI_OEM_MINUS;
-        mKeyIdentifiers[OIS::KC_KANJI] = Rocket::Core::Input::KI_KANJI;
-        mKeyIdentifiers[OIS::KC_STOP] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_AX] = Rocket::Core::Input::KI_OEM_AX;
-        mKeyIdentifiers[OIS::KC_UNLABELED] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_NEXTTRACK] = Rocket::Core::Input::KI_MEDIA_NEXT_TRACK;
-        mKeyIdentifiers[OIS::KC_NUMPADENTER] = Rocket::Core::Input::KI_NUMPADENTER;
-        mKeyIdentifiers[OIS::KC_RCONTROL] = Rocket::Core::Input::KI_RCONTROL;
-        mKeyIdentifiers[OIS::KC_MUTE] = Rocket::Core::Input::KI_VOLUME_MUTE;
-        mKeyIdentifiers[OIS::KC_CALCULATOR] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_PLAYPAUSE] = Rocket::Core::Input::KI_MEDIA_PLAY_PAUSE;
-        mKeyIdentifiers[OIS::KC_MEDIASTOP] = Rocket::Core::Input::KI_MEDIA_STOP;
-        mKeyIdentifiers[OIS::KC_VOLUMEDOWN] = Rocket::Core::Input::KI_VOLUME_DOWN;
-        mKeyIdentifiers[OIS::KC_VOLUMEUP] = Rocket::Core::Input::KI_VOLUME_UP;
-        mKeyIdentifiers[OIS::KC_WEBHOME] = Rocket::Core::Input::KI_BROWSER_HOME;
-        mKeyIdentifiers[OIS::KC_NUMPADCOMMA] = Rocket::Core::Input::KI_SEPARATOR;
-        mKeyIdentifiers[OIS::KC_DIVIDE] = Rocket::Core::Input::KI_DIVIDE;
-        mKeyIdentifiers[OIS::KC_SYSRQ] = Rocket::Core::Input::KI_SNAPSHOT;
-        mKeyIdentifiers[OIS::KC_RMENU] = Rocket::Core::Input::KI_RMENU;
-        mKeyIdentifiers[OIS::KC_PAUSE] = Rocket::Core::Input::KI_PAUSE;
-        mKeyIdentifiers[OIS::KC_HOME] = Rocket::Core::Input::KI_HOME;
-        mKeyIdentifiers[OIS::KC_UP] = Rocket::Core::Input::KI_UP;
-        mKeyIdentifiers[OIS::KC_PGUP] = Rocket::Core::Input::KI_PRIOR;
-        mKeyIdentifiers[OIS::KC_LEFT] = Rocket::Core::Input::KI_LEFT;
-        mKeyIdentifiers[OIS::KC_RIGHT] = Rocket::Core::Input::KI_RIGHT;
-        mKeyIdentifiers[OIS::KC_END] = Rocket::Core::Input::KI_END;
-        mKeyIdentifiers[OIS::KC_DOWN] = Rocket::Core::Input::KI_DOWN;
-        mKeyIdentifiers[OIS::KC_PGDOWN] = Rocket::Core::Input::KI_NEXT;
-        mKeyIdentifiers[OIS::KC_INSERT] = Rocket::Core::Input::KI_INSERT;
-        mKeyIdentifiers[OIS::KC_DELETE] = Rocket::Core::Input::KI_DELETE;
-        mKeyIdentifiers[OIS::KC_LWIN] = Rocket::Core::Input::KI_LWIN;
-        mKeyIdentifiers[OIS::KC_RWIN] = Rocket::Core::Input::KI_RWIN;
-        mKeyIdentifiers[OIS::KC_APPS] = Rocket::Core::Input::KI_APPS;
-        mKeyIdentifiers[OIS::KC_POWER] = Rocket::Core::Input::KI_POWER;
-        mKeyIdentifiers[OIS::KC_SLEEP] = Rocket::Core::Input::KI_SLEEP;
-        mKeyIdentifiers[OIS::KC_WAKE] = Rocket::Core::Input::KI_WAKE;
-        mKeyIdentifiers[OIS::KC_WEBSEARCH] = Rocket::Core::Input::KI_BROWSER_SEARCH;
-        mKeyIdentifiers[OIS::KC_WEBFAVORITES] = Rocket::Core::Input::KI_BROWSER_FAVORITES;
-        mKeyIdentifiers[OIS::KC_WEBREFRESH] = Rocket::Core::Input::KI_BROWSER_REFRESH;
-        mKeyIdentifiers[OIS::KC_WEBSTOP] = Rocket::Core::Input::KI_BROWSER_STOP;
-        mKeyIdentifiers[OIS::KC_WEBFORWARD] = Rocket::Core::Input::KI_BROWSER_FORWARD;
-        mKeyIdentifiers[OIS::KC_WEBBACK] = Rocket::Core::Input::KI_BROWSER_BACK;
-        mKeyIdentifiers[OIS::KC_MYCOMPUTER] = Rocket::Core::Input::KI_UNKNOWN;
-        mKeyIdentifiers[OIS::KC_MAIL] = Rocket::Core::Input::KI_LAUNCH_MAIL;
-        mKeyIdentifiers[OIS::KC_MEDIASELECT] = Rocket::Core::Input::KI_LAUNCH_MEDIA_SELECT;
+        mKeyIdentifiers[Input::Code::UNASSIGNED] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_ESCAPE] = Rocket::Core::Input::KI_ESCAPE;
+        mKeyIdentifiers[Input::Code::KC_1] = Rocket::Core::Input::KI_1;
+        mKeyIdentifiers[Input::Code::KC_2] = Rocket::Core::Input::KI_2;
+        mKeyIdentifiers[Input::Code::KC_3] = Rocket::Core::Input::KI_3;
+        mKeyIdentifiers[Input::Code::KC_4] = Rocket::Core::Input::KI_4;
+        mKeyIdentifiers[Input::Code::KC_5] = Rocket::Core::Input::KI_5;
+        mKeyIdentifiers[Input::Code::KC_6] = Rocket::Core::Input::KI_6;
+        mKeyIdentifiers[Input::Code::KC_7] = Rocket::Core::Input::KI_7;
+        mKeyIdentifiers[Input::Code::KC_8] = Rocket::Core::Input::KI_8;
+        mKeyIdentifiers[Input::Code::KC_9] = Rocket::Core::Input::KI_9;
+        mKeyIdentifiers[Input::Code::KC_0] = Rocket::Core::Input::KI_0;
+        mKeyIdentifiers[Input::Code::KC_MINUS] = Rocket::Core::Input::KI_OEM_MINUS;
+        mKeyIdentifiers[Input::Code::KC_EQUALS] = Rocket::Core::Input::KI_OEM_PLUS;
+        mKeyIdentifiers[Input::Code::KC_BACK] = Rocket::Core::Input::KI_BACK;
+        mKeyIdentifiers[Input::Code::KC_TAB] = Rocket::Core::Input::KI_TAB;
+        mKeyIdentifiers[Input::Code::KC_Q] = Rocket::Core::Input::KI_Q;
+        mKeyIdentifiers[Input::Code::KC_W] = Rocket::Core::Input::KI_W;
+        mKeyIdentifiers[Input::Code::KC_E] = Rocket::Core::Input::KI_E;
+        mKeyIdentifiers[Input::Code::KC_R] = Rocket::Core::Input::KI_R;
+        mKeyIdentifiers[Input::Code::KC_T] = Rocket::Core::Input::KI_T;
+        mKeyIdentifiers[Input::Code::KC_Y] = Rocket::Core::Input::KI_Y;
+        mKeyIdentifiers[Input::Code::KC_U] = Rocket::Core::Input::KI_U;
+        mKeyIdentifiers[Input::Code::KC_I] = Rocket::Core::Input::KI_I;
+        mKeyIdentifiers[Input::Code::KC_O] = Rocket::Core::Input::KI_O;
+        mKeyIdentifiers[Input::Code::KC_P] = Rocket::Core::Input::KI_P;
+        mKeyIdentifiers[Input::Code::KC_LBRACKET] = Rocket::Core::Input::KI_OEM_4;
+        mKeyIdentifiers[Input::Code::KC_RBRACKET] = Rocket::Core::Input::KI_OEM_6;
+        mKeyIdentifiers[Input::Code::KC_RETURN] = Rocket::Core::Input::KI_RETURN;
+        mKeyIdentifiers[Input::Code::KC_LCONTROL] = Rocket::Core::Input::KI_LCONTROL;
+        mKeyIdentifiers[Input::Code::KC_A] = Rocket::Core::Input::KI_A;
+        mKeyIdentifiers[Input::Code::KC_S] = Rocket::Core::Input::KI_S;
+        mKeyIdentifiers[Input::Code::KC_D] = Rocket::Core::Input::KI_D;
+        mKeyIdentifiers[Input::Code::KC_F] = Rocket::Core::Input::KI_F;
+        mKeyIdentifiers[Input::Code::KC_G] = Rocket::Core::Input::KI_G;
+        mKeyIdentifiers[Input::Code::KC_H] = Rocket::Core::Input::KI_H;
+        mKeyIdentifiers[Input::Code::KC_J] = Rocket::Core::Input::KI_J;
+        mKeyIdentifiers[Input::Code::KC_K] = Rocket::Core::Input::KI_K;
+        mKeyIdentifiers[Input::Code::KC_L] = Rocket::Core::Input::KI_L;
+        mKeyIdentifiers[Input::Code::KC_SEMICOLON] = Rocket::Core::Input::KI_OEM_1;
+        mKeyIdentifiers[Input::Code::KC_APOSTROPHE] = Rocket::Core::Input::KI_OEM_7;
+        mKeyIdentifiers[Input::Code::KC_GRAVE] = Rocket::Core::Input::KI_OEM_3;
+        mKeyIdentifiers[Input::Code::KC_LSHIFT] = Rocket::Core::Input::KI_LSHIFT;
+        mKeyIdentifiers[Input::Code::KC_BACKSLASH] = Rocket::Core::Input::KI_OEM_5;
+        mKeyIdentifiers[Input::Code::KC_Z] = Rocket::Core::Input::KI_Z;
+        mKeyIdentifiers[Input::Code::KC_X] = Rocket::Core::Input::KI_X;
+        mKeyIdentifiers[Input::Code::KC_C] = Rocket::Core::Input::KI_C;
+        mKeyIdentifiers[Input::Code::KC_V] = Rocket::Core::Input::KI_V;
+        mKeyIdentifiers[Input::Code::KC_B] = Rocket::Core::Input::KI_B;
+        mKeyIdentifiers[Input::Code::KC_N] = Rocket::Core::Input::KI_N;
+        mKeyIdentifiers[Input::Code::KC_M] = Rocket::Core::Input::KI_M;
+        mKeyIdentifiers[Input::Code::KC_COMMA] = Rocket::Core::Input::KI_OEM_COMMA;
+        mKeyIdentifiers[Input::Code::KC_PERIOD] = Rocket::Core::Input::KI_OEM_PERIOD;
+        mKeyIdentifiers[Input::Code::KC_SLASH] = Rocket::Core::Input::KI_OEM_2;
+        mKeyIdentifiers[Input::Code::KC_RSHIFT] = Rocket::Core::Input::KI_RSHIFT;
+        mKeyIdentifiers[Input::Code::KC_MULTIPLY] = Rocket::Core::Input::KI_MULTIPLY;
+        mKeyIdentifiers[Input::Code::KC_LMENU] = Rocket::Core::Input::KI_LMENU;
+        mKeyIdentifiers[Input::Code::KC_SPACE] = Rocket::Core::Input::KI_SPACE;
+        mKeyIdentifiers[Input::Code::KC_CAPITAL] = Rocket::Core::Input::KI_CAPITAL;
+        mKeyIdentifiers[Input::Code::KC_F1] = Rocket::Core::Input::KI_F1;
+        mKeyIdentifiers[Input::Code::KC_F2] = Rocket::Core::Input::KI_F2;
+        mKeyIdentifiers[Input::Code::KC_F3] = Rocket::Core::Input::KI_F3;
+        mKeyIdentifiers[Input::Code::KC_F4] = Rocket::Core::Input::KI_F4;
+        mKeyIdentifiers[Input::Code::KC_F5] = Rocket::Core::Input::KI_F5;
+        mKeyIdentifiers[Input::Code::KC_F6] = Rocket::Core::Input::KI_F6;
+        mKeyIdentifiers[Input::Code::KC_F7] = Rocket::Core::Input::KI_F7;
+        mKeyIdentifiers[Input::Code::KC_F8] = Rocket::Core::Input::KI_F8;
+        mKeyIdentifiers[Input::Code::KC_F9] = Rocket::Core::Input::KI_F9;
+        mKeyIdentifiers[Input::Code::KC_F10] = Rocket::Core::Input::KI_F10;
+        mKeyIdentifiers[Input::Code::KC_NUMLOCK] = Rocket::Core::Input::KI_NUMLOCK;
+        mKeyIdentifiers[Input::Code::KC_SCROLL] = Rocket::Core::Input::KI_SCROLL;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD7] = Rocket::Core::Input::KI_7;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD8] = Rocket::Core::Input::KI_8;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD9] = Rocket::Core::Input::KI_9;
+        mKeyIdentifiers[Input::Code::KC_SUBTRACT] = Rocket::Core::Input::KI_SUBTRACT;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD4] = Rocket::Core::Input::KI_4;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD5] = Rocket::Core::Input::KI_5;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD6] = Rocket::Core::Input::KI_6;
+        mKeyIdentifiers[Input::Code::KC_ADD] = Rocket::Core::Input::KI_ADD;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD1] = Rocket::Core::Input::KI_1;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD2] = Rocket::Core::Input::KI_2;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD3] = Rocket::Core::Input::KI_3;
+        mKeyIdentifiers[Input::Code::KC_NUMPAD0] = Rocket::Core::Input::KI_0;
+        mKeyIdentifiers[Input::Code::KC_DECIMAL] = Rocket::Core::Input::KI_DECIMAL;
+        mKeyIdentifiers[Input::Code::KC_OEM_102] = Rocket::Core::Input::KI_OEM_102;
+        mKeyIdentifiers[Input::Code::KC_F11] = Rocket::Core::Input::KI_F11;
+        mKeyIdentifiers[Input::Code::KC_F12] = Rocket::Core::Input::KI_F12;
+        mKeyIdentifiers[Input::Code::KC_F13] = Rocket::Core::Input::KI_F13;
+        mKeyIdentifiers[Input::Code::KC_F14] = Rocket::Core::Input::KI_F14;
+        mKeyIdentifiers[Input::Code::KC_F15] = Rocket::Core::Input::KI_F15;
+        mKeyIdentifiers[Input::Code::KC_KANA] = Rocket::Core::Input::KI_KANA;
+        mKeyIdentifiers[Input::Code::KC_ABNT_C1] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_CONVERT] = Rocket::Core::Input::KI_CONVERT;
+        mKeyIdentifiers[Input::Code::KC_NOCONVERT] = Rocket::Core::Input::KI_NONCONVERT;
+        mKeyIdentifiers[Input::Code::KC_YEN] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_ABNT_C2] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_NUMPADEQUALS] = Rocket::Core::Input::KI_OEM_NEC_EQUAL;
+        mKeyIdentifiers[Input::Code::KC_PREVTRACK] = Rocket::Core::Input::KI_MEDIA_PREV_TRACK;
+        mKeyIdentifiers[Input::Code::KC_AT] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_COLON] = Rocket::Core::Input::KI_OEM_1;
+        mKeyIdentifiers[Input::Code::KC_UNDERLINE] = Rocket::Core::Input::KI_OEM_MINUS;
+        mKeyIdentifiers[Input::Code::KC_KANJI] = Rocket::Core::Input::KI_KANJI;
+        mKeyIdentifiers[Input::Code::KC_STOP] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_AX] = Rocket::Core::Input::KI_OEM_AX;
+        mKeyIdentifiers[Input::Code::KC_UNLABELED] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_NEXTTRACK] = Rocket::Core::Input::KI_MEDIA_NEXT_TRACK;
+        mKeyIdentifiers[Input::Code::KC_NUMPADENTER] = Rocket::Core::Input::KI_NUMPADENTER;
+        mKeyIdentifiers[Input::Code::KC_RCONTROL] = Rocket::Core::Input::KI_RCONTROL;
+        mKeyIdentifiers[Input::Code::KC_MUTE] = Rocket::Core::Input::KI_VOLUME_MUTE;
+        mKeyIdentifiers[Input::Code::KC_CALCULATOR] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_PLAYPAUSE] = Rocket::Core::Input::KI_MEDIA_PLAY_PAUSE;
+        mKeyIdentifiers[Input::Code::KC_MEDIASTOP] = Rocket::Core::Input::KI_MEDIA_STOP;
+        mKeyIdentifiers[Input::Code::KC_VOLUMEDOWN] = Rocket::Core::Input::KI_VOLUME_DOWN;
+        mKeyIdentifiers[Input::Code::KC_VOLUMEUP] = Rocket::Core::Input::KI_VOLUME_UP;
+        mKeyIdentifiers[Input::Code::KC_WEBHOME] = Rocket::Core::Input::KI_BROWSER_HOME;
+        mKeyIdentifiers[Input::Code::KC_NUMPADCOMMA] = Rocket::Core::Input::KI_SEPARATOR;
+        mKeyIdentifiers[Input::Code::KC_DIVIDE] = Rocket::Core::Input::KI_DIVIDE;
+        mKeyIdentifiers[Input::Code::KC_SCREENSHOT] = Rocket::Core::Input::KI_SNAPSHOT;
+        mKeyIdentifiers[Input::Code::KC_RMENU] = Rocket::Core::Input::KI_RMENU;
+        mKeyIdentifiers[Input::Code::KC_PAUSE] = Rocket::Core::Input::KI_PAUSE;
+        mKeyIdentifiers[Input::Code::KC_HOME] = Rocket::Core::Input::KI_HOME;
+        mKeyIdentifiers[Input::Code::KC_UP] = Rocket::Core::Input::KI_UP;
+        mKeyIdentifiers[Input::Code::KC_PGUP] = Rocket::Core::Input::KI_PRIOR;
+        mKeyIdentifiers[Input::Code::KC_LEFT] = Rocket::Core::Input::KI_LEFT;
+        mKeyIdentifiers[Input::Code::KC_RIGHT] = Rocket::Core::Input::KI_RIGHT;
+        mKeyIdentifiers[Input::Code::KC_END] = Rocket::Core::Input::KI_END;
+        mKeyIdentifiers[Input::Code::KC_DOWN] = Rocket::Core::Input::KI_DOWN;
+        mKeyIdentifiers[Input::Code::KC_PGDOWN] = Rocket::Core::Input::KI_NEXT;
+        mKeyIdentifiers[Input::Code::KC_INSERT] = Rocket::Core::Input::KI_INSERT;
+        mKeyIdentifiers[Input::Code::KC_DELETE] = Rocket::Core::Input::KI_DELETE;
+        mKeyIdentifiers[Input::Code::KC_LWIN] = Rocket::Core::Input::KI_LWIN;
+        mKeyIdentifiers[Input::Code::KC_RWIN] = Rocket::Core::Input::KI_RWIN;
+        mKeyIdentifiers[Input::Code::KC_APPS] = Rocket::Core::Input::KI_APPS;
+        mKeyIdentifiers[Input::Code::KC_POWER] = Rocket::Core::Input::KI_POWER;
+        mKeyIdentifiers[Input::Code::KC_SLEEP] = Rocket::Core::Input::KI_SLEEP;
+        mKeyIdentifiers[Input::Code::KC_WAKE] = Rocket::Core::Input::KI_WAKE;
+        mKeyIdentifiers[Input::Code::KC_WEBSEARCH] = Rocket::Core::Input::KI_BROWSER_SEARCH;
+        mKeyIdentifiers[Input::Code::KC_WEBFAVORITES] = Rocket::Core::Input::KI_BROWSER_FAVORITES;
+        mKeyIdentifiers[Input::Code::KC_WEBREFRESH] = Rocket::Core::Input::KI_BROWSER_REFRESH;
+        mKeyIdentifiers[Input::Code::KC_WEBSTOP] = Rocket::Core::Input::KI_BROWSER_STOP;
+        mKeyIdentifiers[Input::Code::KC_WEBFORWARD] = Rocket::Core::Input::KI_BROWSER_FORWARD;
+        mKeyIdentifiers[Input::Code::KC_WEBBACK] = Rocket::Core::Input::KI_BROWSER_BACK;
+        mKeyIdentifiers[Input::Code::KC_MYCOMPUTER] = Rocket::Core::Input::KI_UNKNOWN;
+        mKeyIdentifiers[Input::Code::KC_MAIL] = Rocket::Core::Input::KI_LAUNCH_MAIL;
+        mKeyIdentifiers[Input::Code::KC_MEDIASELECT] = Rocket::Core::Input::KI_LAUNCH_MEDIA_SELECT;
+
+        // mouseMoved
+        //MB_Left = 0, MB_Right, MB_Middle,
+        //MB_Button3, MB_Button4, MB_Button5, MB_Button6, MB_Button7
+        mMouseIdentifiers[Input::Code::MC_LEFT] = 0;
+        mMouseIdentifiers[Input::Code::MC_RIGHT] = 1;
+        mMouseIdentifiers[Input::Code::MC_MIDDLE] = 2;
+        mMouseIdentifiers[Input::Code::MC_BUTTON3] = 3;
+        mMouseIdentifiers[Input::Code::MC_BUTTON4] = 4;
+        mMouseIdentifiers[Input::Code::MC_BUTTON5] = 5;
+        mMouseIdentifiers[Input::Code::MC_BUTTON6] = 6;
+        mMouseIdentifiers[Input::Code::MC_BUTTON7] = 7;
     }
 
     int UI::getKeyModifierState()
     {
         int modifier_state = 0;
 
-        if(mInputMan->isModifierDown(OIS::Keyboard::Ctrl))
+        if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
             modifier_state |= Rocket::Core::Input::KM_CTRL;
 
-        if(mInputMan->isModifierDown(OIS::Keyboard::Shift))
+        if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
             modifier_state |= Rocket::Core::Input::KM_SHIFT;
 
-        if(mInputMan->isModifierDown(OIS::Keyboard::Alt))
+        if(mInputMan->isKeyDown(Input::Code::KC_ALT))
             modifier_state |= Rocket::Core::Input::KM_ALT;
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32

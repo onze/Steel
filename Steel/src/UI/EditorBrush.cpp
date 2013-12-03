@@ -124,32 +124,31 @@ namespace Steel
         return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
     }
 
-    Selection EditorBrush::mousePressedSelectionUpdate(Ogre::Vector2 mPos, OIS::MouseButtonID id)
+    Selection EditorBrush::mousePressedSelectionUpdate(Input::Code button, Input::Event const &evt)
     {
         auto level = mEngine->level();
         SelectionManager *selectionMan = level->selectionMan();
 
-        switch(id)
+        switch(button)
         {
-            case OIS::MB_Left:
+            case Input::Code::MC_LEFT:
             {
                 std::list<ModelId> selection;
-                auto mPos = mInputMan->mousePos();
-                mEngine->pickAgents(selection, mPos.x, mPos.y);
+                mEngine->pickAgents(selection, evt.position.x, evt.position.y);
 
                 // click on nothing
-                if(selection.size() == 0 && !mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                if(selection.size() == 0 && !mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
                     level->selectionMan()->clearSelection();
                 else if(selectionMan->hasSelection())
                 {
                     // clicked a new agent
                     if(selectionMan->isSelected(selection.front()))
                     {
-                        if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                        if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
                             selectionMan->removeFromSelection(selection);
                     }
                     else
-                        selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
+                        selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(Input::Code::KC_LCONTROL));
                 }
                 else
                 {
@@ -171,13 +170,13 @@ namespace Steel
                     mIsSelecting = true;
                     mSelectionBox->setVisible(true);
                     Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
-                    mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize, mPos / screenSize);
+                    mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize, evt.position / screenSize);
                 }
 
                 break;
             }
 
-            case OIS::MB_Right:
+            case Input::Code::MC_RIGHT:
 
                 // cancel current selection dragging (translate, etc)
                 if(mIsDraggingSelection)
@@ -197,7 +196,7 @@ namespace Steel
         return selectionMan->selection();
     }
 
-    bool EditorBrush::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
+    bool EditorBrush::mousePressed(Input::Code button, Input::Event const &evt)
     {
         mContinuousModeActivated = false;
         auto level = mEngine->level();
@@ -208,18 +207,15 @@ namespace Steel
             case TRANSLATE:
             case ROTATE:
             case SCALE:
-            {
-                auto mPos = mInputMan->mousePos();
-                mousePressedSelectionUpdate(mPos, id);
+                mousePressedSelectionUpdate(button, evt);
                 break;
-            }
 
             case TERRAFORM:
                 mContinuousModeActivated = true;
 
-                switch(id)
+                switch(button)
                 {
-                    case OIS::MB_Middle:
+                    case Input::Code::MC_MIDDLE:
                     {
                         Ogre::Terrain *terrain;
                         auto pos = level->terrainManager()->terrainGroup()->getHeightAtWorldPosition(sTerraBrushVisual->getPosition(), &terrain);
@@ -258,7 +254,7 @@ namespace Steel
         return true;
     }
 
-    bool EditorBrush::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
+    bool EditorBrush::mouseReleased(Input::Code button, const Input::Event &evt)
     {
         static const Ogre::String intro = "in EditorBrush::mouseReleased(): ";
         auto level = mEngine->level();
@@ -269,7 +265,7 @@ namespace Steel
             case TRANSLATE:
             case ROTATE:
             case SCALE:
-                if(id == OIS::MB_Left)
+                if(button == Input::Code::MC_LEFT)
                 {
                     if(mIsSelecting)
                     {
@@ -281,7 +277,7 @@ namespace Steel
                         mSelectionBox->performSelection(selection, mEngine->level()->camera()->cam());
 
                         if(selection.size() > 0)
-                            selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(OIS::KC_LCONTROL));
+                            selectionMan->setSelectedAgents(selection, !mInputMan->isKeyDown(Input::Code::KC_LCONTROL));
 
                         mSelectionBox->setVisible(false);
                         mIsSelecting = false;
@@ -339,7 +335,7 @@ namespace Steel
                         if(!mLinkingDestinationAgentValidationFn(aid))
                             break;
 
-                    if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                    if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                     {
                         if(nullptr != mLinkingValidatedAlternateCallbackFn)
                         {
@@ -378,14 +374,14 @@ namespace Steel
         return true;
     }
 
-    bool EditorBrush::mouseMoved(const OIS::MouseEvent &evt)
+    bool EditorBrush::mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt)
     {
         Level *level = mEngine->level();
         SelectionManager *selectionMan = level->selectionMan();
-        Ogre::Real x = float(evt.state.X.abs);
-        Ogre::Real y = float(evt.state.Y.abs);
-        Ogre::Real _x = x - float(evt.state.X.rel);
-        Ogre::Real _y = y - float(evt.state.Y.rel);
+        Ogre::Real x = float(position.x);
+        Ogre::Real y = float(position.y);
+        Ogre::Real _x = x - float(evt.speed.x);
+        Ogre::Real _y = y - float(evt.speed.y);
         Ogre::Real w = float(mEditor->width());
         Ogre::Real h = float(mEditor->height());
 
@@ -397,46 +393,46 @@ namespace Steel
 
             if(sTerraBrushVisual != nullptr)
             {
-                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                 {
                     checkTerraScaleFactorValue();
 
                     // height
-                    if(evt.state.Z.rel > 0)
-                        mTerraScale.y *= mTerraScaleFactor;
-                    else if(evt.state.Z.rel < 0)
-                        mTerraScale.y /= mTerraScaleFactor;
+                    //if(evt.state.Z.rel > 0)
+                    //    mTerraScale.y *= mTerraScaleFactor;
+                    //else if(evt.state.Z.rel < 0)
+                    //    mTerraScale.y /= mTerraScaleFactor;
                 }
-                else if(mInputMan->isKeyDown(OIS::KC_LCONTROL))
+                else if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
                 {
                     checkTerraScaleFactorValue();
 
                     //surface
-                    if(evt.state.Z.rel > 0)
-                    {
-                        mTerraScale.x *= mTerraScaleFactor;
-                        mTerraScale.z *= mTerraScaleFactor;
-                    }
-                    else if(evt.state.Z.rel < 0)
-                    {
-                        mTerraScale.x /= mTerraScaleFactor;
-                        mTerraScale.z /= mTerraScaleFactor;
-                    }
+//                     if(evt.state.Z.rel > 0)
+//                     {
+//                         mTerraScale.x *= mTerraScaleFactor;
+//                         mTerraScale.z *= mTerraScaleFactor;
+//                     }
+//                     else if(evt.state.Z.rel < 0)
+//                     {
+//                         mTerraScale.x /= mTerraScaleFactor;
+//                         mTerraScale.z /= mTerraScaleFactor;
+//                     }
                 }
                 else
                 {
                     // height+surface
-                    if(evt.state.Z.rel > 0)
-                        mTerraScale *= mTerraScaleFactor;
-                    else if(evt.state.Z.rel < 0)
-                        mTerraScale /= mTerraScaleFactor;
+//                     if(evt.state.Z.rel > 0)
+//                         mTerraScale *= mTerraScaleFactor;
+//                     else if(evt.state.Z.rel < 0)
+//                         mTerraScale /= mTerraScaleFactor;
                 }
 
                 sTerraBrushVisual->setScale(mTerraScale);
             }
         }
 
-        if(evt.state.buttonDown(OIS::MB_Left))
+        if(mInputMan->isKeyDown(Input::Code::MC_LEFT))
         {
             if(mContinuousModeActivated)
             {
@@ -473,7 +469,7 @@ namespace Steel
                 if(selectionMan->hasSelection())
                 {
                     std::list<ModelId> selection;
-                    mEngine->pickAgents(selection, evt.state.X.abs, evt.state.Y.abs);
+                    mEngine->pickAgents(selection, evt.position.x, evt.position.y);
 
                     if(mIsDraggingSelectionCancelled)
                         return true;
@@ -490,18 +486,16 @@ namespace Steel
                     {
                         case TRANSLATE:
                         {
-                            if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                            if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                             {
-                                if(mousePlaneProjection(vPlane, _x / w, _y / h, src)
-                                        && mousePlaneProjection(vPlane, x / w, y / h, dst))
+                                if(mousePlaneProjection(vPlane, _x / w, _y / h, src) && mousePlaneProjection(vPlane, x / w, y / h, dst))
                                 {
                                     selectionMan->moveSelection(Ogre::Vector3(.0f, (dst - src).y, .0f));
                                 }
                             }
                             else
                             {
-                                if(mousePlaneProjection(hPlane, _x / w, _y / h, src)
-                                        && mousePlaneProjection(hPlane, x / w, y / h, dst))
+                                if(mousePlaneProjection(hPlane, _x / w, _y / h, src) && mousePlaneProjection(hPlane, x / w, y / h, dst))
                                 {
                                     auto dpos = dst - src;
                                     dpos.y = .0f;
@@ -513,12 +507,11 @@ namespace Steel
 
                         case ROTATE:
                         {
-                            if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
+                            if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                             {
                                 Ogre::Plane plane = Ogre::Plane(dirToCam, (camPos + selectionPos) / 2.f);
 
-                                if(mousePlaneProjection(plane, _x / w, _y / h, src)
-                                        && mousePlaneProjection(plane, x / w, y / h, dst))
+                                if(mousePlaneProjection(plane, _x / w, _y / h, src) && mousePlaneProjection(plane, x / w, y / h, dst))
                                 {
                                     src -= selectionPos;
                                     dst -= selectionPos;
@@ -528,8 +521,7 @@ namespace Steel
                             }
                             else
                             {
-                                if(mousePlaneProjection(hPlane, _x / w, _y / h, src)
-                                        && mousePlaneProjection(hPlane, x / w, y / h, dst))
+                                if(mousePlaneProjection(hPlane, _x / w, _y / h, src) && mousePlaneProjection(hPlane, x / w, y / h, dst))
                                 {
                                     src -= selectionPos;
                                     dst -= selectionPos;
@@ -547,14 +539,12 @@ namespace Steel
 
                         case SCALE:
                         {
-                            if(mousePlaneProjection(hPlane, _x / w, _y / h, src)
-                                    && mousePlaneProjection(hPlane, x / w, y / h, dst))
+                            if(mousePlaneProjection(hPlane, _x / w, _y / h, src) && mousePlaneProjection(hPlane, x / w, y / h, dst))
                             {
                                 Ogre::Real factor = selectionPos.distance(dst) / selectionPos.distance(src);
 
-                                if(mInputMan->isKeyDown(OIS::KC_LSHIFT))
-                                    selectionMan->expandSelection(
-                                        selectionPos.distance(dst) - selectionPos.distance(src));
+                                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
+                                    selectionMan->expandSelection(selectionPos.distance(dst) - selectionPos.distance(src));
                                 else
                                     selectionMan->rescaleSelection(Ogre::Vector3(factor, factor, factor));
                             }
@@ -575,8 +565,7 @@ namespace Steel
             if(mIsSelecting)
             {
                 Ogre::Vector2 screenSize(float(mEditor->width()), float(mEditor->height()));
-                mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize,
-                                          mInputMan->mousePos() / screenSize);
+                mSelectionBox->setCorners(mInputMan->mousePosAtLastMousePressed() / screenSize, mInputMan->mousePos() / screenSize);
             }// end of if(mIsSelecting)
         } //end of if(evt.state.buttonDown(OIS::MB_Left))
 
@@ -646,17 +635,16 @@ namespace Steel
                         Ogre::Real _radius = radius();
                         TerrainManager::RaiseMode rMode = TerrainManager::RELATIVE;
 
-                        if(mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Right))
+                        if(mInputMan->isKeyDown(Input::Code::MC_RIGHT))
                             _intensity = -_intensity;
 
-                        if(mInputMan->mouse()->getMouseState().buttonDown(OIS::MB_Middle))
+                        if(mInputMan->isKeyDown(Input::Code::MC_MIDDLE))
                         {
                             rMode = TerrainManager::ABSOLUTE;
                             hitTest.position.y = mSelectedTerrainHeight;
                         }
 
-                        newTids = level->terrainManager()->raiseTerrainAt(hitTest.position, _intensity, _radius, rMode,
-                                  mRaiseShape);
+                        newTids = level->terrainManager()->raiseTerrainAt(hitTest.position, _intensity, _radius, rMode, mRaiseShape);
                         mModifiedTerrains.insert(newTids.begin(), newTids.end());
                     }
                 }

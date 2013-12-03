@@ -15,6 +15,7 @@
 #include "UI/UIPanel.h"
 #include "SelectionManager.h"
 #include "EngineEventListener.h"
+#include <Input.h>
 
 namespace Rocket
 {
@@ -153,11 +154,11 @@ namespace Steel
         bool processOptionCommand(std::vector< Ogre::String > command);
 
         //implements the OIS keyListener and mouseListener, as this allows the UI to pass them on as they arrive.
-        bool keyPressed(const OIS::KeyEvent &evt);
-        bool keyReleased(const OIS::KeyEvent &evt);
-        bool mouseMoved(const OIS::MouseEvent &evt);
-        bool mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
-        bool mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
+        bool keyPressed(Input::Code key, Input::Event const &evt);
+        bool keyReleased(Input::Code key, Input::Event const &evt);
+        bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt);
+        bool mousePressed(Input::Code button, Input::Event const &evt);
+        bool mouseReleased(Input::Code button, Input::Event const &evt);
 
         /// used to reattach the debugger on reload
         virtual void onFileChangeEvent(File file);

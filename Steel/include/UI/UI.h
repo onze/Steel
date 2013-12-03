@@ -12,6 +12,7 @@
 #include "UI/HUD.h"
 #include "tools/File.h"
 #include "EngineEventListener.h"
+#include <InputEventListener.h>
 
 namespace Steel
 {
@@ -22,10 +23,11 @@ namespace Steel
      * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
      * Ogre's window is created by the engine, but its events are grabbed in here too.
      */
-    class UI: public Rocket::Core::SystemInterface, Ogre::RenderQueueListener, EngineEventListener
+    class UI: public Rocket::Core::SystemInterface, Ogre::RenderQueueListener, EngineEventListener, InputEventListener
     {
         public:
-            typedef std::map<OIS::KeyCode, Rocket::Core::Input::KeyIdentifier> KeyIdentifierMap;
+            typedef std::map<Input::Code, Rocket::Core::Input::KeyIdentifier> KeyIdentifierMap;
+            typedef std::map<Input::Code, int> MouseIdentifierMap;
             UI();
             UI(const UI& other);
             virtual ~UI();
@@ -54,16 +56,18 @@ namespace Steel
             void configureRenderSystem();
             /// Builds an OpenGL-style orthographic projection matrix.
             void buildProjectionMatrix(Ogre::Matrix4& matrix);
-            ///maps OIS key codes to Rocket's
-            void buildKeyMaps();
+            
+            ///maps OIS mouse/key codes to Rocket's
+            void buildCodeMaps();
+            Rocket::Core::Input::KeyIdentifier getKeyIdentifier(Input::Code key) const;
+            int getMouseIdentifier(Input::Code button) const;
             int getKeyModifierState();
 
-            //implements the OIS keyListener and mouseListener, as this allows the inputManager to pass them on as they arrive.
-            bool keyPressed(const OIS::KeyEvent& evt);
-            bool keyReleased(const OIS::KeyEvent& evt);
-            bool mouseMoved(const OIS::MouseEvent& evt);
-            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+            bool keyPressed(Input::Code key, Input::Event const &evt);
+            bool keyReleased(Input::Code key, Input::Event const &evt);
+            bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt);
+            bool mousePressed(Input::Code button, Input::Event const &evt);
+            bool mouseReleased(Input::Code button, Input::Event const &evt);
 
             /// called when a new level becomes the current level.
             void onLevelSet(Level *level);
@@ -107,6 +111,7 @@ namespace Steel
 
             /// maps OIS key codes to rocket ones for input injection into Rocket UI
             KeyIdentifierMap mKeyIdentifiers;
+            MouseIdentifierMap mMouseIdentifiers;
             ///editor panel
             Editor mEditor;
             ///hud panel

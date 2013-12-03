@@ -35,11 +35,11 @@ namespace Steel
     const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT = "Engine::nonEditModeGrabsInput";
     const Ogre::String Engine::COLORED_DEBUG = "Engine::coloredDebug";
 
-    Engine::Engine(Ogre::String confFilename)
-        : mRootDir("."), mConfig(confFilename),
-          mRoot(nullptr), mRenderWindow(nullptr), mInputMan(),
-          mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(nullptr), mRayCaster(nullptr), mEditMode(false),
-          mCommands(std::list<std::vector<Ogre::String> >())
+    Engine::Engine(Ogre::String confFilename): InputEventListener(),
+        mRootDir("."), mConfig(confFilename),
+        mRoot(nullptr), mRenderWindow(nullptr), mInputMan(),
+        mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(nullptr), mRayCaster(nullptr), mEditMode(false),
+        mCommands()
     {
         setRootDir(File::getCurrentDirectory());
     }
@@ -56,10 +56,7 @@ namespace Steel
 
     void Engine::removeEngineEventListener(EngineEventListener *listener)
     {
-        auto it = mListeners.find(listener);
-
-        if(it != mListeners.end())
-            mListeners.erase(it);
+        mListeners.erase(listener);
     }
 
     Level *Engine::createLevel(Ogre::String levelName)
@@ -228,12 +225,14 @@ namespace Steel
         mRenderWindow->update();
         mRoot->clearEventTimes();
 
+        mInputMan.init(this);
+        mInputMan.addInputEventListener(this);
+
         mRayCaster = new RayCaster(this);
         mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), uiDir(), &mInputMan, mRenderWindow, this);
 
         setCurrentLevel(createLevel("DefaultLevel"));
 
-        mInputMan.init(this, &mUI);
 
         Debug::log.unIndent();
 
@@ -304,18 +303,26 @@ namespace Steel
 
     void Engine::fireOnLevelSetEvent()
     {
-        std::vector<EngineEventListener *> listeners(mListeners.begin(), mListeners.end());
-
-        for(auto it = listeners.begin(); it != listeners.end(); ++it)
-            (*it)->onLevelSet(mLevel);
+        for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
+            listener->onLevelSet(mLevel);
     }
 
     void Engine::fireOnLevelUnsetEvent()
     {
-        std::vector<EngineEventListener *> listeners(mListeners.begin(), mListeners.end());
+        for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
+            listener->onLevelUnset(mLevel);
+    }
 
-        for(auto it = listeners.begin(); it != listeners.end(); ++it)
-            (*it)->onLevelUnset(mLevel);
+    void Engine::fireOnBeforeLevelUpdate(float dt)
+    {
+        for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
+            listener->onBeforeLevelUpdate(mLevel, dt);
+    }
+    
+    void Engine::fireOnAfterLevelUpdate()
+    {
+        for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
+            listener->onAfterLevelUpdate(mLevel);
     }
 
     bool Engine::mainLoop(bool singleLoop)
@@ -347,7 +354,12 @@ namespace Steel
             File::dispatchEvents();
 
             if(nullptr != mLevel)
-                mLevel->update(float(timer.getMilliseconds() - graphicsStart) / 1000.f);
+            {
+                float dt = float(timer.getMilliseconds() - graphicsStart) / 1000.f;
+                fireOnBeforeLevelUpdate(dt);
+                mLevel->update(dt);
+                fireOnAfterLevelUpdate();
+            }
             else
                 SignalManager::instance().fireEmittedSignals();
 
@@ -379,59 +391,35 @@ namespace Steel
         return true;
     }
 
-    bool Engine::keyPressed(const OIS::KeyEvent &evt)
-    {
-        return true;
-    }
-
-    bool Engine::keyReleased(const OIS::KeyEvent &evt)
+    bool Engine::keyReleased(Input::Code key, Input::Event const &evt)
     {
         if(mEditMode)
         {
             //EDITOR MODE
-            switch(evt.key)
+            switch(key)
             {
-                case OIS::KC_GRAVE:
+                case Input::Code::KC_GRAVE:
                     stopEditMode();
                     break;
 
                 default:
-//                     Debug::log("Engine::keyReleased: ")(evt.key).endl();
                     break;
             }
         }
         else
         {
             //GAMING MODE
-            switch(evt.key)
+            switch(key)
             {
-                case OIS::KC_GRAVE:
+                case Input::Code::KC_GRAVE:
                     startEditMode();
                     break;
 
-                case OIS::KC_R:
-                case OIS::KC_S:
                 default:
-//                     Debug::log("Engine::keyReleased: ")(evt.key).endl();
                     break;
             }
         }
 
-        return true;
-    }
-
-    bool Engine::mouseMoved(const OIS::MouseEvent &evt)
-    {
-        return true;
-    }
-
-    bool Engine::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
-    {
-        return true;
-    }
-
-    bool Engine::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
-    {
         return true;
     }
 
@@ -464,13 +452,12 @@ namespace Steel
         bool moveCam = false;
         float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
 
-        for(std::list<OIS::KeyCode>::iterator it = mInputMan.keysPressed().begin(); it != mInputMan.keysPressed().end();
-                ++it)
+        for(auto const & code : mInputMan.codesPressed())
         {
             if(mEditMode)
             {
                 // ONLY IN edit mode
-                switch(*it)
+                switch(code)
                 {
                     default:
                         break;
@@ -478,38 +465,38 @@ namespace Steel
             }
             else
             {
-                if(mInputMan.isModifierDown(OIS::Keyboard::Ctrl))
+                if(mInputMan.isKeyDown(Input::Code::KC_LCONTROL))
                     speed *= 2.f;
 
                 // ONLY NOT IN edit mode
-                switch(*it)
+                switch(code)
                 {
-                    case OIS::KC_W:
+                    case Input::Code::KC_W:
                         dz -= speed;
                         moveCam = true;
                         break;
 
-                    case OIS::KC_A:
+                    case Input::Code::KC_A:
                         dx -= speed;
                         moveCam = true;
                         break;
 
-                    case OIS::KC_S:
+                    case Input::Code::KC_S:
                         dz += speed;
                         moveCam = true;
                         break;
 
-                    case OIS::KC_D:
+                    case Input::Code::KC_D:
                         dx += speed;
                         moveCam = true;
                         break;
 
-                    case OIS::KC_SPACE:
+                    case Input::Code::KC_SPACE:
                         dy += speed;
                         moveCam = true;
                         break;
 
-                    case OIS::KC_LSHIFT:
+                    case Input::Code::KC_LSHIFT:
                         dy -= speed;
                         moveCam = true;
                         break;
@@ -520,9 +507,9 @@ namespace Steel
             }
 
             // ALL THE TIME
-            switch(*it)
+            switch(code)
             {
-                case OIS::KC_ESCAPE:
+                case Input::Code::KC_ESCAPE:
                     return false;
                     break;
 

@@ -11,6 +11,7 @@
 
 #include "tools/ConfigFile.h"
 #include "TerrainManager.h"
+#include <Input.h>
 
 namespace Ogre
 {
@@ -62,9 +63,9 @@ namespace Steel
             void dropBrush();
 
             // mouse events called by the editor
-            bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-            bool mouseMoved(const OIS::MouseEvent& evt);
+            bool mousePressed(Input::Code button, Input::Event const &evt);
+            bool mouseReleased(Input::Code button, Input::Event const &evt);
+            bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt);
 
             /** Tries to project a ray starting at the current camera and passing through the
              * given screen position, through the given plane. If the ray does, the intersection
@@ -136,7 +137,7 @@ namespace Steel
             /// Warns, in case some values make using the brush impossible.
             void checkTerraScaleFactorValue();
             /// Updates the SelectionManager's selection, and sets mIsSelecting.
-            Selection mousePressedSelectionUpdate(Ogre::Vector2 mPos, OIS::MouseButtonID id);
+            Selection mousePressedSelectionUpdate(Input::Code button, Input::Event const &evt);
             /// Internal helper method to switch to the right linking mode.
             bool processLinkCommand(std::vector<Ogre::String> command);
 

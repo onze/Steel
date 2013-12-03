@@ -10,12 +10,14 @@
 #include <OgreSceneManager.h>
 #include <OgreRenderWindow.h>
 #include <OgreString.h>
+#include <OISKeyboard.h>
 
 #include "steeltypes.h"
 #include "InputManager.h"
 #include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "UI/UI.h"
+#include "InputEventListener.h"
 
 namespace Steel
 {
@@ -24,7 +26,7 @@ namespace Steel
     class RayCaster;
     class EngineEventListener;
 
-    class Engine
+    class Engine: public InputEventListener
     {
     public:
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
@@ -48,10 +50,6 @@ namespace Steel
         void addEngineEventListener(EngineEventListener *listener);
         /// Remove the given listener from the set of notified listeners.
         void removeEngineEventListener(EngineEventListener *listener);
-        /// warns all EngineListeners that a new level has been set
-        void fireOnLevelSetEvent();
-        /// warns all EngineListeners that a new level has been set
-        void fireOnLevelUnsetEvent();
 
         inline void abortMainLoop()
         {
@@ -76,14 +74,6 @@ namespace Steel
                   Ogre::String windowTitle = Ogre::String("Steel Window"), Ogre::LogListener *logListener = nullptr);
 
         bool mainLoop(bool singleLoop = false);
-
-        // implements the OIS keyListener and mouseListener interfaces,
-        // as this allows the inputManager to seamlessly pass events as they arrive.
-        bool keyPressed(const OIS::KeyEvent &evt);
-        bool keyReleased(const OIS::KeyEvent &evt);
-        bool mouseMoved(const OIS::MouseEvent &evt);
-        bool mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
-        bool mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
 
         /**
          * Takes window coordinates and lists into the given list all Agents whose OgreModel collides with a ray going from the camera
@@ -125,60 +115,22 @@ namespace Steel
 
         ////////////////////////////////////////////////
         //getters
-        inline InputManager *inputMan()
-        {
-            return &mInputMan;
-        }
+        inline InputManager *inputMan() {return &mInputMan;}
 
-        inline Ogre::RenderWindow *renderWindow()
-        {
-            return mRenderWindow;
-        }
+        inline Ogre::RenderWindow *renderWindow() {return mRenderWindow;}
 
-        inline File rootDir()
-        {
-            return mRootDir;
-        }
+        inline File rootDir() {return mRootDir;}
+        inline File dataDir() {return mRootDir.subfile("data");}
+        inline File rawResourcesDir() {return dataDir().subfile("raw_resources");}
+        inline File resourcesDir() {return dataDir().subfile("resources");}
+        inline File uiDir() {return dataDir().subfile("ui");}
 
-        inline File dataDir()
-        {
-            return mRootDir.subfile("data");
-        }
-
-        inline File rawResourcesDir()
-        {
-            return dataDir().subfile("raw_resources");
-        }
-
-        inline File resourcesDir()
-        {
-            return dataDir().subfile("resources");
-        }
-        
-        inline File uiDir()
-        {
-            return dataDir().subfile("ui");
-        }
-
-        inline std::string &windowHandle()
-        {
-            return mWindowHandle;
-        }
+        inline std::string &windowHandle() {return mWindowHandle;}
 
         /// Returns a pointer to the current level, or nullptr if none is currently set.
-        inline Level *level()
-        {
-            return mLevel;
-        }
-//             inline UI *ui()
-//             {
-//                 return &mUI;
-//             }
+        inline Level *level() {return mLevel;}
 
-        inline const Stats &stats() const
-        {
-            return mStats;
-        }
+        inline const Stats &stats() const {return mStats;}
 
         //setters
 
@@ -188,12 +140,20 @@ namespace Steel
         /// Sets application main directory.
         void setRootDir(Ogre::String rootdir);
 
-        inline ConfigFile &config()
-        {
-            return mConfig;
-        }
+        inline ConfigFile &config() {return mConfig;}
 
     private:
+        /// Fired when the main new level has been set
+        void fireOnLevelSetEvent();
+        /// Fired when the main level has been unset
+        void fireOnLevelUnsetEvent();
+        /// Fired right before the main level is updated. Right moment to inject additional input.
+        void fireOnBeforeLevelUpdate(float dt);
+        /// Fired right after the main level is updated. Last step before next frame is the graphic update.
+        void fireOnAfterLevelUpdate();
+        
+        bool keyReleased(Input::Code key, Input::Event const &evt);
+        
         /// invoke processCommand on all registered commands
         void processAllCommands();
 
