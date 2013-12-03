@@ -12,7 +12,7 @@
 #include "UI/HUD.h"
 #include "tools/File.h"
 #include "EngineEventListener.h"
-#include <InputEventListener.h>
+#include "InputEventListener.h"
 
 namespace Steel
 {
@@ -23,7 +23,7 @@ namespace Steel
      * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
      * Ogre's window is created by the engine, but its events are grabbed in here too.
      */
-    class UI: public Rocket::Core::SystemInterface, Ogre::RenderQueueListener, EngineEventListener, InputEventListener
+    class UI: public Rocket::Core::SystemInterface, public Ogre::RenderQueueListener, public EngineEventListener, public InputEventListener
     {
         public:
             typedef std::map<Input::Code, Rocket::Core::Input::KeyIdentifier> KeyIdentifierMap;

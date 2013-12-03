@@ -74,6 +74,9 @@ namespace Steel
                   Ogre::String windowTitle = Ogre::String("Steel Window"), Ogre::LogListener *logListener = nullptr);
 
         bool mainLoop(bool singleLoop = false);
+        
+        /// InputEventListener interface.
+        bool onInputEvent(Input::Event const &evt);
 
         /**
          * Takes window coordinates and lists into the given list all Agents whose OgreModel collides with a ray going from the camera
@@ -170,9 +173,10 @@ namespace Steel
          * Returns 0 if successfull, returns an error code otherwise.
          */
         int postWindowingSetup(unsigned int width, unsigned int height);
-
-        /// high level input processing
+        
         bool processInputs();
+        /// Edit mode ghost cam
+        void updateGhostCam();
 
         File mRootDir;
         ConfigFile mConfig;

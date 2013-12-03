@@ -20,7 +20,7 @@ namespace Steel
     /**
      * owned by the engine. Fed input primarily by the UI (possibly by network/automation tools).
      */
-    class InputManager: public Ogre::WindowEventListener, OIS::MouseListener, OIS::KeyListener
+    class InputManager: public Ogre::WindowEventListener, public OIS::MouseListener, public OIS::KeyListener
     {
     public:
         InputManager();
@@ -73,7 +73,7 @@ namespace Steel
 
         //setters
         /// move the mouse to the given window position
-        void setMousePosition(Ogre::Vector2 &pos);
+        void setMousePosition(Ogre::Vector2 const &pos);
 
     private:
         /// Fires keypress/release events for modifiers

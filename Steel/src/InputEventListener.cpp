@@ -3,7 +3,7 @@
 
 namespace Steel
 {
-    void InputEventListener::onInputEvent(Input::Event const &evt)
+    bool InputEventListener::onInputEvent(Input::Event const &evt)
     {
         switch(evt.device)
         {
@@ -11,39 +11,30 @@ namespace Steel
                 switch(evt.type)
                 {
                     case Input::Type::DOWN:
-                        this->keyPressed(evt.code, evt);
-                        break;
+                        return this->keyPressed(evt.code, evt);
 
                     case Input::Type::UP:
-                        this->keyReleased(evt.code, evt);
-                        break;
+                        return this->keyReleased(evt.code, evt);
 
-                    default: break;
+                    default: return true;
                 }
-
-                break;
 
             case Input::Device::MOUSE:
                 switch(evt.type)
                 {
                     case Input::Type::DOWN:
-                        this->mousePressed(evt.code, evt);
-                        break;
+                        return this->mousePressed(evt.code, evt);
 
                     case Input::Type::UP:
-                        this->mouseReleased(evt.code, evt);
-                        break;
+                        return this->mouseReleased(evt.code, evt);
 
                     case Input::Type::MOVE:
-                        this->mouseMoved(evt.position, evt);
-                        break;
+                        return this->mouseMoved(evt.position, evt);
 
-                    default: break;
+                    default: return true;
                 }
 
-                break;
-
-            default: break;
+            default: return true;
         }
     }
 }

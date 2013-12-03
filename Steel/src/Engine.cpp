@@ -226,7 +226,6 @@ namespace Steel
         mRoot->clearEventTimes();
 
         mInputMan.init(this);
-        mInputMan.addInputEventListener(this);
 
         mRayCaster = new RayCaster(this);
         mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), uiDir(), &mInputMan, mRenderWindow, this);
@@ -318,7 +317,7 @@ namespace Steel
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onBeforeLevelUpdate(mLevel, dt);
     }
-    
+
     void Engine::fireOnAfterLevelUpdate()
     {
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
@@ -343,11 +342,19 @@ namespace Steel
             frameStart = engineStart;
             mMustAbortMainLoop = !mRoot->_fireFrameStarted();
 
-            if(!processInputs())
+            //update inputs
+            if(mMustAbortMainLoop)
             {
                 mIsInMainLoop = false;
-                mMustAbortMainLoop = true;
                 return false;
+            }
+            else
+            {
+                if(processInputs())
+                {
+                    mIsInMainLoop = false;
+                    return false;
+                }
             }
 
             // update file watching
@@ -389,6 +396,86 @@ namespace Steel
 
         mIsInMainLoop = false;
         return true;
+    }
+
+    bool Engine::onInputEvent(Input::Event const &evt)
+    {
+        bool ok = InputEventListener::onInputEvent(evt);
+
+        if(mEditMode)
+            static_cast<InputEventListener &>(mUI).onInputEvent(evt);
+
+        return ok && !mEditMode;
+    }
+
+    bool Engine::processInputs()
+    {
+        mInputMan.update();
+
+        if(mEditMode)
+            updateGhostCam();
+
+        return mInputMan.isKeyDown(Input::Code::KC_ESCAPE);
+    }
+
+    void Engine::updateGhostCam()
+    {
+        //process keyboard
+        bool moveCam = false;
+        float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
+
+        for(auto const & code : mInputMan.codesPressed())
+        {
+            if(mInputMan.isKeyDown(Input::Code::KC_LCONTROL))
+                speed *= 2.f;
+
+            // ONLY NOT IN edit mode
+            switch(code)
+            {
+                case Input::Code::KC_W:
+                    dz -= speed;
+                    moveCam = true;
+                    break;
+
+                case Input::Code::KC_A:
+                    dx -= speed;
+                    moveCam = true;
+                    break;
+
+                case Input::Code::KC_S:
+                    dz += speed;
+                    moveCam = true;
+                    break;
+
+                case Input::Code::KC_D:
+                    dx += speed;
+                    moveCam = true;
+                    break;
+
+                case Input::Code::KC_SPACE:
+                    dy += speed;
+                    moveCam = true;
+                    break;
+
+                case Input::Code::KC_LSHIFT:
+                    dy -= speed;
+                    moveCam = true;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        if(moveCam)
+            mLevel->camera()->translate(dx, dy, dz, speed);
+
+        //process mouse
+        if(mInputMan.isKeyDown(Input::Code::MC_MIDDLE) && mInputMan.hasMouseMoved())
+        {
+            Ogre::Vector2 move = mInputMan.mouseMove();
+            mLevel->camera()->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
+        }
     }
 
     bool Engine::keyReleased(Input::Code key, Input::Event const &evt)
@@ -438,104 +525,6 @@ namespace Steel
 
         //retrieve Agent's that own them
         mLevel->getAgentsIdsFromSceneNodes(nodes, selection);
-    }
-
-    bool Engine::processInputs()
-    {
-        if(mMustAbortMainLoop)
-            return false;
-
-        //update inputs
-        mInputMan.update();
-
-        //process keyboard
-        bool moveCam = false;
-        float dx = .0f, dy = .0f, dz = .0f, speed = .5f;
-
-        for(auto const & code : mInputMan.codesPressed())
-        {
-            if(mEditMode)
-            {
-                // ONLY IN edit mode
-                switch(code)
-                {
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                if(mInputMan.isKeyDown(Input::Code::KC_LCONTROL))
-                    speed *= 2.f;
-
-                // ONLY NOT IN edit mode
-                switch(code)
-                {
-                    case Input::Code::KC_W:
-                        dz -= speed;
-                        moveCam = true;
-                        break;
-
-                    case Input::Code::KC_A:
-                        dx -= speed;
-                        moveCam = true;
-                        break;
-
-                    case Input::Code::KC_S:
-                        dz += speed;
-                        moveCam = true;
-                        break;
-
-                    case Input::Code::KC_D:
-                        dx += speed;
-                        moveCam = true;
-                        break;
-
-                    case Input::Code::KC_SPACE:
-                        dy += speed;
-                        moveCam = true;
-                        break;
-
-                    case Input::Code::KC_LSHIFT:
-                        dy -= speed;
-                        moveCam = true;
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            // ALL THE TIME
-            switch(code)
-            {
-                case Input::Code::KC_ESCAPE:
-                    return false;
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        if(moveCam)
-            mLevel->camera()->translate(dx, dy, dz, speed);
-
-        //process mouse
-        if(mInputMan.hasMouseMoved())
-        {
-            Ogre::Vector2 move = mInputMan.mouseMove();
-
-            if(!mEditMode)
-            {
-                mLevel->camera()->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
-//                 Debug::log("cam pos: ")(mCamera->camNode()->getPosition())(" rot:")(mCamera->camNode()->getOrientation()).endl();
-            }
-        }
-
-        mInputMan.resetFrameBasedData();
-        return true;
-
     }
 
     bool Engine::processCommand(std::vector<Ogre::String> command)

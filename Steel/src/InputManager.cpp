@@ -41,16 +41,16 @@ namespace Steel
     protected:
         Input::Code v;
     };
-    
+
     InputManager::ModifierCodeIdentifierMap InputManager::sOISModiferToInputCodeMap;
     InputManager::KeyCodeIdentifierMap InputManager::sOISKeyToInputCodeMap;
     InputManager::MouseButtonCodeIdentifierMap InputManager::sOISMouseToInputCodeMap;
-    
+
     InputManager::InputManager() :
         mEngine(nullptr), mOISInputManager(nullptr), mIsInputGrabbed(false), mIsGrabExclusive(false),
         mDelayedInputReleaseRequested(false), mDelayedRequestIsExclusive(false),
-        mMouse(nullptr), mKeyboard(nullptr), mCodesPressed(std::list<Input::Code>()), mHasMouseMoved(false),
-        mMouseMove(Ogre::Vector2::ZERO), mMousePos(Ogre::Vector2(-1.f, -1.f)), mMouseStateStack(std::list<Ogre::Vector2>()),
+        mMouse(nullptr), mKeyboard(nullptr), mCodesPressed(), mHasMouseMoved(false),
+        mMouseMove(Ogre::Vector2::ZERO), mMousePos(Ogre::Vector2(-1.f, -1.f)), mMouseStateStack(),
         mActionsRegister()
     {
         if(sOISKeyToInputCodeMap.size() == 0 && sOISMouseToInputCodeMap.size() == 0)
@@ -241,14 +241,8 @@ namespace Steel
     {
         //  cout << "InputManager::keyReleased()" << endl;
         Input::Code code = getKeyInputCode(evt.key);
-
-        if(!isKeyDown(code))
-            return true;
-
         mCodesPressed.remove_if(equals(code));
-
         fireInputEvent( {code, Input::Type::UP, Input::Device::KEYBOARD, evt.text});
-
         return true;
     }
 
@@ -276,7 +270,11 @@ namespace Steel
         OIS::MouseState ms = evt.state;
         mMousePosAtLastMousePressed = mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
 
-        fireInputEvent( {getMouseInputCode(id), Input::Type::DOWN, Input::Device::MOUSE, mMousePos, mMouseMove});
+        auto code = getMouseInputCode(id);
+        mCodesPressed.push_back(code);
+        mCodesPressed.unique();
+
+        fireInputEvent( {code, Input::Type::DOWN, Input::Device::MOUSE, mMousePos, mMouseMove});
         return true;
     }
 
@@ -285,7 +283,10 @@ namespace Steel
         OIS::MouseState ms = evt.state;
         mMousePos = Ogre::Vector2(ms.X.abs, ms.Y.abs);
 
-        fireInputEvent( {getMouseInputCode(id), Input::Type::UP, Input::Device::MOUSE, mMousePos, mMouseMove});
+        auto code = getMouseInputCode(id);
+        mCodesPressed.remove_if(equals(code));
+
+        fireInputEvent( {code, Input::Type::UP, Input::Device::MOUSE, mMousePos, mMouseMove});
         return true;
     }
 
@@ -314,7 +315,7 @@ namespace Steel
         setMousePosition(pos);
     }
 
-    void InputManager::setMousePosition(Ogre::Vector2 &pos)
+    void InputManager::setMousePosition(Ogre::Vector2 const &pos)
     {
         if(mMouse == nullptr)
         {
@@ -345,6 +346,8 @@ namespace Steel
 
     void InputManager::update()
     {
+        resetFrameBasedData();
+        
         // Pump window messages for nice behaviour
         Ogre::WindowEventUtilities::messagePump();
 
@@ -364,6 +367,7 @@ namespace Steel
 
         if(nullptr != mMouse)
             mMouse->capture();
+
     }
 
     void InputManager::fireModifiers()
@@ -421,7 +425,7 @@ namespace Steel
     {
         mListeners.erase(listener);
     }
-    
+
     void InputManager::registerAction(Steel::Input::Code const code, Input::Type const type, Signal const signal)
     {
         mActionsRegister.emplace(std::make_pair(code, type), std::list<Tag>()).first->second.push_back(signal);
@@ -429,20 +433,26 @@ namespace Steel
 
     void InputManager::fireInputEvent(Input::Event evt)
     {
+        if(!mEngine->onInputEvent(evt))
+            return;
+
         // fire raw event
         for(auto listener : std::list<InputEventListener *>(mListeners.begin(), mListeners.end()))
-            listener->onInputEvent(evt);
-        
+            if(!listener->onInputEvent(evt))
+                break;
+
         // fire action
         auto it = mActionsRegister.find(std::make_pair(evt.code, evt.type));
-        if(mActionsRegister.end()!=it)
+
+        if(mActionsRegister.end() != it)
         {
-            for(Signal const &sig:it->second)
+            for(Signal const & sig : it->second)
                 SignalManager::instance().emit(sig);
+
             SignalManager::instance().fireEmittedSignals();
         }
     }
-    
+
     Input::Code InputManager::getModifierInputCode(OIS::Keyboard::Modifier mod)
     {
         auto it = sOISModiferToInputCodeMap.find(mod);
@@ -608,12 +618,12 @@ namespace Steel
         sOISKeyToInputCodeMap[OIS::KC_MYCOMPUTER] = Input::Code::KC_MYCOMPUTER;
         sOISKeyToInputCodeMap[OIS::KC_MAIL] = Input::Code::KC_MAIL;
         sOISKeyToInputCodeMap[OIS::KC_MEDIASELECT] = Input::Code::KC_MEDIASELECT;
-        
+
         // modifiers (as regular keycodes)
         sOISModiferToInputCodeMap[OIS::Keyboard::Ctrl] = Input::Code::KC_LCONTROL;
         sOISModiferToInputCodeMap[OIS::Keyboard::Alt] = Input::Code::KC_ALT;
         sOISModiferToInputCodeMap[OIS::Keyboard::Shift] = Input::Code::KC_LSHIFT;
-        
+
         // mouse
         sOISMouseToInputCodeMap[OIS::MouseButtonID::MB_Left] = Input::Code::MC_LEFT;
         sOISMouseToInputCodeMap[OIS::MouseButtonID::MB_Right] = Input::Code::MC_RIGHT;
