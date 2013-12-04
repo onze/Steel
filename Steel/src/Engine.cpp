@@ -314,12 +314,18 @@ namespace Steel
 
     void Engine::fireOnBeforeLevelUpdate(float dt)
     {
+        if(mEditMode)
+            return;
+
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onBeforeLevelUpdate(mLevel, dt);
     }
 
     void Engine::fireOnAfterLevelUpdate()
     {
+        if(mEditMode)
+            return;
+
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onAfterLevelUpdate(mLevel);
     }

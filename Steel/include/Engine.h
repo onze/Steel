@@ -111,10 +111,11 @@ namespace Steel
         void startEditMode();
         void stopEditMode();
 
-        /**
-         * called to resize the window.
-         */
+        /// Called to resize the window.
         void resizeWindow(int width, int height);
+        
+        /// Edit mode ghost cam update. Can be called during an onInputEvent to have the same camera control as in edit mode.
+        void updateGhostCam();
 
         ////////////////////////////////////////////////
         //getters
@@ -175,8 +176,6 @@ namespace Steel
         int postWindowingSetup(unsigned int width, unsigned int height);
         
         bool processInputs();
-        /// Edit mode ghost cam
-        void updateGhostCam();
 
         File mRootDir;
         ConfigFile mConfig;
