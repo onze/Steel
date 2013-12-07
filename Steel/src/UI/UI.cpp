@@ -424,15 +424,11 @@ namespace Steel
     {
         // stop rendering as long as there is no level->scenemanager to render from
         level->sceneManager()->removeRenderQueueListener(this);
-        mHUD.hide();
-        mEditor.hide();
     }
 
     void UI::onLevelSet(Level *level)
     {
         level->sceneManager()->addRenderQueueListener(this);
-        mHUD.show();
-        mEditor.show();
     }
 
     void UI::buildCodeMaps()

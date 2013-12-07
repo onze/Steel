@@ -1,3 +1,4 @@
+
 #include <json/json.h>
 
 #include <Rocket/Controls/ElementFormControlInput.h>
@@ -47,7 +48,7 @@ namespace Steel
     Editor::Editor(): UIPanel("Editor", "data/ui/current/editor/editor.rml"),
         mEngine(nullptr), mUI(nullptr), mInputMan(nullptr), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
-        mReferencePathsLookupTable(std::map<Ogre::String, Ogre::String>())
+        mReferencePathsLookupTable()
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -1066,11 +1067,14 @@ namespace Steel
         mFSResources->refresh(mDocument);
 
         // events
-        mDocument->AddEventListener("click", this);
-        mDocument->AddEventListener("dragstart", this);
-        mDocument->AddEventListener("dragdrop", this);
-        mDocument->AddEventListener("change", this);
-        mDocument->AddEventListener("submit", this);
+        if(nullptr != mDocument)
+        {
+            mDocument->AddEventListener("click", this);
+            mDocument->AddEventListener("dragstart", this);
+            mDocument->AddEventListener("dragdrop", this);
+            mDocument->AddEventListener("change", this);
+            mDocument->AddEventListener("submit", this);
+        }
 
         // debugger
         Rocket::Debugger::SetContext(mContext);
@@ -1095,7 +1099,7 @@ namespace Steel
 
     void Editor::onHide()
     {
-        if(mDocument)
+        if(nullptr != mDocument)
         {
             mDocument->RemoveEventListener("click", this);
             mDocument->RemoveEventListener("dragdrop", this);

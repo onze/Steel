@@ -10,7 +10,7 @@
 
 namespace Steel
 {
-    class UIPanel: public Rocket::Core::EventListener, FileEventListener
+    class UIPanel: public Rocket::Core::EventListener, public FileEventListener
     {
         public:
             UIPanel();
