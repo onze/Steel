@@ -48,10 +48,12 @@ namespace Steel
 
     InputManager::InputManager() :
         mEngine(nullptr), mOISInputManager(nullptr), mIsInputGrabbed(false), mIsGrabExclusive(false),
-        mDelayedInputReleaseRequested(false), mDelayedRequestIsExclusive(false),
-        mMouse(nullptr), mKeyboard(nullptr), mCodesPressed(), mHasMouseMoved(false),
-        mMouseMove(Ogre::Vector2::ZERO), mMousePos(Ogre::Vector2(-1.f, -1.f)), mMouseStateStack(),
-        mActionsRegister()
+        mDelayedInputGrabRequested(false), mDelayedInputReleaseRequested(false), mDelayedRequestIsExclusive(false),
+        mMouse(nullptr), mKeyboard(nullptr),
+        mCodesPressed(), mHasMouseMoved(false),
+        mMouseMove(Ogre::Vector2::ZERO), mMousePos(Ogre::Vector2(-1.f, -1.f)), mLastMouseMove(Ogre::Vector2::ZERO),
+        mMousePosAtLastMousePressed(Ogre::Vector2::ZERO),
+        mMouseStateStack(), mListeners(), mActionsRegister()
     {
         if(sOISKeyToInputCodeMap.size() == 0 && sOISMouseToInputCodeMap.size() == 0)
             InputManager::buildCodesMaps();
@@ -262,7 +264,14 @@ namespace Steel
         mLastMouseMove = mMouseMove;
 
         fireInputEvent( {Input::Code::MC_POINTER, Input::Type::MOVE, Input::Device::MOUSE, mMousePos, mMouseMove});
+        updateWheelState(evt);
         return true;
+    }
+
+    void InputManager::updateWheelState(OIS::MouseEvent const &evt)
+    {
+        if(evt.state.Z.rel != 0)
+            fireInputEvent( {Input::Code::MC_WHEEL, Input::Type::NONE, Input::Device::MOUSE, evt.state.Z.rel});
     }
 
     bool InputManager::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
@@ -347,7 +356,7 @@ namespace Steel
     void InputManager::update()
     {
         resetFrameBasedData();
-        
+
         // Pump window messages for nice behaviour
         Ogre::WindowEventUtilities::messagePump();
 

@@ -30,6 +30,10 @@ namespace Steel
 
                     case Input::Type::MOVE:
                         return this->mouseMoved(evt.position, evt);
+                        
+                    case Input::Type::NONE:
+                        if(evt.code == Input::Code::MC_WHEEL)
+                            return this->mouseWheeled(evt.delta, evt);
 
                     default: return true;
                 }

@@ -108,6 +108,8 @@ namespace Steel
         void _releaseInput();
         OIS::ParamList getOISparams(bool exclusive);
         
+        /// Sends wheel events
+        void updateWheelState(OIS::MouseEvent const &evt);
 
         //not owned
         Engine *mEngine;

@@ -220,6 +220,12 @@ namespace Steel
                   position(_position), speed(_speed)
             {}
 
+            /// Mouse wheel event helper ctor
+            Event(Code _code, Type _type, Device _device, int delta)
+                : code(_code), type(_type), device(_device),
+                  delta(delta)
+            {}
+
             virtual ~Event() {};
 
             //////////////////////////////////
@@ -245,6 +251,9 @@ namespace Steel
 
             /// Defined if device==MOUSE. Mouse speed in pixels.
             Ogre::Vector2 speed;
+
+            /// Defined if device==MOUSE and code==MC_WHEEL (aka mouse wheel event). Scrolling delta.
+            int delta;
 
         };
     }

@@ -66,6 +66,7 @@ namespace Steel
             bool mousePressed(Input::Code button, Input::Event const &evt);
             bool mouseReleased(Input::Code button, Input::Event const &evt);
             bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt);
+            bool mouseWheeled(int delta, Input::Event const &evt);
 
             /** Tries to project a ray starting at the current camera and passing through the
              * given screen position, through the given plane. If the ray does, the intersection

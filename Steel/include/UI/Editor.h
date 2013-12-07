@@ -35,7 +35,7 @@ namespace Steel
     class UI;
     class InputManager;
     class Engine;
-    class Editor: public UIPanel, SelectionManager::Listener, EngineEventListener
+    class Editor: public UIPanel, public SelectionManager::Listener, public EngineEventListener
     {
     private:
         /// Reference lookup table setting name
@@ -159,6 +159,7 @@ namespace Steel
         bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt);
         bool mousePressed(Input::Code button, Input::Event const &evt);
         bool mouseReleased(Input::Code button, Input::Event const &evt);
+        bool mouseWheeled(int delta, Input::Event const &evt);
 
         /// used to reattach the debugger on reload
         virtual void onFileChangeEvent(File file);

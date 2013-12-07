@@ -994,6 +994,8 @@ namespace Steel
 
     bool Editor::mousePressed(Input::Code button, Input::Event const &evt)
     {
+        mContext->ProcessMouseButtonDown(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
+
         if(!hitTest(evt.position.x, evt.position.y, "menu"))
         {
             mBrush.mousePressed(button, evt);
@@ -1004,10 +1006,24 @@ namespace Steel
 
     bool Editor::mouseReleased(Input::Code button, Input::Event const &evt)
     {
+        mContext->ProcessMouseButtonUp(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
         mBrush.mouseReleased(button, evt);
 
         if(button == Input::Code::MC_RIGHT)
             mFSResources->expandRows();
+
+        return true;
+    }
+
+    bool Editor::mouseWheeled(int delta, Input::Event const &evt)
+    {
+        auto keyModifierState = mUI->getKeyModifierState();
+        mContext->ProcessMouseWheel(delta / -120, keyModifierState);
+
+        if(!hitTest(evt.position.x, evt.position.y, "menu"))
+        {
+            mBrush.mouseWheeled(delta, evt);
+        }
 
         return true;
     }

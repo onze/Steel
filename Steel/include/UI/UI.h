@@ -68,6 +68,7 @@ namespace Steel
             bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt);
             bool mousePressed(Input::Code button, Input::Event const &evt);
             bool mouseReleased(Input::Code button, Input::Event const &evt);
+            bool mouseWheeled(int delta, Input::Event const &evt);
 
             /// called when a new level becomes the current level.
             void onLevelSet(Level *level);

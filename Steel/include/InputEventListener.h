@@ -25,6 +25,9 @@ namespace Steel
         
         /// Returns false to keep next listeners from receiving the event.
         virtual bool mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt){return true;};
+        
+        /// Returns false to keep next listeners from receiving the event.
+        virtual bool mouseWheeled(int delta, Input::Event const &evt){return true;};
     };
 }
 

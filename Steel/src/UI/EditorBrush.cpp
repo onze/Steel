@@ -196,6 +196,64 @@ namespace Steel
         return selectionMan->selection();
     }
 
+    bool EditorBrush::mouseWheeled(int delta, Input::Event const &evt)
+    {
+        switch(mMode)
+        {
+            case TERRAFORM:
+            {
+                // resize
+                if(sTerraBrushVisual == nullptr)
+                    getBrush(TERRAFORM);
+
+                if(sTerraBrushVisual != nullptr)
+                {
+                    if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
+                    {
+                        checkTerraScaleFactorValue();
+
+                        // height
+                        if(delta > 0)
+                            mTerraScale.y *= mTerraScaleFactor;
+                        else if(delta < 0)
+                            mTerraScale.y /= mTerraScaleFactor;
+                    }
+                    else if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
+                    {
+                        checkTerraScaleFactorValue();
+
+                        //surface
+                        if(delta > 0)
+                        {
+                            mTerraScale.x *= mTerraScaleFactor;
+                            mTerraScale.z *= mTerraScaleFactor;
+                        }
+                        else if(delta < 0)
+                        {
+                            mTerraScale.x /= mTerraScaleFactor;
+                            mTerraScale.z /= mTerraScaleFactor;
+                        }
+                    }
+                    else
+                    {
+                        // height+surface
+                        if(delta > 0)
+                            mTerraScale *= mTerraScaleFactor;
+                        else if(delta < 0)
+                            mTerraScale /= mTerraScaleFactor;
+                    }
+
+                    sTerraBrushVisual->setScale(mTerraScale);
+                }
+            }
+
+            default:
+                break;
+        }
+
+        return true;
+    }
+
     bool EditorBrush::mousePressed(Input::Code button, Input::Event const &evt)
     {
         mContinuousModeActivated = false;
@@ -384,53 +442,6 @@ namespace Steel
         Ogre::Real _y = y - float(evt.speed.y);
         Ogre::Real w = float(mEditor->width());
         Ogre::Real h = float(mEditor->height());
-
-        // resize
-        if(mMode == TERRAFORM)
-        {
-            if(sTerraBrushVisual == nullptr)
-                getBrush(TERRAFORM);
-
-            if(sTerraBrushVisual != nullptr)
-            {
-                if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
-                {
-                    checkTerraScaleFactorValue();
-
-                    // height
-                    //if(evt.state.Z.rel > 0)
-                    //    mTerraScale.y *= mTerraScaleFactor;
-                    //else if(evt.state.Z.rel < 0)
-                    //    mTerraScale.y /= mTerraScaleFactor;
-                }
-                else if(mInputMan->isKeyDown(Input::Code::KC_LCONTROL))
-                {
-                    checkTerraScaleFactorValue();
-
-                    //surface
-//                     if(evt.state.Z.rel > 0)
-//                     {
-//                         mTerraScale.x *= mTerraScaleFactor;
-//                         mTerraScale.z *= mTerraScaleFactor;
-//                     }
-//                     else if(evt.state.Z.rel < 0)
-//                     {
-//                         mTerraScale.x /= mTerraScaleFactor;
-//                         mTerraScale.z /= mTerraScaleFactor;
-//                     }
-                }
-                else
-                {
-                    // height+surface
-//                     if(evt.state.Z.rel > 0)
-//                         mTerraScale *= mTerraScaleFactor;
-//                     else if(evt.state.Z.rel < 0)
-//                         mTerraScale /= mTerraScaleFactor;
-                }
-
-                sTerraBrushVisual->setScale(mTerraScale);
-            }
-        }
 
         if(mInputMan->isKeyDown(Input::Code::MC_LEFT))
         {
@@ -628,20 +639,26 @@ namespace Steel
 
                     if(mContinuousModeActivated)
                     {
-                        // action !
                         Ogre::TerrainGroup::TerrainList newTids;
-                        // values for OIS::MB_Left down
-                        Ogre::Real _intensity = intensity();
+                        Ogre::Real _intensity;
                         Ogre::Real _radius = radius();
                         TerrainManager::RaiseMode rMode = TerrainManager::RELATIVE;
 
-                        if(mInputMan->isKeyDown(Input::Code::MC_RIGHT))
-                            _intensity = -_intensity;
-
-                        if(mInputMan->isKeyDown(Input::Code::MC_MIDDLE))
+                        if(mInputMan->isKeyDown(Input::Code::MC_LEFT))
                         {
-                            rMode = TerrainManager::ABSOLUTE;
-                            hitTest.position.y = mSelectedTerrainHeight;
+                            if(mInputMan->isKeyDown(Input::Code::MC_RIGHT))
+                            {
+                                rMode = TerrainManager::ABSOLUTE;
+                                hitTest.position.y = mSelectedTerrainHeight;
+                            }
+                            else
+                            {
+                                _intensity = intensity();
+                            }
+                        }
+                        else if(mInputMan->isKeyDown(Input::Code::MC_RIGHT))
+                        {
+                            _intensity = -intensity();
                         }
 
                         newTids = level->terrainManager()->raiseTerrainAt(hitTest.position, _intensity, _radius, rMode, mRaiseShape);

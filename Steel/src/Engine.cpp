@@ -418,7 +418,7 @@ namespace Steel
     {
         mInputMan.update();
 
-        if(mEditMode)
+        if(mEditMode && mInputMan.isKeyDown(Input::Code::MC_MIDDLE))
             updateGhostCam();
 
         return mInputMan.isKeyDown(Input::Code::KC_ESCAPE);
@@ -477,7 +477,7 @@ namespace Steel
             mLevel->camera()->translate(dx, dy, dz, speed);
 
         //process mouse
-        if(mInputMan.isKeyDown(Input::Code::MC_MIDDLE) && mInputMan.hasMouseMoved())
+        if(mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
             mLevel->camera()->lookTowards(-float(move.x), -float(move.y), .0f, .1f);

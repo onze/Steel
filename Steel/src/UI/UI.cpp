@@ -323,12 +323,13 @@ namespace Steel
     bool UI::keyPressed(Input::Code key, Input::Event const &evt)
     {
         Rocket::Core::Input::KeyIdentifier keyIdentifier = getKeyIdentifier(key);
-        mMainContext->ProcessKeyDown(keyIdentifier , getKeyModifierState());
 
         if(evt.text >= 32)
             mMainContext->ProcessTextInput((Rocket::Core::word) evt.text);
         else if(keyIdentifier == Rocket::Core::Input::KI_RETURN)
             mMainContext->ProcessTextInput((Rocket::Core::word) '\n');
+        else
+            mMainContext->ProcessKeyDown(keyIdentifier , getKeyModifierState());
 
         if(mEditMode)
             mEditor.keyPressed(key, evt);
@@ -338,10 +339,7 @@ namespace Steel
 
     bool UI::keyReleased(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = getKeyIdentifier(key);
-        int keyModifierState = getKeyModifierState();
-
-        mMainContext->ProcessKeyUp(keyIdentifier , keyModifierState);
+        mMainContext->ProcessKeyUp(getKeyIdentifier(key), getKeyModifierState());
 
         if(mEditMode)
             mEditor.keyReleased(key, evt);
@@ -351,34 +349,21 @@ namespace Steel
 
     bool UI::mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt)
     {
-        int key_modifier_state = getKeyModifierState();
-        mMainContext->ProcessMouseMove(evt.position.x, evt.position.y, key_modifier_state);
+        mMainContext->ProcessMouseMove(evt.position.x, evt.position.y, getKeyModifierState());
 
         if(mEditMode)
-        {
             mEditor.mouseMoved(position, evt);
-        }
- 
-// TODO this is now a mouse press/release
-//         if(evt.state.Z.rel != 0)
-//         {
-//             mMainContext->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
-//
-//             if(mEditMode)
-//                 mEditor.context()->ProcessMouseWheel(evt.state.Z.rel / -120, key_modifier_state);
-//         }
-// ALSO, make the change in editorbrush in TERRAFORMING mode
 
         return true;
     }
-    
+
     Rocket::Core::Input::KeyIdentifier UI::getKeyIdentifier(Input::Code key) const
     {
         auto it = mKeyIdentifiers.find(key);
-        
+
         if(mKeyIdentifiers.end() == it)
             return Rocket::Core::Input::KeyIdentifier::KI_UNKNOWN;
-        
+
         return it->second;
     }
 
@@ -394,28 +379,30 @@ namespace Steel
 
     bool UI::mousePressed(Input::Code button, Input::Event const &evt)
     {
-        int btn = getMouseIdentifier(button);
-        mMainContext->ProcessMouseButtonDown(btn, getKeyModifierState());
+        mMainContext->ProcessMouseButtonDown(getMouseIdentifier(button), getKeyModifierState());
 
         if(mEditMode)
-        {
-            mEditor.context()->ProcessMouseButtonDown(btn, getKeyModifierState());
             mEditor.mousePressed(button, evt);
-        }
 
         return true;
     }
 
     bool UI::mouseReleased(Input::Code button, Input::Event const &evt)
     {
-        int btn = getMouseIdentifier(button);
-        mMainContext->ProcessMouseButtonUp(btn, getKeyModifierState());
+        mMainContext->ProcessMouseButtonUp(getMouseIdentifier(button), getKeyModifierState());
 
         if(mEditMode)
-        {
-            mEditor.context()->ProcessMouseButtonUp(btn, getKeyModifierState());
             mEditor.mouseReleased(button, evt);
-        }
+
+        return true;
+    }
+
+    bool UI::mouseWheeled(int delta, Input::Event const &evt)
+    {
+        mMainContext->ProcessMouseWheel(delta / -120, getKeyModifierState());
+
+        if(mEditMode)
+            mEditor.mouseWheeled(delta, evt);
 
         return true;
     }
