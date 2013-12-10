@@ -29,7 +29,7 @@ namespace Steel
     BTModel::BTModel(const BTModel &o):
         mOwnerAgent(o.mOwnerAgent), mBlackBoardModelId(o.mBlackBoardModelId), mLevel(o.mLevel),
         mStateStream(o.mStateStream), mCurrentStateIndex(o.mCurrentStateIndex), mStatesStack(o.mStatesStack),
-        mPaused(o.mPaused), mKilled(o.mKilled)
+        mPaused(o.mPaused), mKilled(o.mKilled), mDebug(o.mDebug)
     {
     }
 

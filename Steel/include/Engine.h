@@ -29,6 +29,10 @@ namespace Steel
     class Engine: public InputEventListener
     {
     public:
+        
+        /// Reference lookup table setting name
+        static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE_SETTING;
+        
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
         static const Ogre::String COLORED_DEBUG;
 
@@ -116,6 +120,12 @@ namespace Steel
         
         /// Edit mode ghost cam update. Can be called during an onInputEvent to have the same camera control as in edit mode.
         void updateGhostCam();
+        
+        /**
+         * Replaces references' special $keys by specific values (paths set in the conf).
+         * The call is recursive (keys can reference other keys).
+         */
+        void resolveReferencePaths(Ogre::String const &src, Ogre::String &dst);
 
         ////////////////////////////////////////////////
         //getters
@@ -176,6 +186,12 @@ namespace Steel
         int postWindowingSetup(unsigned int width, unsigned int height);
         
         bool processInputs();
+        
+        /**
+         * Reads the conf to create the lookup table used to resolve dynamic resource locations in
+         * models reference descriptor files.
+         */
+        void setupReferencePathsLookupTable(Ogre::String const &source);
 
         File mRootDir;
         ConfigFile mConfig;
@@ -202,6 +218,9 @@ namespace Steel
 
         /// Called back about engine events.
         std::set<EngineEventListener *> mListeners;
+        
+        /// internal representation of REFERENCE_PATH_LOOKUP_TABLE attribute of the application conf file.
+        std::map<Ogre::String, Ogre::String> mReferencePathsLookupTable;
     };
 }
 

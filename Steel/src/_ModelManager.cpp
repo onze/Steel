@@ -93,6 +93,7 @@ namespace Steel
             else
             {
                 mid = (ModelId) mModels.size();
+                mModels.reserve(mModels.size()*2);
                 mModels.push_back(M());
             }
         }

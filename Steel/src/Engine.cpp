@@ -32,6 +32,8 @@
 
 namespace Steel
 {
+    const Ogre::String Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING = "Engine::referencePathsLookupTable";
+
     const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT = "Engine::nonEditModeGrabsInput";
     const Ogre::String Engine::COLORED_DEBUG = "Engine::coloredDebug";
 
@@ -39,7 +41,7 @@ namespace Steel
         mRootDir("."), mConfig(confFilename),
         mRoot(nullptr), mRenderWindow(nullptr), mInputMan(),
         mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(nullptr), mRayCaster(nullptr), mEditMode(false),
-        mCommands()
+        mCommands(), mReferencePathsLookupTable()
     {
         setRootDir(File::getCurrentDirectory());
     }
@@ -633,6 +635,67 @@ namespace Steel
     {
         config.load();
         mUI.loadConfig(config);
+
+        setupReferencePathsLookupTable(config.getSetting(Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING));
+    }
+
+    void Engine::setupReferencePathsLookupTable(Ogre::String const &source)
+    {
+        Ogre::String intro = "Level::setupReferencePaths(): ";
+        Ogre::String outro = "Loading resource may not be possible.";
+        Json::Reader reader;
+        Json::Value root;
+
+        if(!reader.parse(source.c_str(), root))
+        {
+            Debug::error(intro)("Could not parse lookup table:")(reader.getFormatedErrorMessages()).endl();
+            Debug::error("Source was: ")(source).endl()(outro).endl();
+            return;
+        }
+
+        if(!root.isObject() || root.isNull())
+        {
+            Debug::error(intro)("Table is invalid: ")(root).endl()(outro).endl();
+            return;
+        }
+
+        mReferencePathsLookupTable.clear();
+        Json::Value::Members members = root.getMemberNames();
+
+        for(Json::Value::Members::iterator it = members.begin(); it != members.end(); ++it)
+        {
+            Json::Value value = root[*it];
+
+            if(!value.isString())
+            {
+                Debug::warning(intro)("invalid value type for key\"")(*it)("\": ")(value.toStyledString())(outro).endl();
+                continue;
+            }
+
+            Ogre::String s0 = *it;
+            Ogre::String s1 = value.asString();
+            mReferencePathsLookupTable.insert(std::pair<Ogre::String, Ogre::String>(s0, s1));
+        }
+    }
+
+    void Engine::resolveReferencePaths(Ogre::String const &src, Ogre::String &dst)
+    {
+        dst.assign(src);
+
+        while(true)
+        {
+            Ogre::String save(dst);
+
+            for(auto it = mReferencePathsLookupTable.begin(); it != mReferencePathsLookupTable.end(); ++it)
+            {
+                Ogre::String what = (*it).first;
+                Ogre::String withWhat = (*it).second;
+                dst.assign(Ogre::StringUtil::replaceAll(dst, what, withWhat));
+            }
+
+            if(save == dst)
+                break;
+        }
     }
 
     void Engine::redraw()

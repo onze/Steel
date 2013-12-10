@@ -293,7 +293,7 @@ namespace Steel
 
             case LINK:
             {
-                AgentId aid = mEditor->agentIdUnderMouse();
+                AgentId aid = mEngine->level()->agentIdUnderMouse();
 
                 if(nullptr != mLinkingSourceAgentValidationFn)
                     if(!mLinkingSourceAgentValidationFn(aid))
@@ -381,7 +381,7 @@ namespace Steel
             case LINK:
                 if(mContinuousModeActivated)
                 {
-                    AgentId aid = mEditor->agentIdUnderMouse();
+                    AgentId aid = mEngine->level()->agentIdUnderMouse();
 
                     if(INVALID_ID == aid)
                         break;

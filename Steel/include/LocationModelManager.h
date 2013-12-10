@@ -28,12 +28,15 @@ namespace Steel
         {
             return MT_LOCATION;
         }
+        
+        ModelId newModel();
+        ModelId newModel(ModelId &mid);
 
         std::vector<ModelId> fromJson(Json::Value &model);
         bool fromSingleJson(Json::Value &model, ModelId &mid);
         void toJson(Json::Value &object);
-        bool onAgentLinkedToModel(Agent *agent, ModelId mid);
         void onAgentUnlinkedFromModel(Agent *agent, ModelId mid);
+        bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 
         /////////////////////////////////////////////////
         // Specific to model linking

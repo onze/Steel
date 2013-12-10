@@ -32,9 +32,22 @@ namespace Steel
         return _ModelManager<LocationModel>::fromJson(root[ModelManager::MODELS_ATTRIBUTES]);
     }
 
+    ModelId LocationModelManager::newModel()
+    {
+        ModelId mid= INVALID_ID;
+        return newModel(mid);
+    }
+    
+    ModelId LocationModelManager::newModel(ModelId &mid)
+    {
+        allocateModel(mid);
+        mModels[mid].init(this);
+        return mid;
+    }
+
     bool LocationModelManager::fromSingleJson(Json::Value &model, ModelId &id)
     {
-        id = allocateModel(id);
+        id = newModel(id);
 
         if(INVALID_ID == id)
             return false;
@@ -184,36 +197,36 @@ namespace Steel
 
         return false;
     }
-    
+
     void LocationModelManager::unlinkLocation(ModelId mid)
     {
         static const Ogre::String intro = "in LocationModelManager::unlinkLocation(): ";
-        
+
         LocationModel *model = at(mid);
-        
+
         if(nullptr == model)
         {
             Debug::error(intro)("model ")(mid)(" is not valid.").endl();
             return;
         }
-        
+
         for(auto const & aid : model->sources())
         {
             Agent *agent = mLevel->agentMan()->getAgent(aid);
-            
+
             if(nullptr == agent)
                 continue;
-            
+
             unlinkLocations(agent->locationModelId(), mid);
         }
-        
+
         for(auto const & aid : model->destinations())
         {
             Agent *agent = mLevel->agentMan()->getAgent(aid);
-            
+
             if(nullptr == agent)
                 continue;
-            
+
             unlinkLocations(mid, agent->locationModelId());
         }
     }
@@ -223,7 +236,7 @@ namespace Steel
 //         return mid0 <= mid1 ? ModelPair(mid0, mid1) : ModelPair(mid1, mid0);
         return ModelPair(mid0, mid1);
     }
-    
+
     void LocationModelManager::removeDebugLines(ModelId mid)
     {
         std::list<ModelPair> keys = collectModelPairs(mid);
@@ -234,6 +247,7 @@ namespace Steel
     {
         if(INVALID_ID == key.first || INVALID_ID == key.second)
             return;
+
         DynamicLines *line;
 
         if(getDebugLine(key, line))

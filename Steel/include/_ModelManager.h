@@ -31,6 +31,7 @@ namespace Steel
          */
         virtual M *at(ModelId id);
 
+        /// Forward call to allocatedModel, meant to add extra functionality the bare allocation.
         virtual ModelId newModel() {return allocateModel();};
 
         /// Increments the ref count of the given model.

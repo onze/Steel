@@ -77,11 +77,13 @@ namespace Steel
     bool LocationModel::init(LocationModelManager *const locationModelMan)
     {
         mLocationModelMan = locationModelMan;
-        return nullptr != mLocationModelMan;
+        return true;
     }
 
     bool LocationModel::fromJson(const Json::Value &node, LocationModelManager *const locationModelMan)
     {
+        mLocationModelMan = locationModelMan;
+        
         mSources.clear();
         mDestinations.clear();
 

@@ -14,20 +14,21 @@
 namespace Steel
 {
     BTStateStream::BTStateStream():
-    mShapeStream(nullptr),
-    mStateOffsets(),
-    mDataSize(0), mData(nullptr)
+        mShapeStream(nullptr),
+        mStateOffsets(),
+        mDataSize(0), mData(nullptr)
     {
 
     }
 
     BTStateStream::BTStateStream(BTStateStream const &o):
-    mShapeStream(nullptr),
-    mStateOffsets(),
-    mDataSize(0), mData(nullptr)
+        mShapeStream(nullptr),
+        mStateOffsets(),
+        mDataSize(0), mData(nullptr)
     {
         // mem copy fails to copy valid pointers to functions, used in strategy bind in some nodes (nevgator, finder, etc)
-        buildFromShapeStream(o.mShapeStream);
+        if(nullptr != o.mShapeStream)
+            buildFromShapeStream(o.mShapeStream);
     }
 
     BTStateStream::~BTStateStream()
@@ -261,11 +262,16 @@ namespace Steel
 
     BTShapeToken BTStateStream::tokenAt(BTStateIndex index)
     {
+        if(nullptr == mShapeStream)
+        {
+            Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" no valid shapestream.").endl();
+            return {BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
+        }
+
         if(index >= mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" index out of range.").endl();
             return {BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
-            //return BTShapeToken();
         }
 
         return mShapeStream->mData.at((size_t)index);
