@@ -55,6 +55,8 @@ namespace Steel
             if(nullptr != mDebugDrawer)
             {
                 mWorld->setDebugDrawer(nullptr);
+                if(!Ogre::ResourceGroupManager::getSingleton().resourceGroupExists("BtOgre"))
+                    Ogre::ResourceGroupManager::getSingleton().createResourceGroup("BtOgre");
                 delete mDebugDrawer;
                 mDebugDrawer = nullptr;
             }

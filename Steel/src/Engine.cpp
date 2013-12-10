@@ -274,13 +274,14 @@ namespace Steel
         }
 
         mUI.shutdown();
-        mInputMan.shutdown();
 
         if(mLevel != nullptr)
         {
             delete mLevel;
             mLevel = nullptr;
         }
+
+        mInputMan.shutdown();
 
         if(mRenderWindow != nullptr)
         {
