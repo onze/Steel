@@ -18,13 +18,17 @@
 #include "Level.h"
 #include "Debug.h"
 #include <tools/JsonUtils.h>
+#include <AgentManager.h>
+#include <Agent.h>
+#include <Engine.h>
 
 namespace Steel
 {
 
-    Camera::Camera(Level *level)
+    Camera::Camera(Engine *engine, Level *level): EngineEventListener()
     {
-        mLevel=level;
+        mEngine = engine;
+        mLevel = level;
         mSceneManager = mLevel->sceneManager();
 
         mCamera = mSceneManager->createCamera("mainCamera");
@@ -38,17 +42,23 @@ namespace Steel
 
         mCamera->setNearClipDistance(.01);
         mCamera->setFarClipDistance(500);
-        auto rs=Ogre::Root::getSingletonPtr()->getRenderSystem();
-        if (rs->getCapabilities()->hasCapability(Ogre::RSC_INFINITE_FAR_PLANE))
+        auto rs = Ogre::Root::getSingletonPtr()->getRenderSystem();
+
+        if(rs->getCapabilities()->hasCapability(Ogre::RSC_INFINITE_FAR_PLANE))
         {
             mCamera->setFarClipDistance(0);   // enable infinite far clip distance if we can
         }
+
+        mEngine->addEngineEventListener(this);
     }
 
     Camera::~Camera()
     {
+        mEngine->removeEngineEventListener(this);
         mCameraNode->detachAllObjects();
         mSceneManager->destroyCamera(mCamera);
+        mLevel = nullptr;
+        mEngine = nullptr;
     }
 
     void Camera::lookTowards(float x, float y, float roll, float factor)
@@ -72,18 +82,22 @@ namespace Steel
 
         value = root["position"];
         Ogre::Vector3 pos;
-        if (value.isNull())
+
+        if(value.isNull())
             Debug::warning("in Camera::fromJson(): missing field 'position'.").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
+
         mCameraNode->setPosition(pos);
 
         value = root["rotation"];
         Ogre::Quaternion rot;
-        if (value.isNull())
+
+        if(value.isNull())
             Debug::warning("in Camera::fromJson(): missing field 'rotation'.").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
+
         mCameraNode->setOrientation(rot);
 
         return true;
@@ -97,9 +111,36 @@ namespace Steel
         return value;
     }
 
+    void Camera::attachToAgent(AgentId aid)
+    {
+        mAgentAttachedTo = aid;
+    }
+
+    void Camera::detachFromAgent()
+    {
+        attachToAgent(INVALID_ID);
+    }
+
+    void Camera::onBeforeLevelUpdate(Level *level, float dt)
+    {
+        if(nullptr == level)
+            return;
+
+        if(INVALID_ID != mAgentAttachedTo)
+        {
+            Agent *target = level->agentMan()->getAgent(mAgentAttachedTo);
+
+            if(nullptr != target)
+            {
+                mCameraNode->setPosition(target->position());
+                mCameraNode->setOrientation(target->rotation());
+            }
+        }
+    }
+
     void Camera::translate(float dx, float dy, float dz, float speed)
     {
-        mCameraNode->translate(speed*(mCameraNode->getOrientation() * Ogre::Vector3(dx, dy, dz).normalisedCopy()));
+        mCameraNode->translate(speed * (mCameraNode->getOrientation() * Ogre::Vector3(dx, dy, dz).normalisedCopy()));
     }
 
     Ogre::Vector3 Camera::dropTargetPosition()
@@ -115,8 +156,8 @@ namespace Steel
     {
         return mCameraNode->getOrientation();
     }
-    
-    Ogre::Vector2 Camera::screenPosition(const Ogre::Vector3& worldPosition)
+
+    Ogre::Vector2 Camera::screenPosition(const Ogre::Vector3 &worldPosition)
     {
         Ogre::Vector3 screenPosition = mCamera->getProjectionMatrix() * mCamera->getViewMatrix() * worldPosition;
         return Ogre::Vector2(0.5f + 0.5f * screenPosition.x, 0.5f - 0.5f * screenPosition.y);

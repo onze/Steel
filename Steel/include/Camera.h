@@ -6,11 +6,14 @@
 #include <OgreCamera.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
+#include "steeltypes.h"
+#include "EngineEventListener.h"
 
 namespace Steel
 {
+    class Engine;
     class Level;
-    class Camera
+    class Camera: public EngineEventListener
     {
             /// Wraps ogre camera and add features to ease its manipulation.
         private:
@@ -18,7 +21,7 @@ namespace Steel
             Camera(const Camera &camera);
             Camera &operator=(const Camera &camera);
         public:
-            Camera(Level *level);
+            Camera(Engine *engine, Level *level);
             virtual ~Camera();
 
             /**
@@ -39,31 +42,39 @@ namespace Steel
             /// Returns the rotation of the drop target in front of the camera.
             Ogre::Quaternion dropTargetRotation();
 
+            /// Returns the screen coordinates of the given 3d position.
             Ogre::Vector2 screenPosition(const Ogre::Vector3& worldPosition);
+            
+            /// If not INVALID_ID, make the camera reset its position and orientation to agent's, each frame.
+            void attachToAgent(AgentId aid);
+            /// Cancels agent following
+            void detachFromAgent();
+            
+            /// EngineEventListener interface.
+            void onBeforeLevelUpdate(Level *level, float dt);
 
             /// Moves the camera according to the given coordinates.
             void translate(float dx, float dy, float dz, float speed = 1.f);
 
             /// Returns a pointer to the internal ogre camera instance.
-            inline Ogre::Camera *cam()
-            {
-                return mCamera;
-            }
+            inline Ogre::Camera *cam(){return mCamera;}
 
             /// Returns a pointer to the node the internal camera instance is attached to.
-            inline Ogre::SceneNode *camNode()
-            {
-                return mCameraNode;
-            }
+            inline Ogre::SceneNode *camNode(){return mCameraNode;}
+           
 
         protected:
             // not owned
+            Engine *mEngine;
             Level *mLevel;
 
             // owned
             Ogre::Camera *mCamera;
             Ogre::SceneNode *mCameraNode;
             Ogre::SceneManager *mSceneManager;
+            
+            /// Agent the camera is attached to
+            AgentId mAgentAttachedTo;
     };
 
 }

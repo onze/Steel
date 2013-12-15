@@ -332,6 +332,18 @@ namespace Steel
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onAfterLevelUpdate(mLevel);
     }
+    
+    void Engine::fireOnStartEditMode()
+    {        
+        for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
+            listener->onStartEditMode();
+    }
+    
+    void Engine::fireOnStopEditMode()
+    {        
+        for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
+            listener->onStopEditMode();
+    }
 
     bool Engine::mainLoop(bool singleLoop)
     {
@@ -747,6 +759,10 @@ namespace Steel
         mEditMode = true;
         mInputMan.grabInput(false);
         mUI.startEditMode();
+        
+        mLevel->camera()->detachFromAgent();
+        
+        fireOnStartEditMode();
     }
 
     void Engine::stopEditMode()
@@ -755,6 +771,8 @@ namespace Steel
         mEditMode = false;
         mUI.stopEditMode();
         mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
+        
+        fireOnStopEditMode();
     }
 
 }

@@ -165,6 +165,10 @@ namespace Steel
         void fireOnBeforeLevelUpdate(float dt);
         /// Fired right after the main level is updated. Last step before next frame is the graphic update.
         void fireOnAfterLevelUpdate();
+        /// Fired right after the engine enters edit mode.
+        void fireOnStartEditMode();
+        /// Fired right after the engine leaves edit mode.
+        void fireOnStopEditMode();
         
         bool keyReleased(Input::Code key, Input::Event const &evt);
         
