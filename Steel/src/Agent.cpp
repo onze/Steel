@@ -383,11 +383,23 @@ namespace Steel
         auto model = ogreModel();
         return nullptr == model ? Ogre::Vector3::ZERO : model->position();
     }
-
+    
     Ogre::Quaternion Agent::rotation() const
     {
         auto model = ogreModel();
         return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
+    }
+    
+    Ogre::Quaternion Agent::bodyRotation() const
+    {
+        auto model = physicsModel();
+        return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
+    }
+    
+    Ogre::Vector3 Agent::bodyAngularVelocity() const
+    {
+        auto model = physicsModel();
+        return nullptr == model ? Ogre::Vector3::ZERO : model->angularVelocity();
     }
 
     Ogre::Vector3 Agent::scale() const

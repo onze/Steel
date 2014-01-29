@@ -107,6 +107,8 @@ namespace Steel
         // OgreModel/PhysicsModel shortcuts
         Ogre::Vector3 position() const;
         Ogre::Quaternion rotation() const;
+        Ogre::Quaternion bodyRotation() const;
+        Ogre::Vector3 bodyAngularVelocity() const;
         Ogre::Vector3 scale() const;
         Ogre::Vector3 velocity() const;
         float mass() const;
