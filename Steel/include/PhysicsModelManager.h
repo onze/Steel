@@ -7,7 +7,6 @@ class btDynamicsWorld;
 #include "steeltypes.h"
 #include "_ModelManager.h"
 #include "PhysicsModel.h"
-#include <BulletCollision/NarrowPhaseCollision/btManifoldPoint.h>
 
 namespace Steel
 {

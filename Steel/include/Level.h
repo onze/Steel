@@ -110,9 +110,9 @@ namespace Steel
          * The aid given as argument has precedence over the one in the serialization.
          * This agentId to which the resource is attached is eventually returned.
          */
-        bool instanciateResource(Steel::File &file, AgentId &aid);
+        bool instanciateResource(Steel::File const &file, AgentId &aid);
         /// Forward call to instanciateResource(Steel::File& file, AgentId &aid), and discards the aid.
-        bool instanciateResource(Steel::File &file);
+        bool instanciateResource(Steel::File const &file);
         
         /**
          * Instanciate a model from its serialization.

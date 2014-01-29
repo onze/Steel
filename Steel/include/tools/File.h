@@ -88,7 +88,7 @@ namespace Steel
         void removeFileListener(FileEventListener *listener);
 
         /// return the file content.
-        Ogre::String read(bool skiptEmtpyLines = false);
+        Ogre::String read(bool skiptEmtpyLines = false) const;
         bool readInto(Json::Value &root, bool keepComments = true);
 
         /// write the given string into the file, replacing what's already in.
@@ -101,20 +101,20 @@ namespace Steel
         Ogre::String fileName() const;
 
         /// return true is the file exists.
-        bool exists();
+        bool exists() const;
 
         /// return true if the path points to a directory;
-        bool isDir();
+        bool isDir() const;
 
         /**
          * return true if the path points to a regular file;
          */
-        bool isFile();
+        bool isFile() const;
 
         /**
          * return true is the file exists, and is readable and writable.
          */
-        bool isValid();
+        bool isValid() const;
 
         /**
          * Return the path pointed to by this file.
@@ -130,7 +130,7 @@ namespace Steel
         /**
          * the file/dir containing this file instance.
          */
-        File parentDir();
+        File parentDir() const;
 
         /// Convert the File instance to a string of the path it's pointing to.
         operator Ogre::String() const
@@ -155,7 +155,7 @@ namespace Steel
          * this file's folder (and possible ancestors) is created.
          * Does not crash if the path could not be created, so please check.
          */
-        void mkdir();
+        void mkdir() const;
 
         /**
          * creates the file fullpath() is poiting to.
@@ -180,10 +180,10 @@ namespace Steel
         NodeType nodeType();
 
         /// returns the file path (!! excludes its name).
-        Ogre::String path();
+        Ogre::String path() const;
 
         /// returns the file extension.
-        Ogre::String extension();
+        Ogre::String extension() const;
 
     protected:
 
@@ -208,6 +208,7 @@ namespace Steel
         /// inotify callback method. Dispatches event to File instances.
         static void poolAndNotify();
 
+        // owned
         /// Standardized path to the file.
         Ogre::String mPath;
 

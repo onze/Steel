@@ -145,6 +145,8 @@ namespace Steel
         inline Level *level() {return mLevel;}
 
         inline const Stats &stats() const {return mStats;}
+        
+        inline bool inEditMode() const {return mEditMode;}
 
         //setters
 

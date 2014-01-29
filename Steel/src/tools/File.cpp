@@ -127,22 +127,22 @@ namespace Steel
         sInotifyFD = -1;
     }
 
-    Ogre::String File::extension()
+    Ogre::String File::extension() const
     {
         return mExtension;
     }
 
-    Ogre::String File::path()
+    Ogre::String File::path() const
     {
         return mPath;
     }
 
-    File File::parentDir()
+    File File::parentDir() const
     {
         return File(mPath);
     }
 
-    void File::mkdir()
+    void File::mkdir() const
     {
         Ogre::String path = fullPath();
 
@@ -279,13 +279,13 @@ namespace Steel
     void File::addFileListener(File *file, FileEventListener *listener)
     {
         sStaticLock.lock();
-        
+
 //         if(!file->isDir())
 //             file->setPath(file->parentDir());
 //         Poco::DirectoryWatcher watcher(file->fullPath());
-        
-        
-        
+
+
+
         int wd = inotify_add_watch(sInotifyFD, file->fullPath().c_str(), IN_MODIFY);
         FileEvent fileEvent(wd, IN_MODIFY);
 //         Debug::log("File::addFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();
@@ -338,7 +338,7 @@ namespace Steel
         return File(s);
     }
 
-    bool File::exists()
+    bool File::exists() const
     {
         std::ifstream ifile(fullPath().c_str());
         return ifile;
@@ -364,7 +364,7 @@ namespace Steel
         return mPath + fileName();
     }
 
-    bool File::isDir()
+    bool File::isDir() const
     {
 #ifdef __unix
         //http://stackoverflow.com/questions/1036625/differentiate-between-a-unix-directory-and-file-in-c
@@ -388,13 +388,13 @@ namespace Steel
 #endif
     }
 
-    bool File::isValid()
+    bool File::isValid() const
     {
         std::fstream f(fullPath().c_str());
         return f.good();
     }
 
-    bool File::isFile()
+    bool File::isFile() const
     {
 #ifdef __unix
         //http://stackoverflow.com/questions/1036625/differentiate-between-a-unix-directory-and-file-in-c
@@ -471,7 +471,7 @@ namespace Steel
         return type;
     }
 
-    Ogre::String File::read(bool skiptEmtpyLines)
+    Ogre::String File::read(bool skiptEmtpyLines) const
     {
         if(!exists())
             return Ogre::StringUtil::BLANK;

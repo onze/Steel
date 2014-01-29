@@ -136,12 +136,14 @@ namespace Steel
         if(mSceneManager != nullptr)
         {
             delete mCamera;
+            mCamera = nullptr;
+            
             mSceneManager->clearScene();
             mSceneManager->destroyAllCameras();
             window->removeViewport(mViewport->getZOrder());
-            Ogre::Root::getSingletonPtr()->destroySceneManager(mSceneManager);
             mViewport = nullptr;
-            mCamera = nullptr;
+            
+            Ogre::Root::getSingletonPtr()->destroySceneManager(mSceneManager);
             mSceneManager = nullptr;
         }
 
@@ -540,16 +542,17 @@ namespace Steel
         mBTModelMan->update(timestep);
     }
     
-    bool Level::instanciateResource(File &file)
+    bool Level::instanciateResource(File const &file)
     {
         AgentId aid = INVALID_ID;
         return instanciateResource(file, aid);
     }
     
-    bool Level::instanciateResource(File &file, AgentId &aid)
+    bool Level::instanciateResource(File const &_file, AgentId &aid)
     {
-        static Ogre::String intro = "Level::instanciateResource(" + file.fullPath() + "): ";
+        File file = mEngine->dataDir().subfile(_file.fullPath());
         
+        static Ogre::String intro = "Level::instanciateResource(" + file.fullPath() + "): ";
         if(!file.exists())
         {
             Debug::error(intro)("file not found: ")(file).endl();

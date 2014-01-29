@@ -435,8 +435,13 @@ namespace Steel
 
         if(mEditMode && mInputMan.isKeyDown(Input::Code::MC_MIDDLE))
             updateGhostCam();
-
-        return mInputMan.isKeyDown(Input::Code::KC_ESCAPE);
+        
+        if(mInputMan.isKeyDown(Input::Code::KC_ESCAPE))
+        {
+            mInputMan._releaseInput();
+            return true;
+        }
+        return false;
     }
 
     void Engine::updateGhostCam()

@@ -48,6 +48,7 @@ namespace Steel
         void fireEmittedSignals();
 
         Signal toSignal(const Ogre::String &signal);
+        Signal anonymousSignal();
         Ogre::String fromSignal(const Signal signal);
 
     private:

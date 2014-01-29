@@ -18,7 +18,7 @@ namespace Steel
             static const Ogre::String VERSION;
 
             ConfigFile(Steel::File file);
-            ConfigFile(const ConfigFile& other);
+            ConfigFile(const ConfigFile& o);
             virtual ~ConfigFile();
             virtual ConfigFile& operator=(const ConfigFile& other);
             virtual bool operator==(const ConfigFile& other) const;
@@ -47,6 +47,7 @@ namespace Steel
 
         protected:
             Json::Value &settings();
+            // owned
             File mFile;
             Json::Value mSettings;
     };

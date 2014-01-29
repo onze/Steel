@@ -23,6 +23,12 @@ namespace Steel
         
         /// Called right after the main level is updated. Last step before next frame is the graphic update.
         virtual void onAfterLevelUpdate(Level *level) {};
+        
+        /// Called right after the engine enters edit mode.
+        virtual void onStartEditMode() {};
+        
+        /// Called right after the engine leaves edit mode.
+        virtual void onStopEditMode() {};
     };
 }
 

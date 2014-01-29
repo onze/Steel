@@ -13,7 +13,7 @@ namespace Steel
         public:
             inline void emit(const Signal signal, bool anonymous = false)
             {
-                Debug::log("SignalEmitter::emit(")(signal)("/").quotes(SignalManager::instance().fromSignal(signal))(")").endl();
+//                 Debug::log("SignalEmitter::emit(")(signal)("/").quotes(SignalManager::instance().fromSignal(signal))(")").endl();
                 SignalManager::instance().emit(signal, anonymous ? nullptr : this);
             }
 

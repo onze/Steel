@@ -58,6 +58,7 @@ namespace Steel
             void setScale(const Ogre::Vector3 &sca);
 
             void setSelected(bool selected);
+            void setVisible(bool flag);
 
             /// Used to store the owner agent.
             void setNodeAny(AgentId aid);
@@ -76,14 +77,9 @@ namespace Steel
             void setMaterial(Ogre::String resName, const Ogre::String &resourceGroupName);
 
             // getters
-            inline Ogre::Entity* entity()
-            {
-                return mEntity;
-            }
-            inline Ogre::SceneNode* sceneNode()
-            {
-                return mSceneNode;
-            }
+            inline Ogre::Entity* entity(){return mEntity;}
+            inline Ogre::SceneNode* sceneNode(){return mSceneNode;}
+            bool isVisible() const {return nullptr == mEntity ? false:mEntity->isVisible();}
 
             virtual void cleanup();
             

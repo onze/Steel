@@ -1,9 +1,9 @@
 #include "PhysicsModel.h"
 
-#include <btBulletCollisionCommon.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <OgreEntity.h>
+#include <btBulletCollisionCommon.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 
@@ -17,6 +17,8 @@
 #include <PhysicsModelManager.h>
 #include <Level.h>
 #include <AgentManager.h>
+#include <RigidBodyStateWrapper.h>
+#include <SignalListener.h>
 
 namespace Steel
 {
@@ -52,11 +54,83 @@ namespace Steel
         mMass(PhysicsModel::DEFAULT_MODEL_MASS), mFriction(PhysicsModel::DEFAULT_MODEL_FRICTION),
         mDamping(PhysicsModel::DEFAULT_MODEL_DAMPING), mIsKinematics(false),
         mRotationFactor(PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR), mKeepVerticalFactor(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR),
-        mStates(std::stack<bool>()), mShape(BS_SPHERE),
-        mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(std::map<Tag, std::set<Signal>>()), mCollidingAgents(std::set<AgentId>()),
-        mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE)
+        mStates(), mShape(BS_SPHERE),
+        mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(), mCollidingAgents(),
+        mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE), mEventSignals()
+    {
+    }
+
+    PhysicsModel::PhysicsModel(PhysicsModel const &o): Model(o), SignalEmitter(),
+        mWorld(o.mWorld),
+        mBody(o.mBody),
+        mMass(o.mMass),
+        mFriction(o.mFriction),
+        mDamping(o.mDamping),
+        mIsKinematics(o.mIsKinematics),
+        mRotationFactor(o.mRotationFactor),
+        mKeepVerticalFactor(o.mKeepVerticalFactor),
+        mStates(o.mStates),
+        mShape(o.mShape),
+        mIsGhost(o.mIsGhost),
+        mGhostObject(o.mGhostObject),
+        mEmitOnTag(o.mEmitOnTag),
+        mCollidingAgents(o.mCollidingAgents),
+        mLevitate(o.mLevitate),
+        mEventSignals(o.mEventSignals.begin(), o.mEventSignals.end())
+    {
+    }
+
+    PhysicsModel &PhysicsModel::operator=(const PhysicsModel &o)
+    {
+        if(&o != this)
+        {
+            Model::operator=(o);
+            mWorld = o.mWorld;
+            mBody = o.mBody;
+            mMass = o.mMass;
+            mIsKinematics = o.mIsKinematics;
+            mStates = o.mStates;
+            mShape = o.mShape;
+            mIsGhost = o.mIsGhost;
+            mGhostObject = o.mGhostObject;
+            mEmitOnTag = o.mEmitOnTag;
+            mCollidingAgents = o.mCollidingAgents;
+            mEventSignals.clear();
+            mEventSignals.insert(o.mEventSignals.begin(), o.mEventSignals.end());
+        }
+
+        return *this;
+    }
+
+    PhysicsModel::~PhysicsModel()
+    {
+    }
+
+    void PhysicsModel::cleanup()
     {
 
+        if(nullptr != mWorld && mBody != nullptr)
+        {
+            if(nullptr != mGhostObject)
+            {
+                mWorld->removeCollisionObject(mGhostObject);
+                delete mGhostObject;
+                mGhostObject = nullptr;
+            }
+
+            mWorld->removeRigidBody(mBody);
+            delete mBody;
+
+            if(nullptr != mBody->getMotionState())
+                delete mBody->getMotionState();
+
+            mBody = nullptr;
+            mWorld = nullptr;
+        }
+
+        mEventSignals.clear();
+        mEmitOnTag.clear();
+        Model::cleanup();
     }
 
     void PhysicsModel::init(btDynamicsWorld *world, Steel::OgreModel *omodel)
@@ -104,7 +178,7 @@ namespace Steel
         shape->calculateLocalInertia(mMass, inertia);
 
         //Create BtOgre MotionState (connects Ogre and Bullet).
-        BtOgre::RigidBodyState *state = new BtOgre::RigidBodyState(omodel->sceneNode());
+        RigidBodyStateWrapper *state = new RigidBodyStateWrapper(omodel->sceneNode());
 
         //Create the Body.
         mBody = new btRigidBody(mMass, state, shape, inertia);
@@ -118,7 +192,7 @@ namespace Steel
         }
 
         mBody->setFriction(mFriction);
-        mBody->setDamping(mDamping, mDamping);
+        setDamping(mDamping);
         mWorld->addRigidBody(mBody);
 
         if(mEmitOnTag.size())
@@ -137,6 +211,34 @@ namespace Steel
         }
 
         setUserPointer(nullptr);
+    }
+
+    void PhysicsModel::setKeepVerticalFactor(float value)
+    {
+        mKeepVerticalFactor = value;
+    }
+    
+    float PhysicsModel::keepVerticalFactor()
+    {
+        return mKeepVerticalFactor;
+    }
+
+    void PhysicsModel::setDamping(float value)
+    {
+        mBody->setDamping(value, value);
+    }
+
+    float PhysicsModel::linearDamping()
+    {
+        return (float) mBody->getLinearDamping();
+    }
+
+    Signal PhysicsModel::registerEvent(EventType event, SignalListener *const listener)
+    {
+        auto it = mEventSignals.find(event);
+        Signal signal = mEventSignals.end() == it ? mEventSignals.emplace(event, SignalManager::instance().anonymousSignal()).second : it->second;
+        listener->registerSignal(signal);
+        return signal;
     }
 
     bool PhysicsModel::fromJson(Json::Value &root)
@@ -270,11 +372,21 @@ namespace Steel
             collisionCheck(manager);
         }
 
+
+        if(static_cast<RigidBodyStateWrapper *>(mBody->getMotionState())->poolTransform())
+        {
+            auto const it = mEventSignals.find(EventType::CHANGE);
+
+            if(mEventSignals.end() != it)
+                emit(it->second);
+        }
+
         if(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR != mKeepVerticalFactor)
         {
             Ogre::Vector3 t = (rotation() * Ogre::Vector3::UNIT_Y).crossProduct(Ogre::Vector3::UNIT_Y);
             applyTorqueImpulse(t * timestep * mKeepVerticalFactor);
         }
+
 
 //         if(mLevitate)
 //             applyCentralForce(Ogre::Vector3::UNIT_Y*.981);
@@ -415,59 +527,6 @@ namespace Steel
         {
             mCollidingAgents.clear();
         }
-    }
-
-    PhysicsModel::PhysicsModel(const PhysicsModel &o)
-    {
-        operator=(o);
-    }
-
-    PhysicsModel &PhysicsModel::operator=(const PhysicsModel &o)
-    {
-        if(&o == this)
-            return *this;
-
-        Model::operator=(o);
-        mWorld = o.mWorld;
-        mBody = o.mBody;
-        mMass = o.mMass;
-        mIsKinematics = o.mIsKinematics;
-        mStates = o.mStates;
-        mShape = o.mShape;
-        mIsGhost = o.mIsGhost;
-        mGhostObject = o.mGhostObject;
-        mEmitOnTag = o.mEmitOnTag;
-        mCollidingAgents = o.mCollidingAgents;
-        return *this;
-    }
-
-    PhysicsModel::~PhysicsModel()
-    {
-    }
-
-    void PhysicsModel::cleanup()
-    {
-        if(nullptr != mWorld && mBody != nullptr)
-        {
-            if(nullptr != mGhostObject)
-            {
-                mWorld->removeCollisionObject(mGhostObject);
-                delete mGhostObject;
-                mGhostObject = nullptr;
-            }
-
-            mWorld->removeRigidBody(mBody);
-            delete mBody;
-
-            if(nullptr != mBody->getMotionState())
-                delete mBody->getMotionState();
-
-            mBody = nullptr;
-            mWorld = nullptr;
-        }
-
-        mEmitOnTag.clear();
-        Model::cleanup();
     }
 
     BoundingShape PhysicsModel::BBoxShapeFromString(Ogre::String &shape)
@@ -630,15 +689,6 @@ namespace Steel
         tr.setIdentity();
         tr.setRotation(BtOgre::Convert::toBullet(q));
         mBody->getWorldTransform().operator *= (tr);
-
-        if(0)
-        {
-            btMatrix3x3 &tr = mBody->getWorldTransform().getBasis();
-            Ogre::Matrix3 kRot;
-            q.ToRotationMatrix(kRot);
-            tr *= BtOgre::Convert::toBullet(kRot);
-            mBody->getWorldTransform().setBasis(tr);
-        }
     }
 
     void PhysicsModel::setRotation(Ogre::Quaternion const &q)
@@ -666,6 +716,30 @@ namespace Steel
             return;
 
         mBody->applyTorqueImpulse(BtOgre::Convert::toBullet(tq)*mRotationFactor);
+    }
+
+    void PhysicsModel::applyCentralImpulse(Ogre::Vector3 const &f)
+    {
+        if(nullptr == mBody)
+            return;
+
+        mBody->applyCentralImpulse(BtOgre::Convert::toBullet(f));
+    }
+
+    void PhysicsModel::applyCentralForce(Ogre::Vector3 const &f)
+    {
+        if(nullptr == mBody)
+            return;
+
+        mBody->applyCentralForce(BtOgre::Convert::toBullet(f));
+    }
+
+    Ogre::Vector3 PhysicsModel::angularVelocity() const
+    {
+        if(nullptr == mBody)
+            return Ogre::Vector3::ZERO;
+
+        return BtOgre::Convert::toOgre(mBody->getAngularVelocity());
     }
 
     void PhysicsModel::setPosition(const Ogre::Vector3 &pos)
@@ -703,14 +777,20 @@ namespace Steel
         return BtOgre::Convert::toOgre(mBody->getLinearVelocity());
     }
 
-    void PhysicsModel::applyCentralImpulse(Ogre::Vector3 const &f)
+    void PhysicsModel::enableDeactivation()
     {
-        mBody->applyCentralImpulse(BtOgre::Convert::toBullet(f));
+        if(nullptr == mBody)
+            return;
+
+        mBody->setActivationState(WANTS_DEACTIVATION);
     }
 
-    void PhysicsModel::applyCentralForce(Ogre::Vector3 const &f)
+    void PhysicsModel::disableDeactivation()
     {
-        mBody->applyCentralForce(BtOgre::Convert::toBullet(f));
+        if(nullptr == mBody)
+            return;
+
+        mBody->setActivationState(DISABLE_DEACTIVATION);
     }
 
 }

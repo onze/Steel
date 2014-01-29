@@ -212,9 +212,9 @@ namespace Steel
         Ogre::String intro = "in OgreModel::fromJson(): ";
         // data to gather
         Ogre::String meshName;
-        Ogre::Vector3 pos;
-        Ogre::Quaternion rot;
-        Ogre::Vector3 scale = Ogre::Vector3::UNIT_SCALE;
+        Ogre::Vector3 pos(Ogre::Vector3::ZERO);
+        Ogre::Quaternion rot(Ogre::Radian(0), -Ogre::Vector3::UNIT_Z);
+        Ogre::Vector3 scale(Ogre::Vector3::UNIT_SCALE);
 
         Json::Value value;
         bool allWasFine = true;
@@ -325,6 +325,15 @@ namespace Steel
         mEntity->setMaterial(mm->getByName(resName));
         mHasMaterialOverride = true;
     }
+
+    void OgreModel::setVisible(bool flag)
+    {
+        if(nullptr != mEntity)
+        {
+            mEntity->setVisible(flag);
+        }
+    }
+
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

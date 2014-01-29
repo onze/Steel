@@ -73,6 +73,11 @@ namespace Steel
         return returnedValue;
     }
 
+    Signal SignalManager::anonymousSignal()
+    {
+        return mNextSignal++;
+    }
+
     Ogre::String SignalManager::fromSignal(const Signal signal)
     {
         if(INVALID_SIGNAL == signal)
@@ -87,7 +92,7 @@ namespace Steel
             return it->second;
         }
 
-        return "unknown signal";
+        return "<anonymous signal>";
     }
 
     void SignalManager::registerListener(const Signal signal, SignalListener *listener)

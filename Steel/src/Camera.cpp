@@ -21,6 +21,7 @@
 #include <AgentManager.h>
 #include <Agent.h>
 #include <Engine.h>
+#include <OgreModel.h>
 
 namespace Steel
 {
@@ -37,8 +38,9 @@ namespace Steel
         mCameraNode = mSceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode");
         mCameraNode->attachObject(mCamera);
 
-        mCameraNode->setPosition(0.0, 50.0, 200.0);
+        mCameraNode->setPosition(0.0, 0.0, 0.0);
         mCameraNode->lookAt(Ogre::Vector3::NEGATIVE_UNIT_Z, Ogre::SceneNode::TS_WORLD);
+        mCameraNode->setInitialState();
 
         mCamera->setNearClipDistance(.01);
         mCamera->setFarClipDistance(500);
@@ -114,28 +116,22 @@ namespace Steel
     void Camera::attachToAgent(AgentId aid)
     {
         mAgentAttachedTo = aid;
+        mSceneManager->getRootSceneNode()->removeChild(mCameraNode);
+
+        mLevel->agentMan()->getAgent(aid)->ogreModel()->sceneNode()->addChild(mCameraNode);
+        mCameraNode->setPosition(Ogre::Vector3::ZERO);
+        mCameraNode->setOrientation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3::NEGATIVE_UNIT_Z));
     }
 
     void Camera::detachFromAgent()
     {
-        attachToAgent(INVALID_ID);
-    }
+        mAgentAttachedTo = INVALID_ID;
+        auto parent = mCameraNode->getParentSceneNode();
+        parent->removeChild(mCameraNode);
 
-    void Camera::onBeforeLevelUpdate(Level *level, float dt)
-    {
-        if(nullptr == level)
-            return;
-
-        if(INVALID_ID != mAgentAttachedTo)
-        {
-            Agent *target = level->agentMan()->getAgent(mAgentAttachedTo);
-
-            if(nullptr != target)
-            {
-                mCameraNode->setPosition(target->position());
-                mCameraNode->setOrientation(target->rotation());
-            }
-        }
+        mSceneManager->getRootSceneNode()->addChild(mCameraNode);
+        mCameraNode->resetToInitialState();
+        mCameraNode->setPosition(parent->getPosition());
     }
 
     void Camera::translate(float dx, float dy, float dz, float speed)

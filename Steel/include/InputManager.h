@@ -45,7 +45,11 @@ namespace Steel
         bool mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
         bool mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
 
+        /// Registers for input release. This will be done before next frame events.
         void releaseInput();
+        /// Process to input release now. Do not call this during the message event dispatching phase.
+        void _releaseInput();
+        
         void resetFrameBasedData();
         void resetAllData();
 
@@ -58,6 +62,9 @@ namespace Steel
          */
         virtual void windowResized(Ogre::RenderWindow *rw);
         virtual void windowClosed(Ogre::RenderWindow *rw);
+        
+        float windowHeight() const;
+        float windowWidth() const;
 
         //getters
         inline std::list<Input::Code> const &codesPressed() {return mCodesPressed;}
@@ -105,7 +112,6 @@ namespace Steel
         /// load the last saved state of the mouse. (currenlty, only position is restored)
         void popMouseState();
         void _grabInput(bool exclusive = true);
-        void _releaseInput();
         OIS::ParamList getOISparams(bool exclusive);
         
         /// Sends wheel events

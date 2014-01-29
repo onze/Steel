@@ -41,7 +41,7 @@ namespace Steel
             }
             else
             {
-                Debug::error(intro)("attribute ").quotes(MAX_LOOPS_ATTRIBUTE)("is not parsable as unsigned int: ")(value)(". Aborting.");
+                Debug::error(intro)("attribute ").quotes(MAX_LOOPS_ATTRIBUTE)("is not parsable as unsigned int: ")(value)(". Aborting.").endl();
             }
         }
 

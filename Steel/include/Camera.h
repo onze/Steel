@@ -49,9 +49,6 @@ namespace Steel
             void attachToAgent(AgentId aid);
             /// Cancels agent following
             void detachFromAgent();
-            
-            /// EngineEventListener interface.
-            void onBeforeLevelUpdate(Level *level, float dt);
 
             /// Moves the camera according to the given coordinates.
             void translate(float dx, float dy, float dz, float speed = 1.f);

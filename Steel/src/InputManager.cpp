@@ -399,6 +399,16 @@ namespace Steel
             }
         }
     }
+    
+    float InputManager::windowWidth() const
+    {
+        return float(mEngine->renderWindow()->getWidth());
+    }
+    
+    float InputManager::windowHeight() const
+    {
+        return float(mEngine->renderWindow()->getHeight());
+    }
 
     void InputManager::windowResized(Ogre::RenderWindow *rw)
     {
