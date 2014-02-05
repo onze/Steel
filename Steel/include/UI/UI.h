@@ -33,8 +33,10 @@ namespace Steel
             virtual ~UI();
             virtual UI& operator=(const UI& other);
 
-            void init(unsigned int width, unsigned int height, File UIDataDir, InputManager *inputMan,
-                      Ogre::RenderWindow *window, Engine *engine);
+            void init(File UIDataDir, 
+                      InputManager *inputMan,
+                      Ogre::RenderWindow *window, 
+                      Engine *engine);
 
             /// Gets the number of seconds elapsed since the start of the application.
             virtual float GetElapsedTime();
@@ -102,8 +104,6 @@ namespace Steel
             Engine *mEngine;
 
             // owned
-            unsigned int mWidth;
-            unsigned int mHeight;
 
             /// used to know how long has passed since Engin startup (libRocket has to know)
             Ogre::Timer mTimer;

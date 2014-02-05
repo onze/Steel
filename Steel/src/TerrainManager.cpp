@@ -115,7 +115,6 @@ namespace Steel
         auto rgm = Ogre::ResourceGroupManager::getSingletonPtr();
         if (rgm->resourceGroupExists(mResourceGroupName))
         {
-            rgm->unloadResourceGroup(mResourceGroupName);
             rgm->destroyResourceGroup(mResourceGroupName);
             // that's my good debug value !
             mResourceGroupName = "unloaded-terrainManager (previously" + mResourceGroupName + ")";

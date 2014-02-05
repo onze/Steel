@@ -79,15 +79,21 @@ namespace Steel
             fireOnLevelUnsetEvent();
             // TODO: tell the level it is unset, instead of doing stuff it knows better about
             mLevel->selectionMan()->clearSelection();
+            mUI.shutdown();
         }
 
         Level *previous = mLevel;
         mLevel = newLevel;
+        
+        if(nullptr!=mLevel)
+        {
+            mUI.init(uiDir(), &mInputMan, mRenderWindow, this);
 
-        loadConfig(mConfig);
+            loadConfig(mConfig);
 
-        if(nullptr != newLevel)
-            fireOnLevelSetEvent();
+            if(nullptr != newLevel)
+                fireOnLevelSetEvent();
+        }
 
         return previous;
     }
@@ -230,7 +236,6 @@ namespace Steel
         mInputMan.init(this);
 
         mRayCaster = new RayCaster(this);
-        mUI.init(mRenderWindow->getWidth(), mRenderWindow->getHeight(), uiDir(), &mInputMan, mRenderWindow, this);
 
         setCurrentLevel(createLevel("DefaultLevel"));
 
@@ -284,12 +289,6 @@ namespace Steel
         }
 
         mInputMan.shutdown();
-
-        if(mRenderWindow != nullptr)
-        {
-            delete mRenderWindow;
-            mRenderWindow = nullptr;
-        }
 
         File::shutdown();
 
@@ -439,6 +438,7 @@ namespace Steel
         if(mInputMan.isKeyDown(Input::Code::KC_ESCAPE))
         {
             mInputMan._releaseInput();
+            mInputMan.resetFrameBasedData();
             return true;
         }
         return false;

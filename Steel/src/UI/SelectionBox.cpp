@@ -30,7 +30,8 @@ namespace Steel
         setUseIdentityProjection(true);
         setUseIdentityView(true);
         setQueryFlags(0);
-        if(nullptr!=mEngine->level())
+
+        if(nullptr != mEngine->level())
         {
             mEngine->level()->levelRoot()->createChildSceneNode()->attachObject(this);
             mVolQuery = mEngine->level()->sceneManager()->createPlaneBoundedVolumeQuery(Ogre::PlaneBoundedVolumeList());
@@ -40,16 +41,17 @@ namespace Steel
     SelectionBox::~SelectionBox()
     {
         clear();
-        if(nullptr!=mVolQuery)
+
+        if(nullptr != mVolQuery)
         {
             mEngine->level()->sceneManager()->destroyQuery(mVolQuery);
-            mVolQuery=nullptr;
+            mVolQuery = nullptr;
         }
     }
 
-    bool SelectionBox::operator==(const SelectionBox& o) const
+    bool SelectionBox::operator==(const SelectionBox &o) const
     {
-        return mLeft==o.mLeft && mTop==o.mTop && mRight==o.mRight && mBottom==o.mBottom;
+        return mLeft == o.mLeft && mTop == o.mTop && mRight == o.mRight && mBottom == o.mBottom;
     }
 
     void SelectionBox::setCorners(float left, float top, float right, float bottom)
@@ -66,10 +68,10 @@ namespace Steel
         mTop = 1 - top * 2;
         mBottom = 1 - bottom * 2;
 
-        if (mLeft > mRight)
+        if(mLeft > mRight)
             std::swap(mLeft, mRight);
 
-        if (mTop > mBottom)
+        if(mTop > mBottom)
             std::swap(mTop, mBottom);
 
         /*Now the positions are in the new coordinate system. Next we need to actually build the object. To do this,
@@ -90,20 +92,20 @@ namespace Steel
         end();
     }
 
-    void SelectionBox::setCorners(const Ogre::Vector2& topLeft, const Ogre::Vector2& bottomRight)
+    void SelectionBox::setCorners(const Ogre::Vector2 &topLeft, const Ogre::Vector2 &bottomRight)
     {
         setCorners(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
     }
 
     void SelectionBox::performSelection(std::list<AgentId> &selection, Ogre::Camera *mCamera)
     {
-        if ((mRight - mLeft) * (mBottom - mTop) < 0.0001)
+        if((mRight - mLeft) * (mBottom - mTop) < 0.0001)
             return;
 
-        float left=(mLeft+1.f)/2.f;
-        float right=(mRight+1.f)/2.f;
-        float top=(1.f-mBottom)/2.f;
-        float bottom=(1.f-mTop)/2.f;
+        float left = (mLeft + 1.f) / 2.f;
+        float right = (mRight + 1.f) / 2.f;
+        float top = (1.f - mBottom) / 2.f;
+        float bottom = (1.f - mTop) / 2.f;
         Ogre::Ray topLeft = mCamera->getCameraToViewportRay(left, top);
         Ogre::Ray topRight = mCamera->getCameraToViewportRay(right, top);
         Ogre::Ray bottomLeft = mCamera->getCameraToViewportRay(left, bottom);
@@ -112,7 +114,7 @@ namespace Steel
         // These planes have now defined an "open box" which extends to infinity in front of the camera. You can think of
         // the rectangle we drew with the mouse as being the termination point of the box just in front of the camera.
         Ogre::PlaneBoundedVolume vol;
-        const Ogre::Real min=.1,max=500;
+        const Ogre::Real min = .1, max = 500;
         vol.planes.push_back(Ogre::Plane(topLeft.getPoint(min), topRight.getPoint(min), bottomRight.getPoint(min)));         // front plane
         vol.planes.push_back(Ogre::Plane(topLeft.getOrigin(), topLeft.getPoint(max), topRight.getPoint(max)));         // top plane
         vol.planes.push_back(Ogre::Plane(topLeft.getOrigin(), bottomLeft.getPoint(max), topLeft.getPoint(max)));       // left plane
@@ -129,15 +131,18 @@ namespace Steel
         // then we will select all objects which were found by the query.
         std::list<Ogre::SceneNode *> nodes;
         Ogre::SceneQueryResultMovableList::iterator iter;
-        for (iter = result.movables.begin(); iter != result.movables.end(); ++iter)
+
+        for(iter = result.movables.begin(); iter != result.movables.end(); ++iter)
         {
-            Ogre::MovableObject *movable=*iter;
-            if(movable->getMovableType().compare("Entity")==0)
+            Ogre::MovableObject *movable = *iter;
+
+            if(movable->getMovableType().compare("Entity") == 0)
             {
-                Ogre::Entity *pentity = static_cast<Ogre::Entity*> (movable);
+                Ogre::Entity *pentity = static_cast<Ogre::Entity *>(movable);
                 nodes.push_back(pentity->getParentSceneNode());
             }
         }
+
         mEngine->level()->getAgentsIdsFromSceneNodes(nodes, selection);
     }
 

@@ -26,16 +26,15 @@
 namespace Steel
 {
 
-    Camera::Camera(Engine *engine, Level *level): EngineEventListener()
+    Camera::Camera(Engine *engine, Level *level): EngineEventListener(),
+    mEngine(engine), mLevel(level), 
+    mSceneManager(mLevel->sceneManager()),
+    mCamera(mSceneManager->createCamera("mainCamera")),
+    mCameraNode(mSceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode")),
+    mAgentAttachedTo(INVALID_ID)
     {
-        mEngine = engine;
-        mLevel = level;
-        mSceneManager = mLevel->sceneManager();
-
-        mCamera = mSceneManager->createCamera("mainCamera");
         mCamera->setPosition(0.0, 0.0, -.0);
 
-        mCameraNode = mSceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode");
         mCameraNode->attachObject(mCamera);
 
         mCameraNode->setPosition(0.0, 0.0, 0.0);
@@ -57,8 +56,17 @@ namespace Steel
     Camera::~Camera()
     {
         mEngine->removeEngineEventListener(this);
-        mCameraNode->detachAllObjects();
-        mSceneManager->destroyCamera(mCamera);
+        
+        detachFromAgent();
+        
+        if(nullptr != mCameraNode)
+        {
+            mCameraNode->detachAllObjects();
+            mSceneManager->destroyCamera(mCamera);
+            mCameraNode = nullptr;
+        }
+
+        mSceneManager = nullptr;
         mLevel = nullptr;
         mEngine = nullptr;
     }
@@ -115,23 +123,35 @@ namespace Steel
 
     void Camera::attachToAgent(AgentId aid)
     {
-        mAgentAttachedTo = aid;
-        mSceneManager->getRootSceneNode()->removeChild(mCameraNode);
+        static const Ogre::String intro = "Camera::attachToAgent";
 
-        mLevel->agentMan()->getAgent(aid)->ogreModel()->sceneNode()->addChild(mCameraNode);
-        mCameraNode->setPosition(Ogre::Vector3::ZERO);
-        mCameraNode->setOrientation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3::NEGATIVE_UNIT_Z));
+        if(INVALID_ID != aid)
+        {
+            mAgentAttachedTo = aid;
+            mSceneManager->getRootSceneNode()->removeChild(mCameraNode);
+
+            mLevel->agentMan()->getAgent(aid)->ogreModel()->sceneNode()->addChild(mCameraNode);
+            mCameraNode->setPosition(Ogre::Vector3::ZERO);
+            mCameraNode->setOrientation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3::NEGATIVE_UNIT_Z));
+        }
+        else
+        {
+            Debug::error(intro)("can't attach to invalid aid. Ignored.").endl();
+        }
     }
 
     void Camera::detachFromAgent()
     {
-        mAgentAttachedTo = INVALID_ID;
-        auto parent = mCameraNode->getParentSceneNode();
-        parent->removeChild(mCameraNode);
+        if(INVALID_ID != mAgentAttachedTo && nullptr != mCameraNode)
+        {
+            mAgentAttachedTo = INVALID_ID;
+            auto parent = mCameraNode->getParentSceneNode();
+            parent->removeChild(mCameraNode);
 
-        mSceneManager->getRootSceneNode()->addChild(mCameraNode);
-        mCameraNode->resetToInitialState();
-        mCameraNode->setPosition(parent->getPosition());
+            mSceneManager->getRootSceneNode()->addChild(mCameraNode);
+            mCameraNode->resetToInitialState();
+            mCameraNode->setPosition(parent->getPosition());
+        }
     }
 
     void Camera::translate(float dx, float dy, float dz, float speed)

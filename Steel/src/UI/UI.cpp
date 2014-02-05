@@ -15,7 +15,7 @@
 namespace Steel
 {
     UI::UI(): Rocket::Core::SystemInterface(), Ogre::RenderQueueListener(), EngineEventListener(), InputEventListener(),
-        mInputMan(nullptr), mWindow(nullptr), mWidth(0), mHeight(0),
+        mInputMan(nullptr), mWindow(nullptr),
         mRocketRenderInterface(nullptr), mMainContext(nullptr),
         mKeyIdentifiers(KeyIdentifierMap()), mEditor(), mHUD(), mUIDataDir(), mEditMode(false)
     {
@@ -31,8 +31,6 @@ namespace Steel
         mMainContext = other.mMainContext;
         mEditor = other.mEditor;
         mHUD = other.mHUD;
-        mWidth = other.mWidth;
-        mHeight = other.mHeight;
         mKeyIdentifiers = other.mKeyIdentifiers;
         mEditMode = other.mEditMode;
         //TODO forbif copy (use save/load instead)
@@ -54,8 +52,6 @@ namespace Steel
 
         mEditor = other.mEditor;
         mHUD = other.mHUD;
-        mWidth = other.mWidth;
-        mHeight = other.mHeight;
         mKeyIdentifiers = other.mKeyIdentifiers;
         mEditMode = other.mEditMode;
         return *this;
@@ -154,16 +150,12 @@ namespace Steel
         mEngine->removeEngineEventListener(this);
     }
 
-    void UI::init(unsigned int width,
-                  unsigned int height,
-                  File UIDataDir,
+    void UI::init(File UIDataDir,
                   InputManager *inputMan,
                   Ogre::RenderWindow *window,
                   Engine *engine)
     {
         Debug::log("UI::init()").endl();
-        mWidth = width;
-        mHeight = height;
         mUIDataDir = UIDataDir.subfile("current");
         mInputMan = inputMan;
         mWindow = window;
@@ -178,7 +170,7 @@ namespace Steel
         orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI", true);
         bool firstInit = mRocketRenderInterface == nullptr;
 
-        mRocketRenderInterface = new RenderInterfaceOgre3D(mWidth, mHeight, mEngine);
+        mRocketRenderInterface = new RenderInterfaceOgre3D(mWindow->getWidth(), mWindow->getHeight(), mEngine);
         Rocket::Core::SetRenderInterface(mRocketRenderInterface);
 
 
@@ -188,7 +180,7 @@ namespace Steel
         Rocket::Controls::Initialise();
         Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("fonts").subfile("tahoma.ttf").fullPath().c_str());
 
-        mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWidth, mHeight));
+        mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWindow->getWidth(), mWindow->getHeight()));
 //         Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
 
         if(firstInit)
@@ -200,8 +192,8 @@ namespace Steel
             Rocket::Debugger::SetVisible(true);
 
         //UI init
-        mEditor.init(mWidth, mHeight, mEngine, this);
-        mHUD.init(mWidth, mHeight, mEngine, this);
+        mEditor.init(mWindow->getWidth(), mWindow->getHeight(), mEngine, this);
+        mHUD.init(mWindow->getWidth(), mWindow->getHeight(), mEngine, this);
 
         orm->initialiseResourceGroup("UI");
         orm->loadResourceGroup("UI");
@@ -211,14 +203,20 @@ namespace Steel
 
     void UI::startEditMode()
     {
-        mEditMode = true;
-        mEditor.show();
+        if(!mEditMode)
+        {
+            mEditMode = true;
+            mEditor.show();
+        }
     }
 
     void UI::stopEditMode()
     {
-        mEditMode = false;
-        mEditor.hide();
+        if(mEditMode)
+        {
+            mEditMode = false;
+            mEditor.hide();
+        }
     }
 
     // Called from Ogre before a queue group is rendered.
