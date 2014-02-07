@@ -46,7 +46,9 @@ namespace Steel
 
         mBehaviorsStack.clear();
 
-        mTags.clear();
+        while(mTags.size())
+            untag(mTags.begin()->first);
+        
         mLevel = nullptr;
         mId = INVALID_ID;
     }
@@ -148,7 +150,10 @@ namespace Steel
         std::map<Tag, unsigned>::iterator it = mTags.find(tag);
 
         if(mTags.end() == it)
+        {
             mTags.insert(std::pair<Tag, unsigned>(tag, 1));
+            mLevel->agentMan()->addTaggedAgent(tag, mId);
+        }
         else
             it->second++;
     }
@@ -169,7 +174,10 @@ namespace Steel
         it->second--;
 
         if(0 == it->second)
+        {
             mTags.erase(it);
+            mLevel->agentMan()->removeTaggedAgent(tag, mId);
+        }
     }
 
     void Agent::untag(std::set<Tag> _tags)
@@ -383,19 +391,19 @@ namespace Steel
         auto model = ogreModel();
         return nullptr == model ? Ogre::Vector3::ZERO : model->position();
     }
-    
+
     Ogre::Quaternion Agent::rotation() const
     {
         auto model = ogreModel();
         return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
     }
-    
+
     Ogre::Quaternion Agent::bodyRotation() const
     {
         auto model = physicsModel();
         return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
     }
-    
+
     Ogre::Vector3 Agent::bodyAngularVelocity() const
     {
         auto model = physicsModel();
@@ -494,11 +502,11 @@ namespace Steel
         if(nullptr != model)
             model->rotate(q);
     }
-    
+
     void Agent::setBodyRotation(const Ogre::Quaternion &q)
     {
         auto model = physicsModel();
-        
+
         if(nullptr != model)
             model->setRotation(q);
     }

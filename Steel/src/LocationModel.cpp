@@ -86,7 +86,7 @@ namespace Steel
         
         mSources.clear();
         mDestinations.clear();
-
+        
         if(!deserializeTags(node))
             return false;
 

@@ -4,7 +4,7 @@
 
 namespace Steel
 {
-    TagManager* TagManager::sInstance = nullptr;
+    TagManager *TagManager::sInstance = nullptr;
 
     TagManager::TagManager(): mNextTag(0L), mTagsMap(std::map<Ogre::String, Tag>())
 #ifdef DEBUG
@@ -15,34 +15,37 @@ namespace Steel
 
     TagManager::~TagManager()
     {
-
     }
 
-    Tag TagManager::toTag(const Ogre::String& tag)
+    Tag TagManager::toTag(const Ogre::String &tag)
     {
-        if(0==tag.size())
+        if(0 == tag.size())
             return INVALID_TAG;
-        
-        auto it=mTagsMap.find(tag);
-        Tag returnedValue=INVALID_TAG;
-        if(mTagsMap.end()==it)
+
+        auto it = mTagsMap.find(tag);
+        Tag returnedValue = INVALID_TAG;
+
+        if(mTagsMap.end() == it)
         {
-            mTagsMap[tag]=returnedValue=mNextTag;
-            mInverseTagsMap[mNextTag]=tag;
+            mTagsMap[tag] = returnedValue = mNextTag;
+            mInverseTagsMap[mNextTag] = tag;
             ++mNextTag;
         }
         else
         {
-            returnedValue=it->second;
+            returnedValue = it->second;
         }
+
         return returnedValue;
     }
-    
+
     std::list<Tag> TagManager::toTags(std::list< Ogre::String > tags)
     {
         std::list<Tag> output;
-        for(auto const &tag:tags)
+
+        for(auto const & tag : tags)
             output.push_back(toTag(tag));
+
         return output;
     }
 
@@ -53,8 +56,9 @@ namespace Steel
             return "<INVALID_TAG>";
         }
 
-        auto it=mInverseTagsMap.find(tag);
-        if(mInverseTagsMap.end()!=it)
+        auto it = mInverseTagsMap.find(tag);
+
+        if(mInverseTagsMap.end() != it)
         {
             return it->second;
         }
@@ -65,8 +69,10 @@ namespace Steel
     std::list<Ogre::String> TagManager::fromTags(std::set< Steel::Tag > tags) const
     {
         std::list<Ogre::String> output;
-        for(auto const &tag:tags)
+
+        for(auto const & tag : tags)
             output.push_back(fromTag(tag));
+
         return output;
     }
 

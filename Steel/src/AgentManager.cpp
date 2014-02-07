@@ -8,7 +8,9 @@
 namespace Steel
 {
 
-    AgentManager::AgentManager(Level *level): mLevel(level), mAgents(std::map<AgentId, Agent *>()), mFreeList(std::list<AgentId>()), mNextFreeId(0)
+    AgentManager::AgentManager(Level *level): mLevel(level),
+        mAgents(), mFreeList(), mNextFreeId(0),
+        mTagRegister()
     {
 
     }
@@ -18,6 +20,7 @@ namespace Steel
         deleteAllAgents();
         mLevel = nullptr;
         mAgents.clear();
+        mTagRegister.clear();
     }
 
     AgentId AgentManager::getFreeAgentId()
@@ -121,7 +124,7 @@ namespace Steel
         Agent *agent = getAgent(aid);
         return nullptr == agent ? false : agent->hasBTPath();
     }
-    
+
     bool AgentManager::agentHasLocationPath(AgentId aid)
     {
         Agent *agent = getAgent(aid);
@@ -139,20 +142,38 @@ namespace Steel
 
         if(nullptr == (movableAgent = getAgent(movableAid)))
             return false;
-        
+
         return movableAgent->followNewPath(pathAid);
     }
 
     bool AgentManager::unassignBTPath(AgentId movableAid, AgentId pathAid)
     {
-        
+
         Agent *movableAgent;
-        
+
         if(nullptr == (movableAgent = getAgent(movableAid)))
             return true;
-        
+
         return movableAgent->stopFollowingPath(pathAid);
     }
+
+    void AgentManager::addTaggedAgent(const Tag &tag, const AgentId aid)
+    {
+        mTagRegister.emplace(tag, std::set<AgentId>()).first->second.insert(aid);
+    }
+
+    void AgentManager::removeTaggedAgent(const Tag &tag, const AgentId aid)
+    {
+        auto it = mTagRegister.find(tag);
+        if(mTagRegister.end() != it)
+            it->second.erase(tag);
+    }
+
+    const std::set< AgentId > &AgentManager::agentTagged(Tag tag)
+    {
+        return mTagRegister.emplace(tag, std::set<AgentId>()).first->second;
+    }
+
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -44,6 +44,13 @@ namespace Steel
             bool unassignBTPath(AgentId movableAid, AgentId pathAid);
             
             bool agentHasLocationPath(AgentId aid);
+            
+            /// Register agent as tagged
+            void addTaggedAgent(Tag const &tag, AgentId const aid);
+            /// Unegister agent as tagged
+            void removeTaggedAgent(Tag const &tag, AgentId const aid);
+            /// Retreive all agents tagged with the given tag
+            const std::set< AgentId > & agentTagged(Steel::Tag tag);
 
         private:
             /// Creates an empty agent with the given id.
@@ -57,6 +64,9 @@ namespace Steel
             std::map<AgentId, Agent *> mAgents;
             std::list<AgentId> mFreeList;
             AgentId mNextFreeId;
+            
+            /// Tag to agent map
+            std::map<Tag, std::set<AgentId>> mTagRegister;
 
     };
 }
