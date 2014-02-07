@@ -553,7 +553,12 @@ namespace Steel
 
     bool Level::instanciateResource(File const &_file, AgentId &aid)
     {
-        File file = mEngine->dataDir().subfile(_file.fullPath());
+        File file;
+        if(_file.isPathAbsolute())
+            file = _file;
+        else
+            file = mEngine->dataDir().subfile(_file.fullPath());
+        // file is now absolute
 
         static Ogre::String intro = "Level::instanciateResource(" + file.fullPath() + "): ";
 

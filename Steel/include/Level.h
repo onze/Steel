@@ -105,7 +105,7 @@ namespace Steel
         // edition
         /**
          * Preprocess a resource file (fills dynamic values), and instanciate its description if all requirements are satisfied.
-         * - if the file content contains an aid, the resource will be attached to the pointed agent (created if needed).
+         * - if the file (absolute path or relative to the data directory) content contains an aid, the resource will be attached to the pointed agent (created if needed).
          * - if the aid argument is not INVALID_ID, the resource will be attached to the pointed agent (created if needed).
          * The aid given as argument has precedence over the one in the serialization.
          * This agentId to which the resource is attached is eventually returned.

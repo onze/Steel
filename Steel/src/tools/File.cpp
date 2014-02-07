@@ -363,6 +363,11 @@ namespace Steel
     {
         return mPath + fileName();
     }
+    
+    bool File::isPathAbsolute() const
+    {
+        return Poco::Path(mPath.c_str()).isAbsolute();
+    }
 
     bool File::isDir() const
     {

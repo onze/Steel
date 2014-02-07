@@ -103,33 +103,28 @@ namespace Steel
         /// return true is the file exists.
         bool exists() const;
 
-        /// return true if the path points to a directory;
+        /// Returns true if the path points to a directory;
         bool isDir() const;
 
-        /**
-         * return true if the path points to a regular file;
-         */
+        /// Returns true if the path points to a regular file;
         bool isFile() const;
 
-        /**
-         * return true is the file exists, and is readable and writable.
-         */
+        /// Returns true is the file exists, and is readable and writable.
         bool isValid() const;
 
-        /**
-         * Return the path pointed to by this file.
-         */
+        /// Returns the path pointed to by this file.
         Ogre::String fullPath() const;
+        
+        /// Returns true if the path is absolute (does not starts with /)
+        bool isPathAbsolute() const;
 
         /**
-         * return a file pointing at a subfile which name is given.
+         * Returns a file pointing at a subfile which name is given.
          * Note that the subfile might not exist.
          */
         File subfile(Ogre::String const filename) const;
 
-        /**
-         * the file/dir containing this file instance.
-         */
+        /// The file/dir containing this file instance.
         File parentDir() const;
 
         /// Convert the File instance to a string of the path it's pointing to.
