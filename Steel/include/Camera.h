@@ -45,7 +45,7 @@ namespace Steel
         /// Returns the screen coordinates of the given 3d position.
         Ogre::Vector2 screenPosition(const Ogre::Vector3 &worldPosition);
 
-        /// If not INVALID_ID, make the camera reset its position and orientation to agent's, each frame.
+        /// If not INVALID_ID, reparent the camera node to the target agent's.
         void attachToAgent(AgentId aid);
         /// Cancels agent following
         void detachFromAgent();
