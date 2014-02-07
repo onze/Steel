@@ -61,9 +61,23 @@ namespace Steel
         if(!value.isMember(Model::AGENT_TAGS_ATTRIBUTES))
             return true;
 
-        std::set<Tag> _tags = JsonUtils::asTagsSet(value[Model::AGENT_TAGS_ATTRIBUTES]);
         mTags.clear();
-        mTags.insert(_tags.begin(), _tags.end());
+        
+        Json::Value member(value[Model::AGENT_TAGS_ATTRIBUTES]);
+        if(member.isArray())
+        {
+            auto _tags = JsonUtils::asTagsSet(value[Model::AGENT_TAGS_ATTRIBUTES]);
+            mTags.insert(_tags.begin(), _tags.end());
+        }
+        else if(member.isString())
+        {
+            mTags.insert(TagManager::instance().toTag(member.asString()));
+        }
+        else
+        {
+            Debug::error("Model::deserializeTags(): can get tags out of member ")
+            .quotes(Model::AGENT_TAGS_ATTRIBUTES)(" while deserializing ")(value)("). Skipping.").endl();
+        }
         return true;
     }
 
