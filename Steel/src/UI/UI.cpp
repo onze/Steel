@@ -188,9 +188,6 @@ namespace Steel
         else
             Rocket::Debugger::SetContext(mMainContext);
 
-        if(!Rocket::Debugger::IsVisible())
-            Rocket::Debugger::SetVisible(true);
-
         //UI init
         mEditor.init(mWindow->getWidth(), mWindow->getHeight(), mEngine, this);
         mHUD.init(mWindow->getWidth(), mWindow->getHeight(), mEngine, this);
@@ -207,6 +204,9 @@ namespace Steel
         {
             mEditMode = true;
             mEditor.show();
+            
+            if(!Rocket::Debugger::IsVisible())
+                Rocket::Debugger::SetVisible(true);
         }
     }
 
@@ -216,6 +216,9 @@ namespace Steel
         {
             mEditMode = false;
             mEditor.hide();
+            
+            if(Rocket::Debugger::IsVisible())
+                Rocket::Debugger::SetVisible(false);
         }
     }
 
