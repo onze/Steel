@@ -15,7 +15,8 @@
 #include "UI/UIPanel.h"
 #include "SelectionManager.h"
 #include "EngineEventListener.h"
-#include <Input.h>
+#include "Input.h"
+#include "UI/DebugValueManager.h"
 
 namespace Rocket
 {
@@ -110,6 +111,12 @@ namespace Steel
         /// called right before a level is unset (becomes not current anymore).
         virtual void onLevelUnset(Level *level);
 
+
+        /// Shortcut to DebugValueManager::addDebugValue.
+        void addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min = .0f, float max = 1.f);
+        /// Shortcut to DebugValueManager::removeDebugValue.
+        void removeDebugValue(Ogre::String const &entryName);
+
     private:
         /// make a command out of a Rocket event.
         void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
@@ -149,6 +156,8 @@ namespace Steel
         bool mDebugEvents;
         /// true during the dragging of a item from the edior's menu.
         bool mIsDraggingFromMenu;
+        DebugValueManager mDebugValueMan;
+
     };
 }
 #endif // STEEL_EDITOR_H

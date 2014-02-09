@@ -130,8 +130,8 @@ namespace Steel
         ////////////////////////////////////////////////
         //getters
         inline InputManager *inputMan() {return &mInputMan;}
-
         inline Ogre::RenderWindow *renderWindow() {return mRenderWindow;}
+        inline UI* const ui() {return &mUI;}
 
         inline File rootDir() {return mRootDir;}
         inline File dataDir() {return mRootDir.subfile("data");}

@@ -83,20 +83,10 @@ namespace Steel
             void saveConfig(ConfigFile &config) const;
 
             ////getters
-            Editor &editor()
-            {
-                return mEditor;
-            }
-
-            File dataDir()
-            {
-                return mUIDataDir;
-            }
-
-            KeyIdentifierMap &keyIdentifiers()
-            {
-                return mKeyIdentifiers;
-            }
+            Editor& editor() {return mEditor;}
+            File dataDir() const {return mUIDataDir;}
+            KeyIdentifierMap& keyIdentifiers() {return mKeyIdentifiers;}
+            
         protected:
             // not owned
             InputManager *mInputMan;

@@ -372,7 +372,6 @@ namespace Steel
             collisionCheck(manager);
         }
 
-
         if(static_cast<RigidBodyStateWrapper *>(mBody->getMotionState())->poolTransform())
         {
             auto const it = mEventSignals.find(EventType::CHANGE);

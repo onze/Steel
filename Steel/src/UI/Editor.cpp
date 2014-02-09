@@ -39,7 +39,8 @@ namespace Steel
 
     Editor::Editor(): UIPanel("Editor", "data/ui/current/editor/editor.rml"),
         mEngine(nullptr), mUI(nullptr), mInputMan(nullptr), mFSResources(nullptr),
-        mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false)
+        mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
+        mDebugValueMan()
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -104,6 +105,7 @@ namespace Steel
         }
 
         mEngine->removeEngineEventListener(this);
+        mDebugValueMan.shutdown();
         UIPanel::shutdown();
     }
 
@@ -125,6 +127,7 @@ namespace Steel
         if(nullptr != ui)
             mUI = ui;
 
+        mDebugValueMan.init("debugvaluemanager_select_entry", mDocument);
         mDataDir = mUI->dataDir().subfile("editor").fullPath();
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         // true is for recursive search. Add to this resources.cfg
@@ -188,7 +191,7 @@ namespace Steel
 
     AgentId Editor::instanciateFromMeshFile(File &meshFile, Ogre::Vector3 &pos, Ogre::Quaternion &rot)
     {
-        Ogre::String intro = "Editor::instanciateFromMeshFile(";
+        static const Ogre::String intro = "Editor::instanciateFromMeshFile(";
         Debug::log(intro)(meshFile)(" pos=")(pos)(" rot=")(rot).endl();
         Level *level = mEngine->level();
 
@@ -387,7 +390,7 @@ namespace Steel
 
     void Editor::onShow()
     {
-        Ogre::String intro = "Editor::onShow(): ";
+        static const Ogre::String intro = "Editor::onShow(): ";
         mBrush.onShow();
 
         // (re)load state
@@ -403,6 +406,7 @@ namespace Steel
         // ## reconnect to document
         // data sources
         mFSResources->refresh(mDocument);
+        mDebugValueMan.refresh(mDocument);
 
         // events
         if(nullptr != mDocument)
@@ -457,7 +461,7 @@ namespace Steel
 
     void Editor::refreshSelectionPathWidget()
     {
-        static const Ogre::String intro = "in Editor::refreshSelectionPathWidget(): ";
+        static const Ogre::String intro = "Editor::refreshSelectionPathWidget(): ";
 
         if(nullptr == mEngine->level())
             return;
@@ -520,7 +524,7 @@ namespace Steel
 
     void Editor::populateSelectionTagsWidget(std::list<Ogre::String> tags)
     {
-        static const Ogre::String intro = "in Editor::populateSelectionTagWidget(): ";
+        static const Ogre::String intro = "Editor::populateSelectionTagWidget(): ";
 
         if(nullptr == mDocument)
             return;
@@ -546,6 +550,7 @@ namespace Steel
             Rocket::Core::Element *child = mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
             decorateSelectionTagWidgetItem(child, it.c_str());
             elem->AppendChild(child);
+            child->RemoveReference();
         }
     }
 
@@ -698,9 +703,9 @@ namespace Steel
                 return;
             }
         }
-        else if(Ogre::StringUtil::startsWith(rawCommand, "selection.path.unset."))
+        else if(rawCommand == "NoValue")
         {
-            // valid command, nothing to add
+            return;
         }
 
         //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
@@ -710,10 +715,29 @@ namespace Steel
 
     void Editor::processChangeEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
     {
+        static const Ogre::String intro = "Editor::processChangeEvent(): ";
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
         Ogre::String rawCommand = event_value;
 
-        if(rawCommand == "editorbrush.terrabrush.distribution")
+        if(Ogre::StringUtil::startsWith(rawCommand, "debugvaluemanager."))
+        {
+            // parse sibling, looking for the select element
+            Rocket::Core::ElementList children;
+            elem->GetParentNode()->GetElementsByTagName(children, "select");
+
+            if(children.size() != 1)
+            {
+                Debug::warning(intro)("did not find 1 single sibling of ")(elem->GetTagName())
+                (" tagged \"select\". Aborting command ").quotes(rawCommand).endl();
+                return;
+            }
+
+            Ogre::String id = children[0]->GetId().CString();
+
+            rawCommand += ".";
+            rawCommand += id;
+        }
+        else if(rawCommand == "editorbrush.terrabrush.distribution")
         {
             Rocket::Controls::ElementFormControlSelect *form = static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
             auto optionId = form->GetSelection();
@@ -827,7 +851,7 @@ namespace Steel
 
     bool Editor::processCommand(std::vector<Ogre::String> command)
     {
-        Ogre::String intro = "in Editor::processCommand(): ";
+        /*static const*/ Ogre::String intro = "Editor::processCommand(): ";
 
         auto level = mEngine->level();
         auto selectionMan = level->selectionMan();
@@ -851,6 +875,13 @@ namespace Steel
                 Debug::warning(intro)("unkown command: ")(command).endl();
                 return false;
             }
+        }
+        else if(command[0] == "debugvaluemanager")
+        {
+            command.erase(command.begin());
+            // second call erase the id of the debug value manager. We have a single one for now, so that selection is easy.
+            command.erase(command.end());
+            return mDebugValueMan.processCommand(command);
         }
         else if(command[0] == "editorbrush")
         {
@@ -1095,6 +1126,17 @@ namespace Steel
 
         return true;
     }
+
+    void Editor::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max)
+    {
+        mDebugValueMan.addDebugValue(entryName, callback, min ,max);
+    }
+
+    void Editor::removeDebugValue(const Ogre::String &entryName)
+    {
+        mDebugValueMan.removeDebugValue(entryName);
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

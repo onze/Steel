@@ -9,9 +9,10 @@
 #include <OgreVector3.h>
 #include <OgreFrameListener.h>
 
-#include "tools/ConfigFile.h"
+#include "Input.h"
 #include "TerrainManager.h"
-#include <Input.h>
+#include "tools/ConfigFile.h"
+#include "DebugValueManager.h"
 
 namespace Ogre
 {
