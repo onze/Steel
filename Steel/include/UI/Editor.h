@@ -83,7 +83,7 @@ namespace Steel
         /// take a rocket event and dispatch it to process*Event
         void ProcessEvent(Rocket::Core::Event &event);
         ///general command processing method. dispatches the work to other process
-        bool processCommand(Ogre::String rawCommand);
+        bool processCommand(Ogre::String rawCommand, bool verbose = true);
         ///general command processing method. dispatches the work to other process
         bool processCommand(std::vector< Ogre::String > command);
         /// submethod processing ui commands concerning options
@@ -113,7 +113,9 @@ namespace Steel
 
 
         /// Shortcut to DebugValueManager::addDebugValue.
-        void addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min = .0f, float max = 1.f);
+        void addDebugValue(const Ogre::String &entryName, 
+                           Steel::DebugValueManager::CallbackFunction callback, 
+                           float min = .0f, float max = 1.f, float init = -1.f);
         /// Shortcut to DebugValueManager::removeDebugValue.
         void removeDebugValue(Ogre::String const &entryName);
 

@@ -47,22 +47,34 @@ namespace Steel
          * Adds the given entry in the editor's DebugValues panel. The given function will be called when the UI control gets updated
          * with a float value between 0 and 1..
          */
-        void addDebugValue(Ogre::String const &entryName, CallbackFunction callback, float min = .0f, float max = 1.f);
+        void addDebugValue(Ogre::String const &entryName,
+                           CallbackFunction callback,
+                           float min = .0f, float max = 1.f, float init = -1.f);
         void removeDebugValue(Ogre::String const &entryName);
 
     private:
         class Entry
         {
         public:
-            Entry(): callback(nullptr), min(.0f), max(1.f) {}
-            Entry(CallbackFunction _callback, float _min, float _max): callback(_callback), min(_min), max(_max) {}
+            Entry(): callback(nullptr), min(.0f), max(1.f), init(-1.f)
+            {
+                if(init < .0f)
+                    init = (min + max) / 2.f;
+            }
+            Entry(CallbackFunction _callback, float _min, float _max, float _init): callback(_callback), min(_min), max(_max), init(_init)
+            {
+                if(init < .0f)
+                    init = (min + max) / 2.f;
+            }
             CallbackFunction callback;
             float min;
             float max;
+            float init;
         };
-        
+
         Rocket::Controls::ElementFormControlDataSelect *findSelectControl(Rocket::Core::ElementDocument *document);
         Rocket::Controls::ElementFormControlInput *findSliderControl(Rocket::Core::ElementDocument *document);
+        void setSliderActive(bool flag);
         /// Actually adds an entry
         int addOption(const Ogre::String &entryName);
 

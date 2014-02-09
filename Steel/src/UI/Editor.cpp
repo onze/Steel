@@ -322,9 +322,7 @@ namespace Steel
         mContext->ProcessMouseButtonDown(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
 
         if(!hitTest(evt.position.x, evt.position.y, "menu"))
-        {
             mBrush.mousePressed(button, evt);
-        }
 
         return true;
     }
@@ -333,10 +331,6 @@ namespace Steel
     {
         mContext->ProcessMouseButtonUp(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
         mBrush.mouseReleased(button, evt);
-
-        if(button == Input::Code::MC_RIGHT)
-            mFSResources->expandRows();
-
         return true;
     }
 
@@ -718,9 +712,13 @@ namespace Steel
         static const Ogre::String intro = "Editor::processChangeEvent(): ";
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
         Ogre::String rawCommand = event_value;
+        bool verbose = true;
 
         if(Ogre::StringUtil::startsWith(rawCommand, "debugvaluemanager."))
         {
+            if(Ogre::StringUtil::endsWith(rawCommand, ".update"))
+                verbose = false;
+            
             // parse sibling, looking for the select element
             Rocket::Core::ElementList children;
             elem->GetParentNode()->GetElementsByTagName(children, "select");
@@ -736,6 +734,7 @@ namespace Steel
 
             rawCommand += ".";
             rawCommand += id;
+
         }
         else if(rawCommand == "editorbrush.terrabrush.distribution")
         {
@@ -807,7 +806,7 @@ namespace Steel
 
         //         Debug::log("Editor::processChangeEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
         if(rawCommand.size())
-            processCommand(rawCommand);
+            processCommand(rawCommand, verbose);
     }
 
     void Editor::processDragDropEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
@@ -840,12 +839,14 @@ namespace Steel
             processCommand(rawCommand);
     }
 
-    bool Editor::processCommand(Ogre::String rawCommand)
+    bool Editor::processCommand(Ogre::String rawCommand, bool verbose)
     {
         if("NoValue" == rawCommand)
             return true;
 
-        Debug::log("Editor::processCommand(raw=")(rawCommand)(")").endl();
+        if(verbose)
+            Debug::log("Editor::processCommand(raw=")(rawCommand)(")").endl();
+
         return processCommand(StringUtils::split(std::string(rawCommand), std::string(".")));
     }
 
@@ -1127,9 +1128,9 @@ namespace Steel
         return true;
     }
 
-    void Editor::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max)
+    void Editor::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max, float init)
     {
-        mDebugValueMan.addDebugValue(entryName, callback, min ,max);
+        mDebugValueMan.addDebugValue(entryName, callback, min , max, init);
     }
 
     void Editor::removeDebugValue(const Ogre::String &entryName)

@@ -43,6 +43,7 @@ namespace Steel
         mDocument = document;
         mCallbacks.clear();
         mCurrentEntry = Entry();
+        setSliderActive(false);
     }
 
     void DebugValueManager::shutdown()
@@ -67,18 +68,26 @@ namespace Steel
             selectControl->Add(entry.first.c_str(), entry.first.c_str());
     }
 
-    void DebugValueManager::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max)
+    void DebugValueManager::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max, float init)
     {
-        mCallbacks.emplace(entryName, Entry(callback, min, max));
+        mCallbacks.emplace(entryName, Entry(callback, min, max, init));
         refresh(mDocument);
     }
 
     Rocket::Controls::ElementFormControlDataSelect *DebugValueManager::findSelectControl(Rocket::Core::ElementDocument *document)
     {
-        if(nullptr != mDocument)
-            return static_cast<Rocket::Controls::ElementFormControlDataSelect *>(mDocument->GetElementById(mSelectControlId.c_str()));
+        return nullptr == mDocument ? nullptr : static_cast<Rocket::Controls::ElementFormControlDataSelect *>(mDocument->GetElementById(mSelectControlId.c_str()));
+    }
 
-        return nullptr;
+    void DebugValueManager::setSliderActive(bool flag)
+    {
+        auto slider = findSliderControl(mDocument);
+
+        if(slider)
+        {
+            slider->SetDisabled(!flag);
+            slider->SetProperty("visible", flag ? "true" : "false");
+        }
     }
 
     void DebugValueManager::removeDebugValue(const Ogre::String &entryName)
@@ -92,7 +101,10 @@ namespace Steel
             auto selectControl = findSelectControl(mDocument);
 
             if(selectControl && selectControl->GetOption(selectControl->GetSelection())->GetValue().CString() == entryName.c_str())
+            {
                 mCurrentEntry = Entry();
+                setSliderActive(false);
+            }
 
             mCallbacks.erase(entryName);
             refresh(mDocument);
@@ -126,6 +138,13 @@ namespace Steel
                 return true;
 
             mCurrentEntry = it->second;
+
+            // set slider to init position
+            setSliderActive(true);
+            auto slider = findSliderControl(mDocument);
+            float value = 100.f * (mCurrentEntry.init - mCurrentEntry.min) / (mCurrentEntry.max - mCurrentEntry.min);
+            slider->SetValue(Ogre::StringConverter::toString(value).c_str());
+
             Debug::log(intro)("chose ")(option->GetValue()).endl();
         }
         else if(command[0] == "update")
@@ -153,7 +172,7 @@ namespace Steel
     Rocket::Controls::ElementFormControlInput *DebugValueManager::findSliderControl(Rocket::Core::ElementDocument *document)
     {
         auto select = findSelectControl(document);
-        return static_cast<Rocket::Controls::ElementFormControlInput *>(select->GetParentNode()->GetElementById("debugvaluemanager_slider"));
+        return nullptr == select ? nullptr : static_cast<Rocket::Controls::ElementFormControlInput *>(select->GetParentNode()->GetElementById("debugvaluemanager_slider"));
     }
 
 }
