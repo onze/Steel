@@ -182,42 +182,84 @@ namespace Steel
 
         //Create the Body.
         mBody = new btRigidBody(mMass, state, shape, inertia);
-//         mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
-
+        // default
+//         mBody->setCollisionFlags(
+//             btCollisionObject::CF_ANISOTROPIC_FRICTION |
+//             //btCollisionObject::CF_ANISOTROPIC_FRICTION_DISABLED
+//             btCollisionObject::CF_ANISOTROPIC_ROLLING_FRICTION |
+//             btCollisionObject::CF_CHARACTER_OBJECT |
+//             btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK |
+//             btCollisionObject::CF_DISABLE_SPU_COLLISION_PROCESSING |
+//             btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT |
+//             btCollisionObject::CF_KINEMATIC_OBJECT |
+//             //btCollisionObject::CF_NO_CONTACT_RESPONSE
+//             btCollisionObject::CF_STATIC_OBJECT
+//         );
         // ghost setup if needed
-        if(mIsGhost)
-        {
-            // visual representation should not affect the world
-            mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-        }
+        setGhost(mIsGhost);
 
         mBody->setFriction(mFriction);
         setDamping(mDamping);
         mWorld->addRigidBody(mBody);
 
-        if(mEmitOnTag.size())
+        setUserPointer(nullptr);
+    }
+
+    void PhysicsModel::enableWorldInteractions(bool flag)
+    {
+        if(nullptr != mBody)
         {
-            // bullet hitbox
-            mGhostObject = new btPairCachingGhostObject();
-            mGhostObject->setWorldTransform(mBody->getWorldTransform());
-            mGhostObject->setCollisionShape(mBody->getCollisionShape());
-            mGhostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE |
-                                            btCollisionObject::CF_CHARACTER_OBJECT |
-//                                             btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK |
-                                            btCollisionObject::CF_STATIC_OBJECT |
-                                            btCollisionObject::CF_KINEMATIC_OBJECT
-                                           );
-            mWorld->addCollisionObject(mGhostObject);
+            if(flag)
+            {
+                // visual representation should not affect the world
+                mBody->setCollisionFlags(mBody->getCollisionFlags() | ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            }
+            else
+            {
+                mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            }
+        }
+    }
+
+    void PhysicsModel::setGhost(bool flag)
+    {
+        if(nullptr != mBody)
+        {
+            if(flag)
+            {
+                enableWorldInteractions(false);
+
+                // bullet hitbox
+                if(nullptr == mGhostObject)
+                    mGhostObject = new btPairCachingGhostObject();
+
+                mGhostObject->setWorldTransform(mBody->getWorldTransform());
+                mGhostObject->setCollisionShape(mBody->getCollisionShape());
+                mGhostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE |
+                                                btCollisionObject::CF_CHARACTER_OBJECT |
+                                                btCollisionObject::CF_STATIC_OBJECT |
+                                                btCollisionObject::CF_KINEMATIC_OBJECT
+                                               );
+
+                mWorld->addCollisionObject(mGhostObject);
+                mIsGhost = true;
+            }
+            else
+            {
+                if(nullptr != mGhostObject)
+                    mWorld->removeCollisionObject(mGhostObject);
+
+                mIsGhost = false;
+            }
         }
 
-        setUserPointer(nullptr);
     }
 
     void PhysicsModel::setKeepVerticalFactor(float value)
     {
         mKeepVerticalFactor = value;
     }
-    
+
     float PhysicsModel::keepVerticalFactor()
     {
         return mKeepVerticalFactor;
@@ -236,7 +278,7 @@ namespace Steel
     Signal PhysicsModel::registerEvent(EventType event, SignalListener *const listener)
     {
         auto it = mEventSignals.find(event);
-        Signal signal = mEventSignals.end() == it ? mEventSignals.emplace(event, SignalManager::instance().anonymousSignal()).second : it->second;
+        Signal signal = mEventSignals.end() == it ? mEventSignals.emplace(event, SignalManager::instance().anonymousSignal()).first->second : it->second;
         listener->registerSignal(signal);
         return signal;
     }
@@ -342,32 +384,38 @@ namespace Steel
 
     void PhysicsModel::toKinematics()
     {
-        removeFromWorld();
-        // http://www.oogtech.org/content/2011/09/07/bullet-survival-kit-4-the-motion-state/
-        // This flag tells the engine that the object is kinematic –
-        // so it shouldn’t move under the influence of gravity or because of colliding with other objects
-        mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-        mBody->setActivationState(DISABLE_DEACTIVATION);
-        auto zero = btVector3(0.f, .0f, .0f);
-        mBody->setLinearVelocity(zero);
-        mBody->setAngularVelocity(zero);
-        mIsKinematics = true;
-        addToWorld();
+        if(!mIsKinematics)
+        {
+            removeFromWorld();
+            // http://www.oogtech.org/content/2011/09/07/bullet-survival-kit-4-the-motion-state/
+            // This flag tells the engine that the object is kinematic –
+            // so it shouldn’t move under the influence of gravity or because of colliding with other objects
+            mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+            mBody->setActivationState(DISABLE_DEACTIVATION);
+            auto zero = btVector3(0.f, .0f, .0f);
+            mBody->setLinearVelocity(zero);
+            mBody->setAngularVelocity(zero);
+            mIsKinematics = true;
+            addToWorld();
+        }
     }
 
     void PhysicsModel::toRigidBody()
     {
-        removeFromWorld();
-//         mBody->forceActivationState(ACTIVE_TAG);
-        mBody->setActivationState(ACTIVE_TAG);
-        mBody->setCollisionFlags(mBody->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
-        mIsKinematics = false;
-        addToWorld();
+        if(mIsKinematics)
+        {
+            removeFromWorld();
+            //         mBody->forceActivationState(ACTIVE_TAG);
+            mBody->setActivationState(ACTIVE_TAG);
+            mBody->setCollisionFlags(mBody->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
+            mIsKinematics = false;
+            addToWorld();
+        }
     }
 
     void PhysicsModel::update(float timestep, PhysicsModelManager *manager)
     {
-        if(mEmitOnTag.size())
+        if(mIsGhost && mEmitOnTag.size())
         {
             collisionCheck(manager);
         }
@@ -633,11 +681,12 @@ namespace Steel
     {
         if(!mStates.empty())
         {
-            if(mStates.top() != mIsKinematics)
-            {
-                mIsKinematics ? toRigidBody() : toKinematics();
-            }
+            State state = mStates.top();
 
+            if(state.isKinematics != mIsKinematics)
+                mIsKinematics ? toRigidBody() : toKinematics();
+
+            mBody->setCollisionFlags(state.bodyCollisionFlags);
             mStates.pop();
         }
 
@@ -646,7 +695,7 @@ namespace Steel
 
     void PhysicsModel::pushState()
     {
-        mStates.push(mIsKinematics);
+        mStates.push( {mIsKinematics, mBody->getCollisionFlags()});
     }
 
     void PhysicsModel::move(const Ogre::Vector3 &dpos)

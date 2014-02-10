@@ -111,6 +111,7 @@ namespace Steel
         void cleanup();
 
         void update(float timestep, PhysicsModelManager *manager);
+        /// used to store a void* within the physics object TODO: store an AgentId
         void setUserPointer(Agent *agent);
         
         void enableDeactivation();
@@ -124,6 +125,10 @@ namespace Steel
         
         float keepVerticalFactor();
         void setKeepVerticalFactor(float value);
+        /// A ghost model won't interact with the world, but may still detect collisions.
+        void setGhost(bool flag);
+        /// World interactions are physics interactions with other physics object of the world.
+        void enableWorldInteractions(bool flag);
     protected:
         /// Dispatches signals upon valid collisions.
         void collisionCheck(PhysicsModelManager *manager);
@@ -149,7 +154,12 @@ namespace Steel
         float mRotationFactor;
         float mKeepVerticalFactor;
         /// kinematics/rigidBody states stack
-        std::stack<bool> mStates;
+        struct State
+        {
+            bool isKinematics;
+            int bodyCollisionFlags;
+        };
+        std::stack<State> mStates;
         /// Shape of the physic model representing the graphic model.
         BoundingShape mShape;
 
