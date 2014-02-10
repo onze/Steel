@@ -114,6 +114,14 @@ namespace Steel
         return defaultValue;
     }
 
+    static Ogre::Quaternion JsonUtils::asQuaternion(Json::Value const &value, const Ogre::Quaternion &defaultValue = Ogre::Quaternion::IDENTITY)
+    {
+        if(value.isString())
+            return Ogre::StringConverter::parseQuaternion(value.asString());
+
+        return defaultValue;
+    }
+
     std::list<Ogre::String> JsonUtils::asStringsList(Json::Value const &value, std::list<Ogre::String> defaultValue, Ogre::String defaultItemValue)
     {
         if(value.isNull() || !value.isArray())
