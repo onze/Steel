@@ -88,12 +88,29 @@ namespace Steel
 
         return defaultValue;
     }
-    
+
     Ogre::Vector3 JsonUtils::asVector3(Json::Value const &value, const Ogre::Vector3 &defaultValue)
     {
         if(value.isString())
-            return Ogre::StringConverter::parseVector3(value.asString());
-        
+        {
+            auto const &s = value.asString();
+
+            if(Ogre::StringConverter::isNumber(s))
+            {
+                float f = Ogre::StringConverter::parseReal(s);
+                return Ogre::Vector3(f, f, f);
+            }
+            else
+            {
+                return Ogre::StringConverter::parseVector3(s);
+            }
+        }
+        else if(value.isNumeric())
+        {
+            float f = value.asFloat();
+            return Ogre::Vector3(f, f, f);
+        }
+
         return defaultValue;
     }
 
@@ -148,17 +165,17 @@ namespace Steel
 
         return output;
     }
-    
+
     std::list<unsigned long> JsonUtils::asUnsignedLongList(const Json::Value &value, const std::list<unsigned long> defaultValue, unsigned long defaultItemValue)
     {
         if(value.isNull() || !value.isArray())
             return defaultValue;
-        
+
         std::list<unsigned long> output;
-        
+
         for(Json::ValueIterator it = value.begin(); it != value.end(); ++it)
             output.push_back(asUnsignedLong(*it, defaultItemValue));
-        
+
         return output;
     }
 
@@ -174,17 +191,17 @@ namespace Steel
 
         return map;
     }
-    
+
     std::map<Ogre::String, unsigned long> JsonUtils::asStringUnsignedLongMap(const Json::Value &value)
     {
         std::map<Ogre::String, unsigned long> map;
-        
+
         if(value.isNull() || !value.isObject())
             return map;
-        
+
         for(auto const & name : value.getMemberNames())
             map.emplace(Ogre::String(name), asUnsignedLong(value[name], 0));
-        
+
         return map;
     }
 }

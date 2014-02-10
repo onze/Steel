@@ -38,7 +38,9 @@ namespace Steel
         int found=mRegisteredSignals.erase(signal);
         if(found)
         {
+#ifdef DEBUG
             mRegisteredSignalStrings.erase(SignalManager::instance().fromSignal(signal));
+#endif
             SignalManager::instance().unregisterListener(signal,this);
         }
     }
