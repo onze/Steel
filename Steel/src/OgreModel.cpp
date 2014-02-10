@@ -219,28 +219,25 @@ namespace Steel
         Json::Value value;
         bool allWasFine = true;
 
-        // gather it
-        value = node[OgreModel::POSITION_ATTRIBUTE];
-
-        if(value.isNull())
+        // position
+        if(node[OgreModel::POSITION_ATTRIBUTE].isNull())
             Debug::error(intro)("position is null: no translation applied.").endl();
         else
-            pos = Ogre::StringConverter::parseVector3(value.asString());
+            pos = JsonUtils::asVector3(node[OgreModel::POSITION_ATTRIBUTE], pos);
 
-        value = node[OgreModel::ROTATION_ATTRIBUTE];
-
+        //rotation
         if(value.isNull())
             Debug::warning(intro)("rotation is null: no rotation applied.").endl();
         else
-            rot = Ogre::StringConverter::parseQuaternion(value.asString());
+            rot = scale = JsonUtils::asQuaternion(node[OgreModel::ROTATION_ATTRIBUTE], rot);
 
-        value = node[OgreModel::SCALE_ATTRIBUTE];
-
-        if(value.isNull())
+        //scale
+        if(node[OgreModel::SCALE_ATTRIBUTE].isNull())
             Debug::warning(intro)("scale is null: no scaling applied.").endl();
         else
-            scale = Ogre::StringConverter::parseVector3(value.asString());
+            scale = JsonUtils::asVector3(node[OgreModel::SCALE_ATTRIBUTE], scale);
 
+        // mesh name
         value = node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE];
 
         if(value.isNull() && !(allWasFine = false))
@@ -248,6 +245,7 @@ namespace Steel
         else
             meshName = Ogre::String(value.asString());
 
+        // custom material
         Ogre::String materialName = Ogre::StringUtil::BLANK;
 
         if(node.isMember(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE))
