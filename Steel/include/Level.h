@@ -39,7 +39,7 @@ namespace Steel
         static const char *AGENTS_ATTRIBUTE;
         static const char *MANAGERS_ATTRIBUTE;
         static const char *GRAVITY_ATTRIBUTE;
-        
+
         /// Model resource parsing
         static const char *MODELS_ATTRIBUTE;
         static const char *MODEL_TYPE_ATTRIBUTE;
@@ -58,7 +58,7 @@ namespace Steel
 
         /// Returns the name of the json file that contains this level's properies.
         File getSavefile();
-        
+
         void loadConfig(ConfigFile const &config);
 
         bool isOver();
@@ -92,12 +92,12 @@ namespace Steel
 
         /// Main loop iteration.
         void update(float timestep);
-        
+
         /// Finds the agent owning the first OgreModel under the mouse, and returns its id.
         AgentId agentIdUnderMouse();
         /// Finds the agent owning the first OgreModel under the mouse, and returns its model of the given type.
         ModelId modelIdUnderMouse(ModelType mType);
-        
+
         Ogre::Vector3 getDropTargetPosition();
         Ogre::Quaternion getDropTargetRotation();
         Ogre::Vector2 getSlotDropPosition();
@@ -113,7 +113,7 @@ namespace Steel
         bool instanciateResource(Steel::File const &file, AgentId &aid);
         /// Forward call to instanciateResource(Steel::File& file, AgentId &aid), and discards the aid.
         bool instanciateResource(Steel::File const &file);
-        
+
         /**
          * Instanciate a model from its serialization.
          * If aid is valid (!=INVALID_ID), the model is attached to that agent. Otherwise, a new agent is created,
@@ -133,7 +133,7 @@ namespace Steel
          * and instanciate it.
          */
         bool loadTerrainSlotFromSerialization(Json::Value &root);
-        
+
         //////////////////////////////////////////////////////
         //getters
         inline Ogre::ColourValue backgroundColor() const {return mBackgroundColor;}
@@ -159,10 +159,11 @@ namespace Steel
         inline LocationModelManager *locationModelMan() {return mLocationModelMan;}
         inline BlackBoardModelManager *blackBoardModelMan() {return mBlackBoardModelManagerMan;}
 
+        inline Engine *const engine() const {return mEngine;}
     private:
         /// name used in debug output
         Ogre::String logName();
-        
+
         /// If found and set to true in an object of a model serialization, values of the object skip their way through dynamicFillSerialization.
         static const char *DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE;
         /**

@@ -98,16 +98,22 @@ namespace Steel
 
         if(mCallbacks.end() != it)
         {
+            mCallbacks.erase(it);
             auto selectControl = findSelectControl(mDocument);
-
-            if(selectControl && selectControl->GetOption(selectControl->GetSelection())->GetValue().CString() == entryName.c_str())
-            {
-                mCurrentEntry = Entry();
-                setSliderActive(false);
-            }
-
-            mCallbacks.erase(entryName);
             refresh(mDocument);
+            setFeedback("");
+
+            if(selectControl)
+            {
+                auto option = selectControl->GetOption(selectControl->GetSelection());
+
+                if(nullptr != option && option->GetValue().CString() == entryName.c_str())
+                {
+                    mCurrentEntry = Entry();
+                    setSliderActive(false);
+                }
+
+            }
         }
     }
 
@@ -153,7 +159,10 @@ namespace Steel
             {
                 Rocket::Controls::ElementFormControlInput *slider = findSliderControl(mDocument);
                 float value = Ogre::StringConverter::parseReal(slider->GetValue().CString()) * .01;
-                mCurrentEntry.callback(mCurrentEntry.min + value * (mCurrentEntry.max - mCurrentEntry.min));
+                float finalValue = mCurrentEntry.min + value * (mCurrentEntry.max - mCurrentEntry.min);
+                mCurrentEntry.callback(finalValue);
+
+                setFeedback(Ogre::StringConverter::toString(finalValue));
             }
             else
             {
@@ -167,6 +176,19 @@ namespace Steel
         }
 
         return true;
+    }
+
+    void DebugValueManager::setFeedback(Ogre::String const &value)
+    {
+        auto select = findSelectControl(mDocument);
+
+        if(nullptr != select)
+        {
+            auto feedback = select->GetParentNode()->GetElementById("feedback");
+
+            if(nullptr != feedback)
+                feedback->SetInnerRML(value.c_str());
+        }
     }
 
     Rocket::Controls::ElementFormControlInput *DebugValueManager::findSliderControl(Rocket::Core::ElementDocument *document)

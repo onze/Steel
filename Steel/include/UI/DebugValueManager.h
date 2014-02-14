@@ -74,6 +74,7 @@ namespace Steel
 
         Rocket::Controls::ElementFormControlDataSelect *findSelectControl(Rocket::Core::ElementDocument *document);
         Rocket::Controls::ElementFormControlInput *findSliderControl(Rocket::Core::ElementDocument *document);
+        void setFeedback(Ogre::String const& value);
         void setSliderActive(bool flag);
         /// Actually adds an entry
         int addOption(const Ogre::String &entryName);
