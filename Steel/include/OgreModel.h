@@ -8,11 +8,12 @@
 #include <OgreEntity.h>
 
 #include "Model.h"
+#include "SignalListener.h"
 
 namespace Steel
 {
     
-    class OgreModel: public Model
+    class OgreModel: public Model, SignalListener
     {
         public:
             static const Ogre::String POSITION_ATTRIBUTE;
@@ -82,6 +83,7 @@ namespace Steel
             bool isVisible() const {return nullptr == mEntity ? false:mEntity->isVisible();}
 
             virtual void cleanup();
+            virtual void onSignal(Signal signal, SignalEmitter *src = nullptr);
             
         protected:
             // not owned
