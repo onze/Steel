@@ -114,10 +114,10 @@ namespace Steel
         return defaultValue;
     }
 
-    static Ogre::Quaternion JsonUtils::asQuaternion(Json::Value const &value, const Ogre::Quaternion &defaultValue = Ogre::Quaternion::IDENTITY)
+    Ogre::Quaternion JsonUtils::asQuaternion(Json::Value const &value, const Ogre::Quaternion &defaultValue)
     {
         if(value.isString())
-            return Ogre::StringConverter::parseQuaternion(value.asString());
+            return Ogre::StringConverter::parseQuaternion(value.asString(), defaultValue);
 
         return defaultValue;
     }
