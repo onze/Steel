@@ -116,6 +116,10 @@ namespace Steel
         Model::cleanup();
     }
 
+    void OgreModel::onSignal(Signal signal, SignalEmitter *src)
+    {
+    }
+
     Ogre::Vector3 OgreModel::position() const
     {
         return mSceneNode->getPosition();
@@ -175,9 +179,7 @@ namespace Steel
 
     void OgreModel::setSelected(bool selected)
     {
-#ifdef DEBUG
         mSceneNode->showBoundingBox(selected);
-#endif
     }
 
     void OgreModel::toJson(Json::Value &node)
@@ -226,10 +228,10 @@ namespace Steel
             pos = JsonUtils::asVector3(node[OgreModel::POSITION_ATTRIBUTE], pos);
 
         //rotation
-        if(value.isNull())
+        if(node[OgreModel::ROTATION_ATTRIBUTE].isNull())
             Debug::warning(intro)("rotation is null: no rotation applied.").endl();
         else
-            rot = scale = JsonUtils::asQuaternion(node[OgreModel::ROTATION_ATTRIBUTE], rot);
+            rot = JsonUtils::asQuaternion(node[OgreModel::ROTATION_ATTRIBUTE], rot);
 
         //scale
         if(node[OgreModel::SCALE_ATTRIBUTE].isNull())
