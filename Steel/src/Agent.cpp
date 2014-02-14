@@ -18,9 +18,9 @@
 #include "TagManager.h"
 #include "LocationModelManager.h"
 #include "PhysicsModel.h"
-#include <BTModel.h>
-#include <BTModelManager.h>
-#include <AgentManager.h>
+#include "BTModel.h"
+#include "BTModelManager.h"
+#include "AgentManager.h"
 
 namespace Steel
 {
@@ -48,7 +48,7 @@ namespace Steel
 
         while(mTags.size())
             untag(mTags.begin()->first);
-        
+
         mLevel = nullptr;
         mId = INVALID_ID;
     }
@@ -357,6 +357,15 @@ namespace Steel
             btm->setSelected(selected);
 
         mIsSelected = selected;
+        emit(mIsSelected ? EventType::SELECTED : EventType::UNSELECTED);
+    }
+
+    void Agent::emit(Agent::EventType e)
+    {
+        auto const it = mSignalMap.find(e);
+
+        if(mSignalMap.end() != it)
+            this->SignalEmitter::emit(it->second);
     }
 
     Json::Value Agent::toJson()
@@ -615,12 +624,20 @@ namespace Steel
 
     bool Agent::setBTPath(Ogre::String const &name)
     {
+        Debug::warning("Agent::setBTPath(): untested code.");
+
+        if(nullptr != btModel())
+            btModel()->setPath(name);
+
         return true;
     }
 
     void Agent::unsetBTPath()
     {
+        Debug::warning("Agent::unsetBTPath(): untested code.");
 
+        if(nullptr != btModel())
+            btModel()->unsetPath();
     }
 
     bool Agent::hasBTPath()
@@ -705,6 +722,13 @@ namespace Steel
     Ogre::String Agent::BTPath()
     {
         return nullptr == btModel() ? LocationModel::EMPTY_PATH : btModel()->path();
+    }
+
+    Signal Agent::signal(EventType e)
+    {
+        auto it = mSignalMap.find(e);
+        return mSignalMap.end() == it ? mSignalMap.emplace(e, SignalManager::instance().anonymousSignal()).first->second : it->second;
+
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

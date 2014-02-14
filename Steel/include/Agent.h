@@ -11,12 +11,14 @@
 #include <OgreVector3.h>
 
 #include "steeltypes.h"
+#include "SignalEmitter.h"
 
 namespace Steel
 {
+
     class Level;
     class Model;
-    
+
     class OgreModel;
     class PhysicsModel;
     class LocationModel;
@@ -29,7 +31,7 @@ namespace Steel
      * Agents use composition of Model subclasses to achieve different behaviors. One can think of
      * an agent as an entry in a table, that only contains ids of models it is made of.
      */
-    class Agent
+    class Agent : public SignalEmitter
     {
     public:
         static const char *TAGS_ATTRIBUTE;
@@ -45,7 +47,7 @@ namespace Steel
         inline AgentId id() {return mId;}
         inline bool isFree() {return mId == INVALID_ID;}
 
-        void init(AgentId id);
+        //void init(AgentId id);
         void cleanup();
 
         /// Setup new Agent according to data in the json serialization.
@@ -76,23 +78,23 @@ namespace Steel
 
         inline BTModel *btModel() const {return (BTModel *) model(MT_BT);}
         inline ModelId btModelId() const {return modelId(MT_BT);}
-        
+
         inline BlackBoardModel *blackBoardModel() const {return (BlackBoardModel *) model(MT_BLACKBOARD);}
         inline ModelId blackBoardModelId() const {return modelId(MT_BLACKBOARD);}
 
         inline bool isSelected() {return mIsSelected;}
 
         /**
-         * Make an agent selected or not.
+         * Makes an agent un/selected.
          * Being (de)selected can have different effects on the agent's models.
          */
         void setSelected(bool selected);
-        
+
         bool setBTPath(Ogre::String const &name);
         void unsetBTPath();
         bool hasBTPath();
         /**
-         * Sets a new BTModel as current one (pushing any previously set one on the stack). 
+         * Sets a new BTModel as current one (pushing any previously set one on the stack).
          * This bt makes the agent follow the path which the given agent belongs to.
          * Returns operation success.
          */
@@ -135,7 +137,7 @@ namespace Steel
         void setPosition(const Ogre::Vector3 &pos);
         void setRotation(const Ogre::Quaternion &rot);
         void setScale(const Ogre::Vector3 &sca);
-        
+
         //////////////////////////////////////////////////////////////////////
         // LocationModel shortcuts
 
@@ -148,7 +150,7 @@ namespace Steel
         //////////////////////////////////////////////////////////////////////
         // BTModel shortcuts
         Ogre::String BTPath();
-        
+
         //////////////////////////////////////////////////////////////////////
         // BlackBoardModel shortcuts
 
@@ -160,8 +162,23 @@ namespace Steel
         void untag(std::set<Tag> tags);
         std::set<Tag> tags() const;
 
+        //////////////////////////////////////////////////////////////////////
+        // signals
+        /// Emitted signals
+        enum class EventType : int
+        {
+            SELECTED = 1,
+            UNSELECTED = 2,
+        };
+        /// Returns the signal for the given event
+        Signal signal(EventType e);
     private:
+        /// Emit with an auto lookup for the corresponding signal value.
+        void emit(Agent::EventType e);
+    public:
         
+
+    private:
         /// Unique id.
         AgentId mId;
 
@@ -178,9 +195,12 @@ namespace Steel
          * a ref count (map value) is kept, to support unlinking from model.
          */
         std::map<Tag, unsigned> mTags;
-        
+
         /// Stack of behaviors. Current one is in mModelIds though.
         std::list<ModelId> mBehaviorsStack;
+
+        typedef std::map<EventType, Signal> SignalMap;
+        SignalMap mSignalMap;
     };
 
 }
