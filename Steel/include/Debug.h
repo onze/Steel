@@ -172,15 +172,14 @@ namespace Steel
                 for(auto it = shapeStream->mData.begin(); it != shapeStream->mData.end(); ++it)
                     (*this)(*it)(", ").endl();
 
-                this->operator()("]").unIndent();
-                return *this;
+                return (*this)("]").unIndent();
             }
-            
+
             DebugObject &operator()(BTNodeState state)
             {
                 return (*this)(BTNodeStateAsString[static_cast<int>(state)]);
             }
-            
+
             DebugObject &operator()(BTNode *const node)
             {
                 if(nullptr == node)
@@ -189,12 +188,12 @@ namespace Steel
                 }
                 else
                 {
-                    this->operator()("BTNode{").endl().indent();
+                    (*this)("BTNode{").endl().indent();
                     (*this)("begin:")(node->begin())(", ").endl();
                     (*this)("end:")(node->end())(", ").endl();
                     (*this)("state:")(node->state())(", ").endl();
                     (*this)("token:")(node->token())(", ").endl();
-                    this->operator()("}").unIndent();
+                    (*this)("}").unIndent();
                 }
 
                 return *this;
@@ -205,12 +204,9 @@ namespace Steel
                 this->operator()("list[");
 
                 for(auto it = list.begin(); it != list.end(); ++it)
-                {
                     this->operator()((*it)->archive->getName())(", ");
-                }
-
-                this->operator()("]");
-                return *this;
+                
+                return (*this)("]");
             }
 
             DebugObject &operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list)
@@ -218,12 +214,9 @@ namespace Steel
                 this->operator()("list[");
 
                 for(auto it = list.begin(); it != list.end(); ++it)
-                {
                     this->operator()((*it).resourceName)(", ");
-                }
-
-                this->operator()("]");
-                return *this;
+                
+                return (*this)("]");
             }
 
             template<class T>
@@ -232,14 +225,9 @@ namespace Steel
                 this->operator()("vec[");
 
                 for(auto it = container.begin(); it != container.end(); ++it)
-                {
                     this->operator()(*it)(", ");
-//                             if(((T)(*it))!=((T)container.back()))
-//                                 this->operator()(", ");
-                }
 
-                this->operator()("]");
-                return *this;
+                return (*this)("]");
             }
 
             template<class T>
@@ -248,14 +236,9 @@ namespace Steel
                 this->operator()("set[");
 
                 for(auto it = container.begin(); it != container.end(); ++it)
-                {
                     this->operator()(*it)(", ");
-                    //                             if(((T)(*it))!=((T)container.back()))
-                    //                                 this->operator()(", ");
-                }
 
-                this->operator()("]");
-                return *this;
+                return (*this)("]").unIndent();
             }
 
             template<class T>
@@ -264,30 +247,34 @@ namespace Steel
                 this->operator()("list[");
 
                 for(auto it = container.begin(); it != container.end(); ++it)
-                {
                     this->operator()(*it)(", ");
-//                             if(((T)(*it))!=((T)container.back()))
-//                                 this->operator()(", ");
-                }
-
-                this->operator()("]");
-                return *this;
+                
+                return (*this)("]");
             }
 
             /// Print the parameter between quotes.
             template<class T>
             DebugObject &quotes(T const &o)
             {
-                (*this)("\"")(o)("\"");
-                return *this;
+                return (*this)("\"")(o)("\"");
             }
 
             DebugObject &endl()
             {
+                return flush(true);
+            }
+
+            DebugObject &flush(bool breakline = false)
+            {
 //                         std::replace(mMsg.begin(),mMsg.end(),"\n","\n\t");
                 if(nullptr == mLog)
                 {
-                    std::cout << "[RAW]" << mPre << mMsg << mPost << std::endl;
+                    std::cout << "[RAW]" << mPre << mMsg << mPost;
+
+                    if(breakline)
+                        std::cout << std::endl;
+                    else
+                        std::cout.flush();
                 }
                 else
                 {
