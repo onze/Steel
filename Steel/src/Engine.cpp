@@ -25,10 +25,10 @@
 #include "tools/File.h"
 #include "tools/StringUtils.h"
 #include "tools/OgreUtils.h"
-#include "tests/utests.h"
 #include "EngineEventListener.h"
 #include "SelectionManager.h"
 #include "SignalManager.h"
+#include <tests/UnitTestManager.h>
 
 namespace Steel
 {
@@ -248,9 +248,12 @@ namespace Steel
         // unit testing
         if(Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
         {
-            Debug::log("Starting unit tests...").endl();
             bool abortOnFail = Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests_abort_on_fail"), true);
-            bool all_passed = startTests(this, abortOnFail);
+            
+            UnitTestExecutionContext context;
+            context.engine = this;
+            
+            bool all_passed = UnitTestManager::instance().execute("Steel.init", context, abortOnFail);
 
             if(!all_passed)
             {
@@ -359,12 +362,11 @@ namespace Steel
 
         while(!mMustAbortMainLoop)
         {
-            processAllCommands();
-
             frameStart = engineStart;
             mMustAbortMainLoop = !mRoot->_fireFrameStarted();
-
-            //update inputs
+            
+            processAllCommands();
+            // update inputs
             if(mMustAbortMainLoop)
             {
                 mIsInMainLoop = false;
@@ -382,6 +384,7 @@ namespace Steel
             // update file watching
             File::dispatchEvents();
 
+            // update level
             if(nullptr != mLevel)
             {
                 float dt = float(timer.getMilliseconds() - graphicsStart) / 1000.f;
@@ -395,7 +398,7 @@ namespace Steel
             graphicsStart = timer.getMilliseconds();
             mStats.lastEngineDuration = static_cast<double>(graphicsStart - engineStart);
 
-            // render
+            // update graphics
             mRoot->_updateAllRenderTargets();
             mRenderWindow->update();
             mRoot->_fireFrameRenderingQueued();
@@ -407,10 +410,10 @@ namespace Steel
             mStats.lastGraphicFrameDuration = static_cast<double>(engineStart - graphicsStart);
             mStats.lastFullFrameDuration = static_cast<double>(engineStart - frameStart);
 
-            double dt = 1000. / 30. - mStats.lastFullFrameDuration;
+            double delay = 1000. / 30. - mStats.lastFullFrameDuration;
 
-            if(dt > 0)
-                usleep(static_cast<useconds_t>(dt * ms2us));
+            if(delay > 0)
+                usleep(static_cast<useconds_t>(delay * ms2us));
 
             if(singleLoop)
                 break;
@@ -422,6 +425,9 @@ namespace Steel
 
     bool Engine::onInputEvent(Input::Event const &evt)
     {
+        if(!mIsInMainLoop)
+            return true;
+        
         bool ok = InputEventListener::onInputEvent(evt);
 
         if(mEditMode)

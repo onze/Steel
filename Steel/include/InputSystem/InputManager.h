@@ -10,7 +10,9 @@
 #include <OgreWindowEventUtilities.h>
 
 #include "Input.h"
+#include "InputBuffer.h"
 #include "steeltypes.h"
+#include <tools/File.h>
 
 namespace Steel
 {
@@ -52,10 +54,16 @@ namespace Steel
         
         void resetFrameBasedData();
         void resetAllData();
-
         void update();
         
-        void registerAction(Input::Code const code, Input::Type const type, Tag const tag);
+        /////////////////////////////////
+        // Actions related stuff
+        /// Makes the inputManager fire a signal upon receiving the given input. This can help map input from harware space (A, B) to game space (attack, defend).
+        void registerAction(Input::Code const code, Input::Type const type, Signal const signal);
+        void unregisterAction(Input::Code const code, Input::Type const type, Signal const signal);
+        void unregisterAllActions();
+        bool loadActionFile(File const &file);
+        
 
         /**
          * called by OIS when the window has been resized.
@@ -77,6 +85,7 @@ namespace Steel
 
         inline OIS::Mouse *mouse() {return mMouse;}
         inline OIS::Keyboard *keyboard() {return mKeyboard;}
+        inline InputBuffer &inputBuffer() {return mInputBuffer;}
 
         //setters
         /// move the mouse to the given window position
@@ -152,6 +161,8 @@ namespace Steel
         
         /// Register of InputEvent happening -> Actions to fire.
         std::map<std::pair<Input::Code, Input::Type>, std::list<Signal>> mActionsRegister;
+        
+        InputBuffer mInputBuffer;
         
     };
 

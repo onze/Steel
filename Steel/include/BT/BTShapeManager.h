@@ -11,6 +11,7 @@
 
 namespace Steel
 {
+    class UnitTestExecutionContext;
     /**
      * Handles behavior tree shape streams, that is BTShapeStream.
      * Could be a manager on its own.
@@ -53,7 +54,8 @@ namespace Steel
             /// map streamIds to shapeStreams
             BTShapeStreamMap mStreamMap;
     };
-
+    
+    bool utest_BTShapeStream(UnitTestExecutionContext const* context);
 }
 
 #endif // STEEL_BTSHAPEMANAGER_H

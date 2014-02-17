@@ -17,7 +17,10 @@ Install Directory=file:///usr/local
 
 [MakeBuilder]
 Default Make Environment Profile=Debug
-Number Of Jobs=8
+Number Of Jobs=7
 
 [Project]
 VersionControlSupport=kdevgit
+
+[SourceFileTemplates]
+LastUsedTemplate=/home/onze/.kde/share/apps/kdevfiletemplates/template_descriptions/cpp_basic.desktop

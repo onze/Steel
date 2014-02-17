@@ -9,6 +9,8 @@
 
 #include "BT/btnodetypes.h"
 
+#define BIT(N) 1<<N
+
 namespace Steel
 {
 
@@ -16,6 +18,16 @@ namespace Steel
     typedef unsigned long ModelId;
     typedef std::list<AgentId> Selection;
     typedef std::pair<ModelId, ModelId> ModelPair;
+    
+    //////////////////////////////////////////////////////////////
+    // TIme related stuff go here
+    /// Duration can be negative.
+    typedef long int Duration;
+    /// Basically what returns Ogre::Timer::get<whatevs>
+    typedef long unsigned int TimeStamp;
+    
+    
+    typedef unsigned int RefCount;
 
     /// invalid Model/Agent id.
     const unsigned long INVALID_ID = ULONG_MAX;
@@ -58,6 +70,8 @@ namespace Steel
     
     /// Name of a path made of linked LocationModels.
     typedef Ogre::String LocationPathName;
+    
+    
 }
 
 #endif

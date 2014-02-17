@@ -1,7 +1,9 @@
 #ifndef STEEL_BTNODETYPES_H_
 #define STEEL_BTNODETYPES_H_
 
+#include <vector>
 #include <map>
+
 #include <OgreString.h>
 
 namespace Steel

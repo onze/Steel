@@ -13,6 +13,8 @@
 
 namespace Steel
 {
+    class UnitTestExecutionContext;
+
     class StringUtils
     {
     public:
@@ -85,6 +87,8 @@ namespace Steel
 
         static Ogre::String BTShapeTokenTypeToString(BTShapeTokenType type);
     };
+
+    bool utest_StringUtils(UnitTestExecutionContext const *context);
 }
 #endif
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

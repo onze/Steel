@@ -1,5 +1,5 @@
 
-#include "InputEventListener.h"
+#include "InputSystem/InputEventListener.h"
 
 namespace Steel
 {
@@ -30,7 +30,7 @@ namespace Steel
 
                     case Input::Type::MOVE:
                         return this->mouseMoved(evt.position, evt);
-                        
+
                     case Input::Type::NONE:
                         if(evt.code == Input::Code::MC_WHEEL)
                             return this->mouseWheeled(evt.delta, evt);

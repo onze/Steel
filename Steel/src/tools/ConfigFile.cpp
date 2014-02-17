@@ -35,6 +35,11 @@ namespace Steel
         return *this;
     }
 
+    bool ConfigFile::operator!=(const ConfigFile &o) const
+    {
+        return !((*this) == o);
+    }
+
     bool ConfigFile::operator==(const ConfigFile &o) const
     {
         bool equals = true;
@@ -126,63 +131,167 @@ namespace Steel
 
     int ConfigFile::getSettingAsBool(const Ogre::String &key, bool defaultValue) const
     {
-        if(mSettings.size() == 0)
-            return defaultValue;
+        bool returned = defaultValue;
 
-        if(mSettings.isMember(key))
-            return JsonUtils::asBool(mSettings[key], defaultValue);
+        if(mSettings.size() != 0)
+        {
+            if(mSettings.isMember(key))
+                returned = JsonUtils::asBool(mSettings[key], defaultValue);
+        }
 
-        return defaultValue;
+        return returned;
     }
 
     int ConfigFile::getSettingAsInt(const Ogre::String &key, int defaultValue) const
     {
-        if(mSettings.size() == 0)
-            return defaultValue;
+        int returned = defaultValue;
 
-        if(mSettings.isMember(key))
-            return JsonUtils::asInt(mSettings[key], defaultValue);
+        if(mSettings.size() != 0)
+        {
+            if(mSettings.isMember(key))
+                returned = JsonUtils::asInt(mSettings[key], defaultValue);
+        }
 
-        return defaultValue;
+        return returned;
     }
 
     float ConfigFile::getSettingAsFloat(const Ogre::String &key, float defaultValue) const
     {
-        if(mSettings.size() == 0)
-            return defaultValue;
+        float returned = defaultValue;
 
-        if(mSettings.isMember(key))
-            return JsonUtils::asFloat(mSettings[key], defaultValue);
+        if(mSettings.size() != 0)
+        {
 
-        return defaultValue;
+            if(mSettings.isMember(key))
+                returned = JsonUtils::asFloat(mSettings[key], defaultValue);
+        }
+
+        return returned;
     }
 
     unsigned long ConfigFile::getSettingAsUnsignedLong(const Ogre::String &key, long unsigned int defaultValue) const
     {
-        if(mSettings.size() == 0)
-            return defaultValue;
+        unsigned long returned = defaultValue;
 
-        if(mSettings.isMember(key))
-            return JsonUtils::asUnsignedLong(mSettings[key], defaultValue);
+        if(mSettings.size() != 0)
+        {
+            if(mSettings.isMember(key))
+                returned = JsonUtils::asUnsignedLong(mSettings[key], defaultValue);
+        }
 
-        return defaultValue;
+        return returned;
     }
 
     Ogre::String ConfigFile::getSetting(const Ogre::String &key, const Ogre::String &defaultValue) const
     {
+        Ogre::String returned = defaultValue;
+
         if(mSettings.isMember(key))
         {
             Json::Value value = mSettings[key];
 
             if(value.isString())
-                return value.asString();
+                returned = value.asString();
             else
-                return value.toStyledString();
+                returned = value.toStyledString();
         }
 
-        return defaultValue;
+        return returned;
     }
 
+    bool utest_ConfigFile(UnitTestExecutionContext const *context)
+    {
+        const Ogre::String path = "/tmp/test.cfg";
+        const Ogre::String path2 = "/tmp/test.cfg2";
+#define CLEANUP File(path).rm();File(path2).rm();
+        const int intValue = 8; // chosen randomly
+        const Ogre::String key = "myKey";
+        const Ogre::String stringValue = "myStringValue"; // chosen randomly too
+
+        {
+            CLEANUP;
+            ConfigFile cf(path);
+
+            if(cf.getSetting(key) != Ogre::StringUtil::BLANK)
+            {
+                Debug::error("loading from a new file should return a blank value").endl().breakHere();
+                return false;
+            }
+        }
+
+        //TODO: all supported types
+        {
+            CLEANUP;
+            ConfigFile cf(path);
+            cf.setSetting(key, stringValue);
+
+            if(cf.getSetting(key) != stringValue)
+            {
+                Debug::error("failed set/get string setting").endl().breakHere();
+                return false;
+            }
+        }
+
+        {
+            CLEANUP;
+            ConfigFile cf(path);
+            cf.setSetting(key, stringValue);
+
+            ConfigFile copied(cf);
+
+            if(!(copied == cf))
+            {
+                Debug::error("config files do not equal after copy").endl().breakHere();
+                return false;
+            }
+
+            if(copied.getSetting(key) != stringValue)
+            {
+                Debug::error("failed at copying value through copy ctor").endl().breakHere();
+                return false;
+            }
+        }
+
+        {
+            CLEANUP;
+            ConfigFile cf(path);
+            cf.setSetting(key, stringValue);
+            ConfigFile equalled(path2);
+            equalled = cf;
+
+            if(!(equalled == cf))
+            {
+                Debug::error("config files do not equal after assignation").endl().breakHere();
+                return false;
+            }
+
+            if(equalled.getSetting(key) != stringValue)
+            {
+                Debug::error("failed at copying value through assignation").endl().breakHere();
+                return false;
+            }
+        }
+
+        {
+            CLEANUP;
+            ConfigFile cf(path);
+            cf.setSetting(key, intValue);
+            cf.save();
+
+            ConfigFile cf2(path);
+            int ret = cf2.getSettingAsInt(key);
+
+            if(ret != intValue)
+            {
+                Debug::error("failed persistency test").endl().breakHere();
+                return false;
+            }
+        }
+
+        CLEANUP;
+#undef CLEANUP
+        return true;
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

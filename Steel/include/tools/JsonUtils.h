@@ -106,7 +106,7 @@ namespace Steel
         }
 
         static bool asBool(Json::Value const &value, bool defaultValue = false);
-        static bool asInt(Json::Value const &value, int defaultValue = 0);
+        static int asInt(Json::Value const &value, int defaultValue = 0);
         static float asFloat(Json::Value const &value, float defaultValue = .0f);
         static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue = 0);
         static inline ModelId asModelId(Json::Value const &value, unsigned long defaultValue) {return asUnsignedLong(value, defaultValue);};

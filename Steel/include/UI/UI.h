@@ -12,7 +12,7 @@
 #include "UI/HUD.h"
 #include "tools/File.h"
 #include "EngineEventListener.h"
-#include "InputEventListener.h"
+#include "InputSystem/InputEventListener.h"
 
 namespace Steel
 {

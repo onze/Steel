@@ -11,9 +11,11 @@
 #include "BlackBoardModel.h"
 #include "Level.h"
 #include "BlackBoardModelManager.h"
+#include "tests/UnitTestManager.h"
 
 namespace Steel
 {
+    class UnitTestExecutionContext;
     class Level;
     class BTModelManager;
     /**
@@ -129,7 +131,8 @@ namespace Steel
         /// Can be set to true to display debug information. Also used by BT nodes.
         bool mDebug;
     };
-
+    
+    bool utest_BTrees(UnitTestExecutionContext const* context);
 }
 #endif /* STEEL_BTMODEL_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

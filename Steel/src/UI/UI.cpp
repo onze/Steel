@@ -6,7 +6,7 @@
 #include "UI/UI.h"
 #include <UI/RenderInterfaceOgre3D.h>
 #include "Debug.h"
-#include "InputManager.h"
+#include "InputSystem/InputManager.h"
 #include <tools/OgreUtils.h>
 #include <Level.h>
 #include <Engine.h>

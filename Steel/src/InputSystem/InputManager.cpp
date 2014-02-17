@@ -4,7 +4,7 @@
  *  Created on: 2011-05-13
  *      Author: onze
  */
-#include "InputManager.h"
+#include "InputSystem/InputManager.h"
 
 #include <iostream>
 #include <assert.h>
@@ -23,9 +23,10 @@ using namespace std;
 
 #include "Debug.h"
 #include "Engine.h"
-#include "InputEventListener.h"
+#include "InputSystem/InputEventListener.h"
 #include "UI/UI.h"
 #include <SignalManager.h>
+#include <tests/UnitTestManager.h>
 
 namespace Steel
 {
@@ -53,7 +54,7 @@ namespace Steel
         mCodesPressed(), mHasMouseMoved(false),
         mMouseMove(Ogre::Vector2::ZERO), mMousePos(Ogre::Vector2(-1.f, -1.f)), mLastMouseMove(Ogre::Vector2::ZERO),
         mMousePosAtLastMousePressed(Ogre::Vector2::ZERO),
-        mMouseStateStack(), mListeners(), mActionsRegister()
+        mMouseStateStack(), mListeners(), mActionsRegister(), mInputBuffer()
     {
         if(sOISKeyToInputCodeMap.size() == 0 && sOISMouseToInputCodeMap.size() == 0)
             InputManager::buildCodesMaps();
@@ -75,10 +76,12 @@ namespace Steel
         setMousePosition(mMousePos);
         mMouseStateStack.clear();
         resetAllData();
+        mInputBuffer.init();
     }
 
     void InputManager::shutdown()
     {
+        mInputBuffer.shutdown();
         mMouseStateStack.clear();
         releaseInput();
         Ogre::WindowEventUtilities::removeWindowEventListener(mEngine->renderWindow(), this);
@@ -377,6 +380,8 @@ namespace Steel
         if(nullptr != mMouse)
             mMouse->capture();
 
+        mInputBuffer.update();
+
     }
 
     void InputManager::fireModifiers()
@@ -399,12 +404,12 @@ namespace Steel
             }
         }
     }
-    
+
     float InputManager::windowWidth() const
     {
         return float(mEngine->renderWindow()->getWidth());
     }
-    
+
     float InputManager::windowHeight() const
     {
         return float(mEngine->renderWindow()->getHeight());
@@ -445,9 +450,34 @@ namespace Steel
         mListeners.erase(listener);
     }
 
-    void InputManager::registerAction(Steel::Input::Code const code, Input::Type const type, Signal const signal)
+    void InputManager::registerAction(Input::Code const code, Input::Type const type, Signal const signal)
     {
-        mActionsRegister.emplace(std::make_pair(code, type), std::list<Tag>()).first->second.push_back(signal);
+        mActionsRegister.emplace(std::make_pair(code, type), std::list<Signal>()).first->second.push_back(signal);
+    }
+
+    void InputManager::unregisterAction(Input::Code const code, Input::Type const type, Signal const signal)
+    {
+        auto it_signals = mActionsRegister.find(std::make_pair(code, type));
+
+        if(mActionsRegister.end() != it_signals)
+        {
+            auto it_signal = std::find(it_signals->second.begin(), it_signals->second.end(), signal);
+
+            if(it_signals->second.end() != it_signal)
+                it_signals->second.erase(it_signal);
+        }
+    }
+
+    void InputManager::unregisterAllActions()
+    {
+        mActionsRegister.clear();
+    }
+
+    bool InputManager::loadActionFile(Steel::File const &file /*file*/)
+    {
+        //TODO: write me ! unimplemented
+        Debug::error("InputManager::loadActionFile not implemented").endl().breakHere();
+        return true;
     }
 
     void InputManager::fireInputEvent(Input::Event evt)
@@ -652,6 +682,28 @@ namespace Steel
         sOISMouseToInputCodeMap[OIS::MouseButtonID::MB_Button5] = Input::Code::MC_BUTTON5;
         sOISMouseToInputCodeMap[OIS::MouseButtonID::MB_Button6] = Input::Code::MC_BUTTON6;
         sOISMouseToInputCodeMap[OIS::MouseButtonID::MB_Button7] = Input::Code::MC_BUTTON7;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // UNIT TESTS
+    bool utests_InputManager(UnitTestExecutionContext const *context)
+    {
+        static const Ogre::String intro = "utests_InputManager(): ";
+        InputManager &inputMan = *(context->engine->inputMan());
+        SignalListenerMock listener;
+
+        // assert mapping input to signal is received
+        listener.clearSignals();
+        const Signal targetSignal = SignalManager::instance().toSignal("pressed-A");
+        inputMan.registerAction(Input::Code::KC_A, Input::Type::PRESS, targetSignal);
+        listener.registerSignal(targetSignal);
+        inputMan.fireInputEvent( {Input::Code::KC_A, Input::Type::PRESS, Input::Device::KEYBOARD, 'a'});
+        SignalManager::instance().fireEmittedSignals();
+        //STEEL_ASSERT(listener.hasOnlyReceived(targetSignal)," not a single signal was received for a single input injected into the inputManager.");
+        // cleanup
+        inputMan.unregisterAllActions();
+
+        return true;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

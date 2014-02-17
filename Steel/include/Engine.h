@@ -13,11 +13,11 @@
 #include <OISKeyboard.h>
 
 #include "steeltypes.h"
-#include "InputManager.h"
+#include "InputSystem/InputManager.h"
 #include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "UI/UI.h"
-#include "InputEventListener.h"
+#include "InputSystem/InputEventListener.h"
 
 namespace Steel
 {

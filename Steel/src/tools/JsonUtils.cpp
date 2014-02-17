@@ -39,54 +39,64 @@ namespace Steel
 
     bool JsonUtils::asBool(const Json::Value &value, bool defaultValue)
     {
+        bool returned = defaultValue;
+
         if(value.isString())
-            return Ogre::StringConverter::parseBool(value.asString(), defaultValue);
+            returned = Ogre::StringConverter::parseBool(value.asString(), defaultValue);
 
         if(value.isBool())
-            return value.asBool();
+            returned = value.asBool();
 
-        return defaultValue;
+        return returned;
     }
 
-    bool JsonUtils::asInt(const Json::Value &value, int defaultValue)
+    int JsonUtils::asInt(const Json::Value &value, int defaultValue)
     {
+        int returned = defaultValue;
+
         if(value.isString())
-            return Ogre::StringConverter::parseInt(value.asString(), defaultValue);
+            returned = Ogre::StringConverter::parseInt(value.asString(), defaultValue);
 
         if(value.isIntegral())
-            return value.asInt();
+            returned = value.asInt();
 
-        return defaultValue;
+        return returned;
     }
 
     float JsonUtils::asFloat(const Json::Value &value, float defaultValue)
     {
+        float returned = defaultValue;
+
         if(value.isString())
-            return Ogre::StringConverter::parseReal(value.asString(), defaultValue);
+            returned =  Ogre::StringConverter::parseReal(value.asString(), defaultValue);
 
         if(value.isNumeric())
-            return value.asFloat();
+            returned = value.asFloat();
 
-        return defaultValue;
+        return returned;
     }
 
     unsigned long JsonUtils::asUnsignedLong(const Json::Value &value, long unsigned int defaultValue)
     {
+        long unsigned int returned = defaultValue;
+
         if(value.isString())
-            return Ogre::StringConverter::parseUnsignedLong(value.asString(), defaultValue);
+            returned = Ogre::StringConverter::parseUnsignedLong(value.asString(), defaultValue);
 
         if(value.isIntegral())
-            return value.asUInt64();
+            returned = value.asUInt64();
 
-        return defaultValue;
+        return returned;
     }
 
     Ogre::String JsonUtils::asString(Json::Value const &value, const Ogre::String &defaultValue)
     {
-        if(value.isString())
-            return value.asString();
+        Ogre::String returned = defaultValue;
 
-        return defaultValue;
+        if(value.isString())
+            returned = value.asString();
+
+        return returned;
     }
 
     Ogre::Vector3 JsonUtils::asVector3(Json::Value const &value, const Ogre::Vector3 &defaultValue)
@@ -116,10 +126,12 @@ namespace Steel
 
     Ogre::Quaternion JsonUtils::asQuaternion(Json::Value const &value, const Ogre::Quaternion &defaultValue)
     {
-        if(value.isString())
-            return Ogre::StringConverter::parseQuaternion(value.asString(), defaultValue);
+        Ogre::Quaternion returned = defaultValue;
 
-        return defaultValue;
+        if(value.isString())
+            returned = Ogre::StringConverter::parseQuaternion(value.asString(), defaultValue);
+
+        return returned;
     }
 
     std::list<Ogre::String> JsonUtils::asStringsList(Json::Value const &value, std::list<Ogre::String> defaultValue, Ogre::String defaultItemValue)

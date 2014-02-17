@@ -9,7 +9,7 @@
 #include <OgreVector3.h>
 #include <OgreFrameListener.h>
 
-#include "Input.h"
+#include "InputSystem/Input.h"
 #include "TerrainManager.h"
 #include "tools/ConfigFile.h"
 #include "DebugValueManager.h"

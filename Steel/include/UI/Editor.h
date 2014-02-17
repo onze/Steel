@@ -15,7 +15,7 @@
 #include "UI/UIPanel.h"
 #include "SelectionManager.h"
 #include "EngineEventListener.h"
-#include "Input.h"
+#include "InputSystem/Input.h"
 #include "UI/DebugValueManager.h"
 
 namespace Rocket
