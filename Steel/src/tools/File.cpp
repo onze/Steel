@@ -169,7 +169,7 @@ namespace Steel
 
         Ogre::String path = fullPath();
 #if defined(_WIN32)
-        throw std::runtime_error("File::touch not implemented");
+        Debug::error("File::touch not implemented").endl().breakHere();
 #else
         return open(path.c_str(), O_WRONLY | O_CREAT | O_NONBLOCK) != -1;
 #endif
@@ -179,10 +179,10 @@ namespace Steel
     void File::rm()
     {
         if(isDir())
-            throw std::runtime_error("File::rm not implemented for directories");
+            Debug::error("File::rm not implemented for directories").endl().breakHere();
 
 #if defined(_WIN32)
-        throw std::runtime_error("File::rm not implemented");
+        Debug::error("File::rm not implemented").endl().breakHere();
 #else
         unlink(fullPath().c_str());
 #endif
@@ -389,7 +389,7 @@ namespace Steel
         return S_ISDIR(st_buf.st_mode);
 #else
 #warning bool File::isDir() is not implemented for your platform.
-        throw std::runtime_error("bool File::isDir() is not implemented for your platform.");
+        Debug::error("bool File::isDir() is not implemented for this platform.").endl().breakHere();
 #endif
     }
 
@@ -418,8 +418,8 @@ namespace Steel
 
         return S_ISREG(st_buf.st_mode);
 #else
-#warning bool File::isFile() is not implemented for your platform.
-        throw std::runtime_error("bool File::isFile() is not implemented for your platform.");
+#warning bool File::isFile() is not implemented for this platform.
+        Debug::error("File::isFile() is not implemented for this platform").endl().breakHere();
 #endif
     }
 

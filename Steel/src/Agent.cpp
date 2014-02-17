@@ -9,8 +9,8 @@
 
 #include <json/json.h>
 
-#include "Debug.h"
 #include "Agent.h"
+#include "Debug.h"
 #include "_ModelManager.h"
 #include "OgreModelManager.h"
 #include "Level.h"

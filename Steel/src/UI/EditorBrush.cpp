@@ -51,7 +51,7 @@ namespace Steel
 
     EditorBrush::EditorBrush(const EditorBrush &other)
     {
-        throw std::runtime_error("EditorBrush::EditorBrush(const EditorBrush&) not implemented");
+        Debug::error("EditorBrush::EditorBrush(const EditorBrush&) not implemented").endl().breakHere();
     }
 
     EditorBrush::~EditorBrush()
@@ -75,13 +75,13 @@ namespace Steel
 
     EditorBrush &EditorBrush::operator=(const EditorBrush &other)
     {
-        throw std::runtime_error("EditorBrush::operator=() not implemented");
+        Debug::error("EditorBrush::operator=() not implemented").endl().breakHere();
         return *this;
     }
 
     bool EditorBrush::operator==(const EditorBrush &other) const
     {
-        throw std::runtime_error("EditorBrush::operator==() not implemented");
+        Debug::error("EditorBrush::operator==() not implemented").endl().breakHere();
         return false;
     }
 

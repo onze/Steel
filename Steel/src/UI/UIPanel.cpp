@@ -23,15 +23,12 @@ namespace Steel
         mAutoReload(false), mDependencies(std::set<File *>())
     {
         if(!mDocumentFile.exists())
-        {
-            Debug::error("UIPanel::UIPanel(): panel resource ").quotes(mDocumentFile)(" not found.").endl();
-            throw std::runtime_error("UIPanel::UIPanel(): panel resource not found.");
-        }
+            Debug::error("UIPanel::UIPanel(): panel resource ").quotes(mDocumentFile)(" not found.").endl().breakHere();
     }
 
     UIPanel::UIPanel(const UIPanel &other)
     {
-        throw std::runtime_error("UIPanel::UIPanel=(const UIPanel& other) not implemented.");
+        Debug::error("UIPanel::UIPanel=(const UIPanel& other) not implemented").endl().breakHere();
 
         if(nullptr != mDocument)
             mDocument->GetContext()->UnloadDocument(mDocument);
@@ -53,7 +50,7 @@ namespace Steel
 
     UIPanel &UIPanel::operator=(const UIPanel &other)
     {
-        throw std::runtime_error("UIPanel::operator=(const UIPanel& other) not implemented.");
+        Debug::error("UIPanel::operator=(const UIPanel& other) not implemented").endl().breakHere();
         return *this;
     }
 

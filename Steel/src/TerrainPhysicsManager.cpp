@@ -42,7 +42,7 @@ namespace Steel
 
     TerrainPhysicsManager::TerrainPhysicsManager(const TerrainPhysicsManager &o)
     {
-        throw std::runtime_error("invalid codepath");
+        Debug::error("not implemented").endl().breakHere();
     }
 
     TerrainPhysicsManager::~TerrainPhysicsManager()

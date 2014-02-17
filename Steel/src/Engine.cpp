@@ -194,7 +194,8 @@ namespace Steel
 
         if(renderers.empty())
         {
-            throw std::runtime_error("Could not find a valid renderer.");
+            Debug::error("Could not find a valid renderer").endl().breakHere();
+            return -1;
         }
 
         // we need at least one renderer to do anything useful
@@ -202,7 +203,8 @@ namespace Steel
 
         if(nullptr == renderSystem)
         {
-            throw std::runtime_error("Could not find a valid renderer.");
+            Debug::error("Could not find a valid renderer").endl().breakHere();
+            return -1;
         }
 
         mRoot->setRenderSystem(renderSystem);

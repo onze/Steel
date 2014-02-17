@@ -71,7 +71,8 @@ namespace Steel
 
     bool LocationModel::fromJson(const Json::Value &node)
     {
-        throw std::runtime_error("LocationModel::fromJson should not be used, use LocationModel::fromJson");
+        Debug::error("LocationModel::fromJson should not be used, use LocationModel::fromJson").endl().breakHere();
+        return false;
     }
 
     bool LocationModel::init(LocationModelManager *const locationModelMan)

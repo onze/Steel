@@ -49,7 +49,7 @@ namespace Steel
 
     Editor::Editor(const Editor &other)
     {
-        throw std::runtime_error("Editor::Editor(const Editor& other): Not Implemented");
+        Debug::error("Editor::Editor(const Editor& other) not implemented").endl().breakHere();
     }
 
     Editor::~Editor()
@@ -65,7 +65,7 @@ namespace Steel
 
     Editor &Editor::operator=(const Editor &other)
     {
-        throw std::runtime_error("Editor::operator=(const Editor& other): Not Implemented");
+        Debug::error("Editor::operator=(const Editor& other) not implemented").endl().breakHere();
         return *this;
     }
 

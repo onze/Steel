@@ -180,7 +180,8 @@ namespace Steel
         /**
          * set up stuff that does not depend on standalone/embedded status,
          * nor on having the windowing system ready;
-         * Returns 0 if successfull, returns an error code otherwise.
+         * Returns 0 if successfull, returns an error code otherwise:
+         * -1: could not find a valid renderer
          */
         int preWindowingSetup(Ogre::String &plugins, unsigned int width, unsigned int height, Ogre::String defaultLog =
                                   Ogre::String("steel_default_log.log"), Ogre::LogListener *logListener = nullptr);

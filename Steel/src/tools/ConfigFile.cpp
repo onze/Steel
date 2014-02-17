@@ -23,7 +23,6 @@ namespace Steel
 
     ConfigFile::~ConfigFile()
     {
-
     }
 
     ConfigFile &ConfigFile::operator=(const ConfigFile &o)
