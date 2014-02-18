@@ -16,6 +16,8 @@
 #include "BT/btnodetypes.h"
 #include "BT/BTNode.h"
 #include "tools/StringUtils.h"
+#include "InputSystem/ActionCombo.h"
+#include "SignalManager.h"
 
 namespace Steel
 {
@@ -199,6 +201,35 @@ namespace Steel
 
                 return *this;
             }
+            
+            DebugObject &operator()(Action const& action)
+            {
+                Json::Value value;
+                action.toJson(value);
+                return (*this)("Action")(value);
+            }
+            
+            DebugObject &operator()(ActionCombo const& combo)
+            {
+                Json::Value value;
+                combo.toJson(value);
+                return (*this)("ActionCombo")(value);
+            }
+            
+            DebugObject &asSignalBufferEntry(std::pair< Signal, TimeStamp > const& entry)
+            {
+                return (*this)("(")(SignalManager::instance().fromSignal(entry.first))(", ")(entry.second)(")");
+            }
+            
+            DebugObject &asSignalBuffer(std::list< std::pair< Signal, TimeStamp > > const &signalsBuffer)
+            {
+                this->operator()("SignalBuffer[");
+                
+                for(auto it = signalsBuffer.begin(); it != signalsBuffer.end(); ++it)
+                    asSignalBufferEntry(*it)(", ");
+                
+                return (*this)("]");
+            }
 
             DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list)
             {
@@ -251,6 +282,12 @@ namespace Steel
                     this->operator()(*it)(", ");
                 
                 return (*this)("]");
+            }
+            
+            template<class T, class U>
+            DebugObject &operator()(std::pair<T,U> const &pair)
+            {
+                return this->operator()("pair(")(pair.first)(", ")(pair.second)(")");
             }
 
             /// Print the parameter between quotes.
