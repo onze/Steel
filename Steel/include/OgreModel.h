@@ -83,7 +83,7 @@ namespace Steel
             bool isVisible() const {return nullptr == mEntity ? false:mEntity->isVisible();}
 
             virtual void cleanup();
-            virtual void onSignal(Signal signal, SignalEmitter *src = nullptr);
+            virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
             
         protected:
             // not owned

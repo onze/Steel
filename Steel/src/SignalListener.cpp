@@ -51,7 +51,7 @@ namespace Steel
             unregisterSignal(*(mRegisteredSignals.begin()));
     }
 
-    void SignalListener::_onSignal(Signal signal, SignalEmitter* src)
+    void SignalListener::_onSignal(Signal signal, SignalEmitter *const src)
     {
         //TODO: call bound methods
         this->onSignal(signal, src);

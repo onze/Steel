@@ -32,6 +32,7 @@ namespace Steel
         void init();
         void shutdown();
 
+        /// Resolves actions combos from received action signals.
         void update();
         bool loadCombosFile(File file);
 
@@ -39,7 +40,7 @@ namespace Steel
         void unregisterActionCombo(ActionCombo const &combo);
 
         // SignalListener interface
-        virtual void onSignal(Signal signal, SignalEmitter *src = nullptr);
+        virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
 
     private:
         // not owned

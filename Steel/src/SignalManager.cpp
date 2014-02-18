@@ -38,19 +38,24 @@ namespace Steel
         }
     }
 
-    void SignalManager::fire(Signal signal, SignalEmitter *src)
+    SignalManager &SignalManager::fire(Signal signal, SignalEmitter *const src/* = nullptr*/)
     {
         auto it = mListeners.find(signal);
 
         if(mListeners.end() == it)
-            return;
+            return *this;
 
         std::set<SignalListener *> listeners(it->second);
 
         for(auto & listener : listeners)
-        {
             listener->_onSignal(signal, src);
-        }
+
+        return *this;
+    }
+
+    SignalManager &SignalManager::fire(const Ogre::String &signal, SignalEmitter *const src/* = nullptr*/)
+    {
+        return fire(toSignal(signal), src);
     }
 
     Signal SignalManager::toSignal(const Ogre::String &signal)
@@ -123,3 +128,4 @@ namespace Steel
 }
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

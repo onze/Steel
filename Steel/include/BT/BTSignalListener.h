@@ -32,7 +32,7 @@ namespace Steel
             virtual ~BTSignalListener();
 
             // SignalListener interface
-            void onSignal(Signal signal, SignalEmitter* src);
+            void onSignal(Signal signal, SignalEmitter *const src);
 
             void onParentNotified();
 

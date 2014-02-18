@@ -13,10 +13,11 @@ namespace Steel
     public:
         SignalListenerMock();
 
-        virtual void onSignal(Signal signal, SignalEmitter *source);
+        virtual void onSignal(Signal signal, SignalEmitter *const source);
         void clearSignals();
         
-        bool hasOnlyReceived(Signal signal) const;
+        bool hasOnlyReceived(Signal const signal) const;
+        bool hasReceived(Signal const signal) const;
 
     private:
         typedef std::pair<Signal, SignalEmitter *> Entry;

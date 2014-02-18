@@ -14,7 +14,7 @@ set(LIBRARY_OUTPUT_PATH lib/${CMAKE_BUILD_TYPE})
 message("LIBRARY_OUTPUT_PATH: ${LIBRARY_OUTPUT_PATH}")
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Werror")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic") #-D_GLIBCXX_DEBUG
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 file(

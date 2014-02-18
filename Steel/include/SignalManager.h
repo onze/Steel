@@ -37,12 +37,9 @@ namespace Steel
             emit(toSignal(signal), src);
         }
 
-        /// Immediatly calls all registered listeners of the given signal.
-        void fire(const Signal signal, SignalEmitter *src = nullptr);
-        inline void fire(const Ogre::String &signal, SignalEmitter *src = nullptr)
-        {
-            fire(toSignal(signal), src);
-        }
+        /// Immediatly calls all registered listeners of the given signal. Returns itself for chaining calls if needed.
+        SignalManager &fire(const Signal signal, SignalEmitter *const src = nullptr);
+        SignalManager &fire(const Ogre::String &signal, SignalEmitter *const src = nullptr);
 
         /// Fires all emitted signals.
         void fireEmittedSignals();

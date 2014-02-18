@@ -24,6 +24,8 @@ namespace Steel
     {
         addTest(&utest_ConfigFile, "Steel.init", "ConfigFile");
         addTest(&utest_StringUtils, "Steel.init", "StringUtils");
+        addTest(&utest_Action, "Steel.init", "Action");
+        addTest(&utest_ActionCombo, "Steel.init", "ActionCombo");
         addTest(&utest_InputBufferMain, "Steel.init", "InputBuffer");
         addTest(&utest_BTShapeStream, "Steel.init", "BTShapeStream");
         addTest(&utest_BTStateStream, "Steel.init", "BTStateStream");

@@ -9,7 +9,10 @@
 
 #include "BT/btnodetypes.h"
 
-#define BIT(N) 1<<N
+// http://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
+#define STEEL_UNUSED(expr) do { (void)(expr); } while (0)
+
+#define STEEL_BIT(N) 1<<N
 
 namespace Steel
 {

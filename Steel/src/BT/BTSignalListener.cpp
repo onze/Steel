@@ -70,7 +70,7 @@ namespace Steel
         switchClosed();
     }
 
-    void BTSignalListener::onSignal(Signal signal, SignalEmitter *src)
+    void BTSignalListener::onSignal(Signal signal, SignalEmitter *const src)
     {
         Debug::log("BTSignalListener::onSignal(): ")(signal)("/").quotes(SignalManager::instance().fromSignal(signal)).endl();
         switchOpened();

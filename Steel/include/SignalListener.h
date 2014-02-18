@@ -27,7 +27,7 @@ namespace Steel
         void unregisterAllSignals();
 
         /// Triggered when the listened signal is fired.
-        virtual void onSignal(Signal signal, SignalEmitter *src = nullptr) = 0;
+        virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr) = 0;
 
         /**
          * Triggered when the listened signal is fired. Calls onSignal and bound methods.

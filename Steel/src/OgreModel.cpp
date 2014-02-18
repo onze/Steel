@@ -116,7 +116,7 @@ namespace Steel
         Model::cleanup();
     }
 
-    void OgreModel::onSignal(Signal signal, SignalEmitter *src)
+    void OgreModel::onSignal(Signal signal, SignalEmitter *const src)
     {
     }
 
