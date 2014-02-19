@@ -8,8 +8,8 @@
 
 #include <OgreString.h>
 
-#include "Agent.h"
-#include "Model.h"
+#include "models/Agent.h"
+#include "models/Model.h"
 #include "TagManager.h"
 #include "tools/JsonUtils.h"
 #include <Debug.h>

@@ -1,9 +1,9 @@
 
-#include "BTModelManager.h"
+#include "models/BTModelManager.h"
 #include <Level.h>
-#include <Agent.h>
-#include <BlackBoardModelManager.h>
-#include <Debug.h>
+#include "models/Agent.h"
+#include "models/BlackBoardModelManager.h"
+#include "Debug.h"
 
 namespace Steel
 {

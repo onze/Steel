@@ -17,11 +17,11 @@
 #include "Camera.h"
 #include "Level.h"
 #include "Debug.h"
-#include <tools/JsonUtils.h>
-#include <AgentManager.h>
-#include <Agent.h>
-#include <Engine.h>
-#include <OgreModel.h>
+#include "tools/JsonUtils.h"
+#include "models/AgentManager.h"
+#include "models/Agent.h"
+#include "Engine.h"
+#include "models/OgreModel.h"
 
 namespace Steel
 {

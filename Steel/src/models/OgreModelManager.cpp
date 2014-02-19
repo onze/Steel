@@ -10,9 +10,9 @@
 #include <OgreEntity.h>
 
 #include "Debug.h"
-#include "OgreModelManager.h"
+#include "models/OgreModelManager.h"
 #include "tools/OgreUtils.h"
-#include <Agent.h>
+#include <models/Agent.h>
 #include <Level.h>
 
 namespace Steel

@@ -102,8 +102,8 @@ namespace Steel
 
             if(!placeStateAt(mStateOffsets[i], token))
             {
-                Debug::error(intro)("can't place state of type ")(token.type)
-                ("(")(BTShapeTokenTypeAsString[token.type])(") at offset ")(mStateOffsets[i])("/")(mDataSize).endl();
+                Debug::error(intro)("can't place state of type ")((int)token.type)
+                ("(")(toString(token.type))(") at offset ")(mStateOffsets[i])("/")(mDataSize).endl();
                 return false;
             }
         }
@@ -122,35 +122,35 @@ namespace Steel
         // placement new http://www.parashift.com/c++-faq-lite/placement-new.html
         switch(token.type)
         {
-            case BTSequenceToken:
+            case BTShapeTokenType::BTSequenceToken:
                 node = new((BTSequence *)(base + offset)) BTSequence(token);
                 break;
 
-            case BTSelectorToken:
+            case BTShapeTokenType::BTSelectorToken:
                 node = new((BTSelector *)(base + offset)) BTSelector(token);
                 break;
 
-            case BTFinderToken:
+            case BTShapeTokenType::BTFinderToken:
                 node = new((BTFinder *)(base + offset)) BTFinder(token);
                 break;
 
-            case BTNavigatorToken:
+            case BTShapeTokenType::BTNavigatorToken:
                 node = new((BTNavigator *)(base + offset)) BTNavigator(token);
                 break;
 
-            case BTSignalListenerToken:
+            case BTShapeTokenType::BTSignalListenerToken:
                 node = new((BTSignalListener *)(base + offset)) BTSignalListener(token);
                 break;
 
-            case BTDebugToken:
+            case BTShapeTokenType::BTDebugToken:
                 node = new((BTDebug *)(base + offset)) BTDebug(token);
                 break;
 
-            case _BTFirst:
-            case _BTLast:
-            case BTUnknownToken:
+            case BTShapeTokenType::_BTFirst:
+            case BTShapeTokenType::_BTLast:
+            case BTShapeTokenType::BTUnknownToken:
                 Ogre::String msg = "BTStateStream::placeStateAt(): unknown BTShapeTokenType ";
-                Debug::error(msg)(Ogre::StringConverter::toString(token.type)).endl();
+                Debug::error(msg)(toString(token.type)).endl();
                 return false;
         }
 
@@ -162,29 +162,23 @@ namespace Steel
     {
         switch(tokenType)
         {
-            case BTSequenceToken:
-                return sizeof(BTSequence);
+            case BTShapeTokenType::BTSequenceToken: return sizeof(BTSequence);
 
-            case BTSelectorToken:
-                return sizeof(BTSelector);
+            case BTShapeTokenType::BTSelectorToken: return sizeof(BTSelector);
 
-            case BTFinderToken:
-                return sizeof(BTFinder);
+            case BTShapeTokenType::BTFinderToken: return sizeof(BTFinder);
 
-            case BTNavigatorToken:
-                return sizeof(BTNavigator);
+            case BTShapeTokenType::BTNavigatorToken: return sizeof(BTNavigator);
 
-            case BTSignalListenerToken:
-                return sizeof(BTSignalListener);
+            case BTShapeTokenType::BTSignalListenerToken: return sizeof(BTSignalListener);
 
-            case BTDebugToken:
-                return sizeof(BTDebug);
+            case BTShapeTokenType::BTDebugToken: return sizeof(BTDebug);
 
-            case _BTFirst:
-            case _BTLast:
-            case BTUnknownToken:
-                Debug::error("BTStateStream::sizeOfState(): unknown BTShapeTokenType ")(tokenType)
-                (" (")(BTShapeTokenTypeAsString[tokenType])(")").endl();
+            case BTShapeTokenType::_BTFirst:
+            case BTShapeTokenType::_BTLast:
+            case BTShapeTokenType::BTUnknownToken:
+                Debug::error("BTStateStream::sizeOfState(): unknown BTShapeTokenType ")((int)tokenType)
+                (" (")(toString(tokenType))(")").endl();
         }
 
         return 0;
@@ -200,33 +194,33 @@ namespace Steel
 
             switch(token.type)
             {
-                case BTSequenceToken:
+                case BTShapeTokenType::BTSequenceToken:
                     ((BTSequence *)(base + offset))->~BTSequence();
                     break;
 
-                case BTSelectorToken:
+                case BTShapeTokenType::BTSelectorToken:
                     ((BTSelector *)(base + offset))->~BTSelector();
                     break;
 
-                case BTFinderToken:
+                case BTShapeTokenType::BTFinderToken:
                     ((BTFinder *)(base + offset))->~BTFinder();
                     break;
 
-                case BTNavigatorToken:
+                case BTShapeTokenType::BTNavigatorToken:
                     ((BTNavigator *)(base + offset))->~BTNavigator();
                     break;
 
-                case BTSignalListenerToken:
+                case BTShapeTokenType::BTSignalListenerToken:
                     ((BTSignalListener *)(base + offset))->~BTSignalListener();
                     break;
 
-                case BTDebugToken:
+                case BTShapeTokenType::BTDebugToken:
                     ((BTDebug *)(base + offset))->~BTDebug();
                     break;
 
-                case _BTFirst:
-                case _BTLast:
-                case BTUnknownToken:
+                case BTShapeTokenType::_BTFirst:
+                case BTShapeTokenType::_BTLast:
+                case BTShapeTokenType::BTUnknownToken:
                     Debug::error("BTStateStream::clear(): unknown BTShapeTokenType for token: ")(token).endl();
                     break;
             }
@@ -255,7 +249,7 @@ namespace Steel
         if(index >= mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenTypeAt(")(index)("): ")(debugName())(" index out of range.").endl();
-            return BTUnknownToken;
+            return BTShapeTokenType::BTUnknownToken;
         }
 
         return mShapeStream->mData.at((size_t)index).type;
@@ -266,58 +260,58 @@ namespace Steel
         if(nullptr == mShapeStream)
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" no valid shapestream.").endl();
-            return {BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
+            return {BTShapeTokenType::BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
         }
 
         if(index >= mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" index out of range.").endl();
-            return {BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
+            return {BTShapeTokenType::BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
         }
 
         return mShapeStream->mData.at((size_t)index);
     }
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // UNIT TESTS
-    bool utest_BTStateStream(UnitTestExecutionContext const* context)
+    bool utest_BTStateStream(UnitTestExecutionContext const *context)
     {
         return true;
         Ogre::String intro = "in test_BTShapeStream(): file ", abortMsg = "Aborting unit test.";
-        
+
         // get the shape stream
         BTShapeManager shapeMan;
         Ogre::String streamId = "utests/shapes/A - sequence";
         File rootFile("/media/a0/cpp/1210/usmb/data/raw_resources/BT/utests/shapes/A - sequence");
         BTShapeStream *shapeStream = nullptr;
-        
+
         if(!rootFile.exists())
         {
             Debug::warning(intro)(rootFile)(" not found. ")(abortMsg).endl();
             return false;
         }
-        
+
         if(!shapeMan.buildShapeStream(streamId, rootFile, shapeStream))
         {
             Debug::error(intro)("Could not create shape stream, see above for details.")(abortMsg).endl();
             return false;
         }
-        
+
         BTStateStream stateStream;
         stateStream.init(shapeStream);
-        
+
         // assert valid token types
-        assert(stateStream.tokenTypeAt(0) == BTSequenceToken);
-        assert(stateStream.tokenTypeAt(1) == BTSequenceToken);
-        assert(stateStream.tokenTypeAt(2) == BTFinderToken);
-        assert(stateStream.tokenTypeAt(3) == BTNavigatorToken);
-        assert(stateStream.tokenTypeAt(4) == BTSequenceToken);
-        assert(stateStream.tokenTypeAt(5) == BTFinderToken);
-        assert(stateStream.tokenTypeAt(6) == BTNavigatorToken);
+        assert(stateStream.tokenTypeAt(0) == BTShapeTokenType::BTSequenceToken);
+        assert(stateStream.tokenTypeAt(1) == BTShapeTokenType::BTSequenceToken);
+        assert(stateStream.tokenTypeAt(2) == BTShapeTokenType::BTFinderToken);
+        assert(stateStream.tokenTypeAt(3) == BTShapeTokenType::BTNavigatorToken);
+        assert(stateStream.tokenTypeAt(4) == BTShapeTokenType::BTSequenceToken);
+        assert(stateStream.tokenTypeAt(5) == BTShapeTokenType::BTFinderToken);
+        assert(stateStream.tokenTypeAt(6) == BTShapeTokenType::BTNavigatorToken);
         // test out of range token
         Debug::ignoreNextErrorMessage();
-        assert(stateStream.tokenTypeAt(7) == BTUnknownToken);
-        
+        assert(stateStream.tokenTypeAt(7) == BTShapeTokenType::BTUnknownToken);
+
         BTSequence *seq;
         BTFinder *fdr;
         BTNavigator *nav;
@@ -328,49 +322,49 @@ namespace Steel
         assert(seq->begin() == 0);
         assert(seq->end() == 7);
         // valid type
-        assert(BTSequenceToken == seq->tokenType());
+        assert(BTShapeTokenType::BTSequenceToken == seq->tokenType());
         // type specifics
         assert(1 == seq->currentChildNodeIndex());
-        
+
         // B
         seq = (BTSequence *)stateStream.stateAt(1);
         assert(seq->begin() == 1);
         assert(seq->end() == 4);
-        assert(BTSequenceToken == seq->tokenType());
+        assert(BTShapeTokenType::BTSequenceToken == seq->tokenType());
         assert(2 == seq->currentChildNodeIndex());
-        
+
         // C
         fdr = (BTFinder *)stateStream.stateAt(2);
         assert(fdr->begin() == 2);
         assert(fdr->end() == 3);
-        assert(BTFinderToken == fdr->tokenType());
+        assert(BTShapeTokenType::BTFinderToken == fdr->tokenType());
         // specifics
-        
+
         // D
         nav = (BTNavigator *)stateStream.stateAt(3);
         assert(nav->begin() == 3);
         assert(nav->end() == 4);
-        assert(BTNavigatorToken == nav->tokenType());
-        
+        assert(BTShapeTokenType::BTNavigatorToken == nav->tokenType());
+
         // E
         seq = (BTSequence *)stateStream.stateAt(4);
         assert(seq->begin() == 4);
         assert(seq->end() == 7);
-        assert(BTSequenceToken == seq->tokenType());
+        assert(BTShapeTokenType::BTSequenceToken == seq->tokenType());
         assert(5 == seq->currentChildNodeIndex());
-        
+
         // F
         fdr = (BTFinder *)stateStream.stateAt(5);
         assert(fdr->begin() == 5);
         assert(fdr->end() == 6);
-        assert(BTFinderToken == fdr->tokenType());
-        
+        assert(BTShapeTokenType::BTFinderToken == fdr->tokenType());
+
         // G
         nav = (BTNavigator *)stateStream.stateAt(6);
         assert(nav->begin() == 6);
         assert(nav->end() == 7);
-        assert(BTNavigatorToken == nav->tokenType());
-        
+        assert(BTShapeTokenType::BTNavigatorToken == nav->tokenType());
+
         Debug::log("test_BTStateStream(): passed").endl();
         return true;
     }

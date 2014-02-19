@@ -21,7 +21,7 @@ namespace Steel
 
         /// Variable under which to save the value.
         static const char *TARGET_AGENT_ID_ATTRIBUTE;
-        
+
         /// Name of the path to search in. Relevant with NextLocationInPath strategy.
         static const char *SOURCE_PATH_ATTRIBUTE;
         /// Possible value for SOURCE_PATH_ATTRIBUTE. Makes the node look into the agent's current path.
@@ -29,7 +29,7 @@ namespace Steel
 
         inline static BTShapeTokenType tokenType()
         {
-            return BTFinderToken;
+            return BTShapeTokenType::BTFinderToken;
         }
 
         BTFinder(BTShapeToken const &token);
@@ -46,10 +46,10 @@ namespace Steel
         };
         SearchStrategy parseSearchStrategy(Ogre::String value);
         void setSearchStrategyFunction(SearchStrategy s);
-        
+
         /// See BTNode::parseNodeContent
         bool parseNodeContent(Json::Value &root);
-        
+
         AgentId noneStrategyFindFn(BTModel *btModel);
         AgentId nextLocationInPathStrategyFindFn(BTModel *btModel);
 
@@ -58,10 +58,10 @@ namespace Steel
         SearchStrategy mSearchStrategy;
         /// Strategy function. See BTFinder::SEARCH_STRATEGY_ATTRIBUTE
         std::function<AgentId(BTModel *btModel)> mSearchStrategyFn;
-        
+
         /// see BTFinder::TARGET_AGENT_ID_ATTRIBUTE
         Ogre::String mTargetAgentIdVariable;
-        
+
         /////////////////
         // specific to SearchStrategy::NextLocationInPath
         /// see BTFinder::NEXT_IN_PATH_STRAT_SOURCE_PATH_ATTRIBUTE

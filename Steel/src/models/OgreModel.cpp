@@ -5,7 +5,7 @@
  *      Author: onze
  */
 
-#include "OgreModel.h"
+#include "models/OgreModel.h"
 #include "Debug.h"
 #include <tools/OgreUtils.h>
 #include <tools/JsonUtils.h>

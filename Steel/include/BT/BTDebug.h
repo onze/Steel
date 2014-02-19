@@ -9,24 +9,24 @@ namespace Steel
     /**
      * This node prints whatever content was set at build time. It is always sucessful.
      */
-    class BTDebug:public BTNode
+    class BTDebug: public BTNode
     {
-        public:
-            static const char *TEXT_ATTRIBUTE;
+    public:
+        static const char *TEXT_ATTRIBUTE;
 
-            inline static BTShapeTokenType tokenType()
-            {
-                return BTDebugToken;
-            }
-            BTDebug(BTShapeToken const &token);
-            virtual ~BTDebug();
+        inline static BTShapeTokenType tokenType()
+        {
+            return BTShapeTokenType::BTDebugToken;
+        }
+        BTDebug(BTShapeToken const &token);
+        virtual ~BTDebug();
 
-            void run(float timestep);
+        void run(float timestep);
 
-        private:
-            bool parseNodeContent(Json::Value &root);
+    private:
+        bool parseNodeContent(Json::Value &root);
 
-            Ogre::String mDebugText;
+        Ogre::String mDebugText;
     };
 }
 

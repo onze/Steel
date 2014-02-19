@@ -1,15 +1,15 @@
 
 #include <OgreString.h>
 
-#include "BTModel.h"
+#include "models/BTModel.h"
 #include "BT/BTNode.h"
 #include <tools/JsonUtils.h>
-#include <BTModelManager.h>
+#include <models/BTModelManager.h>
 #include <Level.h>
-#include <BlackBoardModelManager.h>
-#include <LocationModel.h>
-#include <AgentManager.h>
-#include <Agent.h>
+#include <models/BlackBoardModelManager.h>
+#include <models/LocationModel.h>
+#include <models/AgentManager.h>
+#include <models/Agent.h>
 #include <Engine.h>
 #include <tests/UnitTestManager.h>
 #include <Debug.h>
@@ -147,7 +147,7 @@ namespace Steel
                 prevStateIndex = mCurrentStateIndex;
                 token = mStateStream.tokenAt(mCurrentStateIndex);
 
-                if(BTUnknownToken == token.type)
+                if(BTShapeTokenType::BTUnknownToken == token.type)
                 {
                     Debug::error(intro)("node #")(prevStateIndex)(" with token ")(mStateStream.tokenAt(prevStateIndex))
                     ("yielded an unknown token type as index ")(mCurrentStateIndex)
@@ -165,7 +165,7 @@ namespace Steel
             {
                 case BTNodeState::READY:
                     if(debug)
-                        Debug::log("running ")(BTShapeTokenTypeAsString[token.type])(" #")(token.begin).endl();
+                        Debug::log("running ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     node->run(this, timestep);
                     continue;
@@ -204,7 +204,7 @@ namespace Steel
                 case BTNodeState::SUCCESS:
 
                     if(debug)
-                        Debug::log(nodeState == BTNodeState::SUCCESS ? "SUCCESS" : "FAILURE")(" from ")(BTShapeTokenTypeAsString[token.type])(" #")(token.begin).endl();
+                        Debug::log(nodeState == BTNodeState::SUCCESS ? "SUCCESS" : "FAILURE")(" from ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     // root's success
                     if(0 == mStatesStack.size())
@@ -224,7 +224,7 @@ namespace Steel
 
                 case BTNodeState::RUNNING:
                     if(debug)
-                        Debug::log("keeping running ")(BTShapeTokenTypeAsString[token.type])(" #")(token.begin).endl();
+                        Debug::log("keeping running ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     node->run(this, timestep);
                     // stop execution for this frame.

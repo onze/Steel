@@ -1,8 +1,4 @@
-/*
- *
- */
-
-#include "RigidBodyStateWrapper.h"
+#include "tools/RigidBodyStateWrapper.h"
 
 namespace Steel
 {

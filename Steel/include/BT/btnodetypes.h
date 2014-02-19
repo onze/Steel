@@ -25,7 +25,7 @@ namespace Steel
     extern std::vector<Ogre::String> BTNodeStateAsString;
 
     /// tells the type of processing a node does.
-    enum BTShapeTokenType
+    enum class BTShapeTokenType : int
     {
         // Should stay first enum value
         _BTFirst = -1,
@@ -47,6 +47,7 @@ namespace Steel
 
     /// Allows for slow lookup. Aligned on BTShapeTokenType.
     extern std::vector<Ogre::String> BTShapeTokenTypeAsString;
+    Ogre::String toString(BTShapeTokenType tt);
 
     /// Index within a BTStateStream.
     typedef size_t BTStateIndex;

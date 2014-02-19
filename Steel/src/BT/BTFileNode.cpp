@@ -6,34 +6,34 @@
 namespace Steel
 {
 
-    BTFileNode::BTFileNode(const bool isGuard):File(),mIsGuard(isGuard)
+    BTFileNode::BTFileNode(const bool isGuard): File(), mIsGuard(isGuard)
     {
 
     }
 
-    BTFileNode::BTFileNode():File()
+    BTFileNode::BTFileNode(): File()
     {
-        mIsGuard=false;
+        mIsGuard = false;
     }
 
-    BTFileNode::BTFileNode(BTFileNode const &o):File(o)
+    BTFileNode::BTFileNode(BTFileNode const &o): File(o)
     {
-        mIsGuard=o.mIsGuard;
+        mIsGuard = o.mIsGuard;
     }
 
-    BTFileNode::BTFileNode(const char *fullpath):File(fullpath)
+    BTFileNode::BTFileNode(const char *fullpath): File(fullpath)
     {
-        mIsGuard=false;
+        mIsGuard = false;
     }
 
-    BTFileNode::BTFileNode(Ogre::String fullpath):File(fullpath)
+    BTFileNode::BTFileNode(Ogre::String fullpath): File(fullpath)
     {
-        mIsGuard=false;
+        mIsGuard = false;
     }
 
-    BTFileNode::BTFileNode(const File &file):File(file)
+    BTFileNode::BTFileNode(const File &file): File(file)
     {
-        mIsGuard=false;
+        mIsGuard = false;
     }
 
     BTFileNode::~BTFileNode()
@@ -44,7 +44,7 @@ namespace Steel
     BTFileNode &BTFileNode::operator=(BTFileNode const &o)
     {
         File::operator=(o);
-        mIsGuard=o.mIsGuard;
+        mIsGuard = o.mIsGuard;
         return *this;
     }
 
@@ -59,38 +59,45 @@ namespace Steel
             else
             {
                 File sub;
-                for (BTShapeTokenType it = (BTShapeTokenType) ((int) _BTFirst + 1); it != _BTLast; it = (BTShapeTokenType) ((int) it + 1))
+
+                for(BTShapeTokenType it = (BTShapeTokenType)((int) BTShapeTokenType::_BTFirst + 1);
+                        it != BTShapeTokenType::_BTLast;
+                        it = (BTShapeTokenType)((int) it + 1))
                 {
-                    Ogre::String BTShapeTokenTypeName=BTShapeTokenTypeAsString[it];
-                    sub=subfile(BTShapeTokenTypeName);
+                    Ogre::String BTShapeTokenTypeName = BTShapeTokenTypeAsString[(int)it];
+                    sub = subfile(BTShapeTokenTypeName);
+
                     if(sub.exists())
                         return sub;
                 }
             }
         }
-        return subfile(BTShapeTokenTypeAsString[BTUnknownToken]);
+
+        return subfile(BTShapeTokenTypeAsString[(int)BTShapeTokenType::BTUnknownToken]);
     }
 
     BTShapeTokenType BTFileNode::shapeTokenType()
     {
-        File desc=descriptor();
+        File desc = descriptor();
+
         if(desc.exists())
         {
-            for (BTShapeTokenType it = (BTShapeTokenType) ((int) _BTFirst + 1); it != _BTLast; it = (BTShapeTokenType) ((int) it + 1))
-                if(BTShapeTokenTypeAsString[it]==desc.fileName())
+            for(auto it = (BTShapeTokenType)((int) BTShapeTokenType::_BTFirst + 1); it != BTShapeTokenType::_BTLast; it = (BTShapeTokenType)((int) it + 1))
+                if(toString(it) == desc.fileName())
                     return it;
         }
+
         Debug::warning("in BTFileNode::shapeTokenType(): unknown token type for file ")
         (*this)(" with descriptor ")(desc.fullPath())(":").endl()
         (desc.read()).endl();
-        return BTUnknownToken;
+        return BTShapeTokenType::BTUnknownToken;
     }
 
     std::vector<BTFileNode> BTFileNode::childNodes()
     {
-        std::vector<File> childNodes=ls(File::DIR);
-        std::sort<std::vector<File>::iterator>(childNodes.begin(),childNodes.end());
-        auto btChildNodes=std::vector<BTFileNode>(childNodes.begin(),childNodes.end());
+        std::vector<File> childNodes = ls(File::DIR);
+        std::sort<std::vector<File>::iterator>(childNodes.begin(), childNodes.end());
+        auto btChildNodes = std::vector<BTFileNode>(childNodes.begin(), childNodes.end());
         btChildNodes.push_back(BTFileNode(true));
         return btChildNodes;
     }

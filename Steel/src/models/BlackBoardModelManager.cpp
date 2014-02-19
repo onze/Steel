@@ -1,8 +1,8 @@
 #include <json/json.h>
 
-#include "BlackBoardModelManager.h"
-#include "BTModel.h"
-#include "Agent.h"
+#include "models/BlackBoardModelManager.h"
+#include "models/BTModel.h"
+#include "models/Agent.h"
 
 namespace Steel
 {

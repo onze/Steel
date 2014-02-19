@@ -17,13 +17,13 @@
 #include "Engine.h"
 #include "UI/FileSystemDataSource.h"
 #include "Camera.h"
-#include "Agent.h"
-#include "OgreModelManager.h"
-#include "PhysicsModelManager.h"
+#include "models/Agent.h"
+#include "models/OgreModelManager.h"
+#include "models/PhysicsModelManager.h"
 #include "tools/JsonUtils.h"
-#include "AgentManager.h"
+#include "models/AgentManager.h"
 #include "SelectionManager.h"
-#include "LocationModel.h"
+#include "models/LocationModel.h"
 #include "TagManager.h"
 
 namespace Steel

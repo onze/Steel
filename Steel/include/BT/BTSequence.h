@@ -24,7 +24,7 @@ namespace Steel
     public:
         inline static BTShapeTokenType tokenType()
         {
-            return BTSequenceToken;
+            return BTShapeTokenType::BTSequenceToken;
         }
 
         BTSequence(BTShapeToken const &token);

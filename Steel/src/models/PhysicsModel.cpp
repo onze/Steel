@@ -1,4 +1,4 @@
-#include "PhysicsModel.h"
+#include "models/PhysicsModel.h"
 
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
@@ -8,16 +8,16 @@
 #include <BtOgrePG.h>
 
 #include "steeltypes.h"
-#include "Agent.h"
-#include "OgreModel.h"
+#include "models/Agent.h"
+#include "models/OgreModel.h"
 #include "tools/StringUtils.h"
 #include "tools/JsonUtils.h"
 #include "TagManager.h"
 #include "SignalManager.h"
-#include <PhysicsModelManager.h>
+#include <models/PhysicsModelManager.h>
 #include <Level.h>
-#include <AgentManager.h>
-#include <RigidBodyStateWrapper.h>
+#include <models/AgentManager.h>
+#include <tools/RigidBodyStateWrapper.h>
 #include <SignalListener.h>
 #include <Debug.h>
 

@@ -10,7 +10,7 @@
 #include <Ogre.h>
 
 #include "Debug.h"
-#include "RayCaster.h"
+#include "tools/RayCaster.h"
 #include <Level.h>
 #include <Engine.h>
 

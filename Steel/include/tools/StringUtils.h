@@ -79,8 +79,6 @@ namespace Steel
 
             return res;
         }
-
-        static Ogre::String BTShapeTokenTypeToString(BTShapeTokenType type);
     };
 
     bool utest_StringUtils(UnitTestExecutionContext const *context);

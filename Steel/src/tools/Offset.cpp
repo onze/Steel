@@ -1,6 +1,6 @@
 #include "tools/Offset.h"
 #include <tools/JsonUtils.h>
-#include <OgreModel.h>
+#include <models/OgreModel.h>
 #include <UI/Editor.h>
 #include <SignalManager.h>
 #include <json/value.h>

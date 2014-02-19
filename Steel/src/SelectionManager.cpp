@@ -1,13 +1,13 @@
 #include "SelectionManager.h"
 
-#include "Agent.h"
+#include "models/Agent.h"
 #include "Engine.h"
 #include "tools/OgreUtils.h"
 #include "Level.h"
-#include "AgentManager.h"
+#include "models/AgentManager.h"
 #include "TagManager.h"
-#include <LocationModel.h>
-#include <Debug.h>
+#include "models/LocationModel.h"
+#include "Debug.h"
 
 namespace Steel
 {

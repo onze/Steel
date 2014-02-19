@@ -26,7 +26,7 @@ namespace Steel
     public:
         inline static BTShapeTokenType tokenType()
         {
-            return BTNavigatorToken;
+            return BTShapeTokenType::BTNavigatorToken;
         }
 
         BTNavigator(BTShapeToken const &token);

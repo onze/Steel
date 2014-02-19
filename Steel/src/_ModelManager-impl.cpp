@@ -5,13 +5,13 @@
  *      Author: onze
  */
 
-#include "_ModelManager.cpp"
+#include "models/_ModelManager.cpp"
 
-#include "OgreModel.h"
-#include "PhysicsModel.h"
-#include "BTModel.h"
-#include "LocationModel.h"
-#include "BlackBoardModel.h"
+#include "models/OgreModel.h"
+#include "models/PhysicsModel.h"
+#include "models/BTModel.h"
+#include "models/LocationModel.h"
+#include "models/BlackBoardModel.h"
 
 template class Steel::_ModelManager<Steel::OgreModel>;
 template class Steel::_ModelManager<Steel::PhysicsModel>;

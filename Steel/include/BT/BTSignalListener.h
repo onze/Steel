@@ -23,7 +23,7 @@ namespace Steel
 
             inline static BTShapeTokenType tokenType()
             {
-                return BTSignalListenerToken;
+                return BTShapeTokenType::BTSignalListenerToken;
             }
 
             BTSignalListener(BTShapeToken const &token);

@@ -1,10 +1,10 @@
-#include "LocationModel.h"
+#include "models/LocationModel.h"
 #include "tools/JsonUtils.h"
 #include "Debug.h"
-#include "AgentManager.h"
-#include <Agent.h>
-#include <LocationModelManager.h>
-#include <Level.h>
+#include "models/AgentManager.h"
+#include "models/Agent.h"
+#include "models/LocationModelManager.h"
+#include "Level.h"
 
 namespace Steel
 {

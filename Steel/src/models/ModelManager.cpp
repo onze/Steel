@@ -5,8 +5,8 @@
  *      Author: onze
  */
 
-#include "ModelManager.h"
-#include <Model.h>
+#include "models/ModelManager.h"
+#include <models/Model.h>
 
 namespace Steel
 {

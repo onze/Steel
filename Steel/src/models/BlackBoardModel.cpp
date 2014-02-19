@@ -1,4 +1,4 @@
-#include "BlackBoardModel.h"
+#include "models/BlackBoardModel.h"
 #include <tools/JsonUtils.h>
 
 namespace Steel

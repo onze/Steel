@@ -1,9 +1,9 @@
 
 
-#include "AgentManager.h"
-#include "Agent.h"
+#include "models/AgentManager.h"
+#include "models/Agent.h"
 #include "Level.h"
-#include "LocationModel.h"
+#include "models/LocationModel.h"
 #include "Debug.h"
 
 namespace Steel

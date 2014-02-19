@@ -5,10 +5,10 @@
  *      Author: onze
  */
 
-#include "_ModelManager.h"
+#include "models/_ModelManager.h"
 #include "Debug.h"
-#include "Model.h"
-#include <Agent.h>
+#include "models/Model.h"
+#include <models/Agent.h>
 #include <Level.h>
 
 namespace Steel

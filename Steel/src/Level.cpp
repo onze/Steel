@@ -21,20 +21,20 @@
 #include <Engine.h>
 #include "Level.h"
 #include "Camera.h"
-#include "Agent.h"
-#include "Model.h"
-#include "OgreModelManager.h"
 #include "tools/OgreUtils.h"
 #include "tools/StringUtils.h"
 #include "tools/JsonUtils.h"
-#include "PhysicsModelManager.h"
 #include "TerrainPhysicsManager.h"
-#include "AgentManager.h"
 #include "SelectionManager.h"
-#include "LocationModelManager.h"
-#include "BlackBoardModelManager.h"
-#include "BTModelManager.h"
-#include <SignalManager.h>
+#include "models/Agent.h"
+#include "models/AgentManager.h"
+#include "models/BlackBoardModelManager.h"
+#include "models/BTModelManager.h"
+#include "models/LocationModelManager.h"
+#include "models/Model.h"
+#include "models/OgreModelManager.h"
+#include "models/PhysicsModelManager.h"
+#include "SignalManager.h"
 
 namespace Steel
 {

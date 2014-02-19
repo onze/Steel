@@ -11,17 +11,14 @@ namespace Steel
     BTShapeManager::BTShapeManager():
         mStreamMap(BTShapeStreamMap())
     {
-
     }
 
     BTShapeManager::BTShapeManager(const BTShapeManager &other)
     {
-
     }
 
     BTShapeManager::~BTShapeManager()
     {
-
     }
 
     BTShapeManager &BTShapeManager::operator=(const BTShapeManager &other)
@@ -135,13 +132,13 @@ namespace Steel
 
         BTShapeToken groundTruth_data[] =
         {
-            {BTSequenceToken, 0, 7, BTFileNode(rootFile).descriptor()},                                               //A
-            {BTSequenceToken, 1, 4, BTFileNode(rootFile.subfile("B - sequence")).descriptor()},                       //+-B
-            {BTFinderToken, 2, 3, BTFileNode(rootFile.subfile("B - sequence").subfile("C - finder")).descriptor()},   //| +-C
-            {BTNavigatorToken, 3, 4, BTFileNode(rootFile.subfile("B - sequence").subfile("D - navigator")).descriptor()}, //| |-D
-            {BTSequenceToken, 4, 7, BTFileNode(rootFile.subfile("E - sequence")).descriptor()},                       //+-E
-            {BTFinderToken, 5, 6, BTFileNode(rootFile.subfile("E - sequence").subfile("F - finder")).descriptor()},   //  +-F
-            {BTNavigatorToken, 6, 7, BTFileNode(rootFile.subfile("E - sequence").subfile("G - navigator")).descriptor()}, //  |-G
+            {BTShapeTokenType::BTSequenceToken, 0, 7, BTFileNode(rootFile).descriptor()},                                               //A
+            {BTShapeTokenType::BTSequenceToken, 1, 4, BTFileNode(rootFile.subfile("B - sequence")).descriptor()},                       //+-B
+            {BTShapeTokenType::BTFinderToken, 2, 3, BTFileNode(rootFile.subfile("B - sequence").subfile("C - finder")).descriptor()},   //| +-C
+            {BTShapeTokenType::BTNavigatorToken, 3, 4, BTFileNode(rootFile.subfile("B - sequence").subfile("D - navigator")).descriptor()}, //| |-D
+            {BTShapeTokenType::BTSequenceToken, 4, 7, BTFileNode(rootFile.subfile("E - sequence")).descriptor()},                       //+-E
+            {BTShapeTokenType::BTFinderToken, 5, 6, BTFileNode(rootFile.subfile("E - sequence").subfile("F - finder")).descriptor()},   //  +-F
+            {BTShapeTokenType::BTNavigatorToken, 6, 7, BTFileNode(rootFile.subfile("E - sequence").subfile("G - navigator")).descriptor()}, //  |-G
         };
         BTShapeStream groundTruth;
         groundTruth.mName = streamId;

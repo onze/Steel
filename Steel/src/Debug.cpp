@@ -201,7 +201,7 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(BTShapeToken const &token)
         {
-            (*this)("BTShapeToken{type: ")(StringUtils::BTShapeTokenTypeToString(token.type));
+            (*this)("BTShapeToken{type: ")(toString(token.type));
             (*this)(", begin: ")(token.begin);
             (*this)(", end: ")(token.end);
             (*this)(", contentFile: ")(token.contentFile);

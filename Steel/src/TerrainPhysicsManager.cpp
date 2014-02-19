@@ -1,4 +1,3 @@
-
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 #include <BtOgreExtras.h>
@@ -6,10 +5,10 @@
 #include <BulletCollision/BroadphaseCollision/btBroadphaseProxy.h>
 
 #include "TerrainPhysicsManager.h"
-#include <Debug.h>
-#include <TerrainManager.h>
-#include <Level.h>
-#include <OgreTerrain.h>
+#include "Debug.h"
+#include "TerrainManager.h"
+#include "Level.h"
+#include "OgreTerrain.h"
 
 
 namespace Steel

@@ -6,10 +6,10 @@
 #include "BT/BTFinder.h"
 #include <Debug.h>
 #include <tools/JsonUtils.h>
-#include <BTModel.h>
-#include <LocationModelManager.h>
-#include <AgentManager.h>
-#include <Agent.h>
+#include <models/BTModel.h>
+#include <models/LocationModelManager.h>
+#include <models/AgentManager.h>
+#include <models/Agent.h>
 #include <Level.h>
 
 namespace Steel

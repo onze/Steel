@@ -8,7 +8,7 @@
 #include "tools/StringUtils.h"
 #include <BT/BTShapeManager.h>
 #include <BT/BTStateStream.h>
-#include <BTModel.h>
+#include <models/BTModel.h>
 
 namespace Steel
 {

@@ -1,12 +1,12 @@
-#include "PhysicsModelManager.h"
+#include "models/PhysicsModelManager.h"
 
 #include "BulletDynamics/Dynamics/btDynamicsWorld.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 
 #include "Level.h"
-#include <OgreModel.h>
-#include <Agent.h>
-#include <OgreModelManager.h>
+#include <models/OgreModel.h>
+#include <models/Agent.h>
+#include <models/OgreModelManager.h>
 #include <Debug.h>
 
 
