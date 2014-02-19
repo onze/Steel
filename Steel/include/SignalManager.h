@@ -1,11 +1,6 @@
 #ifndef STEEL_SIGNALMANAGER_H
 #define STEEL_SIGNALMANAGER_H
 
-#include <map>
-#include <set>
-
-#include <OgreString.h>
-
 #include "steeltypes.h"
 
 namespace Steel

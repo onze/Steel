@@ -2,6 +2,7 @@
 #define STEEL_CONFIGFILE_H
 
 #include <json/json.h>
+
 #include "File.h"
 
 namespace Steel
@@ -11,9 +12,7 @@ namespace Steel
     class ConfigFile
     {
         static const Ogre::String VERSION_ATTRIBUTE_NAME;
-        ConfigFile()
-        {
-        }
+        ConfigFile(){}
     public:
         /// Protocol version number.
         static const Ogre::String VERSION;

@@ -1,12 +1,6 @@
 #ifndef STEEL_OGREMODELMANAGER_H_
 #define STEEL_OGREMODELMANAGER_H_
 
-#include <list>
-
-#include <json/json.h>
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-
 #include "steeltypes.h"
 #include "_ModelManager.h"
 #include "OgreModel.h"
@@ -42,7 +36,7 @@ namespace Steel
 
             virtual ModelType modelType()
             {
-                return MT_OGRE;
+                return ModelType::OGRE;
             }
 
         protected:

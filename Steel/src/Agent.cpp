@@ -21,6 +21,7 @@
 #include "BTModel.h"
 #include "BTModelManager.h"
 #include "AgentManager.h"
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -105,9 +106,9 @@ namespace Steel
 //  Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
         int nModels = 0, nExpected = 0;
 
-        for(ModelType mt_it = (ModelType)((int) MT_FIRST + 1); mt_it != MT_LAST; mt_it = (ModelType)((int) mt_it + 1))
+        for(ModelType mt_it = (ModelType)((int) ModelType::FIRST + 1); mt_it != ModelType::LAST; mt_it = (ModelType)((int) mt_it + 1))
         {
-            Ogre::String mtName = modelTypesAsString[mt_it];
+            Ogre::String mtName = toString(mt_it);
             Json::Value mTypeValue = value[mtName];
 
             // possibly no model of this type
@@ -198,7 +199,7 @@ namespace Steel
 
     bool Agent::linkToModel(ModelType mType, ModelId modelId)
     {
-        Ogre::String intro = "Agent::linkToModel(type=" + modelTypesAsString[mType] + ", id="
+        Ogre::String intro = "Agent::linkToModel(type=" + toString(mType) + ", id="
                              + Ogre::StringConverter::toString(modelId) + "): ";
         ModelManager *mm = mLevel->modelManager(mType);
 
@@ -251,24 +252,24 @@ namespace Steel
         // pre unlinking
         switch(mType)
         {
-            case MT_OGRE:
+            case ModelType::OGRE:
                 while(INVALID_ID != btModelId())
                     popBT();
 
-                unlinkFromModel(MT_BT);
-                unlinkFromModel(MT_LOCATION);
-                unlinkFromModel(MT_PHYSICS);
+                unlinkFromModel(ModelType::BT);
+                unlinkFromModel(ModelType::LOCATION);
+                unlinkFromModel(ModelType::PHYSICS);
                 break;
 
-            case MT_LOCATION:
+            case ModelType::LOCATION:
                 if(mm->at(mid)->refCount() == 1)
                     ((LocationModelManager *)mm)->unlinkLocation(mid);
 
-            case MT_BT:
-            case MT_PHYSICS:
-            case MT_BLACKBOARD:
-            case MT_FIRST:
-            case MT_LAST:
+            case ModelType::BT:
+            case ModelType::PHYSICS:
+            case ModelType::BLACKBOARD:
+            case ModelType::FIRST:
+            case ModelType::LAST:
                 break;
         }
 
@@ -280,7 +281,7 @@ namespace Steel
     void Agent::popBT()
     {
         if(INVALID_ID != btModelId())
-            unlinkFromModel(MT_BT);
+            unlinkFromModel(ModelType::BT);
 
         if(0 == mBehaviorsStack.size())
             return;
@@ -289,7 +290,7 @@ namespace Steel
         mBehaviorsStack.pop_back();
 
         // stack had added an extra ref to keep it alive
-        if(linkToModel(MT_BT, mid))
+        if(linkToModel(ModelType::BT, mid))
         {
             btModel()->decRef();
             btModel()->unpause();
@@ -316,11 +317,11 @@ namespace Steel
             // keep it alive after it is unlinked
             model->incRef();
             mBehaviorsStack.push_back(btModelId());
-            unlinkFromModel(MT_BT);
+            unlinkFromModel(ModelType::BT);
         }
 
         // set given on as current
-        return linkToModel(MT_BT, btid);
+        return linkToModel(ModelType::BT, btid);
     }
 
     Model *Agent::model(ModelType mType) const
@@ -377,7 +378,7 @@ namespace Steel
         {
             ModelType mt = (*it).first;
             ModelId mid = (*it).second;
-            root[modelTypesAsString[mt]] = JsonUtils::toJson(mid);
+            root[toString(mt)] = JsonUtils::toJson(mid);
         }
 
         // tags
@@ -594,7 +595,7 @@ namespace Steel
                 return false;
 
             ModelId mid = locationMan->newModel();
-            linkToModel(MT_LOCATION, mid);
+            linkToModel(ModelType::LOCATION, mid);
             model = locationModel();
         }
 

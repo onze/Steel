@@ -1,4 +1,9 @@
+#include "json/json.h"
+
 #include "InputSystem/Action.h"
+
+
+#include <InputSystem/InputBuffer.h>
 #include <SignalManager.h>
 #include <Debug.h>
 #include <tests/UnitTestManager.h>
@@ -92,14 +97,14 @@ namespace Steel
         return actionSignals;
     }
 
-    bool Action::resolve(std::list< std::pair< Signal, TimeStamp > >::const_iterator &it_signal,
-                         std::list< std::pair< Signal, TimeStamp > > const &signalsBuffer) const
+    bool Action::resolve(std::list<SignalBufferEntry>::const_iterator &it_signal,
+                         std::list<SignalBufferEntry> const &signalsBuffer) const
     {
 //         Debug::log(*this)(" resolves ").asSignalBuffer(signalsBuffer)(" from ").asSignalBufferEntry(*it_signal).endl();
         switch(mType)
         {
             case Action::Type::SIMPLE:
-                while(it_signal->first != mSignal && signalsBuffer.end() != it_signal)
+                while(it_signal->signal != mSignal && signalsBuffer.end() != it_signal)
                     ++it_signal;
 
                 if(signalsBuffer.end() != it_signal)
@@ -115,8 +120,8 @@ namespace Steel
 
                 // validates if all actions resolve
                 bool allFound = true;
-                std::list< std::pair< Signal, TimeStamp > >::const_iterator it_first = signalsBuffer.cend();
-                std::list< std::pair< Signal, TimeStamp > >::const_iterator it_last = signalsBuffer.cbegin();
+                std::list<SignalBufferEntry>::const_iterator it_first = signalsBuffer.cend();
+                std::list<SignalBufferEntry>::const_iterator it_last = signalsBuffer.cbegin();
 
                 for(auto const & sub : mSubActions)
                 {
@@ -129,12 +134,12 @@ namespace Steel
                     {
 //                         Debug::log("resolved sub ")(sub).endl();
                         // update first/last input
-                        if(it->second <= it_first->second)
+                        if(it->timestamp <= it_first->timestamp)
                             it_first = it;
 
-                        if(it->second >= it_last->second)
+                        if(it->timestamp >= it_last->timestamp)
                             it_last = it;
-                        
+
                         ++it;
                     }
                     else
@@ -146,7 +151,7 @@ namespace Steel
 
 
                 // validate timeFrame
-                Duration timeFrame = it_last->second - it_first->second;
+                Duration timeFrame = it_last->timestamp - it_first->timestamp;
 
                 if(allFound && timeFrame < static_cast<Duration>(Action::sTimeFrameAnd))
                 {
@@ -180,7 +185,7 @@ namespace Steel
             default:
                 break;
         }
-        
+
 //         Debug::log("with false").endl();
         return false;
     }
@@ -206,6 +211,7 @@ namespace Steel
                     subAction.toJson(subActionValue);
                     seq.append(subActionValue);
                 }
+
                 value[mType == Action::Type::OR ? Action::OR_ATTRIBUTE : Action::AND_ATTRIBUTE] = seq;
             }
             break;
@@ -225,7 +231,7 @@ namespace Steel
         Signal sC = SignalManager::instance().toSignal("C"); \
         Signal sD = SignalManager::instance().toSignal("D"); \
         Signal sE = SignalManager::instance().toSignal("E"); \
-        std::list< std::pair< Signal, TimeStamp > > signalsBuffer;
+        std::list<SignalBufferEntry > signalsBuffer;
 
 // also avoids "unused variable" warnings
 #define CLEANUP_SIGNALS STEEL_UNUSED(sA); \
@@ -310,8 +316,8 @@ namespace Steel
 
         {
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a("A");
 
             if(!a.resolve(it_signal, signalsBuffer))
@@ -325,8 +331,8 @@ namespace Steel
 
         {
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp()));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a("A");
 
             if(a.resolve(it_signal, signalsBuffer))
@@ -340,9 +346,9 @@ namespace Steel
 
         {
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp()));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             ++it_signal; // points to sB
             Action a("A");
 
@@ -357,8 +363,8 @@ namespace Steel
 
         {
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a("A");
 
             if(!a.resolve(it_signal, signalsBuffer))
@@ -373,9 +379,9 @@ namespace Steel
         {
             // valid use case
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp()));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sB);
 
             if(!a.resolve(it_signal, signalsBuffer))
@@ -390,10 +396,10 @@ namespace Steel
         {
             // valid input with delay
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sC, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sC);
 
             if(!a.resolve(it_signal, signalsBuffer))
@@ -408,10 +414,10 @@ namespace Steel
         {
             // invalid input: delay too long
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, 0));
-            signalsBuffer.push_back(std::make_pair(sB, Action::sTimeFrameAnd));
-            signalsBuffer.push_back(std::make_pair(sC, Action::sTimeFrameAnd * Duration(2)));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, 0});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + Action::sTimeFrameAnd});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sC);
 
             if(a.resolve(it_signal, signalsBuffer))
@@ -426,11 +432,11 @@ namespace Steel
         {
             // valid input, $or action
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp() + (Action::sTimeFrameAnd / 2)));
-            signalsBuffer.push_back(std::make_pair(sC, TimeStamp() + Action::sTimeFrameAnd));
-            signalsBuffer.push_back(std::make_pair(sD, TimeStamp() + (Action::sTimeFrameAnd * 2)));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + Action::sTimeFrameAnd});
+            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::OR).pushSubAction(sA).pushSubAction(sD);
 
             if(!a.resolve(it_signal, signalsBuffer))
@@ -445,10 +451,10 @@ namespace Steel
         {
             // invalid input, $or action
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp() + (Action::sTimeFrameAnd / 2)));
-            signalsBuffer.push_back(std::make_pair(sD, TimeStamp() + (Action::sTimeFrameAnd * 2)));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::OR).pushSubAction(sC).pushSubAction(sE);
 
             if(a.resolve(it_signal, signalsBuffer))
@@ -459,45 +465,47 @@ namespace Steel
 
             CLEANUP_SIGNALS;
         }
-        
+
         {
             // invalid input, embedded $or action
             INIT_SIGNALS;
-            signalsBuffer.push_back(std::make_pair(sA, TimeStamp()));
-            signalsBuffer.push_back(std::make_pair(sC, TimeStamp()));
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp()});
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             //  {or:[{and:[A,B]}, {and:[C,D]}]}
             Action a = Action(Action::Type::OR).pushSubAction(Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sB)).pushSubAction(Action(Action::Type::AND).pushSubAction(sC).pushSubAction(sD));
-            
+
             if(a.resolve(it_signal, signalsBuffer))
             {
                 Debug::error("[UT017] Action::resolve failed").endl().breakHere();
                 return false;
             }
-            
+
             // ok
-            signalsBuffer.push_back(std::make_pair(sB, TimeStamp()));
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
+
             if(!a.resolve(it_signal, signalsBuffer))
             {
                 Debug::error("[UT018] Action::resolve failed").endl().breakHere();
                 return false;
             }
-            
+
             // too late
-            signalsBuffer.push_back(std::make_pair(sD, TimeStamp()+(Action::sTimeFrameAnd * 2)));
+            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+
             if(a.resolve(it_signal, signalsBuffer))
             {
                 Debug::error("[UT019] Action::resolve failed").endl().breakHere();
                 return false;
             }
-            
+
             CLEANUP_SIGNALS;
         }
 
         {
             // emtpy input, $or action
             INIT_SIGNALS;
-            std::list< std::pair< Signal, TimeStamp >>::const_iterator it_signal = signalsBuffer.begin();
+            std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::OR).pushSubAction(sA).pushSubAction(sD);
 
             if(a.resolve(it_signal, signalsBuffer))

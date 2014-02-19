@@ -1,8 +1,7 @@
 #ifndef STEEL_BTNODE_H
 #define STEEL_BTNODE_H
 
-#include <json/json.h>
-
+#include "steeltypes.h"
 #include "BT/btnodetypes.h"
 
 namespace Steel
@@ -13,7 +12,7 @@ namespace Steel
     {
 
         public:
-            BTNode(const Steel::BTShapeToken& token);
+            BTNode(const BTShapeToken& token);
             BTNode(const BTNode& other);
             virtual ~BTNode();
             virtual BTNode& operator=(const BTNode& other);

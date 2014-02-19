@@ -9,10 +9,9 @@
 #include <OgreVector3.h>
 #include <OgreFrameListener.h>
 
+#include "steeltypes.h"
 #include "InputSystem/Input.h"
 #include "TerrainManager.h"
-#include "tools/ConfigFile.h"
-#include "DebugValueManager.h"
 
 namespace Ogre
 {
@@ -23,6 +22,7 @@ namespace Ogre
 namespace Steel
 {
 
+    class ConfigFile;
     class Engine;
     class Editor;
     class InputManager;
@@ -43,9 +43,14 @@ namespace Steel
             static const Ogre::String TERRA_SCALE;
             static const Ogre::String TERRA_SCALE_FACTOR;
 
-            enum BrushMode
+            enum class BrushMode : unsigned int
             {
-                NONE = 0, TRANSLATE, ROTATE, SCALE, TERRAFORM, LINK
+                NONE = 0, 
+                TRANSLATE, 
+                ROTATE, 
+                SCALE, 
+                TERRAFORM, 
+                LINK
             };
             
             EditorBrush();
@@ -193,6 +198,9 @@ namespace Steel
             std::function<bool(AgentId const srcAid, AgentId const dstAid)> mLinkingValidatedCallbackFn;
             std::function<bool(AgentId const srcAid, AgentId const dstAid)> mLinkingValidatedAlternateCallbackFn;
     };
+    
+    Ogre::String toString(EditorBrush::BrushMode e);
+    
 }
 #endif // STEEL_EDITORBRUSH_H
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -8,6 +8,7 @@
 #include "Debug.h"
 #include "InputSystem/InputManager.h"
 #include <tools/OgreUtils.h>
+#include <tools/StringUtils.h>
 #include <Level.h>
 #include <Engine.h>
 #include "UI/RenderInterfaceOgre3D.h"

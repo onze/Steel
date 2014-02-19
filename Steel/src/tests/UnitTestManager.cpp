@@ -2,6 +2,8 @@
 #include <Debug.h>
 
 #include "InputSystem/InputBuffer.h"
+#include <InputSystem/Action.h>
+#include <InputSystem/ActionCombo.h>
 #include "tools/ConfigFile.h"
 #include "tools/StringUtils.h"
 #include <BT/BTShapeManager.h>

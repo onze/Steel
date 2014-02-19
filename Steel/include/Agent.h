@@ -1,29 +1,19 @@
 #ifndef STEEL_AGENT_H_
 #define STEEL_AGENT_H_
 
-#include <limits.h>
-#include <exception>
-#include <map>
-
-#include <list>
-#include <json/json.h>
-#include <OgreString.h>
-#include <OgreVector3.h>
-
 #include "steeltypes.h"
 #include "SignalEmitter.h"
 
 namespace Steel
 {
 
+    class BlackBoardModel;
+    class BTModel;
     class Level;
+    class LocationModel;
     class Model;
-
     class OgreModel;
     class PhysicsModel;
-    class LocationModel;
-    class BTModel;
-    class BlackBoardModel;
 
     /**
      * Agent is the base class of Steel objects.
@@ -67,20 +57,20 @@ namespace Steel
         /// Return all ids of all contained model types.
         std::map<ModelType, ModelId> &modelsIds() {return mModelIds;}
 
-        inline OgreModel *ogreModel() const {return (OgreModel *) model(MT_OGRE);}
-        inline ModelId ogreModelId() const {return modelId(MT_OGRE);}
+        inline OgreModel *ogreModel() const {return (OgreModel *) model(ModelType::OGRE);}
+        inline ModelId ogreModelId() const {return modelId(ModelType::OGRE);}
 
-        inline PhysicsModel *physicsModel() const {return (PhysicsModel *) model(MT_PHYSICS);}
-        inline ModelId physicsModelId() const {return modelId(MT_PHYSICS);}
+        inline PhysicsModel *physicsModel() const {return (PhysicsModel *) model(ModelType::PHYSICS);}
+        inline ModelId physicsModelId() const {return modelId(ModelType::PHYSICS);}
 
-        inline LocationModel *locationModel() const {return (LocationModel *) model(MT_LOCATION);}
-        inline ModelId locationModelId() const {return modelId(MT_LOCATION);}
+        inline LocationModel *locationModel() const {return (LocationModel *) model(ModelType::LOCATION);}
+        inline ModelId locationModelId() const {return modelId(ModelType::LOCATION);}
 
-        inline BTModel *btModel() const {return (BTModel *) model(MT_BT);}
-        inline ModelId btModelId() const {return modelId(MT_BT);}
+        inline BTModel *btModel() const {return (BTModel *) model(ModelType::BT);}
+        inline ModelId btModelId() const {return modelId(ModelType::BT);}
 
-        inline BlackBoardModel *blackBoardModel() const {return (BlackBoardModel *) model(MT_BLACKBOARD);}
-        inline ModelId blackBoardModelId() const {return modelId(MT_BLACKBOARD);}
+        inline BlackBoardModel *blackBoardModel() const {return (BlackBoardModel *) model(ModelType::BLACKBOARD);}
+        inline ModelId blackBoardModelId() const {return modelId(ModelType::BLACKBOARD);}
 
         inline bool isSelected() {return mIsSelected;}
 

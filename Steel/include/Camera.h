@@ -1,11 +1,6 @@
 #ifndef STEEL_CAMERA_H_
 #define STEEL_CAMERA_H_
 
-#include <json/json.h>
-
-#include <OgreCamera.h>
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
 #include "steeltypes.h"
 #include "EngineEventListener.h"
 

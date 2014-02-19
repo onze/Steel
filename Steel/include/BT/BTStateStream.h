@@ -3,13 +3,11 @@
 
 #include <vector>
 
-#include "BT/btnodetypes.h"
-#include "BTNode.h"
-#include "tests/UnitTestManager.h"
-
 namespace Steel
 {
+    class BTNode;
     class UnitTestExecutionContext;
+    
     /**
      * A BTStateStream contains a vector of BTNode subclasses.
      * It builds from s shapeStream, and grants access to its states like a regular vector,

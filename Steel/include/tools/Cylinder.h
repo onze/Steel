@@ -1,5 +1,6 @@
 #ifndef STEEL_CYLINDER_H
 #define STEEL_CYLINDER_H
+
 #include <OgreMesh.h>
 
 namespace Ogre

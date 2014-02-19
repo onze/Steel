@@ -1,13 +1,13 @@
 #ifndef SIGNALLISTENERMOCK_H
 #define SIGNALLISTENERMOCK_H
 
-#include <vector>
-
-#include <SignalListener.h>
-#include <SignalEmitter.h>
+#include "steeltypes.h"
+#include "SignalListener.h"
 
 namespace Steel
 {
+    class SignalEmitter;
+    
     class SignalListenerMock : public SignalListener
     {
     public:

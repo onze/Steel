@@ -4,6 +4,7 @@
 #include <Agent.h>
 #include <Level.h>
 #include <AgentManager.h>
+#include <Debug.h>
 
 namespace Steel
 {
@@ -88,10 +89,10 @@ namespace Steel
 
         // allocate new models for agents if necessary
         if(INVALID_ID == src->locationModelId())
-            src->linkToModel(MT_LOCATION, newModel());
+            src->linkToModel(ModelType::LOCATION, newModel());
 
         if(INVALID_ID == dst->locationModelId())
-            dst->linkToModel(MT_LOCATION, newModel());
+            dst->linkToModel(ModelType::LOCATION, newModel());
 
         return linkLocations(src->locationModelId(), dst->locationModelId());
     }

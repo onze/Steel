@@ -8,23 +8,8 @@
 #ifndef STEEL_RAYCASTER_H_
 #define STEEL_RAYCASTER_H_
 
-#include <list>
-
-#include <OgreRay.h>
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
-
 #include "steeltypes.h"
 #include "EngineEventListener.h"
-
-namespace Ogre
-{
-    class SceneManager;
-    class SceneNode;
-    class Vector3;
-    class Entity;
-    class RaySceneQuery;
-}
 
 namespace Steel
 {

@@ -10,7 +10,10 @@
 
 #include "Agent.h"
 #include "Model.h"
+#include "TagManager.h"
 #include "tools/JsonUtils.h"
+#include <Debug.h>
+
 
 namespace Steel
 {

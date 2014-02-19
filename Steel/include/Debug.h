@@ -1,255 +1,68 @@
 #ifndef STEEL_DEBUG_H_
 #define STEEL_DEBUG_H_
 
-#include <iostream>
-#include <json/value.h>
-#include <signal.h>
-
-#include <OgreLog.h>
-#include <OgreLogManager.h>
-#include <OgreString.h>
-#include <OgreStringConverter.h>
-#include <OgreResourceManager.h>
 #include <Rocket/Core/String.h>
-
 #include "steeltypes.h"
-#include "BT/btnodetypes.h"
-#include "BT/BTNode.h"
-#include "tools/StringUtils.h"
-#include "InputSystem/ActionCombo.h"
-#include "SignalManager.h"
 
 namespace Steel
 {
 
-    class Debug
+    class Action;
+    class ActionCombo;
+    class BTNode;
+    class BTShapeStream;
+    class SignalBufferEntry;
+    class SignalManager;
+
+    namespace Debug
     {
-    public:
-        Debug();
-        virtual ~Debug();
+
+        /// Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
+        void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors = true);
+        /// Displays a message telling an error message will appear and can be ignored (used in utests).
+        void ignoreNextErrorMessage();
+
+        ///false as long as Debug::init has not been called.
+        extern bool isInit;
+
         class DebugObject
         {
         public:
             static Ogre::String sIndentString;
-            DebugObject()
-            {
-                mLog = nullptr;
-                mMsg = Ogre::StringUtil::BLANK;
-                mIndents = 0;
-            }
-            DebugObject(Ogre::Log *log)
-            {
-                mLog = log;
-                mIndents = 0;
-            }
-            DebugObject(const DebugObject &o)
-            {
-                mLog = o.mLog;
-                mMsg = o.mMsg;
-                mIndents = o.mIndents;
-            }
-            DebugObject &operator=(const DebugObject &o)
-            {
-                mLog = o.mLog;
-                mMsg = o.mMsg;
-                mIndents = o.mIndents;
-                return *this;
-            }
-            Ogre::String getFileName()
-            {
-                return mLog->getName();
-            }
-            void setColors(Ogre::String pre = Ogre::StringUtil::BLANK, Ogre::String post = Ogre::StringUtil::BLANK)
-            {
-                mPre = pre;
-                mPost = post;
-            }
+            DebugObject();
+            DebugObject(Ogre::Log *log);
+            DebugObject(const DebugObject &o);
+            DebugObject &operator=(const DebugObject &o);
 
-            /// Empty call. Allows build-safe typos.
-            DebugObject &operator()()
-            {
-                return *this;
-            }
+            Ogre::String getFileName();
+            void setColors(Ogre::String pre = Ogre::StringUtil::BLANK, Ogre::String post = Ogre::StringUtil::BLANK);
 
-            /**
-             * equivalent to myDebugObject.log(Ogre::String msg)
-             */
-            DebugObject &operator()(const Ogre::Degree msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg.valueDegrees()) + "deg");
-            }
-
-            DebugObject &operator()(const Ogre::Radian msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg.valueRadians()) + "rad");
-            }
-
-            DebugObject &operator()(const Ogre::Vector2 msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const Ogre::Vector3 msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const Ogre::Quaternion msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const int msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const unsigned int msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const long int msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const long unsigned int msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const float msg)
-            {
-                return (*this)(Ogre::StringConverter::toString(msg));
-            }
-
-            DebugObject &operator()(const char *msg)
-            {
-                return (*this)(Ogre::String(msg));
-            }
-
-            DebugObject &operator()(Ogre::String const &msg)
-            {
-                mMsg.append(msg);
-                return *this;
-            }
-
-            DebugObject &operator()(Json::Value const &msg)
-            {
-                mMsg.append(msg.toStyledString());
-                return *this;
-            }
-
-            DebugObject &operator()(Rocket::Core::String const &msg)
-            {
-                return (*this)(Ogre::String(msg.CString()));
-            }
-
-            DebugObject &operator()(Ogre::StringVectorPtr const vec)
-            {
-                if(vec.isNull())
-                    return (*this)(*vec);
-                else
-                    return (*this)("nullptr ptr !");
-            }
-
-            DebugObject &operator()(Ogre::StringVector const &vec)
-            {
-                return (*this)(vec);
-            }
-
-            DebugObject &operator()(BTShapeToken const &token)
-            {
-                (*this)("BTShapeToken{type: ")(StringUtils::BTShapeTokenTypeToString(token.type));
-                (*this)(", begin: ")(token.begin);
-                (*this)(", end: ")(token.end);
-                (*this)(", contentFile: ")(token.contentFile);
-                return (*this)("}");
-            }
-
-            DebugObject &operator()(BTShapeStream *const shapeStream)
-            {
-                this->operator()("BTShapeStream[").endl().indent();
-
-                for(auto it = shapeStream->mData.begin(); it != shapeStream->mData.end(); ++it)
-                    (*this)(*it)(", ").endl();
-
-                return (*this)("]").unIndent();
-            }
-
-            DebugObject &operator()(BTNodeState state)
-            {
-                return (*this)(BTNodeStateAsString[static_cast<int>(state)]);
-            }
-
-            DebugObject &operator()(BTNode *const node)
-            {
-                if(nullptr == node)
-                {
-                    (*this)("BTNode{ // nullptr pointer !}");
-                }
-                else
-                {
-                    (*this)("BTNode{").endl().indent();
-                    (*this)("begin:")(node->begin())(", ").endl();
-                    (*this)("end:")(node->end())(", ").endl();
-                    (*this)("state:")(node->state())(", ").endl();
-                    (*this)("token:")(node->token())(", ").endl();
-                    (*this)("}").unIndent();
-                }
-
-                return *this;
-            }
-            
-            DebugObject &operator()(Action const& action)
-            {
-                Json::Value value;
-                action.toJson(value);
-                return (*this)("Action")(value);
-            }
-            
-            DebugObject &operator()(ActionCombo const& combo)
-            {
-                Json::Value value;
-                combo.toJson(value);
-                return (*this)("ActionCombo")(value);
-            }
-            
-            DebugObject &asSignalBufferEntry(std::pair< Signal, TimeStamp > const& entry)
-            {
-                return (*this)("(")(SignalManager::instance().fromSignal(entry.first))(", ")(entry.second)(")");
-            }
-            
-            DebugObject &asSignalBuffer(std::list< std::pair< Signal, TimeStamp > > const &signalsBuffer)
-            {
-                this->operator()("SignalBuffer[");
-                
-                for(auto it = signalsBuffer.begin(); it != signalsBuffer.end(); ++it)
-                    asSignalBufferEntry(*it)(", ");
-                
-                return (*this)("]");
-            }
-
-            DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list)
-            {
-                this->operator()("list[");
-
-                for(auto it = list.begin(); it != list.end(); ++it)
-                    this->operator()((*it)->archive->getName())(", ");
-                
-                return (*this)("]");
-            }
-
-            DebugObject &operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list)
-            {
-                this->operator()("list[");
-
-                for(auto it = list.begin(); it != list.end(); ++it)
-                    this->operator()((*it).resourceName)(", ");
-                
-                return (*this)("]");
-            }
+            DebugObject &operator()();
+            DebugObject &operator()(const Ogre::Degree msg);
+            DebugObject &operator()(const Ogre::Radian msg);
+            DebugObject &operator()(const Ogre::Vector2 msg);
+            DebugObject &operator()(const Ogre::Vector3 msg);
+            DebugObject &operator()(const Ogre::Quaternion msg);
+            DebugObject &operator()(const int msg);
+            DebugObject &operator()(const unsigned int msg);
+            DebugObject &operator()(const long int msg);
+            DebugObject &operator()(const long unsigned int msg);
+            DebugObject &operator()(const float msg);
+            DebugObject &operator()(const char *msg);
+            DebugObject &operator()(Ogre::String const &msg);
+            DebugObject &operator()(Json::Value const &msg);
+            DebugObject &operator()(Rocket::Core::String const &msg);
+            DebugObject &operator()(Ogre::StringVectorPtr const vec);
+            DebugObject &operator()(Ogre::StringVector const &vec);
+            DebugObject &operator()(BTShapeToken const &token);
+            DebugObject &operator()(BTShapeStream *const shapeStream);
+            DebugObject &operator()(BTNodeState state);
+            DebugObject &operator()(BTNode *const node);
+            DebugObject &operator()(Action const &action);
+            DebugObject &operator()(ActionCombo const &combo);
+            DebugObject &operator()(SignalBufferEntry const &entry);
+            DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list);
+            DebugObject &operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list);
 
             template<class T>
             DebugObject &operator()(std::vector<T> const &container)
@@ -280,12 +93,12 @@ namespace Steel
 
                 for(auto it = container.begin(); it != container.end(); ++it)
                     this->operator()(*it)(", ");
-                
+
                 return (*this)("]");
             }
-            
+
             template<class T, class U>
-            DebugObject &operator()(std::pair<T,U> const &pair)
+            DebugObject &operator()(std::pair<T, U> const &pair)
             {
                 return this->operator()("pair(")(pair.first)(", ")(pair.second)(")");
             }
@@ -297,89 +110,14 @@ namespace Steel
                 return (*this)("\"")(o)("\"");
             }
 
-            DebugObject &endl()
-            {
-                return flush(true);
-            }
-
-            DebugObject &flush(bool breakline = false)
-            {
-//                         std::replace(mMsg.begin(),mMsg.end(),"\n","\n\t");
-                if(nullptr == mLog)
-                {
-                    std::cout << "[RAW]" << mPre << mMsg << mPost;
-
-                    if(breakline)
-                        std::cout << std::endl;
-                    else
-                        std::cout.flush();
-                }
-                else
-                {
-                    mLog->logMessage(mPre + mMsg + mPost);
-                    mMsg.clear();
-
-                    for(int i = 0; i < mIndents; ++i)
-                        mMsg.append(DebugObject::sIndentString);
-                }
-
-                return *this;
-            }
-
-            DebugObject &indent()
-            {
-                mIndents += 1;
-
-                if(mMsg == Ogre::StringUtil::BLANK)
-                    for(int i = 0; i < mIndents; ++i)
-                        mMsg.append(DebugObject::sIndentString);
-
-                return *this;
-            }
-
-            DebugObject &unIndent()
-            {
-                mIndents = mIndents > 0 ? mIndents - 1 : 0;
-
-                if(mIndents > 0 && mMsg == Ogre::StringUtil::BLANK)
-                    for(int i = 0; i < mIndents; ++i)
-                        mMsg.append(DebugObject::sIndentString);
-
-                return *this;
-            }
-
-            DebugObject &resetIndent()
-            {
-                mIndents = 0;
-                return *this;
-            }
+            DebugObject &endl();
+            DebugObject &flush(bool breakline = false);
+            DebugObject &indent();
+            DebugObject &unIndent();
+            DebugObject &resetIndent();
 
             /// In debug, invoke a debugger here.
-            DebugObject &breakHere()
-            {
-                /**
-                 * From here: http://hg.mozilla.org/mozilla-central/file/98fa9c0cff7a/js/src/jsutil.cpp#l66
-                 * Found there: http://stackoverflow.com/questions/4326414/set-breakpoint-in-c-or-c-code-programmatically-for-gdb-on-linux
-                 */
-#if defined(WIN32)
-                /*
-                 * We used to call DebugBreak() on Windows, but amazingly, it causes
-                 * the MSVS 2010 debugger not to be able to recover a call stack.
-                 */
-                *((int *) NULL) = 0;
-                exit(3);
-#elif defined(__APPLE__)
-                /*
-                 * On Mac OS X, Breakpad ignores signals. Only real Mach exceptions are
-                 * trapped.
-                 */
-                *((int *) NULL) = 0;  /* To continue from here in GDB: "return" then "continue". */
-                raise(SIGABRT);  /* In case above statement gets nixed by the optimizer. */
-#else
-                raise(SIGABRT);  /* To continue from here in GDB: "signal 0". */
-#endif
-                return *this;
-            }
+            DebugObject &breakHere();
 
         protected:
             Ogre::Log *mLog;
@@ -387,61 +125,17 @@ namespace Steel
             Ogre::String mPre;
             Ogre::String mPost;
             int mIndents;
-        }; //end of class DebugObject
+        };
 
         ///default log in direct access
-        static DebugObject log;
+        extern DebugObject log;
 
         ///warning  log in direct access
-        static DebugObject warning;
+        extern DebugObject warning;
 
         ///error log in direct access
-        static DebugObject error;
-
-        ///false as long as Debug::init has not been called.
-        static bool isInit;
-
-        /// Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
-        static void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors = true)
-        {
-            Ogre::LogManager *olm = new Ogre::LogManager();
-            Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, true, false);
-
-            log = DebugObject(defaultLog);
-
-            if(logListener)
-                defaultLog->addListener(logListener);
-
-            Ogre::Log *wlog = olm->createLog("steel_warnings.log", false, true, false);
-
-            if(logListener)
-                wlog->addListener(logListener);
-
-            warning = DebugObject(wlog);
-
-            //yellow
-            if(useColors)
-                warning.setColors("\033[1;33m", "\033[1;m");
-
-            Ogre::Log *elog = olm->createLog("steel_errors.log", false, true, false);
-
-            if(logListener)
-                elog->addListener(logListener);
-
-            error = DebugObject(elog);
-
-            //red
-            if(useColors)
-                error.setColors("\033[1;31m", "\033[1;m");
-
-            Debug::isInit = true;
-        }
-
-        // preset messages
-        /// Displays a message telling an error message will appear and can be ignored (used in utests).
-        static void ignoreNextErrorMessage();
+        extern DebugObject error;
     };
-
 }
 
 #endif /* STEEL_DEBUG_H_ */

@@ -1,17 +1,9 @@
 #ifndef STEEL_JSONUTILS_H
 #define STEEL_JSONUTILS_H
 
-#include <map>
-#include <list>
-#include <set>
-
 #include <json/json.h>
-#include <OgreVector3.h>
-#include <OgreString.h>
-#include <OgreStringConverter.h>
-#include <steeltypes.h>
-#include <SignalManager.h>
-#include <TagManager.h>
+
+#include "steeltypes.h"
 
 namespace Steel
 {

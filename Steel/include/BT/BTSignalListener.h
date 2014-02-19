@@ -1,8 +1,6 @@
 #ifndef STEEL_BTSIGNALLISTENER_H
 #define STEEL_BTSIGNALLISTENER_H
 
-#include <json/json.h>
-
 #include "steeltypes.h"
 #include "BT/BTNode.h"
 #include "SignalListener.h"

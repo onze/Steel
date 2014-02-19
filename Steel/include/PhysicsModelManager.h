@@ -19,7 +19,7 @@ namespace Steel
 
             inline ModelType modelType()
             {
-                return MT_PHYSICS;
+                return ModelType::PHYSICS;
             }
 
             /// Initialize a new PhysicsModel and returns its identifier.

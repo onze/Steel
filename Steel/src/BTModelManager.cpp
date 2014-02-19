@@ -3,6 +3,7 @@
 #include <Level.h>
 #include <Agent.h>
 #include <BlackBoardModelManager.h>
+#include <Debug.h>
 
 namespace Steel
 {
@@ -26,7 +27,7 @@ namespace Steel
 
     ModelType BTModelManager::modelType()
     {
-        return MT_BT;
+        return ModelType::BT;
     }
 
     Ogre::String BTModelManager::genericFollowPathModelPath()

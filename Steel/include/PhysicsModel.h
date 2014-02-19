@@ -1,12 +1,10 @@
 #ifndef STEEL_PHYSICSMODEL_H
 #define STEEL_PHYSICSMODEL_H
 
-#include <stack>
-#include <map>
-
 #include "steeltypes.h"
 #include "Model.h"
 #include "SignalEmitter.h"
+#include <stack>
 
 class btDynamicsWorld;
 class btPairCachingGhostObject;
@@ -14,6 +12,7 @@ class btRigidBody;
 
 namespace Steel
 {
+    class SignalListener;
     class PhysicsModelManager;
     class OgreModel;
     class Agent;
@@ -74,7 +73,7 @@ namespace Steel
 
         static ModelType modelType()
         {
-            return MT_PHYSICS;
+            return ModelType::PHYSICS;
         }
 
         ///serialize itself into the given Json object

@@ -1,24 +1,19 @@
 #ifndef STEEL_INPUTMANAGER_H_
 #define STEEL_INPUTMANAGER_H_
 
-#include <string>
-#include <list>
-#include <algorithm>
+#include <OISMouse.h>
+#include <OISKeyboard.h>
 
-#include <OIS.h>
-#include <OgreVector2.h>
-#include <OgreWindowEventUtilities.h>
-
-#include "Input.h"
-#include "InputBuffer.h"
 #include "steeltypes.h"
-#include <tools/File.h>
+#include "InputBuffer.h"
+#include "Input.h"
 
 namespace Steel
 {
     class Engine;
     class UI;
     class InputEventListener;
+    
     /**
      * owned by the engine. Fed input primarily by the UI (possibly by network/automation tools).
      */

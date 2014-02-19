@@ -1,8 +1,9 @@
 #ifndef _DYNAMIC_LINES_H_
 #define _DYNAMIC_LINES_H_
 
-#include "tools/DynamicRenderable.h"
 #include <vector>
+
+#include "tools/DynamicRenderable.h"
 
 namespace Steel
 {

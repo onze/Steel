@@ -2,6 +2,7 @@
 #include "tools/JsonUtils.h"
 #include "tools/StringUtils.h"
 #include "Debug.h"
+#include <TagManager.h>
 
 namespace Steel
 {

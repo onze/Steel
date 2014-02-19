@@ -1,15 +1,10 @@
 #ifndef STEEL_STRINGUTILS_H
 #define STEEL_STRINGUTILS_H
-#include <limits.h>
-#include <vector>
-#include <string>
 
-#include <json/json.h>
-#include <OgreString.h>
 #include <OgreStringConverter.h>
 #include <Rocket/Core/String.h>
 
-#include <BT/btnodetypes.h>
+#include <steeltypes.h>
 
 namespace Steel
 {

@@ -21,9 +21,10 @@
 #include "OgreModelManager.h"
 #include "PhysicsModelManager.h"
 #include "tools/JsonUtils.h"
-#include <AgentManager.h>
-#include <SelectionManager.h>
-#include <LocationModel.h>
+#include "AgentManager.h"
+#include "SelectionManager.h"
+#include "LocationModel.h"
+#include "TagManager.h"
 
 namespace Steel
 {
@@ -205,9 +206,9 @@ namespace Steel
         Steel::ModelId mid = level->ogreModelMan()->newModel(meshFile.fileName(), pos, rot);
         AgentId aid = mEngine->level()->agentMan()->newAgent();
 
-        if(!level->linkAgentToModel(aid, MT_OGRE, mid))
+        if(!level->linkAgentToModel(aid, ModelType::OGRE, mid))
         {
-            Debug::error(intro + "): could not level->linkAgentToModel(")(aid)(", MT_OGRE, ")(mid)(")").endl();
+            Debug::error(intro + "): could not level->linkAgentToModel(")(aid)(", ModelType::OGRE, ")(mid)(")").endl();
             return INVALID_ID;
         }
 
@@ -243,13 +244,13 @@ namespace Steel
         {
             case Input::Code::KC_H:
                 if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
-                    mBrush.setMode(EditorBrush::TERRAFORM);
+                    mBrush.setMode(EditorBrush::BrushMode::TERRAFORM);
 
                 break;
 
             case Input::Code::KC_L:
                 if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
-                    mBrush.setMode(EditorBrush::LINK);
+                    mBrush.setMode(EditorBrush::BrushMode::LINK);
 
                 break;
 
@@ -258,7 +259,7 @@ namespace Steel
                     reloadContent();
 
                 if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
-                    mBrush.setMode(EditorBrush::ROTATE);
+                    mBrush.setMode(EditorBrush::BrushMode::ROTATE);
 
                 break;
 
@@ -272,13 +273,13 @@ namespace Steel
                 }
 
                 if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
-                    mBrush.setMode(EditorBrush::SCALE);
+                    mBrush.setMode(EditorBrush::BrushMode::SCALE);
 
                 break;
 
             case Input::Code::KC_T:
                 if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
-                    mBrush.setMode(EditorBrush::TRANSLATE);
+                    mBrush.setMode(EditorBrush::BrushMode::TRANSLATE);
 
                 break;
 

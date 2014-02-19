@@ -1,10 +1,7 @@
 #ifndef STEEL_UNITTESTMANAGER_H
 #define STEEL_UNITTESTMANAGER_H
 
-#include <functional>
-#include <map>
-#include <set>
-#include <OgreHeaderSuffix.h>
+#include "steeltypes.h"
 
 // include all *Mock classes for single include from other classes
 #include "tests/SignalListenerMock.h"

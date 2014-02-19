@@ -1,26 +1,22 @@
 #ifndef STEEL_BTSHAPEMANAGER_H
 #define STEEL_BTSHAPEMANAGER_H
 
-#include <map>
-#include <vector>
-#include "OgreString.h"
-
-#include "BT/btnodetypes.h"
-#include "BTFileNode.h"
-#include "tools/File.h"
+#include "steeltypes.h"
 
 namespace Steel
 {
+    class File;
     class UnitTestExecutionContext;
+    class BTShapeStream;
+    class BTFileNode;
+    
     /**
      * Handles behavior tree shape streams, that is BTShapeStream.
      * Could be a manager on its own.
      */
     class BTShapeManager
     {
-
         public:
-
             BTShapeManager();
             BTShapeManager(const BTShapeManager& o);
             virtual ~BTShapeManager();
@@ -36,7 +32,7 @@ namespace Steel
              * @param stream pointer to the created shape stream.
              * @return true if no error occured.
              */
-            bool buildShapeStream(Ogre::String streamName, Steel::File const &rootFile, Steel::BTShapeStream*& stream);
+            bool buildShapeStream(Ogre::String streamName, File const &rootFile, BTShapeStream*& stream);
 
             /// Returns a pointer to a cached stream, or nullptr if no stream with the given name has been built.
             BTShapeStream *getBTShapeStream(Ogre::String streamName);

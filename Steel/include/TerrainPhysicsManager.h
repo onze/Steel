@@ -1,16 +1,11 @@
 #ifndef STEEL_TERRAINPHYSICSMANAGER_H
 #define STEEL_TERRAINPHYSICSMANAGER_H
 
-#include <map>
-
 #include <bullet/btBulletCollisionCommon.h>
 #include <bullet/btBulletDynamicsCommon.h>
 
-#include <OgreVector2.h>
-#include <OgreFrameListener.h>
-
+#include "steeltypes.h"
 #include "TerrainManagerEventListener.h"
-#include "TerrainManager.h"
 
 namespace Ogre
 {
@@ -26,6 +21,8 @@ class btHeightfieldTerrainShape;
 
 namespace Steel
 {
+    class TerrainManager;
+    
     class TerrainPhysicsManager: public TerrainManagerEventListener, Ogre::FrameListener
     {
         private:

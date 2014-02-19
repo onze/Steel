@@ -124,7 +124,7 @@ namespace Steel
     {
         switch(state)
         {
-            case TerrainManager::READY:
+            case TerrainManager::LoadingState::READY:
                 break;
 
             default:

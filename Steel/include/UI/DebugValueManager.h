@@ -1,11 +1,8 @@
 #ifndef STEEL_DEBUGVALUEMANAGER_H
 #define STEEL_DEBUGVALUEMANAGER_H
 
-#include <map>
-#include <vector>
 #include <functional>
 
-#include <OgreHeaderSuffix.h>
 #include <steeltypes.h>
 
 namespace Rocket

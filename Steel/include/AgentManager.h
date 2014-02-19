@@ -1,10 +1,7 @@
 #ifndef STEEL_AGENT_MANAGER_H
 #define STEEL_AGENT_MANAGER_H
 
-#include <map>
-
 #include "steeltypes.h"
-#include "Level.h"
 
 namespace Steel
 {

@@ -34,6 +34,7 @@
 #include "LocationModelManager.h"
 #include "BlackBoardModelManager.h"
 #include "BTModelManager.h"
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -170,8 +171,8 @@ namespace Steel
 
         if(mm == nullptr)
         {
-            Debug::error(intro)("mType ")((long int) mType)(" aka \"");
-            Debug::error(modelTypesAsString[mType])("\" does not exist.").endl();
+            Debug::error(intro)("mType ")((long int) mType)(" aka ")
+            .quotes(toString(mType))(" does not exist.").endl();
             return false;
         }
 
@@ -183,7 +184,7 @@ namespace Steel
 
         if(!agent->linkToModel(mType, mid))
         {
-            Debug::error(intro)("linkage agent ")(aid)("<->model<")(modelTypesAsString[mType])(">");
+            Debug::error(intro)("linkage agent ")(aid)("<->model<")(toString(mType))(">");
             Debug::error(mid)(" failed.").endl();
             return false;
         }
@@ -226,7 +227,7 @@ namespace Steel
         {
             mAgentMan->deleteAllAgents();
 
-            for(ModelType mt = MT_FIRST; mt < MT_LAST; mt = (ModelType)(((unsigned long)mt) + 1L))
+            for(ModelType mt = ModelType::FIRST; mt < ModelType::LAST; mt = (ModelType)(((unsigned long)mt) + 1L))
             {
                 ModelManager *mm = modelManager(mt);
 
@@ -263,7 +264,7 @@ namespace Steel
     {
         if(nullptr != modelManager(type))
         {
-            Debug::error("in Level::registerManager(): a manager for type ").quotes(modelTypesAsString[type])
+            Debug::error("in Level::registerManager(): a manager for type ").quotes(toString(type))
             (" already exists ! Aborting.").endl();
             return;
         }
@@ -286,7 +287,7 @@ namespace Steel
 
     void Level::onTerrainEvent(TerrainManager::LoadingState state)
     {
-        if(state == mTerrainMan.READY)
+        if(TerrainManager::LoadingState::READY == state)
             mTerrainMan.removeTerrainManagerEventListener(this);
     }
 
@@ -384,19 +385,19 @@ namespace Steel
         Debug::log("processing models...").endl();
         Json::Value models;
 
-        for(ModelType modelType = (ModelType)((int) MT_FIRST + 1);
-                modelType != MT_LAST;
+        for(ModelType modelType = (ModelType)((int) ModelType::FIRST + 1);
+                modelType != ModelType::LAST;
                 modelType = (ModelType)((int) modelType + 1))
         {
             ModelManager *mm = modelManager(modelType);
 
             if(mm == nullptr)
             {
-                Debug::warning(logName() + ".serialize(): no modelManager of type ")(modelTypesAsString[modelType]).endl();
+                Debug::warning(logName() + ".serialize(): no modelManager of type ")(toString(modelType)).endl();
                 continue;
             }
 
-            mm->toJson(models[modelTypesAsString[modelType]]);
+            mm->toJson(models[toString(modelType)]);
         }
 
         root[Level::MANAGERS_ATTRIBUTE] = models;
@@ -478,9 +479,9 @@ namespace Steel
         }
         else
         {
-            for(ModelType i = (ModelType)((unsigned long) MT_FIRST + 1); i != MT_LAST; i = (ModelType)((unsigned long) i + 1))
+            for(ModelType i = (ModelType)((unsigned long) ModelType::FIRST + 1); i != ModelType::LAST; i = (ModelType)((unsigned long) i + 1))
             {
-                Ogre::String type = modelTypesAsString[i];
+                Ogre::String type = toString(i);
                 Json::Value models = dict[type];
 
                 if(models.isNull())
@@ -656,16 +657,12 @@ namespace Steel
         }
 
         // ask the right manager to load this model
-        ModelType modelType = MT_FIRST;
-        auto it = std::find(modelTypesAsString.begin(), modelTypesAsString.end(), modelTypeString);
-
-        if(modelTypesAsString.end() == it)
+        ModelType modelType = toModelType(modelTypeString);
+        if(ModelType::LAST == modelType)
         {
             Debug::warning(intro)("Unknown model type: ")(modelTypeString).endl();
             return false;
         }
-        else
-            modelType = (ModelType) std::distance(modelTypesAsString.begin(), it);
 
         // check if the agent is already linked to such a model
         Agent *agent = agentMan()->getAgent(aid);
@@ -736,7 +733,7 @@ namespace Steel
 
     ModelId Level::modelIdUnderMouse(ModelType mType)
     {
-        static const Ogre::String intro = "in Level::ModelIdUnderMouse(mType=" + modelTypesAsString[mType] + "): ";
+        static const Ogre::String intro = "in Level::ModelIdUnderMouse(mType=" + toString(mType) + "): ";
 
         ModelId mid = INVALID_ID;
         AgentId aid = agentIdUnderMouse();
@@ -876,7 +873,7 @@ namespace Steel
                 {
                     if(nullptr == agent)
                     {
-                        ModelId mid_um = modelIdUnderMouse(MT_OGRE);
+                        ModelId mid_um = modelIdUnderMouse(ModelType::OGRE);
 
                         if(INVALID_ID == mid_um)
                         {
@@ -943,7 +940,7 @@ namespace Steel
             {
                 Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
 
-                if(value.isNull() || value.asCString() != modelTypesAsString[MT_OGRE])
+                if(value.isNull() || value.asCString() != toString(ModelType::OGRE))
                 {
                     Debug::error("serialization is not starting with an OgreModel as modelType. Aborted.").endl();
                     return false;
@@ -1045,9 +1042,9 @@ namespace Steel
 
                 Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
 
-                if(value.isNull() || !value.isString() || value.asString() != modelTypesAsString[MT_OGRE])
+                if(value.isNull() || !value.isString() || value.asString() != toString(ModelType::OGRE))
                 {
-                    Debug::error(intro)("serialization is not starting with a model of type MT_OGRE. Aborted.").endl();
+                    Debug::error(intro)("serialization is not starting with a model of type ModelType::OGRE. Aborted.").endl();
                     revertAgent = true;
                     break;
                 }

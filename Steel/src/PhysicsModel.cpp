@@ -19,6 +19,7 @@
 #include <AgentManager.h>
 #include <RigidBodyStateWrapper.h>
 #include <SignalListener.h>
+#include <Debug.h>
 
 namespace Steel
 {

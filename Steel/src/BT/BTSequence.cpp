@@ -5,9 +5,10 @@
  *      Author: onze
  */
 #include <iostream>
+#include <json/json.h>
+
 #include "BT/BTSequence.h"
-#include <Debug.h>
-#include <assert.h>
+#include "Debug.h"
 
 namespace Steel
 {

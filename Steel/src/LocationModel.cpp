@@ -4,6 +4,7 @@
 #include "AgentManager.h"
 #include <Agent.h>
 #include <LocationModelManager.h>
+#include <Level.h>
 
 namespace Steel
 {

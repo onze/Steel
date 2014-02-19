@@ -1,5 +1,7 @@
 
 #include "InputSystem/ActionCombo.h"
+#include <InputSystem/InputBuffer.h>
+#include <InputSystem/Action.h>
 #include <SignalManager.h>
 #include <Debug.h>
 #include <tools/JsonUtils.h>
@@ -75,18 +77,18 @@ namespace Steel
         return signals;
     }
 
-    bool ActionCombo::evaluate(std::list< std::pair< Signal, TimeStamp > > const &mSignalsBuffer)
+    bool ActionCombo::evaluate(std::list<SignalBufferEntry> const &signalsBuffer)
     {
-        auto it_prev = mSignalsBuffer.cbegin();
+        auto it_prev = signalsBuffer.cbegin();
         auto it_current = it_prev;
 
         for(Action const & action : mActions)
         {
             // check max delay between inputs
-            if(mSignalsBuffer.cbegin() != it_current && static_cast<decltype(sMaxInputInterval)>(it_current->second - it_prev->second) > sMaxInputInterval)
+            if(signalsBuffer.cbegin() != it_current && static_cast<decltype(sMaxInputInterval)>(it_current->timestamp - it_prev->timestamp) > sMaxInputInterval)
                 return false;
 
-            if(!action.resolve(it_current, mSignalsBuffer))
+            if(!action.resolve(it_current, signalsBuffer))
                 return false;
 
             it_prev = it_current;

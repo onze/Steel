@@ -2,17 +2,15 @@
 #define STEEL_ACTIONCOMBO_H
 
 #include <initializer_list>
-#include <vector>
-#include <set>
-#include <json/value.h>
 
-#include <steeltypes.h>
-#include "Action.h"
+#include "steeltypes.h"
 
 namespace Steel
 {
-
+    class Action;
     class UnitTestExecutionContext;
+    class SignalBufferEntry;
+    
     class ActionCombo
     {
     private:
@@ -38,7 +36,7 @@ namespace Steel
         /// Returns a set of all signals used by this combo's actions.
         std::set<Signal> signalsInvolved() const;
 
-        bool evaluate(std::list<std::pair<Signal, TimeStamp>> const &mSignalsBuffer);
+        bool evaluate(std::list<SignalBufferEntry> const &signalsBuffer);
         Signal signal() const {return mSignal;}
         
         // Serialization

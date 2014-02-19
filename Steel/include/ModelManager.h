@@ -1,10 +1,6 @@
 #ifndef STEEL_MODELMANAGER_H_
 #define STEEL_MODELMANAGER_H_
 
-#include <json/json.h>
-#include <vector>
-#include <set>
-
 #include "steeltypes.h"
 
 namespace Steel

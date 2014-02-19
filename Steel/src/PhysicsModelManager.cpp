@@ -7,6 +7,7 @@
 #include <OgreModel.h>
 #include <Agent.h>
 #include <OgreModelManager.h>
+#include <Debug.h>
 
 
 extern ContactAddedCallback gContactAddedCallback;
@@ -41,8 +42,8 @@ namespace Steel
 
         PhysicsModel *pmodel = at(pmid);
 #ifdef DEBUG
-        assert(agent->modelId(MT_PHYSICS) == pmid);
-        assert(agent->model(MT_PHYSICS) == pmodel);
+        assert(agent->modelId(ModelType::PHYSICS) == pmid);
+        assert(agent->model(ModelType::PHYSICS) == pmodel);
 #endif
 
         ModelId omid = agent->ogreModelId();

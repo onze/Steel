@@ -1,21 +1,14 @@
 #ifndef STEEL_BTNAVIGATOR_H_
 #define STEEL_BTNAVIGATOR_H_
 
-#include <OgreVector3.h>
-
-#include <BT/btnodetypes.h>
-#include <BT/BTNode.h>
 #include <steeltypes.h>
-
-namespace Ogre
-{
-    class SceneNode;
-}
+#include <BT/BTNode.h>
 
 namespace Steel
 {
     class BTModel;
     class DynamicLines;
+
     class BTNavigator: public BTNode
     {
         /// Where to look for a target
@@ -26,7 +19,7 @@ namespace Steel
 
         /// The speed at which to move the agent
         static const char *SPEED_ATTRIBUTE;
-        
+
         /// Orient the OgreModel toward the current target.
         static const char *LOOK_AT_TARGET;
 
@@ -35,7 +28,7 @@ namespace Steel
         {
             return BTNavigatorToken;
         }
-        
+
         BTNavigator(BTShapeToken const &token);
         BTNavigator(BTNavigator const &o);
         virtual ~BTNavigator();
@@ -52,10 +45,10 @@ namespace Steel
         bool parseNodeContent(Json::Value &root);
         TargetAgentStrategy parseTargetAgentStrategy(Ogre::String value);
         void setTargetAgentStrategyFunction(TargetAgentStrategy s);
-        
+
         AgentId fromVariableStrategyTargetAgentFn(BTModel *btModel);
         AgentId noneStrategyTargetAgentFn(BTModel *btModel);
-        
+
         void initDebugLines(Ogre::SceneNode *parentNode);
         void deleteDebugLines();
 
@@ -64,14 +57,14 @@ namespace Steel
         TargetAgentStrategy mTargetAgentStrategy;
         /// Strategy function. See BTFinder::TARGET_AGENT_ATTRIBUTE
         std::function<AgentId(BTModel *btModel)> mTargetAgentStrategyFn;
-        
+
         Ogre::String mTargetAgentIdVariable;
         AgentId mTargetAgent;
         Ogre::Real mSpeed;
         bool mLookAtTarget;
         /// Agent position last frame.
         Ogre::Vector3 mPreviousPosition;
-        
+
         /// points to the current target
         DynamicLines *mDebugTargetLine;
         /// represent the speed and direction of the model

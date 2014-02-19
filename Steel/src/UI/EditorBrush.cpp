@@ -1,29 +1,22 @@
-#include <stdexcept>
-#include <list>
-
-#include <OgreRoot.h>
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-#include <OgreEntity.h>
-#include <OgreVector2.h>
-
-#include <steeltypes.h>
+#include "steeltypes.h"
 #include "UI/EditorBrush.h"
 #include "Engine.h"
 #include "UI/Editor.h"
-#include <UI/SelectionBox.h>
-#include <Camera.h>
-#include <Level.h>
-#include <tools/Cylinder.h>
-#include <tools/OgreUtils.h>
-#include <tools/DynamicLines.h>
-#include <Agent.h>
-#include <SelectionManager.h>
-#include <AgentManager.h>
-#include <LocationModelManager.h>
-#include <OgreManualObject.h>
-#include <OgreMeshManager.h>
+#include "UI/SelectionBox.h"
+#include "Camera.h"
+#include "Level.h"
+#include "tools/Cylinder.h"
+#include "tools/OgreUtils.h"
 #include "tools/DynamicLines.h"
+#include "Agent.h"
+#include "SelectionManager.h"
+#include "AgentManager.h"
+#include "LocationModelManager.h"
+#include "OgreManualObject.h"
+#include "OgreMeshManager.h"
+#include "tools/DynamicLines.h"
+#include "tools/StringUtils.h"
+#include "Debug.h"
 
 namespace Steel
 {
@@ -35,7 +28,7 @@ namespace Steel
 
     EditorBrush::EditorBrush()
         : Ogre::FrameListener(), mEngine(nullptr), mEditor(nullptr), mInputMan(nullptr),
-          mMode(TRANSLATE), mContinuousModeActivated(false),
+          mMode(BrushMode::TRANSLATE), mContinuousModeActivated(false),
           mSelectionPosBeforeTransformation(std::vector<Ogre::Vector3>()),
           mSelectionRotBeforeTransformation(std::vector<Ogre::Quaternion>()),
           mSelectionScaleBeforeTransformation(std::vector<Ogre::Vector3>()),
@@ -63,14 +56,14 @@ namespace Steel
     {
         mTerraScale = Ogre::StringConverter::parseVector3(config.getSetting(EditorBrush::TERRA_SCALE), mTerraScale);
         mTerraScaleFactor = config.getSettingAsFloat(EditorBrush::TERRA_SCALE_FACTOR, mTerraScaleFactor);
-        setMode((BrushMode) config.getSettingAsUnsignedLong(EditorBrush::MODE, (unsigned long) mMode));
+        setMode((EditorBrush::BrushMode) config.getSettingAsUnsignedLong(EditorBrush::MODE, (unsigned int) mMode));
     }
 
     void EditorBrush::saveConfig(ConfigFile &config) const
     {
         config.setSetting(EditorBrush::TERRA_SCALE, Ogre::StringConverter::toString(mTerraScale));
         config.setSetting(EditorBrush::TERRA_SCALE_FACTOR, Ogre::StringConverter::toString(mTerraScaleFactor));
-        config.setSetting(EditorBrush::MODE, Ogre::StringConverter::toString(mMode));
+        config.setSetting(EditorBrush::MODE, Ogre::StringConverter::toString((unsigned int)mMode));
     }
 
     EditorBrush &EditorBrush::operator=(const EditorBrush &other)
@@ -200,11 +193,11 @@ namespace Steel
     {
         switch(mMode)
         {
-            case TERRAFORM:
+            case BrushMode::TERRAFORM:
             {
                 // resize
                 if(sTerraBrushVisual == nullptr)
-                    getBrush(TERRAFORM);
+                    getBrush(BrushMode::TERRAFORM);
 
                 if(sTerraBrushVisual != nullptr)
                 {
@@ -262,13 +255,13 @@ namespace Steel
 //         SelectionManager *selectionMan=level->selectionMan();
         switch(mMode)
         {
-            case TRANSLATE:
-            case ROTATE:
-            case SCALE:
+            case BrushMode::TRANSLATE:
+            case BrushMode::ROTATE:
+            case BrushMode::SCALE:
                 mousePressedSelectionUpdate(button, evt);
                 break;
 
-            case TERRAFORM:
+            case BrushMode::TERRAFORM:
                 mContinuousModeActivated = true;
 
                 switch(button)
@@ -291,7 +284,7 @@ namespace Steel
 
                 break;
 
-            case LINK:
+            case BrushMode::LINK:
             {
                 AgentId aid = mEngine->level()->agentIdUnderMouse();
 
@@ -320,9 +313,9 @@ namespace Steel
 
         switch(mMode)
         {
-            case TRANSLATE:
-            case ROTATE:
-            case SCALE:
+            case BrushMode::TRANSLATE:
+            case BrushMode::ROTATE:
+            case BrushMode::SCALE:
                 if(button == Input::Code::MC_LEFT)
                 {
                     if(mIsSelecting)
@@ -352,7 +345,7 @@ namespace Steel
 
                 break;
 
-            case TERRAFORM:
+            case BrushMode::TERRAFORM:
             {
                 if(mContinuousModeActivated)
                 {
@@ -378,7 +371,7 @@ namespace Steel
                 break;
             }
 
-            case LINK:
+            case BrushMode::LINK:
                 if(mContinuousModeActivated)
                 {
                     AgentId aid = mEngine->level()->agentIdUnderMouse();
@@ -417,7 +410,7 @@ namespace Steel
 
                 break;
 
-            case NONE:
+            case BrushMode::NONE:
             default:
                 break;
         }
@@ -449,7 +442,7 @@ namespace Steel
             {
                 switch(mMode)
                 {
-                    case LINK:
+                    case BrushMode::LINK:
                     {
                         if(level->agentMan()->isIdFree(mFirstLinkedAgent))
                             break;
@@ -495,7 +488,7 @@ namespace Steel
 
                     switch(mMode)
                     {
-                        case TRANSLATE:
+                        case BrushMode::TRANSLATE:
                         {
                             if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                             {
@@ -516,7 +509,7 @@ namespace Steel
                         }
                         break;
 
-                        case ROTATE:
+                        case BrushMode::ROTATE:
                         {
                             if(mInputMan->isKeyDown(Input::Code::KC_LSHIFT))
                             {
@@ -548,7 +541,7 @@ namespace Steel
                         }
                         break;
 
-                        case SCALE:
+                        case BrushMode::SCALE:
                         {
                             if(mousePlaneProjection(hPlane, _x / w, _y / h, src) && mousePlaneProjection(hPlane, x / w, y / h, dst))
                             {
@@ -562,7 +555,7 @@ namespace Steel
                         }
                         break;
 
-                        case TERRAFORM:
+                        case BrushMode::TERRAFORM:
                             // not only done when the mouse moves, but also when it stays at the same place with a button held down,
                             // hence, implemented in frameRenderingQueued
                             break;
@@ -619,10 +612,10 @@ namespace Steel
 
         // terraform does not need a selection
         //TODO: put this in a proper terraform method
-        if(mMode == TERRAFORM)
+        if(mMode == BrushMode::TERRAFORM)
         {
             if(sTerraBrushVisual == nullptr)
-                getBrush(TERRAFORM);
+                getBrush(BrushMode::TERRAFORM);
 
             auto level = mEngine->level();
 
@@ -642,13 +635,13 @@ namespace Steel
                         Ogre::TerrainGroup::TerrainList newTids;
                         Ogre::Real _intensity;
                         Ogre::Real _radius = radius();
-                        TerrainManager::RaiseMode rMode = TerrainManager::RELATIVE;
+                        TerrainManager::RaiseMode rMode = TerrainManager::RaiseMode::RELATIVE;
 
                         if(mInputMan->isKeyDown(Input::Code::MC_LEFT))
                         {
                             if(mInputMan->isKeyDown(Input::Code::MC_RIGHT))
                             {
-                                rMode = TerrainManager::ABSOLUTE;
+                                rMode = TerrainManager::RaiseMode::ABSOLUTE;
                                 hitTest.position.y = mSelectedTerrainHeight;
                             }
                             else
@@ -685,13 +678,13 @@ namespace Steel
 
             // drop terraform brush model
             if(command[0] == "translate")
-                setMode(TRANSLATE);
+                setMode(BrushMode::TRANSLATE);
             else if(command[0] == "rotate")
-                setMode(ROTATE);
+                setMode(BrushMode::ROTATE);
             else if(command[0] == "scale")
-                setMode(SCALE);
+                setMode(BrushMode::SCALE);
             else if(command[0] == "terraform")
-                setMode(TERRAFORM);
+                setMode(BrushMode::TERRAFORM);
             else if(command[0] == "link")
             {
                 command.erase(command.begin());
@@ -787,7 +780,7 @@ namespace Steel
                                      std::function<bool(AgentId srcAid, AgentId const dstAid)> linkingValidatedCallbackFn,
                                      std::function<bool(AgentId srcAid, AgentId const dstAid)> linkingValidatedAlternateCallbackFn)
     {
-        setMode(LINK);
+        setMode(BrushMode::LINK);
         mLinkingSourceAgentValidationFn = sourceAgentValidation;
         mLinkingDestinationAgentValidationFn = destinationAgentValidation;
         mLinkingValidatedCallbackFn = linkingValidatedCallbackFn;
@@ -802,44 +795,32 @@ namespace Steel
         // now we know we are setting a new mode
         dropBrush();
 
-        if(mMode == TERRAFORM)
+        if(mMode == BrushMode::TERRAFORM)
             Ogre::Root::getSingletonPtr()->removeFrameListener(this);
 
-        switch(mode)
+        mMode = mode;
+
+        switch(mMode)
         {
-            case TRANSLATE:
-                mMode = TRANSLATE;
-                break;
-
-            case ROTATE:
-                mMode = ROTATE;
-                break;
-
-            case SCALE:
-                mMode = SCALE;
-                break;
-
-            case TERRAFORM:
-                mMode = TERRAFORM;
-                getBrush(TERRAFORM);
+            case BrushMode::TERRAFORM:
+                getBrush(BrushMode::TERRAFORM);
                 Ogre::Root::getSingletonPtr()->addFrameListener(this);
                 break;
 
-            case LINK:
-                mMode = LINK;
+            case BrushMode::TRANSLATE:
+            case BrushMode::ROTATE:
+            case BrushMode::SCALE:
+            case BrushMode::LINK:
                 break;
 
-            case NONE:
-                mMode = NONE;
-                break;
-
+            case BrushMode::NONE:
             default:
-                Debug::warning("in EditorBrush::setMode(): ")("unknown mode ").quotes(mode).endl();
-                mMode = NONE;
+                Debug::warning("in EditorBrush::setMode(): ")("unknown mode ").quotes(toString(mode)).endl();
+                mMode = BrushMode::NONE;
                 break;
         }
 
-        if(LINK != mMode)
+        if(BrushMode::LINK != mMode)
         {
             mLinkingDestinationAgentValidationFn = nullptr;
             mLinkingSourceAgentValidationFn = nullptr;
@@ -852,7 +833,7 @@ namespace Steel
     {
         switch(mMode)
         {
-            case TERRAFORM:
+            case BrushMode::TERRAFORM:
                 if(sTerraBrushVisual == nullptr)
                 {
                     auto level = mEngine->level();
@@ -902,7 +883,7 @@ namespace Steel
     {
         switch(mMode)
         {
-            case TERRAFORM:
+            case BrushMode::TERRAFORM:
                 if(sTerraBrushVisual != nullptr)
                 {
                     OgreUtils::destroySceneNode(sTerraBrushVisual);
@@ -946,7 +927,7 @@ namespace Steel
         }
 
         pushMode();
-        setMode(NONE);
+        setMode(BrushMode::NONE);
 
     }
 
@@ -963,6 +944,24 @@ namespace Steel
     void EditorBrush::pushMode()
     {
         mModeStack.push_back(mMode);
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // ENUM SERIALIZATION
+
+    Ogre::String toString(EditorBrush::BrushMode e)
+    {
+        STEEL_ENUM_TO_STRING_START(EditorBrush::BrushMode)
+        {
+            STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::TRANSLATE);
+            STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::ROTATE);
+            STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::SCALE);
+            STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::TERRAFORM);
+            STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::LINK);
+            STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::NONE);
+        }
+        return Ogre::StringUtil::BLANK;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

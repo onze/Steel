@@ -1,7 +1,7 @@
 #ifndef STEEL_TERRAINMANAGER_H
 #define STEEL_TERRAINMANAGER_H
 
-#include <json/value.h>
+#include <json/json.h>
 
 #include <OgreLight.h>
 #include <OgreImage.h>
@@ -62,9 +62,13 @@ namespace Steel
         static const int MAX_TERRAIN_HEIGHT = 500.f;
         /// min height of the terrain
         static const int MIN_TERRAIN_HEIGHT = -500.f;
-        enum LoadingState
+        enum class LoadingState : unsigned int
         {
-            INIT = 0, BUILDING, TEXTURING, SAVING, READY
+            INIT = 0, 
+            BUILDING, 
+            TEXTURING, 
+            SAVING, 
+            READY
         };
 
         TerrainManager();
@@ -107,21 +111,28 @@ namespace Steel
         float *loadTerrainHeightmapFrom(Ogre::String filepath, int size);
         void saveTerrainHeightmapAs(long int x, long int y, Ogre::Terrain *instance, Ogre::String &heightmapPath);
 
-        enum RaiseMode
+        enum class RaiseMode : unsigned int
         {
-            ABSOLUTE = 0, RELATIVE
+            ABSOLUTE = 0, 
+            RELATIVE
         };
-        enum RaiseShape
+        enum class RaiseShape : unsigned int
         {
-            UNIFORM = 0, ROUND, SINH, TRANGULAR
+            UNIFORM = 0, 
+            ROUND, 
+            SINH, 
+            TRANGULAR
         };
         /** Raise all terrain vertices in an round shaped area centered at the given position (terraCenter) (world coords)
          * and of the given radius, by a decreasing value starting at the given value at the center, and reaching 0
          * at radius.
          * Returns slot coordinaes of terrains that were modified in the process.
          */
-        Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter, Ogre::Real intensity, Ogre::Real radius,
-                RaiseMode rmode = ABSOLUTE, RaiseShape rshape = UNIFORM);
+        Ogre::TerrainGroup::TerrainList raiseTerrainAt(Ogre::Vector3 terraCenter, 
+                                                       Ogre::Real intensity, 
+                                                       Ogre::Real radius,
+                                                       RaiseMode rmode = RaiseMode::ABSOLUTE, 
+                                                       RaiseShape rshape = RaiseShape::UNIFORM);
 
         /// take a terrain slot seralization and return its deserialized version
         TerrainSlotData terrainSlotFromJson(Json::Value &terrainSlotValue, TerrainManager::TerrainSlotData &terrainSlot);

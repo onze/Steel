@@ -1,8 +1,6 @@
 #ifndef STEEL_BLACKBOARDMODELMANAGER_H
 #define STEEL_BLACKBOARDMODELMANAGER_H
 
-#include <json/json.h>
-
 #include "steeltypes.h"
 
 #include "_ModelManager.h"
@@ -19,7 +17,7 @@ namespace Steel
         /// modelType associated with this Manager
         virtual inline ModelType modelType()
         {
-            return MT_BLACKBOARD;
+            return ModelType::BLACKBOARD;
         };
 
         /// Creates a new model and returns its id.

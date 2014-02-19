@@ -1,6 +1,11 @@
 
 #include "InputSystem/InputBuffer.h"
+#include <InputSystem/ActionCombo.h>
+#include <InputSystem/Action.h>
 #include <tests/UnitTestManager.h>
+#include <tools/File.h>
+#include <Debug.h>
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -75,7 +80,7 @@ namespace Steel
     void InputBuffer::onSignal(Signal signal, SignalEmitter *const /*src*/)
     {
         // split per input controller here
-        mSignalsBatch.push_back(std::make_pair(signal, mTimer.getMilliseconds()));
+        mSignalsBatch.push_back(SignalBufferEntry{signal, mTimer.getMilliseconds()});
     }
 
     void InputBuffer::update()
@@ -87,7 +92,7 @@ namespace Steel
             // remove old input
             const long unsigned int thresholdTimestamp = mTimer.getMilliseconds() - mInputLifeDuration;
 
-            while(mSignalsBuffer.begin() != mSignalsBuffer.end() && mSignalsBuffer.begin()->second > thresholdTimestamp)
+            while(mSignalsBuffer.begin() != mSignalsBuffer.end() && mSignalsBuffer.begin()->timestamp > thresholdTimestamp)
                 mSignalsBuffer.erase(mSignalsBuffer.begin());
 
             // add new input

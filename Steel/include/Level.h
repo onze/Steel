@@ -2,11 +2,8 @@
 #define STEEL_LEVEL_H_
 
 #include <memory>
-#include <list>
-#include <OgreVector3.h>
 
 #include "steeltypes.h"
-#include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "TerrainManager.h"
 #include "TerrainManagerEventListener.h"
@@ -110,9 +107,9 @@ namespace Steel
          * The aid given as argument has precedence over the one in the serialization.
          * This agentId to which the resource is attached is eventually returned.
          */
-        bool instanciateResource(Steel::File const &file, AgentId &aid);
-        /// Forward call to instanciateResource(Steel::File& file, AgentId &aid), and discards the aid.
-        bool instanciateResource(Steel::File const &file);
+        bool instanciateResource(File const &file, AgentId &aid);
+        /// Forward call to instanciateResource(File& file, AgentId &aid), and discards the aid.
+        bool instanciateResource(File const &file);
 
         /**
          * Instanciate a model from its serialization.

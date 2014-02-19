@@ -3,7 +3,7 @@
 
 #include <steeltypes.h>
 #include <BT/btnodetypes.h>
-#include <BT/BTNode.h>
+#include "BTNode.h"
 
 namespace Steel
 {

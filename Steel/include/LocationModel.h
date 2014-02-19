@@ -1,10 +1,7 @@
 #ifndef STEEL_LOCATIONMODEL_H
 #define STEEL_LOCATIONMODEL_H
 
-#include <json/json.h>
-
 #include "steeltypes.h"
-#include "_ModelManager.h"
 #include "Model.h"
 
 namespace Steel
@@ -34,7 +31,7 @@ namespace Steel
 
         static ModelType modelType()
         {
-            return MT_LOCATION;
+            return ModelType::LOCATION;
         }
 
         bool init(LocationModelManager *const locationModelMan);

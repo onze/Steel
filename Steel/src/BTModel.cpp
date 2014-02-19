@@ -11,6 +11,8 @@
 #include <AgentManager.h>
 #include <Agent.h>
 #include <Engine.h>
+#include <tests/UnitTestManager.h>
+#include <Debug.h>
 
 namespace Steel
 {
@@ -67,6 +69,11 @@ namespace Steel
         mLevel = manager->level();
         mBlackBoardModelId = INVALID_ID;
         return switchShapeTo(shapeStream);
+    }
+    
+    Ogre::String BTModel::shapeName()
+    {
+        return mStateStream.shapeStream()->mName;
     }
 
     bool BTModel::switchShapeTo(BTShapeStream *shapeStream)
@@ -270,7 +277,7 @@ namespace Steel
 
         if(nullptr == bbModel)
         {
-            bbModel = getOwnerAgentABlackboard();
+            bbModel = getOwnerAgentBlackboard();
 
             if(nullptr == bbModel)
             {
@@ -283,7 +290,7 @@ namespace Steel
         bbModel->setVariable(name, value);
     }
 
-    BlackBoardModel *BTModel::getOwnerAgentABlackboard()
+    BlackBoardModel *BTModel::getOwnerAgentBlackboard()
     {
         Agent *agent = mLevel->agentMan()->getAgent(mOwnerAgent);
 
@@ -295,7 +302,7 @@ namespace Steel
         if(nullptr == bbModel)
         {
             ModelId bbMid = mLevel->blackBoardModelMan()->newModel();
-            agent->linkToModel(MT_BLACKBOARD, bbMid);
+            agent->linkToModel(ModelType::BLACKBOARD, bbMid);
             bbModel = agent->blackBoardModel();
         }
 
@@ -308,7 +315,7 @@ namespace Steel
 
         if(nullptr == bbModel)
         {
-            bbModel = getOwnerAgentABlackboard();
+            bbModel = getOwnerAgentBlackboard();
 
             if(nullptr == bbModel)
             {

@@ -2,6 +2,7 @@
 #include <tools/JsonUtils.h>
 #include <OgreModel.h>
 #include <UI/Editor.h>
+#include <SignalManager.h>
 #include <json/value.h>
 
 namespace Steel

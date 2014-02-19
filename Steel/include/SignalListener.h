@@ -1,9 +1,6 @@
 #ifndef STEEL_SIGNALLISTENER_H
 #define STEEL_SIGNALLISTENER_H
 
-#include <set>
-#include <OgreString.h>
-
 #include "steeltypes.h"
 
 namespace Steel

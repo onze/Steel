@@ -1,20 +1,16 @@
 #ifndef STEEL_BTMODEL_H_
 #define STEEL_BTMODEL_H_
 
-#include <list>
-#include <json/json.h>
-
 #include "BT/btnodetypes.h"
 #include "BT/BTStateStream.h"
 
 #include "Model.h"
-#include "BlackBoardModel.h"
-#include "Level.h"
-#include "BlackBoardModelManager.h"
-#include "tests/UnitTestManager.h"
 
 namespace Steel
 {
+
+    class UnitTestExecutionContext;
+    class BlackBoardModel;
     class UnitTestExecutionContext;
     class Level;
     class BTModelManager;
@@ -50,7 +46,7 @@ namespace Steel
 
         static ModelType modelType()
         {
-            return MT_BT;
+            return ModelType::BT;
         };
 
         /// Deserialize itself from the given Json object. For internal use only, see BTModelManager::buildFromFile.
@@ -90,7 +86,7 @@ namespace Steel
         AgentId getAgentIdVariable(const Ogre::String &name, const Steel::AgentId &defaultValue = INVALID_ID);
 
         inline Level *level() const {return mLevel;}
-        inline Ogre::String shapeName() {return mStateStream.shapeStream()->mName;}
+        Ogre::String shapeName();
 
         /// Sets wich agent owns this model
         inline AgentId ownerAgent() const {return mOwnerAgent;}
@@ -106,7 +102,7 @@ namespace Steel
          */
         static const Ogre::String CURRENT_PATH_NAME_VARIABLE;
         /// Link the owner agent with a newly created blackboard model, and returns a pointer to it
-        BlackBoardModel *getOwnerAgentABlackboard();
+        BlackBoardModel *getOwnerAgentBlackboard();
 
         // not owned
         AgentId mOwnerAgent;

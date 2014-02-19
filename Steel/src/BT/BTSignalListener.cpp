@@ -3,6 +3,7 @@
 #include "BT/BTSignalListener.h"
 #include "SignalEmitter.h"
 #include <tools/JsonUtils.h>
+#include <SignalManager.h>
 
 namespace Steel
 {

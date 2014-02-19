@@ -7,6 +7,7 @@
 #include "AgentManager.h"
 #include "TagManager.h"
 #include <LocationModel.h>
+#include <Debug.h>
 
 namespace Steel
 {

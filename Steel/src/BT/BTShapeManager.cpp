@@ -3,6 +3,7 @@
 
 #include "BT/BTShapeManager.h"
 #include <BT/BTFileNode.h>
+#include <Debug.h>
 
 namespace Steel
 {
@@ -47,7 +48,7 @@ namespace Steel
     }
 
     bool BTShapeManager::buildShapeStream(Ogre::String streamName,
-                                          Steel::File const &rootFile,
+                                          File const &rootFile,
                                           BTShapeStream *&streamPtr)
     {
         BTShapeStreamMap::iterator it;
@@ -108,30 +109,30 @@ namespace Steel
     {
         mStreamMap.clear();
     }
-    
+
     //////////////////////////////////////////////////////////////////////////////////////////
     // UNIT TESTS
-    bool utest_BTShapeStream(UnitTestExecutionContext const* context)
+    bool utest_BTShapeStream(UnitTestExecutionContext const *context)
     {
         Ogre::String intro = "test_BTShapeStream(): ";
-        
+
         BTShapeManager shapeMan;
         Ogre::String streamId = "utests/shapes/A - sequence";
         File rootFile("/media/a0/cpp/1210/usmb/data/raw_resources/BT/utests/shapes/A - sequence");
         BTShapeStream *stream = nullptr;
-        
+
         if(!rootFile.exists())
         {
             Debug::warning(intro)(rootFile)(" not found. ").endl();
             return false;
         }
-        
+
         if(!shapeMan.buildShapeStream(streamId, rootFile, stream))
         {
             Debug::error(intro)("Could not create shape stream, see above for details.").endl();
             return false;
         }
-        
+
         BTShapeToken groundTruth_data[] =
         {
             {BTSequenceToken, 0, 7, BTFileNode(rootFile).descriptor()},                                               //A
@@ -149,10 +150,10 @@ namespace Steel
         //         BTShapeStream groundTruth;
         //         groundTruth.push_back({BTSequenceToken,0,7});
         std::pair<BTShapeStreamData::iterator, BTShapeStreamData::iterator> mismatch;
-        
+
         // using default comparison
         mismatch = std::mismatch(stream->mData.begin(), stream->mData.end(), groundTruth.mData.begin());
-        
+
         if(mismatch.first != stream->mData.end())
         {
             Debug::error(intro)("BTShapeStream mismatch with groundTruth:").endl();
@@ -165,7 +166,7 @@ namespace Steel
             Debug::error("groundTruth: ")(*mismatch.second).unIndent().endl();
             return false;
         }
-        
+
         shapeMan.clearCachedStreams();
         return true;
     }

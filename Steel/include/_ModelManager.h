@@ -1,12 +1,6 @@
 #ifndef STEEL__MODELMANAGER_H_
 #define STEEL__MODELMANAGER_H_
 
-#include <json/json.h>
-
-#include <vector>
-#include <list>
-
-#include "Debug.h"
 #include "steeltypes.h"
 #include "ModelManager.h"
 
@@ -69,7 +63,7 @@ namespace Steel
 
         virtual Ogre::String logName()
         {
-            return "ModelManager<" + modelTypesAsString[this->modelType()] + ">";
+            return "ModelManager<" + toString(this->modelType()) + ">";
         }
 
         virtual bool onAgentLinkedToModel(Agent *agent, ModelId mid);

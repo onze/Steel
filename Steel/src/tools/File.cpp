@@ -19,7 +19,11 @@
 #include <sys/ioctl.h>
 #include <ftw.h>
 
+#include <json/json.h>
+
 #include "tools/File.h"
+#include "tools/StringUtils.h"
+#include "tools/FileEventListener.h"
 #include "Debug.h"
 #include "Poco/DirectoryIterator.h"
 

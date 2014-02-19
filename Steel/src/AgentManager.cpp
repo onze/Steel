@@ -3,7 +3,8 @@
 #include "AgentManager.h"
 #include "Agent.h"
 #include "Level.h"
-#include <LocationModel.h>
+#include "LocationModel.h"
+#include "Debug.h"
 
 namespace Steel
 {

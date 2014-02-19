@@ -1,12 +1,7 @@
 #ifndef STEEL_LOCATIONMODELMANAGER_H
 #define STEEL_LOCATIONMODELMANAGER_H
 
-#include <json/json.h>
-#include <vector>
-#include <map>
-
 #include "steeltypes.h"
-
 #include "_ModelManager.h"
 #include "LocationModel.h"
 
@@ -26,7 +21,7 @@ namespace Steel
         /// modelType associated with this Manager
         virtual inline ModelType modelType()
         {
-            return MT_LOCATION;
+            return ModelType::LOCATION;
         }
         
         ModelId newModel();

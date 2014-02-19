@@ -1,15 +1,13 @@
 #ifndef STEEL_BLACKBOARDMODEL_H
 #define STEEL_BLACKBOARDMODEL_H
 
-#include <json/json.h>
-
 #include "steeltypes.h"
-#include "_ModelManager.h"
 #include "Model.h"
 
 namespace Steel
 {
     class BlackBoardModelManager;
+    
     class BlackBoardModel: public Model
     {
 
@@ -22,7 +20,7 @@ namespace Steel
 
         static ModelType modelType()
         {
-            return MT_BLACKBOARD;
+            return ModelType::BLACKBOARD;
         }
         virtual bool init(BlackBoardModelManager const *manager);
         virtual bool fromJson(Json::Value &node);

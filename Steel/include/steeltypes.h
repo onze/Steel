@@ -2,10 +2,13 @@
 #define STEEL_STEELTYPES_H_
 
 #include <limits.h>
-#include <vector>
 #include <list>
+#include <map>
+#include <set>
+#include <vector>
+#include <functional>
 
-#include <OgreString.h>
+#include <Ogre.h>
 
 #include "BT/btnodetypes.h"
 
@@ -14,9 +17,20 @@
 
 #define STEEL_BIT(N) 1<<N
 
+// eases enum serialization
+#define STEEL_ENUM_TO_STRING_START(ENUM_NAME) switch(e)
+#define STEEL_ENUM_TO_STRING_CASE(ENUM_NAME) case ENUM_NAME: return #ENUM_NAME;
+
+#define STEEL_STRING_TO_ENUM_CASE(ENUM_NAME) if(s == #ENUM_NAME) return ENUM_NAME;
+
+// common forwards
+namespace Json
+{
+    class Value;
+}
+
 namespace Steel
 {
-
     typedef unsigned long AgentId;
     typedef unsigned long ModelId;
     typedef std::list<AgentId> Selection;
@@ -35,26 +49,26 @@ namespace Steel
     /// invalid Model/Agent id.
     const unsigned long INVALID_ID = ULONG_MAX;
 
-    /// ModelType and modelTypesAsString need to stay in sync, and the usable enum values need to stay contiguous starting at 0.
-    enum ModelType
+    /// usable enum values need to stay contiguous starting at 0.
+    enum class ModelType : int
     {
-        //MT_FIRST should stay first
-        MT_FIRST = -1,
+        //ModelType::FIRST should stay first
+        FIRST = -1,
 
         //put next ones here
-        // MT_Ogre should be first of actual types, since this order is the loading order, and all models depend on OgreModels.
-        MT_OGRE,
-        MT_PHYSICS,
-        MT_LOCATION,
-        MT_BLACKBOARD,
-        MT_BT,
+        // ModelType::Ogre should be first of actual types, since this order is the loading order, and all models depend on OgreModels.
+        OGRE,
+        PHYSICS,
+        LOCATION,
+        BLACKBOARD,
+        BT,
 
-        //MT_LAST should stay last (to enable looping).
-        MT_LAST
+        //ModelType::LAST should stay last (to enable looping).
+        LAST
     };
-
-    /// Maps a ModelType to its string representation.
-    extern std::vector<Ogre::String> modelTypesAsString;
+    
+    Ogre::String toString(ModelType e);
+    ModelType toModelType(Ogre::String s);
 
     typedef unsigned long Signal;
     const Signal INVALID_SIGNAL=ULONG_MAX;

@@ -1,8 +1,7 @@
 #ifndef STEEL_BTDEBUGPRINTER_H
 #define STEEL_BTDEBUGPRINTER_H
 
-#include <OgreString.h>
-
+#include "steeltypes.h"
 #include <BT/BTNode.h>
 
 namespace Steel

@@ -1,10 +1,7 @@
 #ifndef STEEL_OGREUTILS_H
 #define STEEL_OGREUTILS_H
 
-#include <vector>
-
-#include <OgrePrerequisites.h>
-#include <OgreVector3.h>
+#include <steeltypes.h>
 
 namespace Ogre
 {

@@ -10,6 +10,7 @@
 #include "BT/BTDebug.h"
 #include "BT/BTSignalListener.h"
 #include "BT/BTShapeManager.h"
+#include <tools/File.h>
 
 namespace Steel
 {

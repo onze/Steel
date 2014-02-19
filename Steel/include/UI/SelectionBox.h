@@ -1,8 +1,6 @@
 #ifndef STEEL_SELECTIONBOX_H
 #define STEEL_SELECTIONBOX_H
 
-#include <OgreVector2.h>
-#include <OgreManualObject.h>
 #include <steeltypes.h>
 
 namespace Ogre

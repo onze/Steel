@@ -8,17 +8,18 @@
 #include <OgreRenderQueueListener.h>
 #include <OIS.h>
 
-#include "UI/Editor.h"
-#include "UI/HUD.h"
-#include "tools/File.h"
 #include "EngineEventListener.h"
 #include "InputSystem/InputEventListener.h"
+#include "Editor.h"
+#include "HUD.h"
 
 namespace Steel
 {
     class Engine;
     class InputManager;
     class RenderInterfaceOgre3D;
+    class File;
+    
     /**
      * Instanciate underlying UI and dispatches input controllers event to ui and inputManager.
      * Ogre's window is created by the engine, but its events are grabbed in here too.

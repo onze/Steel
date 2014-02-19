@@ -3,6 +3,7 @@
 #include "tools/ConfigFile.h"
 #include <tools/StringUtils.h>
 #include <tools/JsonUtils.h>
+#include <Debug.h>
 
 namespace Steel
 {

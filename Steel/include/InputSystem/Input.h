@@ -2,7 +2,6 @@
 #define STEEL_INPUTEVENT_H_
 
 #include <limits.h>
-
 #include <OgreVector2.h>
 
 namespace Steel

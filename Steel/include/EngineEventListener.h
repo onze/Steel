@@ -17,16 +17,16 @@ namespace Steel
 
         /// Called right before a level is unset (becomes not current anymore).
         virtual void onLevelUnset(Level *level) {};
-        
+
         /// Called right before the main level is updated. Right moment to inject additional input.
         virtual void onBeforeLevelUpdate(Level *level, float dt) {};
-        
+
         /// Called right after the main level is updated. Last step before next frame is the graphic update.
         virtual void onAfterLevelUpdate(Level *level) {};
-        
+
         /// Called right after the engine enters edit mode.
         virtual void onStartEditMode() {};
-        
+
         /// Called right after the engine leaves edit mode.
         virtual void onStopEditMode() {};
     };

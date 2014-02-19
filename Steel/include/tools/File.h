@@ -5,20 +5,16 @@
 #include <fstream>
 #include <mutex>
 #include <vector>
-#include <map>
 #include <string>
-#include <set>
 #include <thread>
 #include <utility>
 
-#include <json/json.h>
-#include <OgreString.h>
-
-#include "Debug.h"
-#include "FileEventListener.h"
+#include "steeltypes.h"
 
 namespace Steel
 {
+    class FileEventListener;
+    
 //TODO: make this windows friendly
     /**
      * This is a helper class to abstract and ease some common filesystem related tasks.

@@ -1,12 +1,6 @@
 #ifndef STEEL_TAGMANAGER_H
 #define STEEL_TAGMANAGER_H
 
-#include <list>
-#include <map>
-#include <set>
-
-#include <OgreString.h>
-
 #include "steeltypes.h"
 
 namespace Steel

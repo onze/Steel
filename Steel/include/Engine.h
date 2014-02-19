@@ -1,9 +1,6 @@
 #ifndef STEEL_ENGINE_H
 #define STEEL_ENGINE_H
 
-#include <string>
-#include <list>
-
 #include <OgreRoot.h>
 #include <OgreLog.h>
 #include <OgreViewport.h>
@@ -14,7 +11,6 @@
 
 #include "steeltypes.h"
 #include "InputSystem/InputManager.h"
-#include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "UI/UI.h"
 #include "InputSystem/InputEventListener.h"
@@ -29,10 +25,10 @@ namespace Steel
     class Engine: public InputEventListener
     {
     public:
-        
+
         /// Reference lookup table setting name
         static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE_SETTING;
-        
+
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
         static const Ogre::String COLORED_DEBUG;
 
@@ -78,7 +74,7 @@ namespace Steel
                   Ogre::String windowTitle = Ogre::String("Steel Window"), Ogre::LogListener *logListener = nullptr);
 
         bool mainLoop(bool singleLoop = false);
-        
+
         /// InputEventListener interface.
         bool onInputEvent(Input::Event const &evt);
 
@@ -117,10 +113,10 @@ namespace Steel
 
         /// Called to resize the window.
         void resizeWindow(int width, int height);
-        
+
         /// Edit mode ghost cam update. Can be called during an onInputEvent to have the same camera control as in edit mode.
         void updateGhostCam();
-        
+
         /**
          * Replaces references' special $keys by specific values (paths set in the conf).
          * The call is recursive (keys can reference other keys).
@@ -131,7 +127,7 @@ namespace Steel
         //getters
         inline InputManager *inputMan() {return &mInputMan;}
         inline Ogre::RenderWindow *renderWindow() {return mRenderWindow;}
-        inline UI* const ui() {return &mUI;}
+        inline UI *const ui() {return &mUI;}
 
         inline File rootDir() {return mRootDir;}
         inline File dataDir() {return mRootDir.subfile("data");}
@@ -145,7 +141,7 @@ namespace Steel
         inline Level *level() {return mLevel;}
 
         inline const Stats &stats() const {return mStats;}
-        
+
         inline bool inEditMode() const {return mEditMode;}
 
         //setters
@@ -171,9 +167,9 @@ namespace Steel
         void fireOnStartEditMode();
         /// Fired right after the engine leaves edit mode.
         void fireOnStopEditMode();
-        
+
         bool keyReleased(Input::Code key, Input::Event const &evt);
-        
+
         /// invoke processCommand on all registered commands
         void processAllCommands();
 
@@ -191,9 +187,9 @@ namespace Steel
          * Returns 0 if successfull, returns an error code otherwise.
          */
         int postWindowingSetup(unsigned int width, unsigned int height);
-        
+
         bool processInputs();
-        
+
         /**
          * Reads the conf to create the lookup table used to resolve dynamic resource locations in
          * models reference descriptor files.
@@ -225,7 +221,7 @@ namespace Steel
 
         /// Called back about engine events.
         std::set<EngineEventListener *> mListeners;
-        
+
         /// internal representation of REFERENCE_PATH_LOOKUP_TABLE attribute of the application conf file.
         std::map<Ogre::String, Ogre::String> mReferencePathsLookupTable;
     };

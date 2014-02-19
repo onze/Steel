@@ -1,22 +1,24 @@
 #ifndef STEEL_EDITOR_H
 #define STEEL_EDITOR_H
 
-#include <vector>
-#include <map>
-#include <set>
 
 #include <OIS.h>
 #include <OgreString.h>
 // #include <Rocket/Controls.h>
 
 #include "steeltypes.h"
-#include "EditorBrush.h"
-#include "tools/ConfigFile.h"
 #include "UI/UIPanel.h"
 #include "SelectionManager.h"
 #include "EngineEventListener.h"
 #include "InputSystem/Input.h"
+#include "EditorBrush.h"
 #include "UI/DebugValueManager.h"
+
+namespace std
+{
+    template<class _Signature >
+    class function;
+}
 
 namespace Rocket
 {
@@ -32,10 +34,14 @@ namespace Rocket
 
 namespace Steel
 {
+
+    class Level;
+    class ConfigFile;
     class FileSystemDataSource;
     class UI;
     class InputManager;
     class Engine;
+
     class Editor: public UIPanel, public SelectionManager::Listener, public EngineEventListener
     {
     private:
@@ -113,8 +119,8 @@ namespace Steel
 
 
         /// Shortcut to DebugValueManager::addDebugValue.
-        void addDebugValue(const Ogre::String &entryName, 
-                           Steel::DebugValueManager::CallbackFunction callback, 
+        void addDebugValue(const Ogre::String &entryName,
+                           DebugValueManager::CallbackFunction callback,
                            float min = .0f, float max = 1.f, float init = -1.f);
         /// Shortcut to DebugValueManager::removeDebugValue.
         void removeDebugValue(Ogre::String const &entryName);

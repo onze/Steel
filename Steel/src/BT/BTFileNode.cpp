@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "BT/BTFileNode.h"
+#include <Debug.h>
 
 namespace Steel
 {

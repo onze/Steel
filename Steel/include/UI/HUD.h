@@ -4,10 +4,11 @@
 #include <OgreFrameListener.h>
 
 #include "UI/UIPanel.h"
-#include "tools/ConfigFile.h"
 
 namespace Steel
 {
+
+    class ConfigFile;
     class UI;
     class Engine;
 

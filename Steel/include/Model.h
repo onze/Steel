@@ -1,10 +1,6 @@
 #ifndef STEEL_MODEL_H_
 #define STEEL_MODEL_H_
 
-#include <set>
-#include <json/json.h>
-
-#include "Debug.h"
 #include "steeltypes.h"
 
 namespace Steel
@@ -66,7 +62,7 @@ namespace Steel
             /// Returns the ModelType associated with this model.
             static ModelType modelType()
             {
-                return MT_LAST;
+                return ModelType::LAST;
             };
 
             /// Cleans any model specific data. SHould not be called directly, except by dedicated manager.
