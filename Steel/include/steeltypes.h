@@ -40,6 +40,8 @@ namespace Steel
     // TIme related stuff go here
     /// Duration can be negative.
     typedef long int Duration;
+    extern Duration DURATION_MAX;
+    extern Duration DURATION_MIN;
     /// Basically what returns Ogre::Timer::get<whatevs>
     typedef long unsigned int TimeStamp;
     

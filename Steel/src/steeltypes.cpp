@@ -3,6 +3,9 @@
 
 namespace Steel
 {
+    Duration DURATION_MAX = LONG_MAX;
+    Duration DURATION_MIN = LONG_MIN;
+
     Ogre::String toString(ModelType e)
     {
         STEEL_ENUM_TO_STRING_START(ModelType)
@@ -14,11 +17,12 @@ namespace Steel
             STEEL_ENUM_TO_STRING_CASE(ModelType::BLACKBOARD);
             STEEL_ENUM_TO_STRING_CASE(ModelType::BT);
             STEEL_ENUM_TO_STRING_CASE(ModelType::LAST);
-            default:break;
+
+        default: break;
         }
         return Ogre::StringUtil::BLANK;
     }
-    
+
     ModelType toModelType(Ogre::String s)
     {
         STEEL_STRING_TO_ENUM_CASE(ModelType::FIRST);
