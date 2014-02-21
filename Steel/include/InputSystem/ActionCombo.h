@@ -20,7 +20,7 @@ namespace Steel
         static const char *SIGNAL_ATTRIBUTE;
         
         /// Max allowed duration between 2 inputs of a combo for it to be valid. In millisecond.
-        static Duration sMaxInputInterval;
+        static Duration sDefaultTimeGap;
         
         ActionCombo(Ogre::String const &signal);
         ActionCombo(Signal const signal);

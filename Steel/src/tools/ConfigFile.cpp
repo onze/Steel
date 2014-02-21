@@ -4,6 +4,7 @@
 #include <tools/StringUtils.h>
 #include <tools/JsonUtils.h>
 #include <Debug.h>
+#include <tests/UnitTestManager.h>
 
 namespace Steel
 {
@@ -212,12 +213,7 @@ namespace Steel
         {
             CLEANUP;
             ConfigFile cf(path);
-
-            if(cf.getSetting(key) != Ogre::StringUtil::BLANK)
-            {
-                Debug::error("loading from a new file should return a blank value").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(cf.getSetting(key) == Ogre::StringUtil::BLANK, "[UT001] loading from a new file should return a blank value");
         }
 
         //TODO: all supported types
@@ -225,12 +221,7 @@ namespace Steel
             CLEANUP;
             ConfigFile cf(path);
             cf.setSetting(key, stringValue);
-
-            if(cf.getSetting(key) != stringValue)
-            {
-                Debug::error("failed set/get string setting").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(cf.getSetting(key) == stringValue, "[UT002] failed set/get string setting");
         }
 
         {
@@ -239,18 +230,8 @@ namespace Steel
             cf.setSetting(key, stringValue);
 
             ConfigFile copied(cf);
-
-            if(!(copied == cf))
-            {
-                Debug::error("config files do not equal after copy").endl().breakHere();
-                return false;
-            }
-
-            if(copied.getSetting(key) != stringValue)
-            {
-                Debug::error("failed at copying value through copy ctor").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(copied == cf, "[UT003] config files do not equal after copy");
+            STEEL_UT_ASSERT(copied.getSetting(key) == stringValue, "[UT004] failed at copying value through copy ctor");
         }
 
         {
@@ -259,18 +240,8 @@ namespace Steel
             cf.setSetting(key, stringValue);
             ConfigFile equalled(path2);
             equalled = cf;
-
-            if(!(equalled == cf))
-            {
-                Debug::error("config files do not equal after assignation").endl().breakHere();
-                return false;
-            }
-
-            if(equalled.getSetting(key) != stringValue)
-            {
-                Debug::error("failed at copying value through assignation").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(equalled == cf, "[UT005] config files do not equal after assignation");
+            STEEL_UT_ASSERT(equalled.getSetting(key) == stringValue, "[UT006] failed at copying value through assignation");
         }
 
         {
@@ -278,15 +249,9 @@ namespace Steel
             ConfigFile cf(path);
             cf.setSetting(key, intValue);
             cf.save();
-
             ConfigFile cf2(path);
             int ret = cf2.getSettingAsInt(key);
-
-            if(ret != intValue)
-            {
-                Debug::error("failed persistency test").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(ret == intValue, "[UT007] failed persistency test");
         }
 
         CLEANUP;

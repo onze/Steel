@@ -7,35 +7,74 @@
 #include <SignalManager.h>
 #include <Debug.h>
 #include <tests/UnitTestManager.h>
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
     char const *const Action::AND_ATTRIBUTE = "$and";
     char const *const Action::OR_ATTRIBUTE = "$or";
 
-    Duration Action::sTimeFrameAnd = 25;
+    char const *const Action::MAX_DELAY_ATTRIBUTE = "$maxDelay";
+    char const *const Action::MIN_DELAY_ATTRIBUTE = "$minDelay";
 
-    Action::Action(): mType(Action::Type::COMPOSITE), mSignal(INVALID_SIGNAL), mSubActions()
+    char const *const Action::ANY_ATTRIBUTE = "$*";
+
+    Duration Action::sDefaultTimeWindowAnd = 25;
+
+    Action::Action(): mType(Action::Type::COMPOSITE),
+        mSignal(INVALID_SIGNAL),
+        mMaxDelay(DURATION_MAX), mMinDelay(DURATION_MIN),
+        mSubActions()
     {
     }
 
     Action::Action(const Ogre::String &signal): mType(Action::Type::SIMPLE),
-        mSignal(SignalManager::instance().toSignal(signal)), mSubActions()
+        mSignal(INVALID_SIGNAL),
+        mMaxDelay(DURATION_MAX), mMinDelay(DURATION_MIN),
+        mSubActions()
     {
+        parseSignalString(signal);
     }
 
-    Action::Action(char const *const signal): mType(Action::Type::SIMPLE),
-        mSignal(SignalManager::instance().toSignal(signal)), mSubActions()
+    Action::Action(char const *const signal): mType(Action::Type::INVALID_TYPE),
+        mSignal(INVALID_SIGNAL),
+        mMaxDelay(DURATION_MAX), mMinDelay(DURATION_MIN),
+        mSubActions()
     {
+        parseSignalString(signal);
+    }
+
+    void Action::parseSignalString(Ogre::String const &signal)
+    {
+        if(Ogre::StringUtil::startsWith(signal, "$"))
+        {
+            Ogre::String signal_(signal);
+
+            if(signal == Action::AND_ATTRIBUTE)
+                mType = Action::Type::AND;
+            else if(signal == Action::OR_ATTRIBUTE)
+                mType = Action::Type::OR;
+            else if(signal == Action::ANY_ATTRIBUTE)
+                mType = Action::Type::ANY;
+        }
+        else
+        {
+            mType = Action::Type::SIMPLE;
+            mSignal = SignalManager::instance().toSignal(signal);
+        }
     }
 
     Action::Action(Signal const &signal): mType(Action::Type::SIMPLE),
-        mSignal(signal), mSubActions()
+        mSignal(signal),
+        mMaxDelay(DURATION_MAX), mMinDelay(DURATION_MIN),
+        mSubActions()
     {
     }
 
     Action::Action(Action::Type type): mType(type),
-        mSignal(INVALID_SIGNAL), mSubActions()
+        mSignal(INVALID_SIGNAL),
+        mMaxDelay(DURATION_MAX), mMinDelay(DURATION_MIN),
+        mSubActions()
     {
     }
 
@@ -68,6 +107,18 @@ namespace Steel
         return *this;
     }
 
+    Action &Action::setMaxDelay(Duration maxDelay)
+    {
+        mMaxDelay = maxDelay;
+        return (*this);
+    }
+
+    Action &Action::setMinDelay(Duration minDelay)
+    {
+        mMinDelay = minDelay;
+        return (*this);
+    }
+
     std::set<Signal> Action::signals() const
     {
         static const Ogre::String intro = "Action::signals(): ";
@@ -88,51 +139,53 @@ namespace Steel
 
                 break;
 
+            case Action::Type::META:
+            case Action::Type::ANY:
+                // none or all ?...
+                break;
+
             case Action::Type::COMPOSITE:
             default:
-                Debug::error(intro)("unknown composite action.").endl();
+                Debug::error(intro)("unknown action type ")((unsigned)mType).endl();
                 break;
         }
 
         return actionSignals;
     }
 
-    bool Action::resolve(std::list<SignalBufferEntry>::const_iterator &it_signal,
-                         std::list<SignalBufferEntry> const &signalsBuffer) const
+    bool Action::resolve(std::list<SignalBufferEntry>::const_iterator const &it_cbegin,
+                         std::list<SignalBufferEntry>::const_iterator &it_signal,
+                         std::list<SignalBufferEntry>::const_iterator const &it_cend) const
     {
-//         Debug::log(*this)(" resolves ").asSignalBuffer(signalsBuffer)(" from ").asSignalBufferEntry(*it_signal).endl();
+        //         Debug::log(*this)(" resolves ").asSignalBuffer(signalsBuffer)(" from ").asSignalBufferEntry(*it_signal).endl();
         switch(mType)
         {
             case Action::Type::SIMPLE:
-                while(it_signal->signal != mSignal && signalsBuffer.end() != it_signal)
+                while(it_signal->signal != mSignal && it_cend != it_signal)
                     ++it_signal;
 
-                if(signalsBuffer.end() != it_signal)
+                if(it_cend != it_signal)
                     return true;
 
                 break;
 
             case Action::Type::AND:
             {
-                // easy bailout: input is not big enough
-                if(signalsBuffer.size() < mSubActions.size())
-                    return false;
-
                 // validates if all actions resolve
                 bool allFound = true;
-                std::list<SignalBufferEntry>::const_iterator it_first = signalsBuffer.cend();
-                std::list<SignalBufferEntry>::const_iterator it_last = signalsBuffer.cbegin();
+                std::list<SignalBufferEntry>::const_iterator it_first = it_cend;
+                std::list<SignalBufferEntry>::const_iterator it_last = it_signal;
 
                 for(auto const & sub : mSubActions)
                 {
                     // all actions should resolve from the same starting position
                     auto it(it_signal);
-                    allFound &= sub.resolve(it, signalsBuffer);
+                    allFound &= sub.resolve(it_signal, it, it_cend);
 
                     // action was found was valid
                     if(allFound)
                     {
-//                         Debug::log("resolved sub ")(sub).endl();
+                        //                         Debug::log("resolved sub ")(sub).endl();
                         // update first/last input
                         if(it->timestamp <= it_first->timestamp)
                             it_first = it;
@@ -144,7 +197,7 @@ namespace Steel
                     }
                     else
                     {
-//                         Debug::log("with false").endl();
+                        //                         Debug::log("with false").endl();
                         return false;
                     }
                 }
@@ -153,11 +206,11 @@ namespace Steel
                 // validate timeFrame
                 Duration timeFrame = it_last->timestamp - it_first->timestamp;
 
-                if(allFound && timeFrame < static_cast<Duration>(Action::sTimeFrameAnd))
+                if(allFound && timeFrame < static_cast<Duration>(Action::sDefaultTimeWindowAnd))
                 {
                     // merge back to it_signal
                     it_signal = it_last;
-//                     Debug::log("with true").endl();
+                    //                     Debug::log("with true").endl();
                     return true;
                 }
 
@@ -170,9 +223,9 @@ namespace Steel
                 for(auto const & sub : mSubActions)
                 {
                     // all actions should resolve from the same starting position
-                    auto it = it_signal;
+                    auto it(it_signal);
 
-                    if(sub.resolve(it, signalsBuffer))
+                    if(sub.resolve(it_signal, it, it_cend))
                     {
                         it_signal = it;
                         return true;
@@ -181,12 +234,36 @@ namespace Steel
 
                 break;
 
+            case Action::Type::META:
+            {
+                if(it_cbegin != it_signal && it_cend != it_signal)
+                {
+                    auto it_previous(it_signal);
+                    --it_previous;
+                    Duration const delay = static_cast<Duration>(it_signal->timestamp - it_previous->timestamp);
+
+                    if(delay >= mMinDelay && delay <= mMaxDelay)
+                    {
+                        // META Actions don't consume input
+                        it_signal = it_previous;
+                        return true;
+                    }
+                }
+                else
+                    return false;
+            }
+            break;
+
+            case Action::Type::ANY:
+                if(it_cend != it_signal)
+                    return true;
+
             case Action::Type::INVALID_TYPE:
             default:
                 break;
         }
 
-//         Debug::log("with false").endl();
+        //         Debug::log("with false").endl();
         return false;
     }
 
@@ -214,10 +291,26 @@ namespace Steel
 
                 value[mType == Action::Type::OR ? Action::OR_ATTRIBUTE : Action::AND_ATTRIBUTE] = seq;
             }
-            break;
 
-            default:
-                Debug::error("Action::toJson(): invalid type.").endl().breakHere();
+            case Action::Type::COMPOSITE:
+                break;
+
+            case Action::Type::META:
+                if(DURATION_MAX != mMaxDelay)
+                    value[Action::MAX_DELAY_ATTRIBUTE] = JsonUtils::toJson(mMaxDelay);
+
+                if(DURATION_MIN != mMinDelay)
+                    value[Action::MIN_DELAY_ATTRIBUTE] = JsonUtils::toJson(mMinDelay);
+
+                break;
+
+            case Action::Type::ANY:
+                value = Action::ANY_ATTRIBUTE;
+                break;
+
+            case Action::Type::INVALID_TYPE:
+                value = Json::nullValue;
+                break;
         }
     }
 
@@ -227,19 +320,21 @@ namespace Steel
     bool utest_Action(UnitTestExecutionContext const *context)
     {
 #define INIT_SIGNALS Signal sA = SignalManager::instance().toSignal("A"); \
-        Signal sB = SignalManager::instance().toSignal("B"); \
-        Signal sC = SignalManager::instance().toSignal("C"); \
-        Signal sD = SignalManager::instance().toSignal("D"); \
-        Signal sE = SignalManager::instance().toSignal("E"); \
-        std::list<SignalBufferEntry > signalsBuffer;
+                             Signal sB = SignalManager::instance().toSignal("B"); \
+                             Signal sC = SignalManager::instance().toSignal("C"); \
+                             Signal sD = SignalManager::instance().toSignal("D"); \
+                             Signal sE = SignalManager::instance().toSignal("E"); \
+                             std::list<SignalBufferEntry > signalsBuffer; \
+                             auto it_cbegin = signalsBuffer.cbegin(); \
+                             auto it_cend = signalsBuffer.cend();
 
-// also avoids "unused variable" warnings
+        // also avoids "unused variable" warnings
 #define CLEANUP_SIGNALS STEEL_UNUSED(sA); \
-        STEEL_UNUSED(sB); \
-        STEEL_UNUSED(sC); \
-        STEEL_UNUSED(sD); \
-        STEEL_UNUSED(sE); \
-        STEEL_UNUSED(signalsBuffer);
+                             STEEL_UNUSED(sB); \
+                             STEEL_UNUSED(sC); \
+                             STEEL_UNUSED(sD); \
+                             STEEL_UNUSED(sE); \
+                             STEEL_UNUSED(signalsBuffer);
 
 
         {
@@ -247,35 +342,20 @@ namespace Steel
             Signal const signal = SignalManager::instance().toSignal(value);
             Action a(value);
             Action b(signal);
-
-            if(a != b || !(a == b))
-            {
-                Debug::error("[UT001] failed at signal translation").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a == b && !(a != b), "[UT001] failed at signal translation");
         }
 
         {
             Action const and_ = Action(Action::Type::AND).pushSubAction(Action("A")).pushSubAction(Action("B"));
             Action const and_identical(and_);
-
-            if(and_ != and_identical || !(and_ == and_identical))
-            {
-                Debug::error("[UT002] failed at copy ctor").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(and_ == and_identical && !(and_ != and_identical), "[UT002] failed at copy ctor");
         }
 
         {
             Action const and_ = Action(Action::Type::AND).pushSubAction(Action("A")).pushSubAction(Action("B"));
             Action and_identical;
             and_identical = and_;
-
-            if(and_ != and_identical || !(and_ == and_identical))
-            {
-                Debug::error("[UT003] failed at assignation").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(and_ == and_identical && !(and_ != and_identical), "[UT003] failed at assignation");
         }
 
         {
@@ -283,35 +363,15 @@ namespace Steel
             Action const and_identical = Action(Action::Type::AND).pushSubAction(Action("A")).pushSubAction(Action("B"));
             Action const and_different = Action(Action::Type::AND).pushSubAction(Action("B")).pushSubAction(Action("B"));
             Action const or_ = Action(Action::Type::OR).pushSubAction(Action("A")).pushSubAction(Action("B"));
-
-            if(and_ != and_identical || !(and_ == and_identical))
-            {
-                Debug::error("[UT004] failed recognizing equal $and Actions").endl().breakHere();
-                return false;
-            }
-
-            if(and_ == and_different || !(and_ != and_different))
-            {
-                Debug::error("[UT005] failed differentiating dfferent $and Actions").endl().breakHere();
-                return false;
-            }
-
-            if(and_ == or_ || !(and_ != or_))
-            {
-                Debug::error("[UT006] failed differentiating dfferent $and and $or Actions").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(and_ == and_identical && !(and_ != and_identical), "[UT004] failed recognizing equal $and Actions");
+            STEEL_UT_ASSERT(and_ != and_different && !(and_ == and_different), "[UT005] failed differentiating dfferent $and Actions");
+            STEEL_UT_ASSERT(and_ != or_ && !(and_ == or_), "[UT006] failed differentiating dfferent $and and $or Actions");
         }
 
         {
             Action a = Action(Action::Type::AND).pushSubAction(Action("A")).pushSubAction(Action("B"));
             Action b = Action(Action::Type::AND).pushSubAction(Action("A")).pushSubAction(Action("B"));
-
-            if(a.signals() != b.signals())
-            {
-                Debug::error("[UT007] Action::signals failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.signals() == b.signals(), "[UT007] Action::signals failed");
         }
 
         {
@@ -319,12 +379,7 @@ namespace Steel
             signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a("A");
-
-            if(!a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT008] failed Action::resolve").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.resolve(it_cbegin, it_signal, it_cend), "[UT008] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -334,12 +389,7 @@ namespace Steel
             signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a("A");
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT009] failed Action::resolve").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT009] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -351,12 +401,7 @@ namespace Steel
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             ++it_signal; // points to sB
             Action a("A");
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT010] failed Action::resolve").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT010] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -366,12 +411,7 @@ namespace Steel
             signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a("A");
-
-            if(!a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT011] failed Action::resolve").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.resolve(it_cbegin, it_signal, it_cend), "[UT011] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -383,12 +423,7 @@ namespace Steel
             signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sB);
-
-            if(!a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT012] failed to Action::resolve $and").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.resolve(it_cbegin, it_signal, it_cend), "[UT012] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -398,15 +433,10 @@ namespace Steel
             INIT_SIGNALS;
             signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
             signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
-            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + (Action::sDefaultTimeWindowAnd / Duration(2))});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sC);
-
-            if(!a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT013] failed to Action::resolve $and").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.resolve(it_cbegin, it_signal, it_cend), "[UT013] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -415,16 +445,11 @@ namespace Steel
             // invalid input: delay too long
             INIT_SIGNALS;
             signalsBuffer.push_back(SignalBufferEntry{sA, 0});
-            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + Action::sTimeFrameAnd});
-            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + Action::sDefaultTimeWindowAnd});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + (Action::sDefaultTimeWindowAnd * Duration(2))});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sC);
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT014] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT014] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -433,17 +458,12 @@ namespace Steel
             // valid input, $or action
             INIT_SIGNALS;
             signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
-            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))});
-            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + Action::sTimeFrameAnd});
-            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + (Action::sDefaultTimeWindowAnd / Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sC, TimeStamp() + Action::sDefaultTimeWindowAnd});
+            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sDefaultTimeWindowAnd * Duration(2))});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::OR).pushSubAction(sA).pushSubAction(sD);
-
-            if(!a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT015] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.resolve(it_cbegin, it_signal, it_cend), "[UT015] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -452,16 +472,11 @@ namespace Steel
             // invalid input, $or action
             INIT_SIGNALS;
             signalsBuffer.push_back(SignalBufferEntry{sA, TimeStamp()});
-            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + (Action::sTimeFrameAnd / Duration(2))});
-            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp() + (Action::sDefaultTimeWindowAnd / Duration(2))});
+            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sDefaultTimeWindowAnd * Duration(2))});
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::OR).pushSubAction(sC).pushSubAction(sE);
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT016] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT016] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -474,30 +489,15 @@ namespace Steel
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             //  {or:[{and:[A,B]}, {and:[C,D]}]}
             Action a = Action(Action::Type::OR).pushSubAction(Action(Action::Type::AND).pushSubAction(sA).pushSubAction(sB)).pushSubAction(Action(Action::Type::AND).pushSubAction(sC).pushSubAction(sD));
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT017] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT017] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             // ok
             signalsBuffer.push_back(SignalBufferEntry{sB, TimeStamp()});
-
-            if(!a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT018] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(a.resolve(it_cbegin, it_signal, it_cend), "[UT018] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             // too late
-            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sTimeFrameAnd * Duration(2))});
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT019] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            signalsBuffer.push_back(SignalBufferEntry{sD, TimeStamp() + (Action::sDefaultTimeWindowAnd * Duration(2))});
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT019] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -507,12 +507,7 @@ namespace Steel
             INIT_SIGNALS;
             std::list<SignalBufferEntry>::const_iterator it_signal = signalsBuffer.begin();
             Action a = Action(Action::Type::OR).pushSubAction(sA).pushSubAction(sD);
-
-            if(a.resolve(it_signal, signalsBuffer))
-            {
-                Debug::error("[UT017] Action::resolve failed").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!a.resolve(it_cbegin, it_signal, it_cend), "[UT020] Action::resolve() failed with action ", a, " and input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }

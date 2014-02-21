@@ -6,6 +6,9 @@
 // include all *Mock classes for single include from other classes
 #include "tests/SignalListenerMock.h"
 
+// to be used in registered UT functions
+#define STEEL_UT_ASSERT(EXPR, ...) if(!(EXPR)){Debug::log("Assert on ").quotes(#EXPR)("==")(bool(EXPR))(": ")(__VA_ARGS__).endl().breakHere();return false;}
+
 namespace Steel
 {
     class Engine;

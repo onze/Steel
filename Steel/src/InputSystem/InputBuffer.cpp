@@ -80,7 +80,7 @@ namespace Steel
     void InputBuffer::onSignal(Signal signal, SignalEmitter *const /*src*/)
     {
         // split per input controller here
-        mSignalsBatch.push_back(SignalBufferEntry{signal, mTimer.getMilliseconds()});
+        mSignalsBatch.push_back(SignalBufferEntry {signal, mTimer.getMilliseconds()});
     }
 
     void InputBuffer::update()
@@ -122,11 +122,7 @@ namespace Steel
             listener.registerSignal(signal_A);
             ib.update();
 
-            if(listener.hasReceived(signal_A))
-            {
-                Debug::error("[UT001] signal listener received signal it was not listening to.").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!listener.hasReceived(signal_A), "[UT001] signal listener received signal it was not listening to.");
 
             CLEANUP;
         }
@@ -142,11 +138,7 @@ namespace Steel
             ib.update();
             SignalManager::instance().fireEmittedSignals();
 
-            if(!listener.hasOnlyReceived(combo_output))
-            {
-                Debug::error("[UT002] failed to resolve/deliver ActionCombo(signal_output).push_back(Action(combo_output)).").endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(listener.hasOnlyReceived(combo_output), "[UT002] failed to resolve/deliver ActionCombo(signal_output).push_back(Action(combo_output)).");
 
             CLEANUP;
         }
@@ -163,11 +155,7 @@ namespace Steel
             ib.update();
             SignalManager::instance().fireEmittedSignals();
 
-            if(listener.hasReceived(combo_output))
-            {
-                Debug::error("[UT003] resolved incomplete ActionCombo ").quotes(combo).endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(!listener.hasReceived(combo_output), "[UT003] resolved incomplete ActionCombo \"", combo, "\"");
 
             CLEANUP;
         }
@@ -184,11 +172,24 @@ namespace Steel
             ib.update();
             SignalManager::instance().fireEmittedSignals();
 
-            if(!listener.hasOnlyReceived(combo_output))
-            {
-                Debug::error("[UT004] unresolved valid ActionCombo ").quotes(combo).endl().breakHere();
-                return false;
-            }
+            STEEL_UT_ASSERT(listener.hasOnlyReceived(combo_output), "[UT004] unresolved valid ActionCombo \"", combo, "\"");
+
+            CLEANUP;
+        }
+
+        {
+            INIT;
+            const Signal signal_A = SignalManager::instance().toSignal("signal_A");
+            const Signal signal_B = SignalManager::instance().toSignal("signal_B");
+            const Signal combo_output = SignalManager::instance().toSignal("combo_output");
+            listener.registerSignal(combo_output);
+            ActionCombo combo = ActionCombo(combo_output).push_back(Action(signal_A)).push_back(Action(signal_B));
+            ib.registerActionCombo(combo);
+            SignalManager::instance().fire(signal_A).fire(signal_B); // right ordered combo: valid
+            ib.update();
+            SignalManager::instance().fireEmittedSignals();
+
+            STEEL_UT_ASSERT(listener.hasOnlyReceived(combo_output), "[UT004] unresolved valid ActionCombo \"", combo, "\"");
 
             CLEANUP;
         }

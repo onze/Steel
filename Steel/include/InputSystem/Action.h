@@ -9,10 +9,11 @@ namespace Steel
     struct SignalBufferEntry;
     class UnitTestExecutionContext;
 
-    class ActionFactory
-    {
-    };
-
+    /**
+     * Can validate conditions about data passed to ::resolve.
+     * Action::Type defines the types of predicate. Can only have one value.
+     * Another name could be Predicate.
+     */
     class Action
     {
     private:
@@ -20,10 +21,16 @@ namespace Steel
     public:
         static char const *const AND_ATTRIBUTE;
         static char const *const OR_ATTRIBUTE;
-        /// Time window of a set of inputs for AND actions to resolve positively on it. In millisecond
-        static Duration sTimeFrameAnd;
+        static char const *const ANY_ATTRIBUTE;
 
-        /// Actions defined as
+        static char const *const MAX_DELAY_ATTRIBUTE;
+        static char const *const MIN_DELAY_ATTRIBUTE;
+
+
+        /// Time window between first and last inputs of a set for an AND action to resolve positively. In millisecond;
+        static Duration sDefaultTimeWindowAnd;
+
+        /// No inheritance, couple switches in the implementation.
         enum class Type : unsigned int
         {
             INVALID_TYPE = 0,
@@ -35,7 +42,13 @@ namespace Steel
             AND = STEEL_BIT(2),
             OR = STEEL_BIT(3),
 
-            COMPOSITE = AND | OR
+            COMPOSITE = AND | OR,
+
+            /// Conditions over previous actions. Mostly time-based. META Actions don't consume input. Can't be first or last action of a combo.
+            META = STEEL_BIT(4),
+
+            /// Always resolve positively. Always consumes 1 signal.
+            ANY = STEEL_BIT(5)
         };
 
         Action();
@@ -43,7 +56,7 @@ namespace Steel
         Action(char const *const signal);
         Action(Signal const &signal);
         Action(Type const type);
-        ~Action();
+        virtual ~Action();
         bool operator==(const Action &o) const;
         bool operator!=(const Action &o) const;
 
@@ -55,8 +68,9 @@ namespace Steel
          * Will consume the iterator until an input validates it and it returns true.
          * After returning, the given iterator points to the last consumed position.
          */
-        bool resolve(std::list<SignalBufferEntry>::const_iterator &it_signal,
-                     std::list<SignalBufferEntry> const &signalsBuffer) const;
+        bool resolve(std::list<SignalBufferEntry>::const_iterator const &it_cbegin,
+                     std::list<SignalBufferEntry>::const_iterator &it_signal,
+                     std::list<SignalBufferEntry>::const_iterator const &it_cend) const;
 
         /// Adds a subaction to a
         Action &pushSubAction(Action const &subAction);
@@ -66,9 +80,23 @@ namespace Steel
         /// Serializes itself into the given value. All previous value attributes will be ERASED.
         void toJson(Json::Value &value) const;
 
+        //Type::META parameters
+        /// Set the max delay since last action for this one to be able to resolve.
+        Action &setMaxDelay(Duration maxDelay);
+        /// Set the min delay since last action for this one to be able to resolve.
+        Action &setMinDelay(Duration minDelay);
     private:
+        /// Analyses the ctor string signal arg to determine type, signal.
+        void parseSignalString(Ogre::String const &signal);
+
         Type mType;
         Signal mSignal;
+
+        // meta info
+        /// Max delay since last action for this one to be able to resolve.
+        Duration mMaxDelay;
+        /// Min delay since last action for this one to be able to resolve.
+        Duration mMinDelay;
 
         /// Used by composite actions.
         std::vector<Action> mSubActions;

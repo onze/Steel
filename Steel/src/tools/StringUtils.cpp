@@ -1,7 +1,8 @@
 #include <Rocket/Core/String.h>
 
 #include "tools/StringUtils.h"
-#include <Debug.h>
+#include "Debug.h"
+#include "tests/UnitTestManager.h"
 
 namespace Steel
 {
@@ -72,36 +73,36 @@ namespace Steel
     ////////////////////////////////////////////////////////////////////////////
     // UNIT TESTS
 
-    bool utest_StringUtils(UnitTestExecutionContext const* context)
+    bool utest_StringUtils(UnitTestExecutionContext const *context)
     {
         Ogre::String src = "a.b,c.d", sep0 = ",", sep1 = ".", sep2 = "!";
         std::vector<Ogre::String> dst;
 
         dst = StringUtils::split(src, sep2);
-        assert(dst[0] == src);
-        assert(dst.size() == 1);
+
+        STEEL_UT_ASSERT(dst[0] == src, "[UT001] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst.size() == 1, "[UT002] StringUtils::split failed");
 
         dst = StringUtils::split(Ogre::StringUtil::BLANK, sep2);
-        assert(dst[0] == Ogre::StringUtil::BLANK);
-        assert(dst.size() == 1);
+        STEEL_UT_ASSERT(dst[0] == Ogre::StringUtil::BLANK, "[UT] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst.size() == 1, "[UT003] StringUtils::split failed");
 
         dst = StringUtils::split(src, sep0);
-        assert(dst[0] == "a.b");
-        assert(dst[1] == "c.d");
-        assert(dst.size() == 2);
+        STEEL_UT_ASSERT(dst[0] == "a.b", "[UT004] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst[1] == "c.d", "[UT005] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst.size() == 2, "[UT006] StringUtils::split failed");
 
         dst = StringUtils::split(src, sep1);
-        assert(dst[0] == "a");
-        assert(dst[1] == "b,c");
-        assert(dst[2] == "d");
-        assert(dst.size() == 3);
+        STEEL_UT_ASSERT(dst[0] == "a", "[UT007] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst[1] == "b,c", "[UT008] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst[2] == "d", "[UT009] StringUtils::split failed");
+        STEEL_UT_ASSERT(dst.size() == 3, "[UT010] StringUtils::split failed");
 
-        assert(src == StringUtils::join(StringUtils::split(src, sep0), sep0));
-        assert("a.b" == StringUtils::join(StringUtils::split("a.b;c", ";"), ".", 0, -1));
-        assert(Ogre::StringUtil::BLANK == StringUtils::join(StringUtils::split("a;b;c", "."), ".", 0, -1));
-        assert("a;b;c" == StringUtils::join(StringUtils::split("a;b;c", ";"), ";"));
+        STEEL_UT_ASSERT(src == StringUtils::join(StringUtils::split(src, sep0), sep0), "[UT011] StringUtils::join failed");
+        STEEL_UT_ASSERT("a.b" == StringUtils::join(StringUtils::split("a.b;c", ";"), ".", 0, -1), "[UT012] StringUtils::join failed");
+        STEEL_UT_ASSERT(Ogre::StringUtil::BLANK == StringUtils::join(StringUtils::split("a;b;c", "."), ".", 0, -1), "[UT013] StringUtils::join failed");
+        STEEL_UT_ASSERT("a;b;c" == StringUtils::join(StringUtils::split("a;b;c", ";"), ";"), "[UT014] StringUtils::join failed");
 
-        Debug::log("tests_StringUtils(): passed").endl();
         return true;
     }
 }
