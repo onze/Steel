@@ -102,6 +102,15 @@ namespace Steel
             {
                 return this->operator()("pair(")(pair.first)(", ")(pair.second)(")");
             }
+            
+            /// prints n or more parameters side by side
+            template<class First, class Second, class ...Others>
+            DebugObject &operator()(First first, Second second, Others... others)
+            {
+                (*this)(first);
+                (*this)(second, others...);
+                return *this;
+            }
 
             /// Print the parameter between quotes.
             template<class T>
