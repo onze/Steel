@@ -121,7 +121,7 @@ namespace Steel
         mRenderWindow->getCustomAttribute("WINDOW", &windowHandle);
         mWindowHandle = Ogre::StringConverter::toString(windowHandle);
         postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
-        mInputMan.grabInput(true);
+        mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
     }
 
     void Engine::embeddedInit(Ogre::String plugins, std::string windowHandle, unsigned int width, unsigned int height,
