@@ -1,11 +1,12 @@
 
 #include "InputSystem/ActionCombo.h"
-#include <InputSystem/InputBuffer.h>
-#include <InputSystem/Action.h>
-#include <SignalManager.h>
-#include <Debug.h>
-#include <tools/JsonUtils.h>
-#include <tests/UnitTestManager.h>
+#include "InputSystem/InputBuffer.h"
+#include "InputSystem/Action.h"
+#include "SignalManager.h"
+#include "Debug.h"
+#include "tools/JsonUtils.h"
+#include "tests/UnitTestManager.h"
+#include "tools/StdUtils.h"
 
 namespace Steel
 {
@@ -28,6 +29,11 @@ namespace Steel
 
     ActionCombo::~ActionCombo()
     {
+    }
+    
+    Hash ActionCombo::hash() const
+    {
+        return std::hash<ActionCombo>()(*this);
     }
 
     ActionCombo &ActionCombo::operator=(ActionCombo const &o)
@@ -101,7 +107,7 @@ namespace Steel
             value[ActionCombo::SIGNAL_ATTRIBUTE] = JsonUtils::toJson(SignalManager::instance().fromSignal(mSignal));
     }
 
-    bool ActionCombo::evaluate(std::list<SignalBufferEntry> const &signalsBuffer)
+    bool ActionCombo::evaluate(std::list<SignalBufferEntry> const &signalsBuffer, TimeStamp const now_tt) const
     {
         // for each signal in the input
         for(std::list<SignalBufferEntry>::const_iterator it = signalsBuffer.cbegin(); signalsBuffer.cend() != it; ++it)
@@ -119,7 +125,7 @@ namespace Steel
                     break;
                 }
 
-                if(!action.resolve(it, it_current, signalsBuffer.cend()))
+                if(!action.resolve(it, it_current, signalsBuffer.cend(), now_tt))
                 {
                     allResolved = false;
                     break;
@@ -188,7 +194,7 @@ namespace Steel
             // input invalid because of TimeGap too short
             INIT_SIGNALS;
             Duration const delay = 250;
-            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).setMinDelay(delay));
+            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).minDelay(delay)).push_back(sB);
             signalsBuffer.push_back({sA, TimeStamp(0)});
             signalsBuffer.push_back({sB, TimeStamp(delay / 2)});
 
@@ -204,7 +210,7 @@ namespace Steel
             // input invalid because of TimeGap too short
             INIT_SIGNALS;
             Duration const delay = 250;
-            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).setMinDelay(delay));
+            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).minDelay(delay)).push_back(sB);
             signalsBuffer.push_back({sA, TimeStamp(0)}); // ok
             signalsBuffer.push_back({sB, TimeStamp(delay / 2)}); // fail
             signalsBuffer.push_back({sA, TimeStamp(0)}); // ok
@@ -218,7 +224,7 @@ namespace Steel
             // validates a meta cannot be first
             INIT_SIGNALS;
             Duration const delay = 250;
-            auto combo = ActionCombo("Attack-hold-small").push_back(Action(Action::Type::META).setMaxDelay(delay)).push_back(sA);
+            auto combo = ActionCombo("Attack-hold-small").push_back(Action(Action::Type::META).maxDelay(delay)).push_back(sA);
             signalsBuffer.push_back({sA, TimeStamp(0)});
             STEEL_UT_ASSERT(!combo.evaluate(signalsBuffer), "[UT013] failed ActionCombo::evaluate(): combo ", combo, ", input ", signalsBuffer);
 
@@ -226,12 +232,12 @@ namespace Steel
         }
 
         {
-            // validates a meta cannot be last
+            // validates a meta can be last
             INIT_SIGNALS;
             Duration const delay = 250;
-            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).setMaxDelay(delay));
+            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).maxDelay(delay));
             signalsBuffer.push_back({sA, TimeStamp(0)});
-            STEEL_UT_ASSERT(!combo.evaluate(signalsBuffer), "[UT014] failed ActionCombo::evaluate(): combo ", combo, ", input ", signalsBuffer);
+            STEEL_UT_ASSERT(combo.evaluate(signalsBuffer), "[UT014] failed ActionCombo::evaluate(): combo ", combo, ", input ", signalsBuffer);
 
             CLEANUP_SIGNALS;
         }
@@ -240,7 +246,7 @@ namespace Steel
             // validate META/maxDelay filtering invalid input
             INIT_SIGNALS;
             Duration const delay = 250;
-            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).setMaxDelay(delay)).push_back(Action::Type::ANY);
+            auto combo = ActionCombo("Attack-hold-small").push_back(sA).push_back(Action(Action::Type::META).maxDelay(delay)).push_back(Action::Type::ANY);
             signalsBuffer.push_back({sA, TimeStamp(0)}); // ok
             signalsBuffer.push_back({sB, TimeStamp(delay * 2)}); // too late
             STEEL_UT_ASSERT(!combo.evaluate(signalsBuffer), "[UT015] failed ActionCombo::evaluate(): combo ", combo, ", input ", signalsBuffer);
@@ -254,7 +260,7 @@ namespace Steel
             Duration const delay = 250;
             auto combo = ActionCombo("Attack-hold-small")
             .push_back(sA)
-            .push_back(Action(Action::Type::META).setMaxDelay(delay))
+            .push_back(Action(Action::Type::META).maxDelay(delay))
             .push_back(Action::Type::ANY);
             signalsBuffer.push_back({sA, TimeStamp(0)});
             signalsBuffer.push_back({sA, TimeStamp(delay / 2)});

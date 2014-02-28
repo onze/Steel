@@ -10,7 +10,9 @@
 namespace Steel
 {
     InputBuffer::InputBuffer(): SignalListener(), SignalEmitter(),
-        mTimer(), mSignalsBatch(), mSignalsBuffer(), mInputLifeDuration(1000), mCombos(), mSignalsListened()
+        mTimer(), mSignalsBatch(), mSignalsBuffer(), mInputLifeDuration(1000),
+        mCombos(),
+        mSignalsListened()
     {
     }
 
@@ -39,8 +41,18 @@ namespace Steel
         Debug::error("not implemented").breakHere();
         return true;
     }
+    
+    void InputBuffer::registerAction(Signal signal)
+    {
+        registerSignal(signal);
+    }
+    
+    void InputBuffer::unregisterAction(Signal signal)
+    {
+        unregisterSignal(signal);
+    }
 
-    void InputBuffer::registerActionCombo(ActionCombo const &combo)
+    Signal InputBuffer::registerActionCombo(ActionCombo const &combo)
     {
         for(auto const signal : combo.signalsInvolved())
         {
@@ -48,12 +60,14 @@ namespace Steel
             registerSignal(signal);
         }
 
-        mCombos.push_back(combo);
+        // TODO: currently, a combo can be duplicated !
+        mCombos.insert(std::make_pair(combo.hash(), ActionComboEntry(false, combo)));
+        return combo.signal();
     }
 
     void InputBuffer::unregisterActionCombo(ActionCombo const &combo)
     {
-        auto it_combo = std::find(mCombos.begin(), mCombos.end(), combo);
+        auto it_combo = mCombos.find(combo.hash());
 
         if(mCombos.end() != it_combo)
         {
@@ -80,28 +94,53 @@ namespace Steel
     void InputBuffer::onSignal(Signal signal, SignalEmitter *const /*src*/)
     {
         // split per input controller here
-        mSignalsBatch.push_back(SignalBufferEntry {signal, mTimer.getMilliseconds()});
+        SignalBufferEntry entry = {signal, mTimer.getMilliseconds()};
+        Debug::log("InputBuffer::onSignal(): ")(entry).endl();
+        mSignalsBatch.push_back(entry);
     }
 
     void InputBuffer::update()
     {
-        //double delta = ((double)mTimer.getMicroseconds())/1000.;
+        static const Ogre::String intro = "InputBuffer::update(): ";
+        bool debug = true;
+        
         // dispatch actions
-        if(mSignalsBatch.size())
+        TimeStamp now_tt(mTimer.getMilliseconds());
+        const long unsigned int thresholdTimestamp = now_tt - mInputLifeDuration;
+        
+        while(mSignalsBuffer.size() > 0 && mSignalsBuffer.front().timestamp < thresholdTimestamp)
         {
-            // remove old input
-            const long unsigned int thresholdTimestamp = mTimer.getMilliseconds() - mInputLifeDuration;
+//             if(debug)
+//                 Debug::log("removing outdated (>")(mInputLifeDuration)(") input action ")(mSignalsBuffer.front()).endl();
 
-            while(mSignalsBuffer.begin() != mSignalsBuffer.end() && mSignalsBuffer.begin()->timestamp > thresholdTimestamp)
-                mSignalsBuffer.erase(mSignalsBuffer.begin());
-
-            // add new input
-            mSignalsBuffer.insert(mSignalsBuffer.end(), mSignalsBatch.begin(), mSignalsBatch.end());
+            mSignalsBuffer.pop_front();
         }
 
-        for(auto & combo : mCombos)
-            if(combo.evaluate(mSignalsBuffer))
-                SignalManager::instance().emit(combo.signal());
+        // add new input
+        if(mSignalsBatch.size())
+        {
+            mSignalsBuffer.insert(mSignalsBuffer.end(), mSignalsBatch.begin(), mSignalsBatch.end());
+            mSignalsBatch.clear();
+        }
+
+//         if(debug && mSignalsBuffer.size())
+//             Debug::log("post mSignalsBuffer: ")(mSignalsBuffer).endl();
+
+        for(auto & entry : mCombos)
+        {
+            ActionComboEntry &acEntry = entry.second;
+            bool flag = acEntry.combo.evaluate(mSignalsBuffer, now_tt);
+
+            if(flag && !acEntry.evaluating)
+            {
+                if(debug)
+                    Debug::log("emitting combo ")(acEntry.combo).endl();
+
+                SignalManager::instance().emit(acEntry.combo.signal());
+            }
+
+            acEntry.evaluating = flag;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -196,6 +235,18 @@ namespace Steel
 #undef INIT
 #undef CLEANUP
         return true;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    InputBuffer::ActionComboEntry::ActionComboEntry(bool _evaluating, ActionCombo const &_combo)
+        : evaluating(_evaluating), combo(_combo)
+    {
+    }
+
+    bool InputBuffer::ActionComboEntry::operator==(const InputBuffer::ActionComboEntry &o) const
+    {
+        return evaluating == o.evaluating && combo == o.combo;
     }
 
 }

@@ -2,6 +2,7 @@
 #define STEEL_ACTION_H
 
 #include <steeltypes.h>
+#include <tools/StdUtils.h>
 
 namespace Steel
 {
@@ -19,6 +20,8 @@ namespace Steel
     private:
 
     public:
+        static const Action ANY;
+
         static char const *const AND_ATTRIBUTE;
         static char const *const OR_ATTRIBUTE;
         static char const *const ANY_ATTRIBUTE;
@@ -44,7 +47,9 @@ namespace Steel
 
             COMPOSITE = AND | OR,
 
-            /// Conditions over previous actions. Mostly time-based. META Actions don't consume input. Can't be first or last action of a combo.
+            /** 
+             * Conditions over previous actions. Mostly time-based. META Actions don't consume input.
+             */
             META = STEEL_BIT(4),
 
             /// Always resolve positively. Always consumes 1 signal.
@@ -70,7 +75,9 @@ namespace Steel
          */
         bool resolve(std::list<SignalBufferEntry>::const_iterator const &it_cbegin,
                      std::list<SignalBufferEntry>::const_iterator &it_signal,
-                     std::list<SignalBufferEntry>::const_iterator const &it_cend) const;
+                     std::list<SignalBufferEntry>::const_iterator const &it_cend,
+                     TimeStamp now_tt = 0
+                    ) const;
 
         /// Adds a subaction to a
         Action &pushSubAction(Action const &subAction);
@@ -82,9 +89,16 @@ namespace Steel
 
         //Type::META parameters
         /// Set the max delay since last action for this one to be able to resolve.
-        Action &setMaxDelay(Duration maxDelay);
+        Action &maxDelay(Duration maxDelay);
         /// Set the min delay since last action for this one to be able to resolve.
-        Action &setMinDelay(Duration minDelay);
+        Action &minDelay(Duration minDelay);
+        
+        // getters
+        Action::Type type()const{return mType;}
+        Signal signal()const{return mSignal;}
+        Duration getMaxDelay()const{return mMaxDelay;}
+        Duration getMinDelay()const{return mMinDelay;}
+        std::vector<Action> const& subActions()const{return mSubActions;}
     private:
         /// Analyses the ctor string signal arg to determine type, signal.
         void parseSignalString(Ogre::String const &signal);
@@ -103,6 +117,39 @@ namespace Steel
     };
 
     bool utest_Action(UnitTestExecutionContext const *context);
+
 }
+
+namespace std
+{
+    template <>
+    struct hash<Steel::Action::Type>
+    {
+        typedef Steel::Action::Type argument_type;
+        typedef std::size_t value_type;
+        value_type operator()(argument_type value) const
+        {
+            
+            return std::hash<std::underlying_type<argument_type>::type>()(static_cast<std::underlying_type<argument_type>::type>(value));
+        }
+    };
+    
+    template<>
+    struct hash<Steel::Action>
+    {
+        typedef Steel::Action argument_type;
+        typedef std::size_t value_type;
+        
+        value_type operator()(argument_type const& action) const
+        {
+            value_type h = std::hash<Steel::Action::Type>()(action.type());
+            Steel::StdUtils::hash_combine(h, action.signal());
+            for(Steel::Action const& sub: action.subActions())
+                Steel::StdUtils::hash_combine(h, sub);
+            return h;
+        }
+    };
+}
+
 
 #endif // STEEL_ACTION_H

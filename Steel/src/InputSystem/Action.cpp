@@ -1,4 +1,5 @@
 #include "json/json.h"
+#include <type_traits>
 
 #include "InputSystem/Action.h"
 
@@ -11,6 +12,8 @@
 
 namespace Steel
 {
+    const Action Action::ANY(Action::Type::ANY);
+
     char const *const Action::AND_ATTRIBUTE = "$and";
     char const *const Action::OR_ATTRIBUTE = "$or";
 
@@ -107,13 +110,13 @@ namespace Steel
         return *this;
     }
 
-    Action &Action::setMaxDelay(Duration maxDelay)
+    Action &Action::maxDelay(Duration maxDelay)
     {
         mMaxDelay = maxDelay;
         return (*this);
     }
 
-    Action &Action::setMinDelay(Duration minDelay)
+    Action &Action::minDelay(Duration minDelay)
     {
         mMinDelay = minDelay;
         return (*this);
@@ -155,7 +158,9 @@ namespace Steel
 
     bool Action::resolve(std::list<SignalBufferEntry>::const_iterator const &it_cbegin,
                          std::list<SignalBufferEntry>::const_iterator &it_signal,
-                         std::list<SignalBufferEntry>::const_iterator const &it_cend) const
+                         std::list<SignalBufferEntry>::const_iterator const &it_cend,
+                         TimeStamp const now_tt
+                        ) const
     {
         //         Debug::log(*this)(" resolves ").asSignalBuffer(signalsBuffer)(" from ").asSignalBufferEntry(*it_signal).endl();
         switch(mType)
@@ -236,21 +241,37 @@ namespace Steel
 
             case Action::Type::META:
             {
-                if(it_cbegin != it_signal && it_cend != it_signal)
-                {
+                    // checking min delay
                     auto it_previous(it_signal);
                     --it_previous;
-                    Duration const delay = static_cast<Duration>(it_signal->timestamp - it_previous->timestamp);
+                    // if we have a next input, we check the delay against it. Otherwise, we take now.
+                    Duration delay;
 
-                    if(delay >= mMinDelay && delay <= mMaxDelay)
-                    {
-                        // META Actions don't consume input
-                        it_signal = it_previous;
+                    if(it_cend == it_signal)
+                        delay = static_cast<Duration>(now_tt - it_previous->timestamp);
+                    else
+                        delay = static_cast<Duration>(it_signal->timestamp - it_previous->timestamp);
+
+                    if(delay < mMinDelay)
+                        return false;
+
+                    // checking max delay: has it not been too long since last input to resolve ?
+                    // easy case: there was no input before, so of course it has not been too long to pass to next input.
+                    if(it_cbegin == it_signal)
                         return true;
-                    }
-                }
-                else
-                    return false;
+
+                    // if the is no input after, compare with now.
+                    if(it_cend == it_signal)
+                        delay = static_cast<Duration>(now_tt - it_previous->timestamp);
+                    else
+                        delay = static_cast<Duration>(it_signal->timestamp - it_previous->timestamp);
+
+                    if(delay > mMaxDelay)
+                        return false;
+                    
+                    // META Actions don't consume input
+                    it_signal = it_previous;
+                    return true;
             }
             break;
 
