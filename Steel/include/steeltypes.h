@@ -35,7 +35,7 @@ namespace Steel
     typedef unsigned long ModelId;
     typedef std::list<AgentId> Selection;
     typedef std::pair<ModelId, ModelId> ModelPair;
-    
+
     //////////////////////////////////////////////////////////////
     // TIme related stuff go here
     /// Duration can be negative.
@@ -44,8 +44,8 @@ namespace Steel
     extern Duration DURATION_MIN;
     /// Basically what returns Ogre::Timer::get<whatevs>
     typedef long unsigned int TimeStamp;
-    
-    
+
+
     typedef unsigned int RefCount;
 
     /// invalid Model/Agent id.
@@ -68,29 +68,29 @@ namespace Steel
         //ModelType::LAST should stay last (to enable looping).
         LAST
     };
-    
+
     Ogre::String toString(ModelType e);
     ModelType toModelType(Ogre::String s);
 
     typedef unsigned long Signal;
-    const Signal INVALID_SIGNAL=ULONG_MAX;
+    const Signal INVALID_SIGNAL = ULONG_MAX;
 
     typedef unsigned long Tag;
-    const Signal INVALID_TAG=ULONG_MAX;
+    const Signal INVALID_TAG = ULONG_MAX;
 
     /// Shape of the physic enveloppe of an OgreModel
     enum BoundingShape
     {
-        BS_BOX=0,
+        BS_BOX = 0,
         BS_SPHERE,
         BS_CONVEXHULL,
         BS_TRIMESH,
     };
-    
+
     /// Name of a path made of linked LocationModels.
     typedef Ogre::String LocationPathName;
-    
-    
+
+    typedef size_t Hash;
 }
 
 #endif
