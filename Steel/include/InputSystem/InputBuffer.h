@@ -69,13 +69,17 @@ namespace Steel
         class ActionComboEntry
         {
         public:
-            ActionComboEntry(bool _evaluating, ActionCombo const &_combo);
-            bool operator==(ActionComboEntry const &o) const;
+            // helper
+            ActionComboEntry(bool _evaluating, ActionCombo const &_combo, unsigned _refCount);
 
             /// Combos' current "evaluating" states. Aligned on mCombos.
             bool evaluating;
+            
             /// Combo.
             ActionCombo combo;
+            
+            /// How many of such combo are being registered
+            unsigned refCount;
         };
         std::map<Hash, ActionComboEntry> mCombos;
 

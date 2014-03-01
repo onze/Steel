@@ -41,12 +41,12 @@ namespace Steel
         Debug::error("not implemented").breakHere();
         return true;
     }
-    
+
     void InputBuffer::registerAction(Signal signal)
     {
         registerSignal(signal);
     }
-    
+
     void InputBuffer::unregisterAction(Signal signal)
     {
         unregisterSignal(signal);
@@ -54,14 +54,24 @@ namespace Steel
 
     Signal InputBuffer::registerActionCombo(ActionCombo const &combo)
     {
-        for(auto const signal : combo.signalsInvolved())
+        auto it = mCombos.find(combo.hash());
+
+        // if combo is seen for the first time
+        if(mCombos.end() == it)
         {
-            ++(mSignalsListened.emplace(signal, 0).first->second);
-            registerSignal(signal);
+            for(auto const signal : combo.signalsInvolved())
+            {
+                ++(mSignalsListened.emplace(signal, 0).first->second);
+                registerSignal(signal);
+            }
+
+            mCombos.insert(std::make_pair(combo.hash(), ActionComboEntry(false, combo, 1)));
+        }
+        else
+        {
+            ++(it->second.refCount);
         }
 
-        // TODO: currently, a combo can be duplicated !
-        mCombos.insert(std::make_pair(combo.hash(), ActionComboEntry(false, combo)));
         return combo.signal();
     }
 
@@ -71,23 +81,28 @@ namespace Steel
 
         if(mCombos.end() != it_combo)
         {
-            for(auto const & signal : combo.signalsInvolved())
+            --(it_combo->second.refCount);
+
+            if(0 == it_combo->second.refCount)
             {
-                auto it_signal = mSignalsListened.find(signal);
-
-                if(mSignalsListened.end() != it_signal)
+                for(auto const & signal : combo.signalsInvolved())
                 {
-                    if(1 == it_signal->second)
-                    {
-                        mSignalsListened.erase(it_signal);
-                        unregisterSignal(signal);
-                    }
-                    else
-                        --(it_signal->second);
-                }
-            }
+                    auto it_signal = mSignalsListened.find(signal);
 
-            mCombos.erase(it_combo);
+                    if(mSignalsListened.end() != it_signal)
+                    {
+                        if(1 == it_signal->second)
+                        {
+                            mSignalsListened.erase(it_signal);
+                            unregisterSignal(signal);
+                        }
+                        else
+                            --(it_signal->second);
+                    }
+                }
+
+                mCombos.erase(it_combo);
+            }
         }
     }
 
@@ -103,11 +118,11 @@ namespace Steel
     {
         static const Ogre::String intro = "InputBuffer::update(): ";
         bool debug = true;
-        
+
         // dispatch actions
         TimeStamp now_tt(mTimer.getMilliseconds());
         const long unsigned int thresholdTimestamp = now_tt - mInputLifeDuration;
-        
+
         while(mSignalsBuffer.size() > 0 && mSignalsBuffer.front().timestamp < thresholdTimestamp)
         {
 //             if(debug)
@@ -239,14 +254,9 @@ namespace Steel
 
     ///////////////////////////////////////////////////////////////////////////
 
-    InputBuffer::ActionComboEntry::ActionComboEntry(bool _evaluating, ActionCombo const &_combo)
-        : evaluating(_evaluating), combo(_combo)
+    InputBuffer::ActionComboEntry::ActionComboEntry(bool _evaluating, ActionCombo const &_combo, unsigned _refCount)
+        : evaluating(_evaluating), combo(_combo), refCount(_refCount)
     {
-    }
-
-    bool InputBuffer::ActionComboEntry::operator==(const InputBuffer::ActionComboEntry &o) const
-    {
-        return evaluating == o.evaluating && combo == o.combo;
     }
 
 }
