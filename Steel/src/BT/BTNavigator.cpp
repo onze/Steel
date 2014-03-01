@@ -202,15 +202,15 @@ namespace Steel
                     // rotate
                     if(mLookAtTarget)
                     {
-                        Ogre::Quaternion bodyRotation = agent->bodyRotation();
-                        Ogre::Vector3 srcDir = bodyRotation*Ogre::Vector3::UNIT_Z;
+                        Ogre::Quaternion rotation = agent->rotation();
+                        Ogre::Vector3 srcDir = rotation*Ogre::Vector3::UNIT_Z;
 //                         srcDir.y=0;
                         srcDir.normalise();
                         
                         agent->applyTorqueImpulse(srcDir.crossProduct(direction) * timestep);
                         
 //                         Ogre::Quaternion dstRotation = srcDir.getRotationTo(direction);
-//                         agent->setBodyRotation(dstRotation*bodyRotation);
+//                         agent->setBodyRotation(dstRotation*rotation);
                     }
 
                     if(btModel->debug())

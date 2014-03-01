@@ -320,9 +320,9 @@ namespace Steel
 
     bool Editor::mousePressed(Input::Code button, Input::Event const &evt)
     {
-        mContext->ProcessMouseButtonDown(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
-
-        if(!hitTest(evt.position.x, evt.position.y, "menu"))
+        if(hitTest(evt.position.x, evt.position.y, "menu"))
+            mContext->ProcessMouseButtonDown(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
+        else
             mBrush.mousePressed(button, evt);
 
         return true;
@@ -719,7 +719,7 @@ namespace Steel
         {
             if(Ogre::StringUtil::endsWith(rawCommand, ".update"))
                 verbose = false;
-            
+
             // parse sibling, looking for the select element
             Rocket::Core::ElementList children;
             elem->GetParentNode()->GetElementsByTagName(children, "select");

@@ -435,7 +435,6 @@ namespace Steel
             applyTorqueImpulse(t * timestep * mKeepVerticalFactor);
         }
 
-
 //         if(mLevitate)
 //             applyCentralForce(Ogre::Vector3::UNIT_Y*.981);
     }
@@ -699,6 +698,26 @@ namespace Steel
         mStates.push( {mIsKinematics, mBody->getCollisionFlags()});
     }
 
+    void PhysicsModel::setPosition(const Ogre::Vector3 &pos)
+    {
+        bool switchBack = false;
+
+        if(!mIsKinematics && (switchBack = true))
+            toKinematics();
+
+        btTransform ts = mBody->getWorldTransform();
+        ts.setOrigin(BtOgre::Convert::toBullet(pos));
+
+        mBody->getMotionState()->setWorldTransform(ts);
+        mBody->setCenterOfMassTransform(ts);
+
+        if(nullptr != mGhostObject)
+            mGhostObject->setWorldTransform(ts);
+
+        if(switchBack)
+            toRigidBody();
+    }
+
     void PhysicsModel::move(const Ogre::Vector3 &dpos)
     {
         bool switchBack = false;
@@ -731,13 +750,37 @@ namespace Steel
 
     void PhysicsModel::rotate(Ogre::Quaternion const &q)
     {
-        if(nullptr == mBody)
+        if(nullptr == mBody || q.isNaN() || q == Ogre::Quaternion::ZERO)
             return;
 
-        btTransform tr;
-        tr.setIdentity();
-        tr.setRotation(BtOgre::Convert::toBullet(q));
-        mBody->getWorldTransform().operator *= (tr);
+        bool switchBack = false;
+
+        if(!mIsKinematics && (switchBack = true))
+            toKinematics();
+
+        if(1)
+        {
+            btTransform ts = mBody->getWorldTransform(), tr;
+            tr.setIdentity();
+            tr.setRotation(BtOgre::Convert::toBullet(q));
+            ts *= tr;
+
+            mBody->getMotionState()->setWorldTransform(ts);
+            mBody->setCenterOfMassTransform(ts);
+
+            if(nullptr != mGhostObject)
+                mGhostObject->setWorldTransform(ts);
+        }
+        else
+        {
+            btTransform tr;
+            tr.setIdentity();
+            tr.setRotation(BtOgre::Convert::toBullet(q));
+            mBody->getWorldTransform().operator *= (tr);
+        }
+
+        if(switchBack)
+            toRigidBody();
     }
 
     void PhysicsModel::setRotation(Ogre::Quaternion const &q)
@@ -745,10 +788,22 @@ namespace Steel
         if(nullptr == mBody || q.isNaN() || q == Ogre::Quaternion::ZERO)
             return;
 
+        bool switchBack = false;
+
+        if(!mIsKinematics && (switchBack = true))
+            toKinematics();
+
         btTransform tr;
         mBody->getMotionState()->getWorldTransform(tr);
         tr.setRotation(BtOgre::Convert::toBullet(q));
         mBody->getMotionState()->setWorldTransform(tr);
+        mBody->setCenterOfMassTransform(tr);
+
+        if(nullptr != mGhostObject)
+            mGhostObject->setWorldTransform(tr);
+
+        if(switchBack)
+            toRigidBody();
     }
 
     void PhysicsModel::applyTorque(Ogre::Vector3 const &tq)
@@ -791,26 +846,6 @@ namespace Steel
         return BtOgre::Convert::toOgre(mBody->getAngularVelocity());
     }
 
-    void PhysicsModel::setPosition(const Ogre::Vector3 &pos)
-    {
-        bool switchBack = false;
-
-        if(!mIsKinematics && (switchBack = true))
-            toKinematics();
-
-        btTransform ts = mBody->getWorldTransform();
-        ts.setOrigin(BtOgre::Convert::toBullet(pos));
-
-        mBody->getMotionState()->setWorldTransform(ts);
-        mBody->setCenterOfMassTransform(ts);
-
-        if(nullptr != mGhostObject)
-            mGhostObject->setWorldTransform(ts);
-
-        if(switchBack)
-            toRigidBody();
-    }
-
     void PhysicsModel::rescale(Ogre::Vector3 const &sca)
     {
         mBody->getCollisionShape()->setLocalScaling(mBody->getCollisionShape()->getLocalScaling() * BtOgre::Convert::toBullet(sca));
@@ -844,3 +879,4 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
