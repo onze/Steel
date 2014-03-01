@@ -98,35 +98,39 @@ namespace Steel
         //////////////////////////////////////////////////////////////////////
         // OgreModel/PhysicsModel shortcuts
         Ogre::Vector3 position() const;
-        Ogre::Quaternion rotation() const;
-        Ogre::Quaternion bodyRotation() const;
-        Ogre::Vector3 bodyAngularVelocity() const;
-        Ogre::Vector3 scale() const;
-        Ogre::Vector3 velocity() const;
-        float mass() const;
-
         /// Translates the agent by the given vector.
         void move(const Ogre::Vector3 &dpos);
-        /// shortcut to PhysicsModel::applyImpulse
-        void applyCentralImpulse(Ogre::Vector3 const &f);
-        /// shortcut to PhysicsModel::applyCentralForce
-        void applyCentralForce(Ogre::Vector3 const &f);
-        void applyTorque(Ogre::Vector3 const &tq);
-        void applyTorqueImpulse(Ogre::Vector3 const &tq);
+        void setPosition(const Ogre::Vector3 &pos);
+        
+        Ogre::Quaternion rotation() const;
         /// Rotate the graphic model by r.x in the x axis, etc. Does not impact the agent body rotation.
         void rotate(const Ogre::Vector3 &rot);
         /// Rotate the graphic model by the given quaternion. Does not impact the agent body rotation.
         void rotate(const Ogre::Quaternion &q);
-        /// Rotate the agents body (physics model)
-        void rotateBody(const Ogre::Quaternion &q);
-        void setBodyRotation(const Ogre::Quaternion &q);
-        Ogre::Quaternion bodyRotation();
+        void setRotation(const Ogre::Quaternion &q);
+        
+        Ogre::Vector3 scale() const;
         /// Rescale the agent by the given factor (current_scale*given_scale).
         void rescale(const Ogre::Vector3 &sca);
-
-        void setPosition(const Ogre::Vector3 &pos);
-        void setRotation(const Ogre::Quaternion &rot);
         void setScale(const Ogre::Vector3 &sca);
+        
+        /// shortcut to PhysicsModel::angularVelocity
+        Ogre::Vector3 angularVelocity() const;
+        /// shortcut to PhysicsModel::velocity
+        Ogre::Vector3 velocity() const;
+        /// shortcut to PhysicsModel::mass
+        float mass() const;
+        
+        /// shortcut to PhysicsModel::applyImpulse
+        void applyCentralImpulse(Ogre::Vector3 const &f);
+        /// shortcut to PhysicsModel::applyCentralForce
+        void applyCentralForce(Ogre::Vector3 const &f);
+        
+        /// shortcut to PhysicsModel::applyTorque
+        void applyTorque(Ogre::Vector3 const &tq);
+        /// shortcut to PhysicsModel::applyTorqueImpulse
+        void applyTorqueImpulse(Ogre::Vector3 const &tq);
+
 
         //////////////////////////////////////////////////////////////////////
         // LocationModel shortcuts

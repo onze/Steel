@@ -402,28 +402,143 @@ namespace Steel
         return nullptr == model ? Ogre::Vector3::ZERO : model->position();
     }
 
+    void Agent::move(const Ogre::Vector3 &dpos)
+    {
+        auto pmodel = physicsModel();
+
+        if(nullptr != pmodel)
+        {
+            pmodel->move(dpos);
+        }
+        else
+        {
+            auto omodel = ogreModel();
+
+            if(nullptr != omodel)
+                omodel->move(dpos);
+        }
+
+        auto lmodel = locationModel();
+
+        if(nullptr != lmodel)
+            mLevel->locationModelMan()->moveLocation(locationModelId(), position());
+    }
+
+    void Agent::setPosition(const Ogre::Vector3 &pos)
+    {
+        auto pmodel = physicsModel();
+
+        if(nullptr != pmodel)
+        {
+            pmodel->setPosition(pos);
+        }
+        else
+        {
+            auto omodel = ogreModel();
+
+            if(nullptr != omodel)
+                omodel->setPosition(pos);
+        }
+
+        auto lmodel = locationModel();
+
+        if(nullptr != lmodel)
+            mLevel->locationModelMan()->moveLocation(locationModelId(), position());
+    }
+
     Ogre::Quaternion Agent::rotation() const
     {
         auto model = ogreModel();
         return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
     }
 
-    Ogre::Quaternion Agent::bodyRotation() const
+    void Agent::rotate(const Ogre::Vector3 &rot)
     {
-        auto model = physicsModel();
-        return nullptr == model ? Ogre::Quaternion::ZERO : model->rotation();
+        auto pmodel = physicsModel();
+
+        if(nullptr != pmodel)
+        {
+            pmodel->rotate(Ogre::Quaternion(&rot));
+        }
+        else
+        {
+            auto model = ogreModel();
+
+            if(nullptr != model)
+                model->rotate(rot);
+        }
     }
 
-    Ogre::Vector3 Agent::bodyAngularVelocity() const
+    void Agent::rotate(const Ogre::Quaternion &q)
     {
         auto model = physicsModel();
-        return nullptr == model ? Ogre::Vector3::ZERO : model->angularVelocity();
+
+        if(nullptr != model)
+        {
+            model->rotate(q);
+        }
+        else
+        {
+            auto model = ogreModel();
+
+            if(nullptr != model)
+                model->rotate(q);
+        }
+    }
+
+    void Agent::setRotation(const Ogre::Quaternion &q)
+    {
+        auto model = physicsModel();
+
+        if(nullptr != model)
+        {
+            model->setRotation(q);
+        }
+        else
+        {
+            auto omodel = ogreModel();
+
+            if(nullptr != omodel)
+                omodel->setRotation(q);
+        }
     }
 
     Ogre::Vector3 Agent::scale() const
     {
         auto model = ogreModel();
         return nullptr == model ? Ogre::Vector3::ZERO : model->scale();
+    }
+
+    void Agent::rescale(const Ogre::Vector3 &sca)
+    {
+        auto pmodel = physicsModel();
+
+        if(nullptr != pmodel)
+            pmodel->rescale(sca);
+
+        auto omodel = ogreModel();
+
+        if(nullptr != omodel)
+            omodel->rescale(sca);
+    }
+
+    void Agent::setScale(const Ogre::Vector3 &sca)
+    {
+        auto pmodel = physicsModel();
+
+        if(nullptr != pmodel)
+            pmodel->setScale(sca);
+
+        auto omodel = ogreModel();
+
+        if(nullptr != omodel)
+            omodel->setScale(sca);
+    }
+
+    Ogre::Vector3 Agent::angularVelocity() const
+    {
+        auto model = physicsModel();
+        return nullptr == model ? Ogre::Vector3::ZERO : model->angularVelocity();
     }
 
     Ogre::Vector3 Agent::velocity() const
@@ -438,31 +553,20 @@ namespace Steel
         return model->mass();
     }
 
-    void Agent::move(const Ogre::Vector3 &dpos)
-    {
-        //Debug::log("agent ")(id())(" moves ogreModel ")(ogreModelId())(" and physicsModel ")(physicsModelId()).endl();
-        auto omodel = ogreModel();
-
-        if(nullptr != omodel)
-            omodel->move(dpos);
-
-        auto pmodel = physicsModel();
-
-        if(nullptr != pmodel)
-            pmodel->move(dpos);
-
-        auto lmodel = locationModel();
-
-        if(nullptr != lmodel)
-            mLevel->locationModelMan()->moveLocation(locationModelId(), position());
-    }
-
     void Agent::applyCentralImpulse(Ogre::Vector3 const &f)
     {
         auto model = physicsModel();
 
         if(nullptr != model)
             model->applyCentralImpulse(f);
+    }
+
+    void Agent::applyCentralForce(Ogre::Vector3 const &f)
+    {
+        auto model = physicsModel();
+
+        if(nullptr != model)
+            model->applyCentralForce(f);
     }
 
     void Agent::applyTorque(Ogre::Vector3 const &tq)
@@ -479,108 +583,6 @@ namespace Steel
 
         if(nullptr != model)
             model->applyTorqueImpulse(tq);
-    }
-
-    void Agent::applyCentralForce(Ogre::Vector3 const &f)
-    {
-        auto model = physicsModel();
-
-        if(nullptr != model)
-            model->applyCentralForce(f);
-    }
-
-    void Agent::rotate(const Ogre::Vector3 &rot)
-    {
-        auto model = ogreModel();
-
-        if(nullptr != model)
-            model->rotate(rot);
-    }
-
-    void Agent::rotate(const Ogre::Quaternion &q)
-    {
-        auto model = ogreModel();
-
-        if(nullptr != model)
-            model->rotate(q);
-    }
-
-    void Agent::rotateBody(const Ogre::Quaternion &q)
-    {
-        auto model = physicsModel();
-
-        if(nullptr != model)
-            model->rotate(q);
-    }
-
-    void Agent::setBodyRotation(const Ogre::Quaternion &q)
-    {
-        auto model = physicsModel();
-
-        if(nullptr != model)
-            model->setRotation(q);
-    }
-
-    Ogre::Quaternion Agent::bodyRotation()
-    {
-        auto model = physicsModel();
-
-        if(nullptr == model)
-            return Ogre::Quaternion::ZERO;
-
-        return model->rotation();
-    }
-
-    void Agent::rescale(const Ogre::Vector3 &sca)
-    {
-        auto omodel = ogreModel();
-
-        if(nullptr != omodel)
-            omodel->rescale(sca);
-
-        auto pmodel = physicsModel();
-
-        if(nullptr != pmodel)
-            pmodel->rescale(sca);
-    }
-
-    void Agent::setPosition(const Ogre::Vector3 &pos)
-    {
-        auto omodel = ogreModel();
-
-        if(nullptr != omodel)
-            omodel->setPosition(pos);
-
-        auto pmodel = physicsModel();
-
-        if(nullptr != pmodel)
-            pmodel->setPosition(pos);
-
-        auto lmodel = locationModel();
-
-        if(nullptr != lmodel)
-            mLevel->locationModelMan()->moveLocation(locationModelId(), position());
-    }
-
-    void Agent::setRotation(const Ogre::Quaternion &rot)
-    {
-        auto omodel = ogreModel();
-
-        if(nullptr != omodel)
-            omodel->setRotation(rot);
-    }
-
-    void Agent::setScale(const Ogre::Vector3 &sca)
-    {
-        auto omodel = ogreModel();
-
-        if(nullptr != omodel)
-            omodel->setScale(sca);
-
-        auto pmodel = physicsModel();
-
-        if(nullptr != pmodel)
-            pmodel->setScale(sca);
     }
 
     bool Agent::setLocationPath(LocationPathName const &name)
