@@ -241,6 +241,8 @@ namespace Steel
             Debug::warning(logName() + ".load(): error deserializing saved file.");
             return false;
         }
+        
+        mTerrainMan.terrainPhysicsMan()->setWorldGravity(mGravity);
 
         Debug::log(logName() + ".load(): loaded ")(savefile)(" successfully.").unIndent().endl();
         return true;

@@ -39,6 +39,12 @@ namespace Steel
         mWorld->setDebugDrawer(mDebugDrawer);
     }
 
+    void TerrainPhysicsManager::setWorldGravity(Ogre::Vector3 const &gravity)
+    {
+        if(nullptr != mWorld)
+            mWorld->setGravity(BtOgre::Convert::toBullet(gravity));
+    }
+
     TerrainPhysicsManager::TerrainPhysicsManager(const TerrainPhysicsManager &o)
     {
         Debug::error("not implemented").endl().breakHere();
@@ -54,8 +60,10 @@ namespace Steel
             if(nullptr != mDebugDrawer)
             {
                 mWorld->setDebugDrawer(nullptr);
+
                 if(!Ogre::ResourceGroupManager::getSingleton().resourceGroupExists("BtOgre"))
                     Ogre::ResourceGroupManager::getSingleton().createResourceGroup("BtOgre");
+
                 delete mDebugDrawer;
                 mDebugDrawer = nullptr;
             }

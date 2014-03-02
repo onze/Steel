@@ -85,6 +85,7 @@ namespace Steel
             // setters
             /// De/activate debug draw of physic shapes
             void setDebugDraw(bool flag);
+            void setWorldGravity(Ogre::Vector3 const& gravity);
 
         protected:
             void updateHeightmap(Ogre::Terrain *oterrain, TerrainPhysics* pterrain);
