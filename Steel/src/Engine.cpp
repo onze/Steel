@@ -510,7 +510,7 @@ namespace Steel
         if(mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
-            auto point(mLevel->camera()->worldPosition( {.5f + move.x / mRenderWindow->getWidth(), .5f + move.y / mRenderWindow->getHeight()}, 1000.f));
+            auto point(mLevel->camera()->worldPosition( {.5f + move.x / mRenderWindow->getWidth()*2, .5f + move.y / mRenderWindow->getHeight()*2}, 1000.f));
             mLevel->camera()->lookAt(point);
         }
     }
