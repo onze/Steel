@@ -27,6 +27,7 @@ namespace Steel
 
         /// orient the camera center towards the given screen position
         void lookTowards(float x, float y, float roll = .0f, float factor = 1.f);
+        void lookAt(Ogre::Vector3 const& pos);
 
         /// Serialization method
         Json::Value toJson();
@@ -37,8 +38,10 @@ namespace Steel
         /// Returns the rotation of the drop target in front of the camera.
         Ogre::Quaternion dropTargetRotation();
 
-        /// Returns the screen coordinates of the given 3d position.
+        /// Returns the screen coordinates (within [0,1]) of the given 3d position.
         Ogre::Vector2 screenPosition(const Ogre::Vector3 &worldPosition);
+        /// Returns the 3d position of given screen coordinates (within [0,1]) and distance.
+        Ogre::Vector3 worldPosition(Ogre::Vector2 const& screenPosition, float dist);
 
         /// If not INVALID_ID, reparent the camera node to the target agent's.
         void attachToAgent(AgentId aid);

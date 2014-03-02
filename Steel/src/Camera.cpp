@@ -75,9 +75,13 @@ namespace Steel
     {
         x *= factor;
         y *= factor;
-
         mCameraNode->yaw(Ogre::Degree(x), Ogre::SceneNode::TS_WORLD);
         mCameraNode->pitch(Ogre::Degree(y), Ogre::SceneNode::TS_LOCAL);
+    }
+    
+    void Camera::lookAt(Ogre::Vector3 const& pos)
+    {
+        mCameraNode->lookAt(pos, Ogre::Node::TransformSpace::TS_WORLD);
     }
 
     bool Camera::fromJson(Json::Value &root)
@@ -177,6 +181,12 @@ namespace Steel
     {
         Ogre::Vector3 screenPosition = mCamera->getProjectionMatrix() * mCamera->getViewMatrix() * worldPosition;
         return Ogre::Vector2(0.5f + 0.5f * screenPosition.x, 0.5f - 0.5f * screenPosition.y);
+    }
+    
+    Ogre::Vector3 Camera::worldPosition(Ogre::Vector2 const& screenPosition, float dist)
+    {
+        Ogre::Ray ray(mCamera->getCameraToViewportRay(screenPosition.x, screenPosition.y));
+        return ray.getPoint(dist);
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
