@@ -84,8 +84,8 @@ namespace Steel
 
         Level *previous = mLevel;
         mLevel = newLevel;
-        
-        if(nullptr!=mLevel)
+
+        if(nullptr != mLevel)
         {
             mUI.init(uiDir(), &mInputMan, mRenderWindow, this);
 
@@ -249,10 +249,10 @@ namespace Steel
         if(Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
         {
             bool abortOnFail = Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests_abort_on_fail"), true);
-            
+
             UnitTestExecutionContext context;
             context.engine = this;
-            
+
             bool all_passed = UnitTestManager::instance().execute("Steel.init", context, abortOnFail);
 
             if(!all_passed)
@@ -336,15 +336,15 @@ namespace Steel
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onAfterLevelUpdate(mLevel);
     }
-    
+
     void Engine::fireOnStartEditMode()
-    {        
+    {
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onStartEditMode();
     }
-    
+
     void Engine::fireOnStopEditMode()
-    {        
+    {
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onStopEditMode();
     }
@@ -364,8 +364,9 @@ namespace Steel
         {
             frameStart = engineStart;
             mMustAbortMainLoop = !mRoot->_fireFrameStarted();
-            
+
             processAllCommands();
+
             // update inputs
             if(mMustAbortMainLoop)
             {
@@ -427,7 +428,7 @@ namespace Steel
     {
         if(!mIsInMainLoop)
             return true;
-        
+
         bool ok = InputEventListener::onInputEvent(evt);
 
         if(mEditMode)
@@ -442,13 +443,14 @@ namespace Steel
 
         if(mEditMode && mInputMan.isKeyDown(Input::Code::MC_MIDDLE))
             updateGhostCam();
-        
+
         if(mInputMan.isKeyDown(Input::Code::KC_ESCAPE))
         {
             mInputMan._releaseInput();
             mInputMan.resetFrameBasedData();
             return true;
         }
+
         return false;
     }
 
@@ -508,7 +510,8 @@ namespace Steel
         if(mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
-            mLevel->camera()->lookTowards(-float(move.x), -float(move.y), .0f, .1f);
+            auto point(mLevel->camera()->worldPosition( {.5f + move.x / mRenderWindow->getWidth(), .5f + move.y / mRenderWindow->getHeight()}, 1000.f));
+            mLevel->camera()->lookAt(point);
         }
     }
 
@@ -772,9 +775,9 @@ namespace Steel
         mEditMode = true;
         mInputMan.grabInput(false);
         mUI.startEditMode();
-        
+
         mLevel->camera()->detachFromAgent();
-        
+
         fireOnStartEditMode();
     }
 
@@ -784,7 +787,7 @@ namespace Steel
         mEditMode = false;
         mUI.stopEditMode();
         mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
-        
+
         fireOnStopEditMode();
     }
 
