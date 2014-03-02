@@ -209,18 +209,13 @@ namespace Steel
 
     void PhysicsModel::enableWorldInteractions(bool flag)
     {
-        if(nullptr != mBody)
-        {
-            if(flag)
-            {
-                // visual representation should not affect the world
-                mBody->setCollisionFlags(mBody->getCollisionFlags() | ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
-            }
-            else
-            {
-                mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-            }
-        }
+        if(nullptr == mBody)
+            return;
+        // visual representation should not affect the world
+        if(flag)
+            mBody->setCollisionFlags(mBody->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
+        else
+            mBody->setCollisionFlags(mBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
     }
 
     void PhysicsModel::setGhost(bool flag)
