@@ -172,6 +172,7 @@ namespace Steel
 
             case BS_TRIMESH:
                 shape = converter.createTrimesh();
+                break;
         }
 
         //Calculate inertia.
@@ -435,8 +436,8 @@ namespace Steel
             applyTorqueImpulse(t * timestep * mKeepVerticalFactor);
         }
 
-//         if(mLevitate)
-//             applyCentralForce(Ogre::Vector3::UNIT_Y*.981);
+        if(mLevitate)
+            applyCentralForce(Ogre::Vector3::UNIT_Y*mMass);
     }
 
     void PhysicsModel::setUserPointer(Agent *agent)
