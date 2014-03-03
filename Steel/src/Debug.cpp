@@ -339,6 +339,7 @@ namespace Steel
         }
         DebugObject &DebugObject::breakHere()
         {
+#ifdef DEBUG
             /**
              * From here: http://hg.mozilla.org/mozilla-central/file/98fa9c0cff7a/js/src/jsutil.cpp#l66
              * Found there: http://stackoverflow.com/questions/4326414/set-breakpoint-in-c-or-c-code-programmatically-for-gdb-on-linux
@@ -359,6 +360,7 @@ namespace Steel
             raise(SIGABRT);  /* In case above statement gets nixed by the optimizer. */
 #else
             raise(SIGABRT);  /* To continue from here in GDB: "signal 0". */
+#endif
 #endif
             return *this;
         }
