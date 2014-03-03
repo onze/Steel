@@ -912,9 +912,10 @@ namespace Steel
             if(file.exists())
             {
                 AgentId aid = INVALID_ID;
-                /*bool result =*/ mEngine->level()->instanciateResource(file, aid);
-                //TODO:
-//                 mEngine->level()->agentMan()->setSavable(aid, true);
+                bool success = mEngine->level()->instanciateResource(file, aid);
+
+                if(success)
+                    mEngine->level()->agentMan()->getAgent(aid)->setPersistent(true);
             }
             else
             {

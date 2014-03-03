@@ -32,7 +32,8 @@ namespace Steel
             virtual std::vector<ModelId> fromJson(Json::Value &models)=0;
             /// Meant to be reimplemented by subclass when models use extra params in their M::fromJson
             virtual bool fromSingleJson(Json::Value &model, ModelId &id)=0;
-            virtual void toJson(Json::Value &object)=0;
+            /// Serializes all models referenced by modelIds in object node.
+            virtual void toJson(Json::Value &object, std::list<ModelId> const& modelIds)=0;
             /// Returns the model tags, or an empty set if the given id is not valid.
             virtual std::set<Tag> modelTags(ModelId mid)=0;
             

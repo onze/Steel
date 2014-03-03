@@ -13,7 +13,7 @@ namespace Steel
         mAgents(), mFreeList(), mNextFreeId(0),
         mTagRegister()
     {
-
+        Agent::staticInit();
     }
 
     AgentManager::~AgentManager()
@@ -36,25 +36,16 @@ namespace Steel
         return mNextFreeId++;
     }
 
-    void AgentManager::makeSureIdCantBeTaken(AgentId id)
-    {
-        mFreeList.remove(id);
-
-        if(id >= mNextFreeId)
-        {
-            mNextFreeId = id + 1;
-        }
-    }
-
     bool AgentManager::isIdFree(AgentId id) const
     {
-        return std::find(mFreeList.begin(), mFreeList.end(), id) != mFreeList.end() || id >= mNextFreeId;
+        return id >= mNextFreeId || (std::find(mFreeList.begin(), mFreeList.end(), id) != mFreeList.end() && mAgents.end() == mAgents.find(id));
     }
 
     AgentId AgentManager::newAgent()
     {
         Agent *t = new Agent(getFreeAgentId(), mLevel);
         mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
+        Debug::log("new agent with id ")(t->id()).endl();
         return t->id();
     }
 
@@ -63,24 +54,53 @@ namespace Steel
         Agent *t = nullptr;
 
         // check is not already taken
-        if(isIdFree(id))
+        if(reserveId(id))
         {
-            makeSureIdCantBeTaken(id);
             t = new Agent(id, mLevel);
             mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
+            Debug::log("new agent with id ")(t->id()).endl();
         }
 
         return t;
     }
 
+    bool AgentManager::reserveId(AgentId id)
+    {
+        // easy case: the id was never used
+        if(id >= mNextFreeId)
+        {
+            // expand freelist, increase upper bound
+            for(AgentId i = mNextFreeId; i != id; ++i)
+                mFreeList.push_back(i);
+
+            mNextFreeId = id + 1;
+            return true;
+        }
+
+        // now the id is whether in the free list or taken.
+        auto it_freelist = std::find(mFreeList.begin(), mFreeList.end(), id);
+
+        // in freelist
+        if(mFreeList.end() != it_freelist)
+        {
+            mFreeList.erase(it_freelist);
+            return true;
+        }
+
+#ifdef DEBUG
+
+        // making sure it actually is a taken agent.
+        if(mAgents.end() != mAgents.find(id))
+            Debug::error("AgentManager::reserveId: id ")(id)(" not out of bound nor in freelist, yet not taken.").endl().breakHere();
+
+#endif
+        return false;
+    }
+
     Agent *AgentManager::getAgent(Steel::AgentId id) const
     {
         const std::map<AgentId, Agent *>::const_iterator it = mAgents.find(id);
-
-        if(it == mAgents.end())
-            return nullptr;
-
-        return it->second;
+        return  it == mAgents.end() ? nullptr : it->second;
     }
 
     void AgentManager::deleteAgent(AgentId id)
@@ -149,7 +169,6 @@ namespace Steel
 
     bool AgentManager::unassignBTPath(AgentId movableAid, AgentId pathAid)
     {
-
         Agent *movableAgent;
 
         if(nullptr == (movableAgent = getAgent(movableAid)))
@@ -166,6 +185,7 @@ namespace Steel
     void AgentManager::removeTaggedAgent(const Tag &tag, const AgentId aid)
     {
         auto it = mTagRegister.find(tag);
+
         if(mTagRegister.end() != it)
             it->second.erase(tag);
     }

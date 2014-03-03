@@ -52,8 +52,8 @@ namespace Steel
          */
         virtual bool fromSingleJson(Json::Value &model, ModelId &id);
 
-        /// Dump all models' json representation into the given object.
-        virtual void toJson(Json::Value &object);
+        /// Dump refenreced models' json representation into the given object.
+        virtual void toJson(Json::Value &object, std::list<ModelId> const& modelIds);
 
         /// modelType associated with this Manager
         static ModelType modelType()

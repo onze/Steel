@@ -33,6 +33,8 @@ namespace Steel
         Agent(const Agent &t);
         /// shallow copy
         Agent &operator=(const Agent &);
+        
+        static void staticInit();
 
         inline AgentId id() {return mId;}
         inline bool isFree() {return mId == INVALID_ID;}
@@ -152,9 +154,16 @@ namespace Steel
         // tagging shortcuts
         void tag(Tag tag);
         void tag(std::set<Tag> tags);
-        void untag(Steel::Tag tag);
+        void untag(Tag tag);
         void untag(std::set<Tag> tags);
         std::set<Tag> tags() const;
+        bool isTagged(Tag tag);
+        
+        //////////////////////////////////////////////////////////////////////
+        // persistence
+        /// A persistent agent is saved with the level it lives in.
+        bool isPersistent();
+        void setPersistent(bool flag);
 
         //////////////////////////////////////////////////////////////////////
         // signals
@@ -173,6 +182,13 @@ namespace Steel
         
 
     private:
+        /// Tags used internally, grouped here.
+        struct PropertyTags
+        {
+            Tag persistent;
+        };
+        static PropertyTags sPropertyTags;
+        
         /// Unique id.
         AgentId mId;
 

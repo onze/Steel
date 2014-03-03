@@ -63,13 +63,13 @@ namespace Steel
         return true;
     }
 
-    void LocationModelManager::toJson(Json::Value &root)
+    void LocationModelManager::toJson(Json::Value &root, std::list<ModelId> const& modelIds)
     {
         if(mPathsRoots.size())
             root[LocationModelManager::PATH_ROOTS_ATTRIBUTE] = JsonUtils::toJson(mPathsRoots);
 
         Json::Value models;
-        _ModelManager<LocationModel>::toJson(models);
+        _ModelManager<LocationModel>::toJson(models, modelIds);
 
         if(!models.isNull())
             root[ModelManager::MODELS_ATTRIBUTES] = models;

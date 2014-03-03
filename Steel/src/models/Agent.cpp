@@ -29,6 +29,8 @@ namespace Steel
     const char *Agent::ID_ATTRIBUTE = "aid";
     const char *Agent::BEHAVIORS_STACK_ATTRIBUTE = "behaviorsStack";
 
+    Agent::PropertyTags Agent::sPropertyTags;
+    
     Agent::Agent(AgentId id, Steel::Level *level): mId(id), mLevel(level),
         mModelIds(std::map<ModelType, ModelId>()), mIsSelected(false), mTags(std::map<Tag, unsigned>()),
         mBehaviorsStack()
@@ -101,6 +103,11 @@ namespace Steel
         return *this;
     }
 
+    void Agent::staticInit()
+    {
+        sPropertyTags.persistent = TagManager::instance().toTag("__Agent::PropertyTag.persistent");
+    }
+
     bool Agent::fromJson(Json::Value &value)
     {
 //  Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
@@ -111,7 +118,7 @@ namespace Steel
             Ogre::String mtName = toString(mt_it);
             Json::Value mTypeValue = value[mtName];
 
-            // possibly no model of this type
+            // possibly no model of this type"__Agent::PropertyTag.persistent"
             if(mTypeValue.isNull())
                 continue;
 
@@ -195,6 +202,11 @@ namespace Steel
             _tags.insert(it.first);
 
         return _tags;
+    }
+
+    bool Agent::isTagged(Tag tag)
+    {
+        return mTags.end() != mTags.find(tag);
     }
 
     bool Agent::linkToModel(ModelType mType, ModelId modelId)
@@ -733,6 +745,17 @@ namespace Steel
         return mSignalMap.end() == it ? mSignalMap.emplace(e, SignalManager::instance().anonymousSignal()).first->second : it->second;
 
     }
+
+    bool Agent::isPersistent()
+    {
+        return isTagged(sPropertyTags.persistent);
+    }
+
+    void Agent::setPersistent(bool flag)
+    {
+        flag ? tag(sPropertyTags.persistent) : untag(sPropertyTags.persistent);
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

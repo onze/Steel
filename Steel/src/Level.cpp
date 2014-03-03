@@ -241,7 +241,7 @@ namespace Steel
             Debug::warning(logName() + ".load(): error deserializing saved file.");
             return false;
         }
-        
+
         mTerrainMan.terrainPhysicsMan()->setWorldGravity(mGravity);
 
         Debug::log(logName() + ".load(): loaded ")(savefile)(" successfully.").unIndent().endl();
@@ -373,11 +373,22 @@ namespace Steel
         Debug::log("processing agents...").endl().indent();
         Json::Value agents;
 
+        // list of models to save
+        std::map<ModelType, std::list<ModelId>> persistentModels;
+
         for(std::map<AgentId, Agent *>::iterator it_agents = mAgentMan->mAgents.begin(); it_agents != mAgentMan->mAgents.end(); ++it_agents)
         {
             AgentId aid = (*it_agents).first;
             Agent *agent = (*it_agents).second;
+
+            if(!agent->isPersistent())
+                continue;
+
             agents[Ogre::StringConverter::toString(aid)] = agent->toJson();
+
+            for(auto const & it : agent->modelsIds())
+                persistentModels.emplace(it.first, std::list<ModelId>()).first->second.push_back(it.second);
+
         }
 
         root[Level::AGENTS_ATTRIBUTE] = agents;
@@ -399,7 +410,8 @@ namespace Steel
                 continue;
             }
 
-            mm->toJson(models[toString(modelType)]);
+            std::list<ModelId> modelsIds = persistentModels.emplace(modelType, std::list<ModelId>()).first->second;
+            mm->toJson(models[toString(modelType)], modelsIds);
         }
 
         root[Level::MANAGERS_ATTRIBUTE] = models;
@@ -514,14 +526,14 @@ namespace Steel
             AgentId aid = Ogre::StringConverter::parseUnsignedLong(it.key().asString(), INVALID_ID);
             assert(aid != INVALID_ID);
 
-            if(!mAgentMan->isIdFree(aid))
+            Agent *agent = mAgentMan->newAgent(aid);
+
+            if(nullptr == agent)
             {
-                Debug::error("AgentId ")(aid)(" could not be used: id is not free.").endl();
+                Debug::error("could not create agent ")(aid)(".").endl().breakHere();
                 return false;
             }
 
-            Agent *agent = mAgentMan->newAgent(aid);
-            assert(nullptr != agent);
             agent->fromJson(*it);
 
             if(agent->modelsIds().size() == 0)
@@ -557,10 +569,12 @@ namespace Steel
     bool Level::instanciateResource(File const &_file, AgentId &aid)
     {
         File file;
+
         if(_file.isPathAbsolute())
             file = _file;
         else
             file = mEngine->dataDir().subfile(_file.fullPath());
+
         // file is now absolute
 
         static Ogre::String intro = "Level::instanciateResource(" + file.fullPath() + "): ";
@@ -660,6 +674,7 @@ namespace Steel
 
         // ask the right manager to load this model
         ModelType modelType = toModelType(modelTypeString);
+
         if(ModelType::LAST == modelType)
         {
             Debug::warning(intro)("Unknown model type: ")(modelTypeString).endl();

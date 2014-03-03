@@ -20,7 +20,6 @@ namespace Steel
 
             AgentId getFreeAgentId();
             bool isIdFree(AgentId id) const;
-            void makeSureIdCantBeTaken(AgentId id);
 
             /// Creates an empty agent and return its id. Agent can be linked to models via Agent::linkTo.
             AgentId newAgent();
@@ -52,14 +51,20 @@ namespace Steel
         private:
             /// Creates an empty agent with the given id.
             Agent *newAgent(AgentId &aid);
+            /// Returns true if the id could be reserved.
+            bool reserveId(AgentId id);
 
             // not owned
             Level *mLevel;
 
             // owned
+            // An AgenId is whether:
+            // -used: in mAgents
+            // unused: in the freelest or >mNextFreeId
             /// agent container.
             std::map<AgentId, Agent *> mAgents;
             std::list<AgentId> mFreeList;
+            // max(max(mAgents), max(mFreeList)): AgentId's upper bound.
             AgentId mNextFreeId;
             
             /// Tag to agent map

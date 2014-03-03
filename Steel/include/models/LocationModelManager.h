@@ -29,7 +29,7 @@ namespace Steel
 
         std::vector<ModelId> fromJson(Json::Value &model);
         bool fromSingleJson(Json::Value &model, ModelId &mid);
-        void toJson(Json::Value &object);
+        void toJson(Json::Value &object, std::list<ModelId> const& modelIds);
         void onAgentUnlinkedFromModel(Agent *agent, ModelId mid);
         bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 

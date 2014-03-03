@@ -206,18 +206,17 @@ namespace Steel
     }
 
     template<class M>
-    void _ModelManager<M>::toJson(Json::Value &root)
+    void _ModelManager<M>::toJson(Json::Value &root, std::list<ModelId> const& modelIds)
     {
         if(mModels.size())
         {
-            for(ModelId id = firstId(); id < lastId(); ++id)
+            for(ModelId const& id:modelIds)
             {
-                Model *m = (Model *) & (mModels[id]);
+                Model *m = at(id);
 
-                if(m->isFree())
+                if(nullptr==m || m->isFree())
                     continue;
 
-                // makes sure the serailization exist, even if empty, otherwise the child will be forgotten forever.
                 Json::Value node(Json::objectValue);
                 m->toJson(node);
                 root[Ogre::StringConverter::toString(id)] = node;
@@ -225,7 +224,7 @@ namespace Steel
         }
     }
 
-    /// Returns true if the linking was ok to the manager's pov.
+    /// Returns true if the linking was successful from the manager's pov.
     template<class M>
     bool _ModelManager<M>::onAgentLinkedToModel(Agent *agent, ModelId mid)
     {
@@ -233,7 +232,7 @@ namespace Steel
         return true;
     }
 
-    /// Returns true if the linking was ok to the manager's pov.
+    /// Returns true if the linking was successful from the manager's pov.
     template<class M>
     void _ModelManager<M>::onAgentUnlinkedFromModel(Agent *agent, ModelId mid)
     {

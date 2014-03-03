@@ -9,6 +9,7 @@
 
 #include "BT/BTSequence.h"
 #include "Debug.h"
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
@@ -31,19 +32,10 @@ namespace Steel
 
         if(root.isMember(MAX_LOOPS_ATTRIBUTE))
         {
-            Json::Value value = root[MAX_LOOPS_ATTRIBUTE];
-
-            if(value.isUInt())
-            {
-                mMaxLoops = value.asUInt();
-                mNLoops = 0;
-                mCurrentChildNodeIndex = firstChildIndex();
-                mState = BTNodeState::SKIPT_TO;
-            }
-            else
-            {
-                Debug::error(intro)("attribute ").quotes(MAX_LOOPS_ATTRIBUTE)("is not parsable as unsigned int: ")(value)(". Aborting.").endl();
-            }
+            mMaxLoops = JsonUtils::asUnsignedLong(root[MAX_LOOPS_ATTRIBUTE], 0);
+            mNLoops = 0;
+            mCurrentChildNodeIndex = firstChildIndex();
+            mState = BTNodeState::SKIPT_TO;
         }
 
         return true;
