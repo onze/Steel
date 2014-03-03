@@ -67,7 +67,7 @@ namespace Steel
             template<class T>
             DebugObject &operator()(std::vector<T> const &container)
             {
-                this->operator()("vec[");
+                this->operator()("[");
 
                 for(auto it = container.begin(); it != container.end(); ++it)
                     this->operator()(*it)(", ");
@@ -78,18 +78,18 @@ namespace Steel
             template<class T>
             DebugObject &operator()(std::set<T> const &container)
             {
-                this->operator()("set[");
+                this->operator()("{");
 
                 for(auto it = container.begin(); it != container.end(); ++it)
                     this->operator()(*it)(", ");
 
-                return (*this)("]").unIndent();
+                return (*this)("}").unIndent();
             }
 
             template<class T>
             DebugObject &operator()(std::list<T> const &container)
             {
-                this->operator()("list[");
+                this->operator()("[");
 
                 for(auto it = container.begin(); it != container.end(); ++it)
                     this->operator()(*it)(", ");
@@ -100,7 +100,7 @@ namespace Steel
             template<class T, class U>
             DebugObject &operator()(std::pair<T, U> const &pair)
             {
-                return this->operator()("pair(")(pair.first)(", ")(pair.second)(")");
+                return this->operator()("(")(pair.first)(", ")(pair.second)(")");
             }
             
             /// prints n or more parameters side by side
