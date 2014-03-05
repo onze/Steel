@@ -105,9 +105,9 @@ namespace Steel
         void setPosition(const Ogre::Vector3 &pos);
         
         Ogre::Quaternion rotation() const;
-        /// Rotate the graphic model by r.x in the x axis, etc. Does not impact the agent body rotation.
+        /// Rotate the graphic model by r.x in the x axis, etc.
         void rotate(const Ogre::Vector3 &rot);
-        /// Rotate the graphic model by the given quaternion. Does not impact the agent body rotation.
+        /// Rotate the graphic model by the given quaternion.
         void rotate(const Ogre::Quaternion &q);
         void setRotation(const Ogre::Quaternion &q);
         
