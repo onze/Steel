@@ -70,8 +70,13 @@ namespace Steel
         float windowWidth() const;
 
         //getters
+        /// alias to codesPressed
+        inline std::list<Input::Code> const &keysPressed() {return codesPressed();}
+        /// Input::Code currently pressed
         inline std::list<Input::Code> const &codesPressed() {return mCodesPressed;}
+        /// True if the mouse is... moving this frame.
         inline bool hasMouseMoved() {return mHasMouseMoved;}
+        /// Mouse position delta this frame
         inline Ogre::Vector2 &mouseMove() {return mMouseMove;}
         /// Absolute on-screen mouse position, in pixels.
         inline Ogre::Vector2 &mousePos() {return mMousePos;}
