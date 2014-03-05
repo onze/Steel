@@ -88,28 +88,33 @@ namespace Steel
         void toJson(Json::Value &value) const;
 
         //Type::META parameters
-        /// Set the max delay since last action for this one to be able to resolve.
+        /// In milliseconds. Set the max delay since last action for this one to be able to resolve.
         Action &maxDelay(Duration maxDelay);
-        /// Set the min delay since last action for this one to be able to resolve.
+        /// In milliseconds. Set the min delay since last action for this one to be able to resolve.
         Action &minDelay(Duration minDelay);
         
         // getters
         Action::Type type()const{return mType;}
+        /// Signal the action resolves on.
         Signal signal()const{return mSignal;}
+        /// In milliseconds.
         Duration getMaxDelay()const{return mMaxDelay;}
+        /// In milliseconds.
         Duration getMinDelay()const{return mMinDelay;}
         std::vector<Action> const& subActions()const{return mSubActions;}
     private:
         /// Analyses the ctor string signal arg to determine type, signal.
         void parseSignalString(Ogre::String const &signal);
-
+        
+        /// Main symbol of the Enum Polymorphism Pattern.
         Type mType;
+        /// Signal the action resolves on.
         Signal mSignal;
 
         // meta info
-        /// Max delay since last action for this one to be able to resolve.
+        /// In milliseconds. Max delay since last action for this one to be able to resolve.
         Duration mMaxDelay;
-        /// Min delay since last action for this one to be able to resolve.
+        /// In milliseconds. Min delay since last action for this one to be able to resolve.
         Duration mMinDelay;
 
         /// Used by composite actions.
@@ -122,6 +127,7 @@ namespace Steel
 
 namespace std
 {
+    /// hash an Action::Type enum value
     template <>
     struct hash<Steel::Action::Type>
     {
@@ -129,11 +135,11 @@ namespace std
         typedef std::size_t value_type;
         value_type operator()(argument_type value) const
         {
-            
             return std::hash<std::underlying_type<argument_type>::type>()(static_cast<std::underlying_type<argument_type>::type>(value));
         }
     };
     
+    /// hash an Action value
     template<>
     struct hash<Steel::Action>
     {
