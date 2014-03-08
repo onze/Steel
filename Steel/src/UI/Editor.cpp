@@ -285,12 +285,12 @@ namespace Steel
 
             case Input::Code::KC_DELETE:
             {
-                auto child = mDocument->GetElementById("editor");
+//                 auto child = mDocument->GetElementById("editor");
 
-                if(nullptr == child || !child->IsPseudoClassSet("focus"))
-                {
+//                 if(nullptr == child || !child->IsPseudoClassSet("focus"))
+//                 {
                     selectionMan->deleteSelection();
-                }
+//                 }
             }
             break;
 
