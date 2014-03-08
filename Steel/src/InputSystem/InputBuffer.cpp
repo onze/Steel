@@ -10,7 +10,7 @@
 namespace Steel
 {
     InputBuffer::InputBuffer(): SignalListener(), SignalEmitter(),
-        mTimer(), mSignalsBatch(), mSignalsBuffer(), mInputLifeDuration(1000),
+        mTimer(), mSignalsBatch(), mSignalsBuffer(), mInputLifeDuration(3000),
         mCombos(),
         mSignalsListened()
     {
@@ -65,7 +65,7 @@ namespace Steel
                 registerSignal(signal);
             }
 
-            mCombos.insert(std::make_pair(combo.hash(), ActionComboEntry(false, combo, 1)));
+            mCombos.insert(std::make_pair(combo.hash(), ActionComboEntry(combo, 1)));
         }
         else
         {
@@ -121,7 +121,7 @@ namespace Steel
 
         // dispatch actions
         TimeStamp now_tt(mTimer.getMilliseconds());
-        const long unsigned int thresholdTimestamp = now_tt - mInputLifeDuration;
+        const TimeStamp thresholdTimestamp = now_tt - (TimeStamp)mInputLifeDuration;
 
         while(mSignalsBuffer.size() > 0 && mSignalsBuffer.front().timestamp < thresholdTimestamp)
         {
@@ -146,16 +146,20 @@ namespace Steel
             ActionComboEntry &acEntry = entry.second;
             bool flag = acEntry.combo.evaluate(mSignalsBuffer, now_tt);
 
-            if(flag && !acEntry.evaluating)
+            if(flag)
             {
                 if(debug)
                     Debug::log("emitting combo ")(acEntry.combo).endl();
 
                 SignalManager::instance().emit(acEntry.combo.signal());
             }
-
-            acEntry.evaluating = flag;
         }
+    }
+
+    bool InputBuffer::isEvaluating(const ActionCombo &combo) const
+    {
+        auto it = mCombos.find(combo.hash());
+        return mCombos.cend() == it ? false : it->second.combo.policy().isEvaluating();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -254,8 +258,8 @@ namespace Steel
 
     ///////////////////////////////////////////////////////////////////////////
 
-    InputBuffer::ActionComboEntry::ActionComboEntry(bool _evaluating, ActionCombo const &_combo, unsigned _refCount)
-        : evaluating(_evaluating), combo(_combo), refCount(_refCount)
+    InputBuffer::ActionComboEntry::ActionComboEntry(ActionCombo const &_combo, unsigned _refCount)
+        : combo(_combo), refCount(_refCount)
     {
     }
 

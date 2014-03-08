@@ -50,6 +50,11 @@ namespace Steel
 
         // SignalListener interface
         virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
+        
+        bool isEvaluating(ActionCombo const& combo) const;
+        
+        // getters
+        Duration inputLifeDuration() const {return mInputLifeDuration;}
 
     private:
         // not owned
@@ -64,16 +69,13 @@ namespace Steel
         std::list<SignalBufferEntry> mSignalsBuffer;
 
         /// Time an input is alive in the buffer, in milliseconds
-        long int mInputLifeDuration;
+        Duration mInputLifeDuration;
 
         class ActionComboEntry
         {
         public:
             // helper
-            ActionComboEntry(bool _evaluating, ActionCombo const &_combo, unsigned _refCount);
-
-            /// Combos' current "evaluating" states. Aligned on mCombos.
-            bool evaluating;
+            ActionComboEntry(ActionCombo const &_combo, unsigned _refCount);
             
             /// Combo.
             ActionCombo combo;

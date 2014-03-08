@@ -15,22 +15,26 @@ namespace Steel
 
     Duration ActionCombo::sDefaultTimeGap = DURATION_MAX;
 
-    ActionCombo::ActionCombo(Ogre::String const &signal): mSignal(SignalManager::instance().toSignal(signal)), mActions()
+    ActionCombo::ActionCombo(): mSignal(INVALID_SIGNAL), mActions(), mPolicy()
     {
     }
 
-    ActionCombo::ActionCombo(Signal const signal): mSignal(signal), mActions()
+    ActionCombo::ActionCombo(Ogre::String const &signal): mSignal(SignalManager::instance().toSignal(signal)), mActions(), mPolicy()
     {
     }
 
-    ActionCombo::ActionCombo(ActionCombo const &o): mSignal(o.mSignal), mActions(o.mActions)
+    ActionCombo::ActionCombo(Signal const signal): mSignal(signal), mActions(), mPolicy()
+    {
+    }
+
+    ActionCombo::ActionCombo(ActionCombo const &o): mSignal(o.mSignal), mActions(o.mActions), mPolicy(o.mPolicy)
     {
     }
 
     ActionCombo::~ActionCombo()
     {
     }
-    
+
     Hash ActionCombo::hash() const
     {
         return std::hash<ActionCombo>()(*this);
@@ -43,6 +47,7 @@ namespace Steel
             mSignal = o.mSignal;
             mActions.clear();
             mActions.insert(mActions.begin(), o.mActions.begin(), o.mActions.end());
+            mPolicy = o.mPolicy;
         }
 
         return *this;
@@ -50,7 +55,7 @@ namespace Steel
 
     bool ActionCombo::operator==(ActionCombo const &o) const
     {
-        return o.mSignal == mSignal && o.mActions == mActions;
+        return o.mSignal == mSignal && o.mActions == mActions && o.mPolicy == mPolicy;
     }
 
     bool ActionCombo::operator!=(ActionCombo const &o) const
@@ -105,16 +110,23 @@ namespace Steel
 
         if(INVALID_SIGNAL != mSignal)
             value[ActionCombo::SIGNAL_ATTRIBUTE] = JsonUtils::toJson(SignalManager::instance().fromSignal(mSignal));
+
+//         if(DURATION_MIN != mRecoverDuration)
+        //             value[ActionCombo::EVALUATION_POLICY_ATTRIBUTE] = JsonUtils::toJson(mPolicy);
+//         if(DURATION_MIN != mRecoverDuration)
+//             value[ActionCombo::RECOVERDURATION_ATTRIBUTE] = JsonUtils::toJson(mRecoverDuration);
     }
 
-    bool ActionCombo::evaluate(std::list<SignalBufferEntry> const &signalsBuffer, TimeStamp const now_tt) const
+    bool ActionCombo::evaluate(std::list<SignalBufferEntry> const &signalsBuffer, TimeStamp now_tt) const
     {
+        bool allResolved = false;
+
         // for each signal in the input
         for(std::list<SignalBufferEntry>::const_iterator it = signalsBuffer.cbegin(); signalsBuffer.cend() != it; ++it)
         {
             auto it_prev = it;
             auto it_current = it;
-            bool allResolved = true;
+            allResolved = true;
 
             for(Action const & action : mActions)
             {
@@ -136,10 +148,16 @@ namespace Steel
             }
 
             if(allResolved)
-                return true;
+                break;
         }
 
-        return false;
+        return mPolicy.evaluate(now_tt, allResolved);
+     }
+
+    ActionCombo &ActionCombo::setPolicy(EvaluationPolicy policy)
+    {
+        mPolicy = policy;
+        return *this;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////

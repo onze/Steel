@@ -5,6 +5,8 @@
 
 #include "steeltypes.h"
 #include "Action.h"
+#include "EvaluationPolicy.h"
+
 
 namespace Steel
 {
@@ -14,9 +16,10 @@ namespace Steel
     class ActionCombo
     {
     public:
+        
         static const char *SEQUENCE_ATTRIBUTE;
         static const char *SIGNAL_ATTRIBUTE;
-
+        
         /// Max allowed duration between 2 inputs of a combo for it to be valid. In millisecond.
         static Duration sDefaultTimeGap;
         ActionCombo();
@@ -35,7 +38,7 @@ namespace Steel
         /// Returns a set of all signals used by this combo's actions.
         std::set<Signal> signalsInvolved() const;
 
-        bool evaluate(std::list<SignalBufferEntry> const &signalsBuffer, TimeStamp const now_tt = 0) const;
+        bool evaluate(std::list<SignalBufferEntry> const &signalsBuffer, TimeStamp now_tt = 0) const;
 
         // Serialization
         /// Reads itself from a Json::Value
@@ -44,10 +47,16 @@ namespace Steel
         // getters
         Signal signal() const {return mSignal;}
         std::vector<Action> const &actions() const {return mActions;}
+        EvaluationPolicy const &policy() const {return mPolicy;};
+        // setters
+        ActionCombo &setPolicy(EvaluationPolicy policy);
     private:
+        /// Signal emitted upon positive evaluation
         Signal mSignal;
         std::vector<Action> mActions;
+        EvaluationPolicy mPolicy;
     };
+
 
     bool utest_ActionCombo(UnitTestExecutionContext const *context);
 }
@@ -68,6 +77,7 @@ namespace std
             for(Steel::Action const & action : combo.actions())
                 Steel::StdUtils::hash_combine(h, action);
 
+            Steel::StdUtils::hash_combine(h, std::hash<Steel::EvaluationPolicy>()(combo.policy()));
             return h;
         }
     };
