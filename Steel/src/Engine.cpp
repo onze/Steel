@@ -153,41 +153,6 @@ namespace Steel
         Debug::log("cwd: ")(mRootDir).endl();
         mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), Ogre::StringUtil::BLANK);
 
-        // setup resources
-        // Load resource paths from config file
-        Ogre::ConfigFile cf;
-        cf.load("resources.cfg");
-
-
-        // Go through all sections & settings in the file
-        Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
-
-        Ogre::String secName, typeName, archName;
-
-        while(seci.hasMoreElements())
-        {
-            secName = seci.peekNextKey();
-            Ogre::ConfigFile::SettingsMultiMap *settings = seci.getNext();
-            Ogre::ConfigFile::SettingsMultiMap::iterator i;
-
-            for(i = settings->begin(); i != settings->end(); ++i)
-            {
-                typeName = i->first;
-                archName = i->second;
-                Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName, true);
-            }
-        }
-
-        auto orm = Ogre::ResourceGroupManager::getSingletonPtr();
-        File dir = dataDir();
-        orm->addResourceLocation(dir.fullPath(), "FileSystem", "Steel", true);
-        orm->addResourceLocation(dir.fullPath(), "FileSystem", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,
-                                 true);
-        dir = rawResourcesDir();
-        orm->addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem", "Steel", true);
-        orm->addResourceLocation(dir.subfile("textures").fullPath(), "FileSystem", "Steel", true);
-        //TODO:add materials and models ?
-        orm->initialiseResourceGroup("Steel");
 
         // setup a renderer
         Ogre::RenderSystemList renderers = mRoot->getAvailableRenderers();
@@ -215,6 +180,7 @@ namespace Steel
     int Engine::postWindowingSetup(unsigned int width, unsigned int height)
     {
         Debug::log("Engine::postWindowingSetup()").endl().indent();
+        setupResources();
         int init_code = File::init();
 
         if(init_code != 0)
@@ -267,6 +233,42 @@ namespace Steel
         }
 
         return 0;
+    }
+
+    void Engine::setupResources()
+    {
+        // Load resource paths from config file
+        Ogre::ConfigFile cf;
+        cf.load("resources.cfg");
+
+        // Go through all sections & settings in the file
+        Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
+
+        Ogre::String secName, typeName, archName;
+
+        while(seci.hasMoreElements())
+        {
+            secName = seci.peekNextKey();
+            Ogre::ConfigFile::SettingsMultiMap *settings = seci.getNext();
+            Ogre::ConfigFile::SettingsMultiMap::iterator i;
+
+            for(i = settings->begin(); i != settings->end(); ++i)
+            {
+                typeName = i->first;
+                archName = i->second;
+                Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName, true);
+            }
+        }
+
+        auto orm = Ogre::ResourceGroupManager::getSingletonPtr();
+        File dir = dataDir();
+        orm->addResourceLocation(dir.fullPath(), "FileSystem", "Steel", true);
+        orm->addResourceLocation(dir.fullPath(), "FileSystem", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME, true);
+        dir = rawResourcesDir();
+        orm->addResourceLocation(dir.subfile("meshes").fullPath(), "FileSystem", "Steel", true);
+        orm->addResourceLocation(dir.subfile("textures").fullPath(), "FileSystem", "Steel", true);
+        //TODO:add materials and models ?
+        orm->initialiseResourceGroup("Steel");
     }
 
     void Engine::shutdown()
@@ -510,7 +512,7 @@ namespace Steel
         if(mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
-            auto point(mLevel->camera()->worldPosition( {.5f + move.x / mRenderWindow->getWidth()*2, .5f + move.y / mRenderWindow->getHeight()*2}, 1000.f));
+            auto point(mLevel->camera()->worldPosition( {.5f + move.x / mRenderWindow->getWidth() * 2, .5f + move.y / mRenderWindow->getHeight() * 2}, 1000.f));
             mLevel->camera()->lookAt(point);
         }
     }

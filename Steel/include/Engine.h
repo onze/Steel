@@ -155,6 +155,8 @@ namespace Steel
         inline ConfigFile &config() {return mConfig;}
 
     private:
+        /// Simple factorization
+        void setupResources();
         /// Fired when the main new level has been set
         void fireOnLevelSetEvent();
         /// Fired when the main level has been unset
