@@ -11,7 +11,7 @@
 
 #include "steeltypes.h"
 #include "InputSystem/Input.h"
-#include "TerrainManager.h"
+#include "terrain/TerrainManager.h"
 
 namespace Ogre
 {

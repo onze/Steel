@@ -3,12 +3,12 @@
 #include <BtOgreExtras.h>
 #include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 #include <BulletCollision/BroadphaseCollision/btBroadphaseProxy.h>
+#include <OgreTerrain.h>
 
-#include "TerrainPhysicsManager.h"
 #include "Debug.h"
-#include "TerrainManager.h"
+#include "terrain/TerrainPhysicsManager.h"
+#include "terrain/TerrainManager.h"
 #include "Level.h"
-#include "OgreTerrain.h"
 
 
 namespace Steel

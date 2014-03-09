@@ -5,7 +5,7 @@
 #include <bullet/btBulletDynamicsCommon.h>
 
 #include "steeltypes.h"
-#include "TerrainManagerEventListener.h"
+#include "terrain/TerrainManagerEventListener.h"
 
 namespace Ogre
 {

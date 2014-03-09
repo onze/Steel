@@ -24,7 +24,7 @@
 #include "tools/OgreUtils.h"
 #include "tools/StringUtils.h"
 #include "tools/JsonUtils.h"
-#include "TerrainPhysicsManager.h"
+#include "terrain/TerrainPhysicsManager.h"
 #include "SelectionManager.h"
 #include "models/Agent.h"
 #include "models/AgentManager.h"

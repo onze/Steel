@@ -1,4 +1,4 @@
-#include "TerrainManager.h"
+#include "terrain/TerrainManager.h"
 
 #include <stdexcept>
 #include <limits.h>
@@ -13,9 +13,9 @@
 #include <OgreImage.h>
 
 #include <Debug.h>
-#include <TerrainManagerEventListener.h>
+#include <terrain/TerrainManagerEventListener.h>
+#include <terrain/TerrainPhysicsManager.h>
 #include <tools/JsonUtils.h>
-#include <TerrainPhysicsManager.h>
 #include <Level.h>
 
 namespace Steel
@@ -44,11 +44,13 @@ namespace Steel
 
     TerrainManager &TerrainManager::operator=(const TerrainManager &o)
     {
+        Debug::error("TerrainManager::operator=(const TerrainManager &o) no implemeted").endl().breakHere();
         return *this;
     }
 
-    bool TerrainManager::operator==(const TerrainManager &other) const
+    bool TerrainManager::operator==(const TerrainManager &o) const
     {
+        Debug::error("TerrainManager::operator==(const TerrainManager &o) no implemeted").endl().breakHere();
         return false;
     }
 
@@ -405,7 +407,7 @@ namespace Steel
             }
         }
 
-        // add default layer if still none ha been defined so far
+        // add default layer if still none has been defined so far
         if(layerList.size() == 0)
         {
             Ogre::String defaultTexturePath = "default_terrain_texture.png";

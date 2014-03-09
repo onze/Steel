@@ -1,7 +1,7 @@
 #ifndef STEEL_TERRAINMANAGEREVENTLISTENER_H
 #define STEEL_TERRAINMANAGEREVENTLISTENER_H
 
-#include <TerrainManager.h>
+#include "terrain/TerrainManager.h"
 
 namespace Steel
 {

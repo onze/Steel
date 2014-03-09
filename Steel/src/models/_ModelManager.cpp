@@ -7,9 +7,9 @@
 
 #include "models/_ModelManager.h"
 #include "Debug.h"
+#include "Level.h"
+#include "models/Agent.h"
 #include "models/Model.h"
-#include <models/Agent.h>
-#include <Level.h>
 
 namespace Steel
 {
@@ -93,7 +93,7 @@ namespace Steel
             else
             {
                 mid = (ModelId) mModels.size();
-                mModels.reserve(mModels.size()*2);
+                mModels.reserve(mModels.size() * 2);
                 mModels.push_back(M());
             }
         }
@@ -206,15 +206,15 @@ namespace Steel
     }
 
     template<class M>
-    void _ModelManager<M>::toJson(Json::Value &root, std::list<ModelId> const& modelIds)
+    void _ModelManager<M>::toJson(Json::Value &root, std::list<ModelId> const &modelIds)
     {
         if(mModels.size())
         {
-            for(ModelId const& id:modelIds)
+            for(ModelId const & id : modelIds)
             {
                 Model *m = at(id);
 
-                if(nullptr==m || m->isFree())
+                if(nullptr == m || m->isFree())
                     continue;
 
                 Json::Value node(Json::objectValue);

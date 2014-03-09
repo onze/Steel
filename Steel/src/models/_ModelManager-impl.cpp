@@ -5,7 +5,7 @@
  *      Author: onze
  */
 
-#include "models/_ModelManager.cpp"
+#include "_ModelManager.cpp"
 
 #include "models/OgreModel.h"
 #include "models/PhysicsModel.h"

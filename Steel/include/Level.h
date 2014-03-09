@@ -5,8 +5,8 @@
 
 #include "steeltypes.h"
 #include "tools/ConfigFile.h"
-#include "TerrainManager.h"
-#include "TerrainManagerEventListener.h"
+#include "terrain/TerrainManager.h"
+#include "terrain/TerrainManagerEventListener.h"
 
 namespace Steel
 {
