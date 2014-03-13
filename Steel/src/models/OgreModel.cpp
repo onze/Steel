@@ -228,15 +228,11 @@ namespace Steel
             pos = JsonUtils::asVector3(node[OgreModel::POSITION_ATTRIBUTE], pos);
 
         //rotation
-        if(node[OgreModel::ROTATION_ATTRIBUTE].isNull())
-            Debug::warning(intro)("rotation is null: no rotation applied.").endl();
-        else
+        if(!node[OgreModel::ROTATION_ATTRIBUTE].isNull())
             rot = JsonUtils::asQuaternion(node[OgreModel::ROTATION_ATTRIBUTE], rot);
 
         //scale
-        if(node[OgreModel::SCALE_ATTRIBUTE].isNull())
-            Debug::warning(intro)("scale is null: no scaling applied.").endl();
-        else
+        if(!node[OgreModel::SCALE_ATTRIBUTE].isNull())
             scale = JsonUtils::asVector3(node[OgreModel::SCALE_ATTRIBUTE], scale);
 
         // mesh name

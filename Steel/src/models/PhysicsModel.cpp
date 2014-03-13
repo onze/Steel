@@ -120,11 +120,11 @@ namespace Steel
             }
 
             mWorld->removeRigidBody(mBody);
-            delete mBody;
 
             if(nullptr != mBody->getMotionState())
                 delete mBody->getMotionState();
 
+            delete mBody;
             mBody = nullptr;
             mWorld = nullptr;
         }
@@ -211,6 +211,7 @@ namespace Steel
     {
         if(nullptr == mBody)
             return;
+
         // visual representation should not affect the world
         if(flag)
             mBody->setCollisionFlags(mBody->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
@@ -432,7 +433,7 @@ namespace Steel
         }
 
         if(mLevitate)
-            applyCentralForce(Ogre::Vector3::UNIT_Y*mMass);
+            applyCentralForce(Ogre::Vector3::UNIT_Y * mMass);
     }
 
     void PhysicsModel::setUserPointer(Agent *agent)
