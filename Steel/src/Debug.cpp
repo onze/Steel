@@ -67,31 +67,27 @@ namespace Steel
             warning("next error can be safely ignored").endl();
         }
 
-        DebugObject::DebugObject()
+        DebugObject::DebugObject(): mLog(nullptr), mMsg(Ogre::StringUtil::BLANK), mIndents(0)
         {
-            mLog = nullptr;
-            mMsg = Ogre::StringUtil::BLANK;
-            mIndents = 0;
         }
 
-        DebugObject::DebugObject(Ogre::Log *log)
+        DebugObject::DebugObject(Ogre::Log *log): mLog(log), mMsg(Ogre::StringUtil::BLANK), mIndents(0)
         {
-            mLog = log;
-            mIndents = 0;
         }
 
-        DebugObject::DebugObject(const DebugObject &o)
+        DebugObject::DebugObject(const DebugObject &o): mLog(o.mLog), mMsg(o.mMsg), mIndents(o.mIndents)
         {
-            mLog = o.mLog;
-            mMsg = o.mMsg;
-            mIndents = o.mIndents;
         }
 
         DebugObject &DebugObject::operator=(const DebugObject &o)
         {
-            mLog = o.mLog;
-            mMsg = o.mMsg;
-            mIndents = o.mIndents;
+            if(&o != this)
+            {
+                mLog = o.mLog;
+                mMsg = o.mMsg;
+                mIndents = o.mIndents;
+            }
+
             return *this;
         }
 
