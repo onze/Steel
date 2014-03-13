@@ -1,22 +1,17 @@
 #include "terrain/TerrainManager.h"
 
-#include <stdexcept>
-#include <limits.h>
-#include <float.h>
-#include <set>
-#include <algorithm>
-#include <vector>
-
 #include <OgreTerrain.h>
 #include <OgreTerrainGroup.h>
 #include <OgreRoot.h>
 #include <OgreImage.h>
 
-#include <Debug.h>
-#include <terrain/TerrainManagerEventListener.h>
-#include <terrain/TerrainPhysicsManager.h>
-#include <tools/JsonUtils.h>
-#include <Level.h>
+#include "steeltypes.h"
+#include "Debug.h"
+#include "terrain/TerrainManagerEventListener.h"
+#include "terrain/TerrainPhysicsManager.h"
+#include "terrain/TerrainMaterialGenerator.h"
+#include "tools/JsonUtils.h"
+#include "Level.h"
 
 namespace Steel
 {
@@ -25,7 +20,8 @@ namespace Steel
         mLevel(nullptr), mSceneManager(nullptr), mResourceGroupName("TerrainManager-defaultResourceGroup-name"),
         mLoadingState(LoadingState::INIT), mListeners(std::set<TerrainManagerEventListener *>()),
         mTerrainGlobals(nullptr), mTerrainGroup(nullptr), mTerrainsImported(false),
-        mPath(Ogre::StringUtil::BLANK), mTerrainPhysicsMan(nullptr)
+        mPath(Ogre::StringUtil::BLANK), mTerrainPhysicsMan(nullptr),
+        mTerrainMaterialGenerator(nullptr)
     {
     }
 
@@ -33,7 +29,8 @@ namespace Steel
         mLevel(o.mLevel), mSceneManager(o.mSceneManager), mResourceGroupName(o.mResourceGroupName),
         mLoadingState(o.mLoadingState), mListeners(o.mListeners),
         mTerrainGlobals(o.mTerrainGlobals), mTerrainGroup(o.mTerrainGroup), mTerrainsImported(o.mTerrainsImported),
-        mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan)
+        mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan),
+        mTerrainMaterialGenerator(new TerrainMaterialGenerator(*o.mTerrainMaterialGenerator))
     {
     }
 
@@ -82,6 +79,12 @@ namespace Steel
 
     void TerrainManager::shutdown()
     {
+        if(nullptr != mTerrainMaterialGenerator)
+        {
+            delete mTerrainMaterialGenerator;
+            mTerrainMaterialGenerator = nullptr;
+        }
+
         if(nullptr != mTerrainPhysicsMan)
         {
             delete mTerrainPhysicsMan;
@@ -143,6 +146,13 @@ namespace Steel
         mLoadingState = LoadingState::INIT;
 
         mTerrainGlobals = Ogre::TerrainGlobalOptions::getSingletonPtr();
+
+
+        if(nullptr == mTerrainMaterialGenerator)
+        {
+            Ogre::String mDefaultTerrainMaterialName("triPlanarMaterial1");
+            mTerrainMaterialGenerator = new TerrainMaterialGenerator(mDefaultTerrainMaterialName);
+        }
 
         if(nullptr == mTerrainGlobals)
             mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
@@ -614,25 +624,23 @@ namespace Steel
         }
         else
         {
-            Ogre::Terrain::ImportData *idata = new Ogre::Terrain::ImportData();
-            idata->inputFloat = loadTerrainHeightmapFrom(terrainSlotData.heightmapPath, terrainSlotData.size);
+            Ogre::Terrain::ImportData idata;
+            idata.inputFloat = loadTerrainHeightmapFrom(terrainSlotData.heightmapPath, terrainSlotData.size);
             // hence the OGRE_ALLOC_T allocation
-            idata->deleteInputData = true;
+            idata.deleteInputData = true;
 
-            idata->inputBias = 0.f;
-            idata->terrainSize = terrainSlotData.size;
-            idata->worldSize = terrainSlotData.worldSize;
+            idata.inputBias = 0.f;
+            idata.terrainSize = terrainSlotData.size;
+            idata.worldSize = terrainSlotData.worldSize;
             // as for now, we only use defaults for those values
-            idata->layerDeclaration = mTerrainGroup->getDefaultImportSettings().layerDeclaration;
-            idata->layerList.assign(terrainSlotData.layerList.begin(), terrainSlotData.layerList.end());
+            idata.layerDeclaration = mTerrainGroup->getDefaultImportSettings().layerDeclaration;
+            idata.layerList.assign(terrainSlotData.layerList.begin(), terrainSlotData.layerList.end());
 
             if(mTerrainGroup->getTerrain(x, y) != nullptr)
                 mTerrainGroup->removeTerrain(x, y);
 
-            mTerrainGroup->defineTerrain(x, y, idata);
+            mTerrainGroup->defineTerrain(x, y, &idata);
             mTerrainsImported = true;
-
-            delete idata;
         }
     }
 
@@ -648,6 +656,9 @@ namespace Steel
         mTerrainGlobals->setLightMapDirection(light->getDerivedDirection());
         mTerrainGlobals->setCompositeMapAmbient(mSceneManager->getAmbientLight());
         mTerrainGlobals->setCompositeMapDiffuse(light->getDiffuseColour());
+
+        // custom material
+//         mTerrainGlobals->setDefaultMaterialGenerator(Ogre::TerrainMaterialGeneratorPtr(mTerrainMaterialGenerator));
 
         // Configure default import settings for if we use imported image
         Ogre::Terrain::ImportData &defaultimp = mTerrainGroup->getDefaultImportSettings();
@@ -696,40 +707,54 @@ namespace Steel
     void TerrainManager::updateBlendMaps(Ogre::Terrain *terrain)
     {
         if(terrain->getLayerCount() < 3)
-            return;
-
-        //TODO: load this through serialization (no editing included, but fast reload would be nice)
-        Ogre::TerrainLayerBlendMap *blendMap0 = terrain->getLayerBlendMap(1);
-        Ogre::TerrainLayerBlendMap *blendMap1 = terrain->getLayerBlendMap(2);
-        Ogre::Real minHeight0 = 15;
-        Ogre::Real fadeDist0 = 10;
-        Ogre::Real minHeight1 = 15;
-        Ogre::Real fadeDist1 = 0;
-        float *pBlend0 = blendMap0->getBlendPointer();
-        float *pBlend1 = blendMap1->getBlendPointer();
-
-        for(Ogre::uint16 y = 0; y < terrain->getLayerBlendMapSize(); ++y)
         {
-            for(Ogre::uint16 x = 0; x < terrain->getLayerBlendMapSize(); ++x)
-            {
-                Ogre::Real tx, ty;
-
-                blendMap0->convertImageToTerrainSpace(x, y, &tx, &ty);
-                Ogre::Real height = terrain->getHeightAtTerrainPosition(tx, ty);
-                Ogre::Real val = (height - minHeight0) / fadeDist0;
-                val = Ogre::Math::Clamp(val, (Ogre::Real) 0, (Ogre::Real) 1);
-                *pBlend0++ = val;
-
-                val = (height - minHeight1) / fadeDist1;
-                val = Ogre::Math::Clamp(val, (Ogre::Real) 0, (Ogre::Real) 1);
-                *pBlend1++ = val;
-            }
+            // steel terrain
+//             Ogre::MaterialPtr mat = terrain->getCompositeMapMaterial();
+//             Ogre::Pass *pass = mat->getTechnique(0)->getPass(0);
+//             Ogre::Pass *pass = mat->getTechnique(0)->createPass();
+//             Ogre::TextureUnitState *tus = pass->createTextureUnitState();
+//             tus->setTextureName(mat->getTechnique(0)->getPass(0)->getTextureUnitState(0)->getTextureName());
+//             pass->setVertexProgram("triPlanarMaterial1_vs");
+//             pass->setFragmentProgram("triPlanarMaterial1_ps");
+//             mat->_dirtyState();
         }
+        else
+        {
+            // prebaked blended terrains
 
-        blendMap0->dirty();
-        blendMap1->dirty();
-        blendMap0->update();
-        blendMap1->update();
+            //TODO: load this through serialization (no editing included, but fast reload would be nice)
+            Ogre::TerrainLayerBlendMap *blendMap0 = terrain->getLayerBlendMap(1);
+            Ogre::TerrainLayerBlendMap *blendMap1 = terrain->getLayerBlendMap(2);
+            Ogre::Real minHeight0 = 15;
+            Ogre::Real fadeDist0 = 10;
+            Ogre::Real minHeight1 = 15;
+            Ogre::Real fadeDist1 = 0;
+            float *pBlend0 = blendMap0->getBlendPointer();
+            float *pBlend1 = blendMap1->getBlendPointer();
+
+            for(Ogre::uint16 y = 0; y < terrain->getLayerBlendMapSize(); ++y)
+            {
+                for(Ogre::uint16 x = 0; x < terrain->getLayerBlendMapSize(); ++x)
+                {
+                    Ogre::Real tx, ty;
+
+                    blendMap0->convertImageToTerrainSpace(x, y, &tx, &ty);
+                    Ogre::Real height = terrain->getHeightAtTerrainPosition(tx, ty);
+                    Ogre::Real val = (height - minHeight0) / fadeDist0;
+                    val = Ogre::Math::Clamp(val, (Ogre::Real) 0, (Ogre::Real) 1);
+                    *pBlend0++ = val;
+
+                    val = (height - minHeight1) / fadeDist1;
+                    val = Ogre::Math::Clamp(val, (Ogre::Real) 0, (Ogre::Real) 1);
+                    *pBlend1++ = val;
+                }
+            }
+
+            blendMap0->dirty();
+            blendMap1->dirty();
+            blendMap0->update();
+            blendMap1->update();
+        }
     }
 
     void TerrainManager::updateHeightmap(Ogre::Terrain *terrain)
@@ -1003,6 +1028,7 @@ namespace Steel
         valid &= layerList.size() > 0;
         return valid;
     }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 
