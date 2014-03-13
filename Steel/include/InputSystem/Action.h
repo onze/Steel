@@ -17,8 +17,6 @@ namespace Steel
      */
     class Action
     {
-    private:
-
     public:
         static const Action ANY;
 
@@ -47,7 +45,7 @@ namespace Steel
 
             COMPOSITE = AND | OR,
 
-            /** 
+            /**
              * Conditions over previous actions. Mostly time-based. META Actions don't consume input.
              */
             META = STEEL_BIT(4),
@@ -92,20 +90,20 @@ namespace Steel
         Action &maxDelay(Duration maxDelay);
         /// In milliseconds. Set the min delay since last action for this one to be able to resolve.
         Action &minDelay(Duration minDelay);
-        
+
         // getters
-        Action::Type type()const{return mType;}
+        Action::Type type()const {return mType;}
         /// Signal the action resolves on.
-        Signal signal()const{return mSignal;}
+        Signal signal()const {return mSignal;}
         /// In milliseconds.
-        Duration getMaxDelay()const{return mMaxDelay;}
+        Duration getMaxDelay()const {return mMaxDelay;}
         /// In milliseconds.
-        Duration getMinDelay()const{return mMinDelay;}
-        std::vector<Action> const& subActions()const{return mSubActions;}
+        Duration getMinDelay()const {return mMinDelay;}
+        std::vector<Action> const &subActions()const {return mSubActions;}
     private:
         /// Analyses the ctor string signal arg to determine type, signal.
         void parseSignalString(Ogre::String const &signal);
-        
+
         /// Main symbol of the Enum Polymorphism Pattern.
         Type mType;
         /// Signal the action resolves on.
@@ -138,20 +136,22 @@ namespace std
             return std::hash<std::underlying_type<argument_type>::type>()(static_cast<std::underlying_type<argument_type>::type>(value));
         }
     };
-    
+
     /// hash an Action value
     template<>
     struct hash<Steel::Action>
     {
         typedef Steel::Action argument_type;
         typedef std::size_t value_type;
-        
-        value_type operator()(argument_type const& action) const
+
+        value_type operator()(argument_type const &action) const
         {
             value_type h = std::hash<Steel::Action::Type>()(action.type());
             Steel::StdUtils::hash_combine(h, action.signal());
-            for(Steel::Action const& sub: action.subActions())
+
+            for(Steel::Action const & sub : action.subActions())
                 Steel::StdUtils::hash_combine(h, sub);
+
             return h;
         }
     };
