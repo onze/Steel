@@ -30,7 +30,7 @@ namespace Steel
     const char *Agent::BEHAVIORS_STACK_ATTRIBUTE = "behaviorsStack";
 
     Agent::PropertyTags Agent::sPropertyTags;
-    
+
     Agent::Agent(AgentId id, Steel::Level *level): mId(id), mLevel(level),
         mModelIds(std::map<ModelType, ModelId>()), mIsSelected(false), mTags(std::map<Tag, unsigned>()),
         mBehaviorsStack()
@@ -562,7 +562,7 @@ namespace Steel
     float Agent::mass() const
     {
         auto model = physicsModel();
-        return model->mass();
+        return nullptr == model?.0f : model->mass();
     }
 
     void Agent::applyCentralImpulse(Ogre::Vector3 const &f)
