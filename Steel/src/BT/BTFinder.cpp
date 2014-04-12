@@ -22,7 +22,7 @@ namespace Steel
     const char *BTFinder::CURRENT_PATH_SOURCE_PATH_ATTRIBUTE_VALUE = "$current";
 
     BTFinder::BTFinder(const Steel::BTShapeToken &token) : BTNode(token),
-        mSearchStrategy(SearchStrategy::None), mSearchStrategyFn(nullptr), mTargetAgentIdVariable(Ogre::StringUtil::BLANK), mSourcePath(Ogre::StringUtil::BLANK)
+        mSearchStrategy(SearchStrategy::None), mSearchStrategyFn(nullptr), mTargetAgentIdVariable(StringUtils::BLANK), mSourcePath(StringUtils::BLANK)
     {
         setSearchStrategyFunction(mSearchStrategy);
     }
@@ -39,20 +39,20 @@ namespace Steel
 
     bool BTFinder::parseNodeContent(Json::Value &root)
     {
-        mSearchStrategy = parseSearchStrategy(JsonUtils::asString(root[BTFinder::SEARCH_STRATEGY_ATTRIBUTE], Ogre::StringUtil::BLANK));
+        mSearchStrategy = parseSearchStrategy(JsonUtils::asString(root[BTFinder::SEARCH_STRATEGY_ATTRIBUTE], StringUtils::BLANK));
         setSearchStrategyFunction(mSearchStrategy);
 
         switch(mSearchStrategy)
         {
             case SearchStrategy::NextLocationInPath:
-                mSourcePath = JsonUtils::asString(root[BTFinder::SOURCE_PATH_ATTRIBUTE], Ogre::StringUtil::BLANK);
+                mSourcePath = JsonUtils::asString(root[BTFinder::SOURCE_PATH_ATTRIBUTE], StringUtils::BLANK);
                 break;
 
             default:
                 break;
         }
 
-        mTargetAgentIdVariable = JsonUtils::asString(root[BTFinder::TARGET_AGENT_ID_ATTRIBUTE], Ogre::StringUtil::BLANK);
+        mTargetAgentIdVariable = JsonUtils::asString(root[BTFinder::TARGET_AGENT_ID_ATTRIBUTE], StringUtils::BLANK);
         return true;
     }
 

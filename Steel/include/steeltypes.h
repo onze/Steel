@@ -10,6 +10,7 @@
 
 #include <Ogre.h>
 
+#include "tools/StringUtils.h"
 #include "BT/btnodetypes.h"
 
 // http://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
@@ -91,6 +92,28 @@ namespace Steel
     typedef Ogre::String LocationPathName;
 
     typedef size_t Hash;
+    
+    class Engine;
+    class Level;
+    class Model;
+    class OgreModel;
+    class OgreModelManager;
+    class PhysicsModel;
+    class PhysicsModelManager;
+    class LocationModel;
+    class LocationModelManager;
+    class BTModel;
+    class BTModelManager;
+    class BlackBoardModel;
+    class BlackBoardModelManager;
+    class Agent;
+    class AgentManager;
+    class SelectionManager;
+    class Camera;
+    class TagManager;
+    class SignalListener;
+    class SignalEmitter;
+    class SignalManager;
 }
 
 #endif

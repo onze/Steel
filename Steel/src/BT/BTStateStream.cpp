@@ -260,13 +260,13 @@ namespace Steel
         if(nullptr == mShapeStream)
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" no valid shapestream.").endl();
-            return {BTShapeTokenType::BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
+            return {BTShapeTokenType::BTUnknownToken, 0UL, 0UL, StringUtils::BLANK};
         }
 
         if(index >= mShapeStream->mData.size())
         {
             Debug::error("BTStateStream::tokenAt(")(index)("): ")(debugName())(" index out of range.").endl();
-            return {BTShapeTokenType::BTUnknownToken, 0UL, 0UL, Ogre::StringUtil::BLANK};
+            return {BTShapeTokenType::BTUnknownToken, 0UL, 0UL, StringUtils::BLANK};
         }
 
         return mShapeStream->mData.at((size_t)index);

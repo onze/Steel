@@ -3,6 +3,13 @@
 
 #include <Rocket/Core/String.h>
 #include "steeltypes.h"
+#include "tools/StringUtils.h"
+
+// #define STEEL_ASSERT(EXPRESSION, ...) 
+// if(!EXPRESSION) 
+// { 
+//     Debug::error("STEEL_ASSERT: ", ##EXPRESSION, __VA_ARGS__).endl().breakHere(); 
+// }
 
 namespace Steel
 {
@@ -35,7 +42,7 @@ namespace Steel
             DebugObject &operator=(const DebugObject &o);
 
             Ogre::String getFileName();
-            void setColors(Ogre::String pre = Ogre::StringUtil::BLANK, Ogre::String post = Ogre::StringUtil::BLANK);
+            void setColors(Ogre::String pre = StringUtils::BLANK, Ogre::String post = StringUtils::BLANK);
 
             DebugObject &operator()();
             DebugObject &operator()(const Ogre::Degree msg);

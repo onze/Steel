@@ -3,6 +3,7 @@
 
 #include "steeltypes.h"
 #include "BT/btnodetypes.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -32,7 +33,7 @@ namespace Steel
         if(i > -1 && i < (int)BTShapeTokenTypeAsString.size())
             return BTShapeTokenTypeAsString[(size_t)i];
 
-        return Ogre::StringUtil::BLANK;
+        return StringUtils::BLANK;
     }
 
     Ogre::String BTNodeStateAsString__data[] =

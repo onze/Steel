@@ -252,7 +252,7 @@ namespace Steel
     {
         Debug::log(logName() + ".save():").endl();
 
-        Ogre::String s = Ogre::StringUtil::BLANK;
+        Ogre::String s = StringUtils::BLANK;
         serialize(s);
 
         File savefile = getSavefile();
@@ -1019,7 +1019,7 @@ namespace Steel
                 }
 
                 // load the referee
-                Ogre::String path = Ogre::StringUtil::BLANK;
+                Ogre::String path = StringUtils::BLANK;
                 mEngine->resolveReferencePaths(pathValue.asString(), path);
                 File file = mEngine->dataDir().subfile(path);
 

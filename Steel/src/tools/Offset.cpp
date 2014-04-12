@@ -8,7 +8,7 @@
 namespace Steel
 {
 
-    Offset::Offset(): mEditor(nullptr), mPrefix(Ogre::StringUtil::BLANK),
+    Offset::Offset(): mEditor(nullptr), mPrefix(StringUtils::BLANK),
         mIsEditable(false), mPosition(Ogre::Vector3::ZERO), mRotation(Ogre::Quaternion::IDENTITY),
         mChangedSignal(INVALID_SIGNAL)
     {
@@ -23,7 +23,7 @@ namespace Steel
     Offset::~Offset()
     {
         if(mIsEditable)
-            setEditable(false, nullptr, Ogre::StringUtil::BLANK);
+            setEditable(false, nullptr, StringUtils::BLANK);
     }
 
     Offset &Offset::operator=(const Offset &o)
@@ -37,7 +37,7 @@ namespace Steel
             mChangedSignal = o.mChangedSignal;
 
             if(mIsEditable != o.mIsEditable)
-                setEditable(o.mIsEditable, nullptr, Ogre::StringUtil::BLANK);
+                setEditable(o.mIsEditable, nullptr, StringUtils::BLANK);
         }
 
         return *this;

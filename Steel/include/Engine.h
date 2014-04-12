@@ -43,7 +43,7 @@ namespace Steel
             double lastFullFrameDuration;
         };
 
-        Engine(Ogre::String confFilename = Ogre::StringUtil::BLANK);
+        Engine(Ogre::String confFilename = StringUtils::BLANK);
         virtual ~Engine();
 
         /// The given listener will be notified of engine event: onLevelSet, onLevelUnset.

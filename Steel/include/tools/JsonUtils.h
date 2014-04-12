@@ -4,6 +4,8 @@
 #include <json/json.h>
 
 #include "steeltypes.h"
+#include "StringUtils.h"
+
 
 namespace Steel
 {
@@ -102,13 +104,13 @@ namespace Steel
         static float asFloat(Json::Value const &value, float defaultValue = .0f);
         static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue = 0);
         static inline ModelId asModelId(Json::Value const &value, unsigned long defaultValue) {return asUnsignedLong(value, defaultValue);};
-        static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue = Ogre::StringUtil::BLANK);
+        static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue = StringUtils::BLANK);
         static Ogre::Vector3 asVector3(Json::Value const &value, const Ogre::Vector3 &defaultValue = Ogre::Vector3::ZERO);
         static Ogre::Quaternion asQuaternion(Json::Value const &value, const Ogre::Quaternion &defaultValue = Ogre::Quaternion::IDENTITY);
 
         static std::list<Ogre::String> asStringsList(const Json::Value &value,
                 std::list< Ogre::String > defaultValue = std::list< Ogre::String >(),
-                Ogre::String defaultItemValue = Ogre::StringUtil::BLANK);
+                Ogre::String defaultItemValue = StringUtils::BLANK);
 
         static std::set<Tag> asTagsSet(const Json::Value &value,
                                        const std::set<Tag> defaultValue = std::set<Tag>());

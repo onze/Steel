@@ -208,7 +208,7 @@ namespace Steel
             return map;
 
         for(auto const & name : value.getMemberNames())
-            map.emplace(Ogre::String(name), asString(value[name], Ogre::StringUtil::BLANK));
+            map.emplace(Ogre::String(name), asString(value[name], StringUtils::BLANK));
 
         return map;
     }

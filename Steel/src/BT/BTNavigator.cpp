@@ -25,7 +25,7 @@ namespace Steel
 
     BTNavigator::BTNavigator(const Steel::BTShapeToken &token) : BTNode(token),
         mTargetAgentStrategy(TargetAgentStrategy::None), mTargetAgentStrategyFn(nullptr),
-        mTargetAgentIdVariable(Ogre::StringUtil::BLANK), mTargetAgent(INVALID_ID),
+        mTargetAgentIdVariable(StringUtils::BLANK), mTargetAgent(INVALID_ID),
         mSpeed(.0f),
         mDebugTargetLine(nullptr), mDebugMoveLine(nullptr)
     {
@@ -72,7 +72,7 @@ namespace Steel
 
     bool BTNavigator::parseNodeContent(Json::Value &root)
     {
-        mTargetAgentStrategy = parseTargetAgentStrategy(JsonUtils::asString(root[BTNavigator::TARGET_AGENT_ATTRIBUTE], Ogre::StringUtil::BLANK));
+        mTargetAgentStrategy = parseTargetAgentStrategy(JsonUtils::asString(root[BTNavigator::TARGET_AGENT_ATTRIBUTE], StringUtils::BLANK));
         setTargetAgentStrategyFunction(mTargetAgentStrategy);
 
         switch(mTargetAgentStrategy)

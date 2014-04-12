@@ -213,7 +213,7 @@ namespace Steel
         {
             CLEANUP;
             ConfigFile cf(path);
-            STEEL_UT_ASSERT(cf.getSetting(key) == Ogre::StringUtil::BLANK, "[UT001] loading from a new file should return a blank value");
+            STEEL_UT_ASSERT(cf.getSetting(key) == StringUtils::BLANK, "[UT001] loading from a new file should return a blank value");
         }
 
         //TODO: all supported types

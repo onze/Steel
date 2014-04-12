@@ -5,6 +5,7 @@
 #include "models/Agent.h"
 #include "models/LocationModelManager.h"
 #include "Level.h"
+#include "tools/StringUtils.h"
 
 namespace Steel
 {
@@ -13,7 +14,7 @@ namespace Steel
     const char *LocationModel::ATTACHED_AGENT_ATTRIBUTE = "attachedAgent";
     const char *LocationModel::PATH_ATTRIBUTE = "path";
 
-    const LocationPathName LocationModel::EMPTY_PATH = Ogre::StringUtil::BLANK;
+    const LocationPathName LocationModel::EMPTY_PATH = StringUtils::blank();
 
     LocationModel::LocationModel(): Model(),
         mLocationModelMan(nullptr), mSources(), mDestinations(), mAttachedAgent(INVALID_ID),

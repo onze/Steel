@@ -1,7 +1,8 @@
 #ifndef STEEL_OGREUTILS_H
 #define STEEL_OGREUTILS_H
 
-#include <steeltypes.h>
+#include "steeltypes.h"
+#include "tools/File.h"
 
 namespace Ogre
 {

@@ -4,6 +4,7 @@
 #include <json/json.h>
 
 #include "File.h"
+#include "StringUtils.h"
 
 namespace Steel
 {
@@ -24,7 +25,7 @@ namespace Steel
         virtual bool operator==(const ConfigFile &other) const;
         virtual bool operator!=(const ConfigFile &other) const;
 
-        Ogre::String getSetting(Ogre::String const &key, Ogre::String const &defaultValue = Ogre::StringUtil::BLANK) const;
+        Ogre::String getSetting(Ogre::String const &key, Ogre::String const &defaultValue = StringUtils::BLANK) const;
         int getSettingAsBool(Ogre::String const &key, bool defaultValue = false) const;
         int getSettingAsInt(Ogre::String const &key, int defaultValue = 0) const;
         float getSettingAsFloat(Ogre::String const &key, float defaultValue = .0f) const;

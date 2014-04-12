@@ -77,7 +77,7 @@ namespace Steel
         auto it = mVariables.find(name);
 
         if(mVariables.end() == it)
-            return Ogre::StringUtil::BLANK;
+            return StringUtils::BLANK;
 
         return it->second;
     }

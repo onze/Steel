@@ -1,5 +1,6 @@
 
 #include "steeltypes.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -20,7 +21,7 @@ namespace Steel
 
         default: break;
         }
-        return Ogre::StringUtil::BLANK;
+        return StringUtils::BLANK;
     }
 
     ModelType toModelType(Ogre::String s)

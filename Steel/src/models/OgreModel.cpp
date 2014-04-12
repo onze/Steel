@@ -244,7 +244,7 @@ namespace Steel
             meshName = Ogre::String(value.asString());
 
         // custom material
-        Ogre::String materialName = Ogre::StringUtil::BLANK;
+        Ogre::String materialName = StringUtils::BLANK;
 
         if(node.isMember(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE))
         {
@@ -299,7 +299,7 @@ namespace Steel
             setScale(scale);
         }
 
-        if(Ogre::StringUtil::BLANK != materialName)
+        if(StringUtils::BLANK != materialName)
         {
             setMaterial(materialName, resourceGroupName);
         }

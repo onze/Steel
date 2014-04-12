@@ -328,7 +328,7 @@ namespace Steel
         bbModel->setVariable(name, value);
     }
 
-    Ogre::String BTModel::getStringVariable(Ogre::String const &name, Ogre::String const &defaultValue/*=Ogre::StringUtil::BLANK*/)
+    Ogre::String BTModel::getStringVariable(Ogre::String const &name, Ogre::String const &defaultValue/*=StringUtils::BLANK*/)
     {
         BlackBoardModel *bbModel = mLevel->blackBoardModelMan()->at(mBlackBoardModelId);
 

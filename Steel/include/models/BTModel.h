@@ -82,7 +82,7 @@ namespace Steel
         void setVariable(Ogre::String const &name, Ogre::String const &value);
         void setVariable(Ogre::String const &name, AgentId const &value);
         void unsetVariable(Ogre::String const &name);
-        Ogre::String getStringVariable(Ogre::String const &name, Ogre::String const &defaultValue = Ogre::StringUtil::BLANK);
+        Ogre::String getStringVariable(Ogre::String const &name, Ogre::String const &defaultValue = StringUtils::BLANK);
         AgentId getAgentIdVariable(const Ogre::String &name, const Steel::AgentId &defaultValue = INVALID_ID);
 
         inline Level *level() const {return mLevel;}

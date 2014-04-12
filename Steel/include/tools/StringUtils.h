@@ -1,6 +1,9 @@
 #ifndef STEEL_STRINGUTILS_H
 #define STEEL_STRINGUTILS_H
 
+#include <steeltypes.h>
+
+#include <OgrePlatform.h>
 #include <OgreStringConverter.h>
 #include <Rocket/Core/String.h>
 
@@ -13,6 +16,11 @@ namespace Steel
     class StringUtils
     {
     public:
+        /// Constant blank string, useful for returning by ref where local does not exist.
+        static Ogre::String const BLANK;
+        /// Same as StringUtils::BLANK, but as a static method, ie usable for static members initialization.
+        static Ogre::String const blank();
+        
         /// Line separator.
         static const Ogre::String LINE_SEP;
 
@@ -31,12 +39,12 @@ namespace Steel
 
         /// join a vector of strings with the given joiner string. See generic header for details. Specialized for mixed&old types.
         static Ogre::String join(std::vector<Ogre::String> const &vec,
-                                 Ogre::String const &joiner = Ogre::StringUtil::BLANK,
+                                 Ogre::String const &joiner = StringUtils::BLANK,
                                  int start = 0, int end = INT_MIN);
 
         /// join a list of strings with the given joiner string. See generic header for details. Specialized for mixed&old types.
         static Ogre::String join(std::list<Ogre::String> const &vec,
-                                 Ogre::String const &joiner = Ogre::StringUtil::BLANK,
+                                 Ogre::String const &joiner = StringUtils::BLANK,
                                  int start = 0, int end = INT_MIN);
 
         /// join a Rocket::Core::StringList with the given joiner string. See generic header for details. Specialized for mixed types.
@@ -50,7 +58,7 @@ namespace Steel
          * Generic version.
          */
         template<class T>
-        static T join(std::vector<T> const &vec, T const &joiner = Ogre::StringUtil::BLANK, int start = 0, int end = INT_MIN)
+        static T join(std::vector<T> const &vec, T const &joiner = StringUtils::BLANK, int start = 0, int end = INT_MIN)
         {
             T res;
 

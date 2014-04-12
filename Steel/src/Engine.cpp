@@ -39,9 +39,12 @@ namespace Steel
 
     Engine::Engine(Ogre::String confFilename): InputEventListener(),
         mRootDir("."), mConfig(confFilename),
-        mRoot(nullptr), mRenderWindow(nullptr), mInputMan(),
-        mMustAbortMainLoop(false), mIsInMainLoop(false), mLevel(nullptr), mRayCaster(nullptr), mEditMode(false),
-        mCommands(), mReferencePathsLookupTable()
+        mRoot(nullptr), mRenderWindow(nullptr), mInputMan(), mWindowHandle(StringUtils::BLANK),
+        mMustAbortMainLoop(false), mIsInMainLoop(false),
+        mLevel(nullptr), mRayCaster(nullptr), mUI(),
+        mEditMode(false), mStats(),
+        mCommands(), mListeners(),
+        mReferencePathsLookupTable()
     {
         setRootDir(File::getCurrentDirectory());
     }
@@ -151,7 +154,7 @@ namespace Steel
         Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG, true));
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
-        mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), Ogre::StringUtil::BLANK);
+        mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), StringUtils::BLANK);
 
 
         // setup a renderer

@@ -2,6 +2,8 @@
 #define STEEL_MODEL_H_
 
 #include "steeltypes.h"
+#include "OgreString.h"
+#include "tools/StringUtils.h"
 
 namespace Steel
 {

@@ -961,7 +961,7 @@ namespace Steel
             STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::LINK);
             STEEL_ENUM_TO_STRING_CASE(EditorBrush::BrushMode::NONE);
         }
-        return Ogre::StringUtil::BLANK;
+        return StringUtils::BLANK;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

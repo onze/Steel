@@ -67,11 +67,11 @@ namespace Steel
             warning("next error can be safely ignored").endl();
         }
 
-        DebugObject::DebugObject(): mLog(nullptr), mMsg(Ogre::StringUtil::BLANK), mIndents(0)
+        DebugObject::DebugObject(): mLog(nullptr), mMsg(StringUtils::BLANK), mIndents(0)
         {
         }
 
-        DebugObject::DebugObject(Ogre::Log *log): mLog(log), mMsg(Ogre::StringUtil::BLANK), mIndents(0)
+        DebugObject::DebugObject(Ogre::Log *log): mLog(log), mMsg(StringUtils::BLANK), mIndents(0)
         {
         }
 
@@ -96,7 +96,7 @@ namespace Steel
             return mLog->getName();
         }
 
-        void DebugObject::setColors(Ogre::String pre/* = Ogre::StringUtil::BLANK*/, Ogre::String post/* = Ogre::StringUtil::BLANK*/)
+        void DebugObject::setColors(Ogre::String pre/* = StringUtils::BLANK*/, Ogre::String post/* = StringUtils::BLANK*/)
         {
             mPre = pre;
             mPost = post;
@@ -310,7 +310,7 @@ namespace Steel
         {
             mIndents += 1;
 
-            if(mMsg == Ogre::StringUtil::BLANK)
+            if(mMsg == StringUtils::BLANK)
                 for(int i = 0; i < mIndents; ++i)
                     mMsg.append(DebugObject::sIndentString);
 
@@ -321,7 +321,7 @@ namespace Steel
         {
             mIndents = mIndents > 0 ? mIndents - 1 : 0;
 
-            if(mIndents > 0 && mMsg == Ogre::StringUtil::BLANK)
+            if(mIndents > 0 && mMsg == StringUtils::BLANK)
                 for(int i = 0; i < mIndents; ++i)
                     mMsg.append(DebugObject::sIndentString);
 

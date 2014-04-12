@@ -45,7 +45,7 @@ namespace Steel
 //std::thread File::sNotifier(File::poolAndNotify);
 
     File::File()
-        : mPath(Ogre::StringUtil::BLANK), mBaseName(Ogre::StringUtil::BLANK), mExtension(Ogre::StringUtil::BLANK)
+        : mPath(StringUtils::BLANK), mBaseName(StringUtils::BLANK), mExtension(StringUtils::BLANK)
     {
     }
 
@@ -483,7 +483,7 @@ namespace Steel
     Ogre::String File::read(bool skiptEmtpyLines) const
     {
         if(!exists())
-            return Ogre::StringUtil::BLANK;
+            return StringUtils::BLANK;
 
         std::ifstream s;
         s.open(fullPath().c_str());

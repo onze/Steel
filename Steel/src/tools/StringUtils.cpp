@@ -1,4 +1,5 @@
 #include <Rocket/Core/String.h>
+#include <OgreString.h>
 
 #include "tools/StringUtils.h"
 #include "Debug.h"
@@ -6,6 +7,11 @@
 
 namespace Steel
 {
+    Ogre::String const StringUtils::BLANK = Ogre::StringUtil::BLANK;
+    Ogre::String const StringUtils::blank() {
+        static const Ogre::String BLANK = Ogre::StringUtil::BLANK;
+        return BLANK;
+    }
 
 #ifdef __unix
     const Ogre::String StringUtils::LINE_SEP = "\n";
@@ -83,8 +89,8 @@ namespace Steel
         STEEL_UT_ASSERT(dst[0] == src, "[UT001] StringUtils::split failed");
         STEEL_UT_ASSERT(dst.size() == 1, "[UT002] StringUtils::split failed");
 
-        dst = StringUtils::split(Ogre::StringUtil::BLANK, sep2);
-        STEEL_UT_ASSERT(dst[0] == Ogre::StringUtil::BLANK, "[UT] StringUtils::split failed");
+        dst = StringUtils::split(StringUtils::BLANK, sep2);
+        STEEL_UT_ASSERT(dst[0] == StringUtils::BLANK, "[UT] StringUtils::split failed");
         STEEL_UT_ASSERT(dst.size() == 1, "[UT003] StringUtils::split failed");
 
         dst = StringUtils::split(src, sep0);
@@ -100,7 +106,7 @@ namespace Steel
 
         STEEL_UT_ASSERT(src == StringUtils::join(StringUtils::split(src, sep0), sep0), "[UT011] StringUtils::join failed");
         STEEL_UT_ASSERT("a.b" == StringUtils::join(StringUtils::split("a.b;c", ";"), ".", 0, -1), "[UT012] StringUtils::join failed");
-        STEEL_UT_ASSERT(Ogre::StringUtil::BLANK == StringUtils::join(StringUtils::split("a;b;c", "."), ".", 0, -1), "[UT013] StringUtils::join failed");
+        STEEL_UT_ASSERT(StringUtils::BLANK == StringUtils::join(StringUtils::split("a;b;c", "."), ".", 0, -1), "[UT013] StringUtils::join failed");
         STEEL_UT_ASSERT("a;b;c" == StringUtils::join(StringUtils::split("a;b;c", ";"), ";"), "[UT014] StringUtils::join failed");
 
         return true;

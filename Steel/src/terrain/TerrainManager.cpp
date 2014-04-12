@@ -11,6 +11,7 @@
 #include "terrain/TerrainPhysicsManager.h"
 // #include "terrain/TerrainMaterialGenerator.h"
 #include "tools/JsonUtils.h"
+#include "tools/StringUtils.h"
 #include "Level.h"
 
 namespace Steel
@@ -20,7 +21,7 @@ namespace Steel
         mLevel(nullptr), mSceneManager(nullptr), mResourceGroupName("TerrainManager-defaultResourceGroup-name"),
         mLoadingState(LoadingState::INIT), mListeners(std::set<TerrainManagerEventListener *>()),
         mTerrainGlobals(nullptr), mTerrainGroup(nullptr), mTerrainsImported(false),
-        mPath(Ogre::StringUtil::BLANK), mTerrainPhysicsMan(nullptr)
+        mPath(StringUtils::BLANK), mTerrainPhysicsMan(nullptr)
         //, mTerrainMaterialGenerator(nullptr)
     {
     }
@@ -244,7 +245,7 @@ namespace Steel
             Json::Value terrainValue;
             terrainValue["slotPosition"] = JsonUtils::toJson(Ogre::Vector2(static_cast<float>(slot->x), static_cast<float>(slot->y)));
 
-            Ogre::String heightmapPath = Ogre::StringUtil::BLANK;
+            Ogre::String heightmapPath = StringUtils::BLANK;
             saveTerrainHeightmapAs(slot->x, slot->y, terrain, heightmapPath);
             terrainValue["heightmapPath"] = heightmapPath;
 
@@ -301,7 +302,7 @@ namespace Steel
         }
         else
         {
-            if(filepath != Ogre::StringUtil::BLANK)
+            if(filepath != StringUtils::BLANK)
                 Debug::error(intro)("file defined but not found, using height 0.").endl();
 
             img_data = new short[resolution];
@@ -988,14 +989,14 @@ namespace Steel
 
     TerrainManager::TerrainSlotData::TerrainSlotData():
         slot_x(LONG_MAX), slot_y(LONG_MAX),
-        heightmapPath(Ogre::StringUtil::BLANK), size(TerrainManager::DEFAULT_TERRAIN_SIZE),
+        heightmapPath(StringUtils::BLANK), size(TerrainManager::DEFAULT_TERRAIN_SIZE),
         worldSize(TerrainManager::DEFAULT_WORLD_SIZE), layerList(Ogre::Terrain::LayerInstanceList())
     {
     }
 
     TerrainManager::TerrainSlotData::TerrainSlotData(long x, long y):
         slot_x(x), slot_y(y),
-        heightmapPath(Ogre::StringUtil::BLANK), size(TerrainManager::DEFAULT_TERRAIN_SIZE),
+        heightmapPath(StringUtils::BLANK), size(TerrainManager::DEFAULT_TERRAIN_SIZE),
         worldSize(TerrainManager::DEFAULT_WORLD_SIZE), layerList(Ogre::Terrain::LayerInstanceList())
     {
     }
@@ -1027,7 +1028,7 @@ namespace Steel
         bool valid = true;
         valid &= slot_x != LONG_MAX;
         valid &= slot_y != LONG_MAX;
-        valid &= File(heightmapPath).exists() || heightmapPath == Ogre::StringUtil::BLANK;
+        valid &= File(heightmapPath).exists() || heightmapPath == StringUtils::BLANK;
         valid &= size > 3;
         // minimal terrain size is 9m**2, just like a student's room.
         valid &= worldSize > 3;
