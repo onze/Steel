@@ -93,6 +93,12 @@ namespace Steel
 
     typedef size_t Hash;
     
+    typedef unsigned int u32;
+    typedef unsigned long u64;
+    typedef signed int s32;
+    typedef signed int s64;
+    
+    
     class Engine;
     class Level;
     class Model;

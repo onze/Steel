@@ -269,6 +269,7 @@ namespace Steel
         if(mDebugLines.end() == it)
         {
             line = new DynamicLines();
+            line->init(mLevel->name(), Ogre::RenderOperation::OT_LINE_LIST, false);
             auto ret = mDebugLines.emplace(key, line);
 
             if(!ret.second)

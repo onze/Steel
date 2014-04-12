@@ -31,6 +31,18 @@ namespace Steel
         setUseIdentityView(true);
         setQueryFlags(0);
 
+        {
+            Ogre::MaterialPtr const whiteNoLignthing = Ogre::MaterialManager::getSingleton().getByName("BaseWhiteNoLighting");
+            Ogre::String const resName = "DynamicLines_BaseWhiteNoLighting_"+mEngine->level()->name();
+            mMaterial = Ogre::MaterialManager::getSingleton().getByName(resName);
+            if(mMaterial.isNull())
+            {
+                mMaterial = whiteNoLignthing->clone(resName, true, mEngine->level()->name());
+                mMaterial->load();
+            }
+            mMaterial->setDepthCheckEnabled(false);
+        }
+
         if(nullptr != mEngine->level())
         {
             mEngine->level()->levelRoot()->createChildSceneNode()->attachObject(this);
@@ -41,7 +53,11 @@ namespace Steel
     SelectionBox::~SelectionBox()
     {
         clear();
-
+        {
+            auto name = mMaterial->getName();
+            mMaterial.setNull();
+            Ogre::MaterialManager::getSingleton().remove(name);
+        }
         if(nullptr != mVolQuery)
         {
             mEngine->level()->sceneManager()->destroyQuery(mVolQuery);
@@ -83,7 +99,7 @@ namespace Steel
         clear();
         //Every time you call ManualObject::clear(), the bounding box is reset
         setBoundingBox(Ogre::AxisAlignedBox::BOX_INFINITE);
-        begin("", Ogre::RenderOperation::OT_LINE_STRIP);
+        begin(mMaterial->getName(), Ogre::RenderOperation::OT_LINE_STRIP, mMaterial->getGroup());
         position(mLeft, mTop, -1);
         position(mRight, mTop, -1);
         position(mRight, mBottom, -1);

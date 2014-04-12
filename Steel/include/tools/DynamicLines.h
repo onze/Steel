@@ -3,6 +3,9 @@
 
 #include <vector>
 
+#include "steeltypes.h"
+#include <OgreRenderOperation.h>
+
 #include "tools/DynamicRenderable.h"
 
 namespace Steel
@@ -10,72 +13,77 @@ namespace Steel
     /// http://www.ogre3d.org/forums/viewtopic.php?p=356259#p356259
     class DynamicLines : public DynamicRenderable
     {
-            typedef Ogre::Vector3 Vector3;
-            typedef Ogre::Quaternion Quaternion;
-            typedef Ogre::Camera Camera;
-            typedef Ogre::Real Real;
-            typedef Ogre::RenderOperation::OperationType OperationType;
+        static u32 sNextId;
 
-        public:
+    public:
         /// Constructor - see setOperationType() for description of argument.
-            DynamicLines(OperationType opType = Ogre::RenderOperation::OT_LINE_STRIP);
-            virtual ~DynamicLines();
-            
-            void setColor(Ogre::ColourValue color);
+        DynamicLines();
+        virtual ~DynamicLines();
+        // TODO: rule of 4 damnit !
 
-            /// Should 2D projection be used
-            void setUse2D(bool mode);
+        /// Mandatory call before usage
+        void init(Ogre::String const &resourceGroup, 
+                  Ogre::RenderOperation::OperationType opType = Ogre::RenderOperation::OT_LINE_STRIP, 
+                  bool use2d = false);
 
-            /// Add a point to the point list
-            void addPoint(const Ogre::Vector3 &p);
+        void setColor(Ogre::ColourValue color);
 
-            /// Add a point to the point list
-            void addPoint(Real x, Real y, Real z);
+        /// Should 2D projection be used
+        void setUse2D(bool mode);
 
-            /// Add a 2D point to the point list
-            void addPoint(const Ogre::Vector2 &p);
+        /// Add a point to the point list
+        void addPoint(const Ogre::Vector3 &p);
 
-            /// Add a 2D point to the point list
-            void addPoint(Real x, Real y);
+        /// Add a point to the point list
+        void addPoint(Ogre::Real x, Ogre::Real y, Ogre::Real z);
 
-            /// Change the location of an existing point in the point list
-            void setPoint(unsigned short index, const Vector3 &value);
+        /// Add a 2D point to the point list
+        void addPoint(const Ogre::Vector2 &p);
 
-            /// Return the location of an existing point in the point list
-            const Vector3& getPoint(unsigned short index) const;
+        /// Add a 2D point to the point list
+        void addPoint(Ogre::Real x, Ogre::Real y);
 
-            /// Return the total number of points in the point list
-            unsigned short getNumPoints(void) const;
+        /// Change the location of an existing point in the point list
+        void setPoint(unsigned short index, const Ogre::Vector3 &value);
 
-            /// Remove all points from the point list
-            void clear();
+        /// Return the location of an existing point in the point list
+        const Ogre::Vector3 &getPoint(unsigned short index) const;
 
-            /// Call this to update the hardware buffer after making changes.
-            void update();
+        /// Return the total number of points in the point list
+        unsigned short getNumPoints(void) const;
 
-            /** Set the type of operation to draw with.
-             * @param opType Can be one of
-             *    - RenderOperation::OT_LINE_STRIP
-             *    - RenderOperation::OT_LINE_LIST
-             *    - RenderOperation::OT_POINT_LIST
-             *    - RenderOperation::OT_TRIANGLE_LIST
-             *    - RenderOperation::OT_TRIANGLE_STRIP
-             *    - RenderOperation::OT_TRIANGLE_FAN
-             *    The default is OT_LINE_STRIP.
-             */
-            void setOperationType(OperationType opType);
-            OperationType getOperationType() const;
+        /// Remove all points from the point list
+        void clear();
 
-        protected:
-            /// Implementation DynamicRenderable, creates a simple vertex-only decl
-            virtual void createVertexDeclaration();
-            /// Implementation DynamicRenderable, pushes point list out to hardware memory
-            virtual void fillHardwareBuffers();
+        /// Call this to update the hardware buffer after making changes.
+        void update();
 
-        private:
-            std::vector<Vector3> mPoints;
-            bool mDirty;
-            bool mUse2D;
+        /** Set the type of operation to draw with.
+         * @param opType Can be one of
+         *    - RenderOperation::OT_LINE_STRIP
+         *    - RenderOperation::OT_LINE_LIST
+         *    - RenderOperation::OT_POINT_LIST
+         *    - RenderOperation::OT_TRIANGLE_LIST
+         *    - RenderOperation::OT_TRIANGLE_STRIP
+         *    - RenderOperation::OT_TRIANGLE_FAN
+         *    The default is OT_LINE_STRIP.
+         */
+        void setOperationType(const Ogre::RenderOperation::OperationType opType);
+        Ogre::RenderOperation::OperationType getOperationType() const;
+
+    protected:
+        /// Implementation DynamicRenderable, creates a simple vertex-only decl
+        virtual void createVertexDeclaration();
+        /// Implementation DynamicRenderable, pushes point list out to hardware memory
+        virtual void fillHardwareBuffers();
+
+    private:
+        u32 mId;
+        std::vector<Ogre::Vector3> mPoints;
+        std::vector<Ogre::Vector4> mColors;
+        bool mDirty;
+        bool mUse2D;
+        Ogre::MaterialPtr mMaterial;
     };
 
 }

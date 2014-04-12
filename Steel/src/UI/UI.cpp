@@ -1,4 +1,6 @@
 
+#include <Ogre.h>
+
 #include <Rocket/Controls.h>
 #include <Rocket/Debugger.h>
 #include <Ogre.h>
@@ -9,8 +11,9 @@
 #include "InputSystem/InputManager.h"
 #include <tools/OgreUtils.h>
 #include <tools/StringUtils.h>
-#include <Level.h>
-#include <Engine.h>
+#include "Level.h"
+#include "Engine.h"
+
 #include "UI/RenderInterfaceOgre3D.h"
 
 namespace Steel
@@ -24,17 +27,18 @@ namespace Steel
         buildCodeMaps();
     }
 
-    UI::UI(const UI &other)
+    UI::UI(const UI &o)
     {
-        mInputMan = other.mInputMan;
-        mTimer = other.mTimer;
-        mRocketRenderInterface = other.mRocketRenderInterface;
-        mMainContext = other.mMainContext;
-        mEditor = other.mEditor;
-        mHUD = other.mHUD;
-        mKeyIdentifiers = other.mKeyIdentifiers;
-        mEditMode = other.mEditMode;
-        //TODO forbif copy (use save/load instead)
+        mInputMan = o.mInputMan;
+        mTimer = o.mTimer;
+        mRocketRenderInterface = o.mRocketRenderInterface;
+        mMainContext = o.mMainContext;
+
+        mEditor = o.mEditor;
+        mHUD = o.mHUD;
+        mKeyIdentifiers = o.mKeyIdentifiers;
+        mEditMode = o.mEditMode;
+        //TODO forbid copy (use save/load instead)
     }
 
     UI::~UI()
@@ -42,19 +46,23 @@ namespace Steel
         shutdown();
     }
 
-    UI &UI::operator=(const UI &other)
+    UI &UI::operator=(const UI &o)
     {
-        if(mMainContext != nullptr && mMainContext != other.mMainContext)
+        if(this != &o)
         {
-            mMainContext->RemoveReference();
-            mMainContext = other.mMainContext;
-            mMainContext->AddReference();
+            if(mMainContext != nullptr && mMainContext != o.mMainContext)
+            {
+                mMainContext->RemoveReference();
+                mMainContext = o.mMainContext;
+                mMainContext->AddReference();
+            }
+
+            mEditor = o.mEditor;
+            mHUD = o.mHUD;
+            mKeyIdentifiers = o.mKeyIdentifiers;
+            mEditMode = o.mEditMode;
         }
 
-        mEditor = other.mEditor;
-        mHUD = other.mHUD;
-        mKeyIdentifiers = other.mKeyIdentifiers;
-        mEditMode = other.mEditMode;
         return *this;
     }
 
@@ -136,17 +144,17 @@ namespace Steel
             mMainContext->RemoveReference();
             mMainContext = nullptr;
         }
-
-        if(mInputMan != nullptr)
-            mInputMan = nullptr;
-
+        
         Rocket::Core::Shutdown();
 
-        if(mRocketRenderInterface != nullptr)
+        if(nullptr != mRocketRenderInterface)
         {
             delete mRocketRenderInterface;
             mRocketRenderInterface = nullptr;
         }
+
+        if(mInputMan != nullptr)
+            mInputMan = nullptr;
 
         mEngine->removeEngineEventListener(this);
     }
@@ -166,37 +174,43 @@ namespace Steel
         mEngine->addEngineEventListener(this);
         mInputMan->addInputEventListener(this);
 
-        //rocket init
         auto orm = Ogre::ResourceGroupManager::getSingletonPtr();
-        orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", "UI", true);
-        bool firstInit = mRocketRenderInterface == nullptr;
+        orm->addResourceLocation(mUIDataDir.fullPath(), "FileSystem", resourceGroup(), true);
+        orm->initialiseResourceGroup(resourceGroup());
+        orm->loadResourceGroup(resourceGroup());
+        
+        //rocket init
+        {
+            bool firstInit = mRocketRenderInterface == nullptr;
 
-        mRocketRenderInterface = new RenderInterfaceOgre3D(mWindow->getWidth(), mWindow->getHeight(), mEngine);
-        Rocket::Core::SetRenderInterface(mRocketRenderInterface);
+            mRocketRenderInterface = new Rocket::RenderInterfaceOgre3D(mWindow->getWidth(), mWindow->getHeight(), mEngine);
+            Rocket::Core::SetRenderInterface(mRocketRenderInterface);
 
 
-        Rocket::Core::SetSystemInterface(this);
-        Rocket::Core::Initialise();
+            Rocket::Core::SetSystemInterface(this);
+            Rocket::Core::Initialise();
 
-        Rocket::Controls::Initialise();
-        Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("fonts").subfile("tahoma.ttf").fullPath().c_str());
+            Rocket::Controls::Initialise();
+            Rocket::Core::FontDatabase::LoadFontFace(mUIDataDir.subfile("fonts").subfile("tahoma.ttf").fullPath().c_str());
 
-        mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWindow->getWidth(), mWindow->getHeight()));
+            mMainContext = Rocket::Core::CreateContext("UI-main", Rocket::Core::Vector2i(mWindow->getWidth(), mWindow->getHeight()));
 //         Rocket::Core::ElementDocument* cursor = mMainContext->LoadMouseCursor(mUIDataDir.subfile("current/cursor.rml").fullPath().c_str());
 
-        if(firstInit)
-            Rocket::Debugger::Initialise(mMainContext);
-        else
-            Rocket::Debugger::SetContext(mMainContext);
+            if(firstInit)
+                Rocket::Debugger::Initialise(mMainContext);
+            else
+                Rocket::Debugger::SetContext(mMainContext);
+        }
 
         //UI init
         mEditor.init(mWindow->getWidth(), mWindow->getHeight(), mEngine, this);
         mHUD.init(mWindow->getWidth(), mWindow->getHeight(), mEngine, this);
 
-        orm->initialiseResourceGroup("UI");
-        orm->loadResourceGroup("UI");
-
         OgreUtils::resourceGroupsInfos();
+    }
+
+    void UI::onResize(int width, int height)
+    {
     }
 
     void UI::startEditMode()
@@ -205,7 +219,7 @@ namespace Steel
         {
             mEditMode = true;
             mEditor.show();
-            
+
             if(!Rocket::Debugger::IsVisible())
                 Rocket::Debugger::SetVisible(true);
         }
@@ -217,7 +231,7 @@ namespace Steel
         {
             mEditMode = false;
             mEditor.hide();
-            
+
             if(Rocket::Debugger::IsVisible())
                 Rocket::Debugger::SetVisible(false);
         }
@@ -225,10 +239,13 @@ namespace Steel
 
     // Called from Ogre before a queue group is rendered.
     void UI::renderQueueStarted(Ogre::uint8 queueGroupId,
-                                const Ogre::String &invocation,
-                                bool &ROCKET_UNUSED(skipThisInvocation))
+                                const Ogre::String &/*invocation*/,
+                                bool &skipThisInvocation)
     {
-        if(queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
+        if(skipThisInvocation)
+            return;
+        
+        if(Ogre::RENDER_QUEUE_OVERLAY==queueGroupId && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
         {
             mHUD.context()->Update();
             mMainContext->Update();
@@ -247,11 +264,11 @@ namespace Steel
     }
 
     // Called from Ogre after a queue group is rendered.
-    void UI::renderQueueEnded(Ogre::uint8 ROCKET_UNUSED(queueGroupId),
-                              const Ogre::String &ROCKET_UNUSED(invocation),
-                              bool &ROCKET_UNUSED(repeatThisInvocation))
-    {
-    }
+//     void UI::renderQueueEnded(Ogre::uint8 /*queueGroupId*/,
+//                               const Ogre::String &/*invocation*/,
+//                               bool &/*repeatThisInvocation*/)
+//     {
+//     }
 
     // Configures Ogre's rendering system for rendering RocketUI.
     void UI::configureRenderSystem()
@@ -417,6 +434,7 @@ namespace Steel
 
     void UI::onLevelSet(Level *level)
     {
+        level->viewport()->setOverlaysEnabled(true);
         level->sceneManager()->addRenderQueueListener(this);
     }
 

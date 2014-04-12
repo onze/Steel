@@ -36,14 +36,17 @@
 
  @author Peter Curry
  */
-
 namespace Steel
 {
     class Engine;
+}
+
+namespace Rocket
+{
     class RenderInterfaceOgre3D: public Rocket::Core::RenderInterface
     {
         public:
-            RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height, Engine *engine);
+            RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height, Steel::Engine *engine);
             virtual ~RenderInterfaceOgre3D();
 
             /// Called by Rocket when it wants to render geometry that it does not wish to optimise.
@@ -81,7 +84,7 @@ namespace Steel
 
         private:
             /// not owned
-            Engine *mEngine;
+            Steel::Engine *mEngine;
             Ogre::RenderSystem* render_system;
             /// owned
 

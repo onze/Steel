@@ -5,6 +5,10 @@
 
 namespace Steel
 {
+    /**
+     * InpuEventListener interface. onInputEvent dispatches inputs to {key, mouse}* events for ease of use.
+     * Don't forget to register to the engine's InputManager (...::addInputEventListener).
+     */
     class InputEventListener
     {
     public:

@@ -67,11 +67,11 @@ namespace Steel
             warning("next error can be safely ignored").endl();
         }
 
-        DebugObject::DebugObject(): mLog(nullptr), mMsg(StringUtils::BLANK), mIndents(0)
+        DebugObject::DebugObject(): mLog(nullptr), mMsg(StringUtils::blank()), mIndents(0)
         {
         }
 
-        DebugObject::DebugObject(Ogre::Log *log): mLog(log), mMsg(StringUtils::BLANK), mIndents(0)
+        DebugObject::DebugObject(Ogre::Log *log): mLog(log), mMsg(StringUtils::blank()), mIndents(0)
         {
         }
 

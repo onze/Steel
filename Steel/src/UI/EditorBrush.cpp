@@ -14,7 +14,6 @@
 #include "models/LocationModelManager.h"
 #include "OgreManualObject.h"
 #include "OgreMeshManager.h"
-#include "tools/DynamicLines.h"
 #include "tools/StringUtils.h"
 #include "Debug.h"
 
@@ -900,17 +899,21 @@ namespace Steel
 
     void EditorBrush::onShow()
     {
-        popMode();
         mSelectionBox = new SelectionBox("EditorBrushSelectionBox", mEngine);
         mSelectionBox->setVisible(false);
 
-        mLinkingLine = new DynamicLines(Ogre::RenderOperation::OT_LINE_LIST);
-        mLinkingLine->setUse2D(true);
+        mLinkingLine = new DynamicLines();
+        mLinkingLine->init(mEngine->ui()->resourceGroup(), Ogre::RenderOperation::OT_LINE_LIST, true);
         mEngine->level()->levelRoot()->attachObject(mLinkingLine);
+
+        popMode();
     }
 
     void EditorBrush::onHide()
     {
+        pushMode();
+        setMode(BrushMode::NONE);
+
         if(nullptr != mSelectionBox)
         {
             OgreUtils::destroySceneNode(mSelectionBox->getParentSceneNode());
@@ -925,10 +928,6 @@ namespace Steel
             delete mLinkingLine;
             mLinkingLine = nullptr;
         }
-
-        pushMode();
-        setMode(BrushMode::NONE);
-
     }
 
     void EditorBrush::popMode()
@@ -965,5 +964,3 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
-
-

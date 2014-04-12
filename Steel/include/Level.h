@@ -98,6 +98,7 @@ namespace Steel
         Ogre::Vector3 getDropTargetPosition();
         Ogre::Quaternion getDropTargetRotation();
         Ogre::Vector2 getSlotDropPosition();
+        
         //////////////////////////////////////////////////////
         // edition
         /**
@@ -157,6 +158,7 @@ namespace Steel
         inline BlackBoardModelManager *blackBoardModelMan() {return mBlackBoardModelManagerMan;}
 
         inline Engine *const engine() const {return mEngine;}
+        inline Ogre::Viewport *viewport() const {return mViewport;}
     private:
         /// name used in debug output
         Ogre::String logName();

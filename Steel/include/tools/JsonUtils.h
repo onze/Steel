@@ -3,6 +3,11 @@
 
 #include <json/json.h>
 
+#include <OgreVector3.h>
+#include <OgreQuaternion.h>
+#include <OgreString.h>
+#include <OgreStringConverter.h>
+
 #include "steeltypes.h"
 #include "StringUtils.h"
 

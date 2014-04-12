@@ -27,11 +27,12 @@
  */
 
 #include <Ogre.h>
+
 #include "UI/RenderInterfaceOgre3D.h"
-#include <Debug.h>
+#include "Debug.h"
 #include "Engine.h"
 
-namespace Steel
+namespace Rocket
 {
 
     struct RocketOgre3DVertex
@@ -59,7 +60,7 @@ namespace Steel
         RocketOgre3DTexture* texture;
     };
 
-    RenderInterfaceOgre3D::RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height,Engine *engine):mEngine(engine)
+    RenderInterfaceOgre3D::RenderInterfaceOgre3D(unsigned int window_width, unsigned int window_height,Steel::Engine *engine):mEngine(engine)
     {
         render_system = Ogre::Root::getSingleton().getRenderSystem();
 

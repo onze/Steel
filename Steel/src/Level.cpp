@@ -70,7 +70,7 @@ namespace Steel
 
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         resGroupMan->addResourceLocation(mPath.fullPath(), "FileSystem", mName, true);
-        resGroupMan->initialiseResourceGroup(name);
+        resGroupMan->initialiseResourceGroup(mName);
 
         mSceneManager = Ogre::Root::getSingletonPtr()->createSceneManager(Ogre::ST_GENERIC, logName() + "_sceneManager");
         // mTerrainManager search it under this same name in TerrainManager::toJson() and TerrainManager::build()

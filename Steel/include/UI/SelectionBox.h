@@ -1,6 +1,8 @@
 #ifndef STEEL_SELECTIONBOX_H
 #define STEEL_SELECTIONBOX_H
 
+#include <OgreManualObject.h>
+
 #include <steeltypes.h>
 
 namespace Ogre
@@ -39,6 +41,7 @@ namespace Steel
             float mLeft, mTop, mRight, mBottom;
             /// used in the selectionBox query
             Ogre::PlaneBoundedVolumeListSceneQuery *mVolQuery;
+            Ogre::MaterialPtr mMaterial;
     };
 
 }
