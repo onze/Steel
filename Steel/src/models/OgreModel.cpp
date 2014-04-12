@@ -46,7 +46,7 @@ namespace Steel
 
         if(withRestore)
         {
-            any = mSceneNode->getUserAny();
+            any = mSceneNode->getUserObjectBindings().getUserAny();
 
             if(mEntity != nullptr)
             {
@@ -71,7 +71,7 @@ namespace Steel
 
         if(withRestore)
         {
-            mSceneNode->setUserAny(any);
+            mSceneNode->getUserObjectBindings().setUserAny(any);
         }
 
         return true;
@@ -322,6 +322,11 @@ namespace Steel
         mHasMaterialOverride = true;
     }
 
+    bool OgreModel::isVisible() const
+    {
+        return nullptr == mEntity ? false : mEntity->isVisible();    
+    }
+    
     void OgreModel::setVisible(bool flag)
     {
         if(nullptr != mEntity)

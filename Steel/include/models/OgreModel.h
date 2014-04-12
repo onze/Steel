@@ -75,7 +75,7 @@ namespace Steel
         // getters
         inline Ogre::Entity *entity() {return mEntity;}
         inline Ogre::SceneNode *sceneNode() {return mSceneNode;}
-        bool isVisible() const {return nullptr == mEntity ? false : mEntity->isVisible();}
+        bool isVisible() const;
 
         virtual void cleanup();
         virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
