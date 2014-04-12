@@ -1,18 +1,12 @@
 #ifndef STEEL_ENGINE_H
 #define STEEL_ENGINE_H
 
-#include <OgreRoot.h>
-#include <OgreLog.h>
-#include <OgreViewport.h>
-#include <OgreSceneManager.h>
-#include <OgreRenderWindow.h>
-#include <OgreString.h>
+#include <Ogre.h>
 #include <OISKeyboard.h>
 
 #include "steeltypes.h"
 #include "InputSystem/InputManager.h"
 #include "tools/ConfigFile.h"
-#include "UI/UI.h"
 #include "InputSystem/InputEventListener.h"
 
 namespace Steel
@@ -21,6 +15,7 @@ namespace Steel
     class Level;
     class RayCaster;
     class EngineEventListener;
+    class UI;
 
     class Engine: public InputEventListener
     {
@@ -127,7 +122,7 @@ namespace Steel
         //getters
         inline InputManager *inputMan() {return &mInputMan;}
         inline Ogre::RenderWindow *renderWindow() {return mRenderWindow;}
-        inline UI *const ui() {return &mUI;}
+        inline UI *const ui() {return mUI;}
 
         inline File rootDir() {return mRootDir;}
         inline File dataDir() {return mRootDir.subfile("data");}
@@ -213,7 +208,7 @@ namespace Steel
 
         /// Object that handles all this raycasting thingy.
         RayCaster *mRayCaster;
-        UI mUI;
+        UI *mUI;
 
         bool mEditMode;
         Stats mStats;

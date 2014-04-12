@@ -16,6 +16,7 @@
 #include "Level.h"
 #include "Engine.h"
 #include "UI/FileSystemDataSource.h"
+#include "UI/UI.h"
 #include "Camera.h"
 #include "models/Agent.h"
 #include "models/OgreModelManager.h"

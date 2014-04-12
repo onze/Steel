@@ -5,17 +5,13 @@
  *      Author: onze
  */
 
-#include <list>
-#include <iostream>
-#include <unistd.h>
-#include <memory>
+#include "Engine.h"
 
 #include <OgreStringConverter.h>
 #include <OgreEntity.h>
 #include <OgreConfigFile.h>
 #include <OgreResourceGroupManager.h>
 
-#include "Engine.h"
 #include "Camera.h"
 #include "Level.h"
 #include "models/Agent.h"
@@ -28,7 +24,8 @@
 #include "EngineEventListener.h"
 #include "SelectionManager.h"
 #include "SignalManager.h"
-#include <tests/UnitTestManager.h>
+#include "UI/UI.h"
+#include "tests/UnitTestManager.h"
 
 namespace Steel
 {
@@ -41,7 +38,7 @@ namespace Steel
         mRootDir("."), mConfig(confFilename),
         mRoot(nullptr), mRenderWindow(nullptr), mInputMan(), mWindowHandle(StringUtils::BLANK),
         mMustAbortMainLoop(false), mIsInMainLoop(false),
-        mLevel(nullptr), mRayCaster(nullptr), mUI(),
+        mLevel(nullptr), mRayCaster(nullptr), mUI(nullptr),
         mEditMode(false), mStats(),
         mCommands(), mListeners(),
         mReferencePathsLookupTable()
@@ -82,7 +79,9 @@ namespace Steel
             fireOnLevelUnsetEvent();
             // TODO: tell the level it is unset, instead of doing stuff it knows better about
             mLevel->selectionMan()->clearSelection();
-            mUI.shutdown();
+
+            if(nullptr != mUI)
+                mUI->shutdown();
         }
 
         Level *previous = mLevel;
@@ -90,7 +89,7 @@ namespace Steel
 
         if(nullptr != mLevel)
         {
-            mUI.init(uiDir(), &mInputMan, mRenderWindow, this);
+            mUI->init(uiDir(), &mInputMan, mRenderWindow, this);
 
             loadConfig(mConfig);
 
@@ -203,6 +202,7 @@ namespace Steel
         // makes sure the window is usable (for instance for gui init) once out of init.
         mRenderWindow->update();
         mRoot->clearEventTimes();
+        mUI = new UI();
 
         mInputMan.init(this);
 
@@ -290,7 +290,12 @@ namespace Steel
             mRayCaster = nullptr;
         }
 
-        mUI.shutdown();
+        if(nullptr != mUI)
+        {
+            mUI->shutdown();
+            delete mUI;
+            mUI = nullptr;
+        }
 
         if(mLevel != nullptr)
         {
@@ -437,7 +442,7 @@ namespace Steel
         bool ok = InputEventListener::onInputEvent(evt);
 
         if(mEditMode)
-            static_cast<InputEventListener &>(mUI).onInputEvent(evt);
+            mUI->onInputEvent(evt);
 
         return ok && !mEditMode;
     }
@@ -571,6 +576,8 @@ namespace Steel
 
     bool Engine::processCommand(std::vector<Ogre::String> command)
     {
+        static const Ogre::String intro = "Engine::processCommand(): ";
+
         if(command[0] == "level")
         {
             command.erase(command.begin());
@@ -578,13 +585,30 @@ namespace Steel
         }
         else if(command[0] == "ui")
         {
-            command.erase(command.begin());
-            return mUI.processCommand(command);
+            if(nullptr != mUI)
+            {
+                command.erase(command.begin());
+                return mUI->processCommand(command);
+            }
+            else
+            {
+                Debug::error(intro).quotes(command)(": no UI yet !").endl();
+                return false;
+            }
         }
         else if(command[0] == "editor")
         {
-            command.erase(command.begin());
-            return mUI.editor().processCommand(command);
+            if(nullptr != mUI)
+            {
+                command.erase(command.begin());
+                return mUI->editor().processCommand(command);
+            }
+            else
+            {
+                //TODO: UI-independant editor ?
+                Debug::error(intro).quotes(command)(": no UI/editor yet !").endl();
+                return false;
+            }
         }
         else if(command[0] == "reloadConfig")
         {
@@ -660,14 +684,25 @@ namespace Steel
 
     void Engine::saveConfig(ConfigFile &config)
     {
-        mUI.saveConfig(config);
+        static const Ogre::String intro = "Engine::saveConfig(): ";
+
+        if(nullptr != mUI)
+            mUI->saveConfig(config);
+        else
+            Debug::error(intro)("no UI yet !").endl();
+
         config.save();
     }
 
     void Engine::loadConfig(ConfigFile &config)
     {
+        static const Ogre::String intro = "Engine::loadConfig(): ";
         config.load();
-        mUI.loadConfig(config);
+
+        if(nullptr != mUI)
+            mUI->loadConfig(config);
+        else
+            Debug::error(intro)("no UI yet !").endl();
 
         setupReferencePathsLookupTable(config.getSetting(Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING));
     }
@@ -742,11 +777,11 @@ namespace Steel
 
     void Engine::resizeWindow(int width, int height)
     {
-
         if(mRenderWindow)
         {
             mRenderWindow->resize(width, height);
             mRenderWindow->windowMovedOrResized();
+            mUI->onResize(width, height);
 
             if(mLevel->camera())
             {
@@ -779,7 +814,7 @@ namespace Steel
 //         Debug::log("Engine::startEditMode()").endl();
         mEditMode = true;
         mInputMan.grabInput(false);
-        mUI.startEditMode();
+        mUI->startEditMode();
 
         mLevel->camera()->detachFromAgent();
 
@@ -790,7 +825,7 @@ namespace Steel
     {
 //         Debug::log("Engine::stopEditMode()").endl();
         mEditMode = false;
-        mUI.stopEditMode();
+        mUI->stopEditMode();
         mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
 
         fireOnStopEditMode();
@@ -799,3 +834,4 @@ namespace Steel
 }
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+

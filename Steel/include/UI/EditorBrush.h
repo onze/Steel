@@ -12,6 +12,7 @@
 #include "steeltypes.h"
 #include "InputSystem/Input.h"
 #include "terrain/TerrainManager.h"
+#include "tools/DynamicLines.h"
 
 namespace Ogre
 {
@@ -27,7 +28,6 @@ namespace Steel
     class Editor;
     class InputManager;
     class SelectionBox;
-    class DynamicLines;
 
     class EditorBrush: public Ogre::FrameListener
     {
@@ -191,7 +191,7 @@ namespace Steel
             /// id of the source agent in link mode
             AgentId mFirstLinkedAgent;
             /// Line drawn during linking (of LocationModel, etc)
-            DynamicLines *mLinkingLine;
+            DynamicLines mLinkingLine;
             
             std::function<bool(AgentId const srcAid)> mLinkingSourceAgentValidationFn;
             std::function<bool(AgentId const dstAid)> mLinkingDestinationAgentValidationFn;

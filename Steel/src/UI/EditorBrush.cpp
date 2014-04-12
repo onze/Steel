@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "UI/Editor.h"
 #include "UI/SelectionBox.h"
+#include "UI/UI.h"
 #include "Camera.h"
 #include "Level.h"
 #include "tools/Cylinder.h"
@@ -35,7 +36,7 @@ namespace Steel
           mTerraScaleFactor(1.1f), mTerraScale(1.f, 1.f, 1.f), mSelectedTerrainHeight(.0f),
           mRaiseShape(TerrainManager::RaiseShape::UNIFORM), mModeStack(std::vector<BrushMode>()),
           mModifiedTerrains(std::set<Ogre::Terrain *>()), mIsSelecting(false), mSelectionBox(nullptr),
-          mLinkingLine(nullptr),
+          mLinkingLine(),
           mLinkingSourceAgentValidationFn(nullptr), mLinkingDestinationAgentValidationFn(nullptr),
           mLinkingValidatedCallbackFn(nullptr), mLinkingValidatedAlternateCallbackFn(nullptr)
     {
@@ -416,8 +417,8 @@ namespace Steel
 
         // clean linking mode state
         mFirstLinkedAgent = INVALID_ID;
-        mLinkingLine->clear();
-        mLinkingLine->update();
+        mLinkingLine.clear();
+        mLinkingLine.update();
 
         mContinuousModeActivated = false;
         // not used
@@ -447,18 +448,18 @@ namespace Steel
                             break;
 
                         // draw a link between source and cursor
-                        mLinkingLine->clear();
+                        mLinkingLine.clear();
                         Agent *agent = level->agentMan()->getAgent(mFirstLinkedAgent);
                         Ogre::Vector2 srcPos = level->camera()->screenPosition(agent->position());
                         // ortho view -> invert y axis
                         srcPos.y = 1.f - srcPos.y;
                         // then rescale from [0,1] to [-1,1]
                         srcPos = srcPos * 2.f - 1.f;
-                        mLinkingLine->addPoint(srcPos);
+                        mLinkingLine.addPoint(srcPos);
                         Ogre::Vector2 dstPos(x / w, 1.f - y / h);
                         dstPos = dstPos * 2.f - 1.f;
-                        mLinkingLine->addPoint(dstPos);
-                        mLinkingLine->update();
+                        mLinkingLine.addPoint(dstPos);
+                        mLinkingLine.update();
                         break;
                     }
 
@@ -902,9 +903,8 @@ namespace Steel
         mSelectionBox = new SelectionBox("EditorBrushSelectionBox", mEngine);
         mSelectionBox->setVisible(false);
 
-        mLinkingLine = new DynamicLines();
-        mLinkingLine->init(mEngine->ui()->resourceGroup(), Ogre::RenderOperation::OT_LINE_LIST, true);
-        mEngine->level()->levelRoot()->attachObject(mLinkingLine);
+        mLinkingLine.init(mEngine->ui()->resourceGroup(), Ogre::RenderOperation::OT_LINE_LIST, true);
+        mEngine->level()->levelRoot()->attachObject(&mLinkingLine);
 
         popMode();
     }
@@ -921,13 +921,8 @@ namespace Steel
             mSelectionBox = nullptr;
         }
 
-        if(nullptr != mLinkingLine)
-        {
-            mLinkingLine->clear();
-            mEngine->level()->levelRoot()->detachObject(mLinkingLine);
-            delete mLinkingLine;
-            mLinkingLine = nullptr;
-        }
+        mLinkingLine.clear();
+        mEngine->level()->levelRoot()->detachObject(&mLinkingLine);
     }
 
     void EditorBrush::popMode()
@@ -944,7 +939,6 @@ namespace Steel
     {
         mModeStack.push_back(mMode);
     }
-
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // ENUM SERIALIZATION
