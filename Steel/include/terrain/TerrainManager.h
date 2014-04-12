@@ -9,7 +9,6 @@
 #include <OgreTerrainGroup.h>
 
 #include "tools/File.h"
-#include "TerrainMaterialGenerator.h"
 
 namespace Ogre
 {
@@ -24,6 +23,7 @@ namespace Steel
     class Level;
     class TerrainManagerEventListener;
     class TerrainPhysicsManager;
+    //class TerrainMaterialGenerator;
     
     class TerrainManager: public Ogre::FrameListener
     {
@@ -192,7 +192,7 @@ namespace Steel
         bool mTerrainsImported;
         File mPath;
         TerrainPhysicsManager *mTerrainPhysicsMan;
-        TerrainMaterialGenerator *mTerrainMaterialGenerator;
+        //TerrainMaterialGenerator *mTerrainMaterialGenerator;
     };
 }
 #endif // STEEL_TERRAINMANAGER_H

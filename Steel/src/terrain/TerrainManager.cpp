@@ -9,7 +9,7 @@
 #include "Debug.h"
 #include "terrain/TerrainManagerEventListener.h"
 #include "terrain/TerrainPhysicsManager.h"
-#include "terrain/TerrainMaterialGenerator.h"
+// #include "terrain/TerrainMaterialGenerator.h"
 #include "tools/JsonUtils.h"
 #include "Level.h"
 
@@ -20,8 +20,8 @@ namespace Steel
         mLevel(nullptr), mSceneManager(nullptr), mResourceGroupName("TerrainManager-defaultResourceGroup-name"),
         mLoadingState(LoadingState::INIT), mListeners(std::set<TerrainManagerEventListener *>()),
         mTerrainGlobals(nullptr), mTerrainGroup(nullptr), mTerrainsImported(false),
-        mPath(Ogre::StringUtil::BLANK), mTerrainPhysicsMan(nullptr),
-        mTerrainMaterialGenerator(nullptr)
+        mPath(Ogre::StringUtil::BLANK), mTerrainPhysicsMan(nullptr)
+        //, mTerrainMaterialGenerator(nullptr)
     {
     }
 
@@ -29,8 +29,8 @@ namespace Steel
         mLevel(o.mLevel), mSceneManager(o.mSceneManager), mResourceGroupName(o.mResourceGroupName),
         mLoadingState(o.mLoadingState), mListeners(o.mListeners),
         mTerrainGlobals(o.mTerrainGlobals), mTerrainGroup(o.mTerrainGroup), mTerrainsImported(o.mTerrainsImported),
-        mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan),
-        mTerrainMaterialGenerator(new TerrainMaterialGenerator(*o.mTerrainMaterialGenerator))
+        mPath(o.mPath), mTerrainPhysicsMan(o.mTerrainPhysicsMan)
+        //, mTerrainMaterialGenerator(new TerrainMaterialGenerator(*o.mTerrainMaterialGenerator))
     {
     }
 
@@ -76,14 +76,14 @@ namespace Steel
             (*it)->onTerrainEvent(state);
         }
     }
-
+    
     void TerrainManager::shutdown()
     {
-        if(nullptr != mTerrainMaterialGenerator)
-        {
-            delete mTerrainMaterialGenerator;
-            mTerrainMaterialGenerator = nullptr;
-        }
+//         if(nullptr != mTerrainMaterialGenerator)
+//         {
+//             delete mTerrainMaterialGenerator;
+//             mTerrainMaterialGenerator = nullptr;
+//         }
 
         if(nullptr != mTerrainPhysicsMan)
         {
@@ -91,18 +91,21 @@ namespace Steel
             mTerrainPhysicsMan = nullptr;
         }
 
-        Ogre::Root::getSingletonPtr()->removeFrameListener(this);
-
         if(nullptr != mTerrainGroup)
         {
-            if(LoadingState::READY != mLoadingState)
+            if(mTerrainGroup->isDerivedDataUpdateInProgress())
             {
-                // makes
+                // no way to query the channel ? hardcode it.
+                Ogre::WorkQueue *wq = Ogre::Root::getSingleton().getWorkQueue();
+                auto mWorkQueueChannel = wq->getChannel("Ogre/Terrain");
+                wq->abortRequestsByChannel(mTerrainGroup->WORKQUEUE_LOAD_REQUEST);
+                wq->removeResponseHandler(mWorkQueueChannel, mTerrainGroup);
+                wq->removeRequestHandler(mWorkQueueChannel, mTerrainGroup);
+
                 Ogre::TerrainGroup::TerrainIterator it = mTerrainGroup->getTerrainIterator();
 
                 while(it.hasMoreElements())
                 {
-
                     Ogre::Terrain *terrain = it.getNext()->instance;
 
                     if(nullptr == terrain)
@@ -110,11 +113,12 @@ namespace Steel
 
                     if(terrain->isDerivedDataUpdateInProgress())
                     {
-                        Ogre::Root::getSingleton().getWorkQueue()->removeResponseHandler(
-                            terrain->WORKQUEUE_DERIVED_DATA_REQUEST, terrain);
-                        Ogre::Root::getSingleton().getWorkQueue()->abortRequestsByChannel(
-                            terrain->WORKQUEUE_DERIVED_DATA_REQUEST);
+                        wq->abortRequestsByChannel(terrain->WORKQUEUE_DERIVED_DATA_REQUEST);
+                        wq->removeResponseHandler(terrain->WORKQUEUE_DERIVED_DATA_REQUEST, terrain);
+                        wq->removeRequestHandler(terrain->WORKQUEUE_DERIVED_DATA_REQUEST, terrain);
                     }
+
+                    terrain->unload();
                 }
             }
 
@@ -122,6 +126,8 @@ namespace Steel
             OGRE_DELETE mTerrainGroup;
             mTerrainGroup = nullptr;
         }
+
+        Ogre::Root::getSingletonPtr()->removeFrameListener(this);
 
         mTerrainGlobals = nullptr;
         mSceneManager = nullptr;
@@ -148,11 +154,11 @@ namespace Steel
         mTerrainGlobals = Ogre::TerrainGlobalOptions::getSingletonPtr();
 
 
-        if(nullptr == mTerrainMaterialGenerator)
-        {
-            Ogre::String mDefaultTerrainMaterialName("triPlanarMaterial1");
-            mTerrainMaterialGenerator = new TerrainMaterialGenerator(mDefaultTerrainMaterialName);
-        }
+//         if(nullptr == mTerrainMaterialGenerator)
+//         {
+//             Ogre::String mDefaultTerrainMaterialName("triPlanarMaterial1");
+//             mTerrainMaterialGenerator = new TerrainMaterialGenerator(mDefaultTerrainMaterialName);
+//         }
 
         if(nullptr == mTerrainGlobals)
             mTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();

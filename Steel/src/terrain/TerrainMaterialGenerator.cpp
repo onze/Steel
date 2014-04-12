@@ -1,3 +1,5 @@
+#ifdef STEEL_TERRAINMATERIALGENERATOR_H
+
 #include "terrain/TerrainMaterialGenerator.h"
 #include <OgreTerrain.h>
 
@@ -101,3 +103,5 @@ namespace Steel
     }
 
 }
+
+#endif
