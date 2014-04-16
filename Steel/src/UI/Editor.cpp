@@ -395,7 +395,8 @@ namespace Steel
 
         if(nullptr != elem)
         {
-            int tabNo = mEngine->config().getSettingAsInt(Editor::MENU_TAB_INDEX_SETTING, 0);
+            int tabNo;
+            mEngine->config().getSetting(Editor::MENU_TAB_INDEX_SETTING, tabNo, 0);
             elem->SetActiveTab(tabNo);
         }
 

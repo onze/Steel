@@ -131,74 +131,115 @@ namespace Steel
         return *this;
     }
 
-    int ConfigFile::getSettingAsBool(const Ogre::String &key, bool defaultValue) const
+    bool ConfigFile::getSetting(const Ogre::String &key, bool &dst, bool defaultValue) const
     {
-        bool returned = defaultValue;
-
         if(mSettings.size() != 0)
         {
             if(mSettings.isMember(key))
-                returned = JsonUtils::asBool(mSettings[key], defaultValue);
+            {
+                dst = JsonUtils::asBool(mSettings[key], defaultValue);
+                return true;
+            }
         }
 
-        return returned;
+        dst = defaultValue;
+        return false;
     }
 
-    int ConfigFile::getSettingAsInt(const Ogre::String &key, int defaultValue) const
+    bool ConfigFile::getSetting(const Ogre::String &key, s32 &dst, s32 defaultValue) const
     {
-        int returned = defaultValue;
-
         if(mSettings.size() != 0)
         {
             if(mSettings.isMember(key))
-                returned = JsonUtils::asInt(mSettings[key], defaultValue);
+            {
+                dst = JsonUtils::asInt(mSettings[key], defaultValue);
+                return true;
+            }
         }
 
-        return returned;
+        dst = defaultValue;
+        return false;
     }
-
-    float ConfigFile::getSettingAsFloat(const Ogre::String &key, float defaultValue) const
+    
+    bool ConfigFile::getSetting(const Ogre::String &key, u32 &dst, u32 defaultValue) const
     {
-        float returned = defaultValue;
-
-        if(mSettings.size() != 0)
-        {
-
-            if(mSettings.isMember(key))
-                returned = JsonUtils::asFloat(mSettings[key], defaultValue);
-        }
-
-        return returned;
-    }
-
-    unsigned long ConfigFile::getSettingAsUnsignedLong(const Ogre::String &key, long unsigned int defaultValue) const
-    {
-        unsigned long returned = defaultValue;
-
         if(mSettings.size() != 0)
         {
             if(mSettings.isMember(key))
-                returned = JsonUtils::asUnsignedLong(mSettings[key], defaultValue);
+            {
+                dst = (u32)JsonUtils::asUnsignedLong(mSettings[key], (u64)defaultValue);
+                return true;
+            }
         }
-
-        return returned;
+        
+        dst = defaultValue;
+        return false;
     }
 
-    Ogre::String ConfigFile::getSetting(const Ogre::String &key, const Ogre::String &defaultValue) const
+    bool ConfigFile::getSetting(const Ogre::String &key, u64 &dst, u64 defaultValue) const
     {
-        Ogre::String returned = defaultValue;
+        if(mSettings.size() != 0)
+        {
+            if(mSettings.isMember(key))
+            {
+                dst = JsonUtils::asUnsignedLong(mSettings[key], defaultValue);
+                return true;
+            }
+        }
 
+        dst = defaultValue;
+        return false;
+    }
+    
+    bool ConfigFile::getSetting(const Ogre::String &key, f32 &dst, f32 defaultValue) const
+    {
+        if(mSettings.size() != 0)
+        {
+            if(mSettings.isMember(key))
+            {
+                dst = JsonUtils::asFloat(mSettings[key], defaultValue);
+                return true;
+            }
+        }
+        
+        dst = defaultValue;
+        return false;
+    }
+
+    bool ConfigFile::getSetting(const Ogre::String &key, Ogre::String &dst, const Ogre::String &defaultValue) const
+    {
         if(mSettings.isMember(key))
         {
             Json::Value value = mSettings[key];
 
             if(value.isString())
-                returned = value.asString();
+                dst = value.asString();
             else
-                returned = value.toStyledString();
+                dst = value.toStyledString(); // TODO: strip quotes ?
+
+            return true;
         }
 
-        return returned;
+        dst = defaultValue;
+        return false;
+    }
+
+    bool ConfigFile::getSetting(const Ogre::String &key, Ogre::Vector3 &dst, Ogre::Vector3 const &defaultValue) const
+    {
+        if(mSettings.isMember(key))
+        {
+            Json::Value value = mSettings[key];
+
+            if(value.isString())
+                dst = Ogre::StringConverter::parseVector3(value.asString(), defaultValue);
+            else
+                dst = Ogre::StringConverter::parseVector3(value.toStyledString(), defaultValue); // TODO: strip quotes ?
+
+            return true;
+        }
+
+        dst = defaultValue;
+        return false;
     }
 
     bool utest_ConfigFile(UnitTestExecutionContext const *context)
@@ -213,7 +254,9 @@ namespace Steel
         {
             CLEANUP;
             ConfigFile cf(path);
-            STEEL_UT_ASSERT(cf.getSetting(key) == StringUtils::BLANK, "[UT001] loading from a new file should return a blank value");
+            Ogre::String dst;
+            cf.getSetting(key, dst);
+            STEEL_UT_ASSERT(dst == StringUtils::BLANK, "[UT001] loading  a value from a new file should return a blank value");
         }
 
         //TODO: all supported types
@@ -221,7 +264,9 @@ namespace Steel
             CLEANUP;
             ConfigFile cf(path);
             cf.setSetting(key, stringValue);
-            STEEL_UT_ASSERT(cf.getSetting(key) == stringValue, "[UT002] failed set/get string setting");
+            Ogre::String dst;
+            cf.getSetting(key, dst);
+            STEEL_UT_ASSERT(dst == stringValue, "[UT002] failed set/get string setting");
         }
 
         {
@@ -231,7 +276,10 @@ namespace Steel
 
             ConfigFile copied(cf);
             STEEL_UT_ASSERT(copied == cf, "[UT003] config files do not equal after copy");
-            STEEL_UT_ASSERT(copied.getSetting(key) == stringValue, "[UT004] failed at copying value through copy ctor");
+
+            Ogre::String dst;
+            copied.getSetting(key, dst);
+            STEEL_UT_ASSERT(dst == stringValue, "[UT004] failed at copying value through copy ctor");
         }
 
         {
@@ -241,7 +289,10 @@ namespace Steel
             ConfigFile equalled(path2);
             equalled = cf;
             STEEL_UT_ASSERT(equalled == cf, "[UT005] config files do not equal after assignation");
-            STEEL_UT_ASSERT(equalled.getSetting(key) == stringValue, "[UT006] failed at copying value through assignation");
+
+            Ogre::String dst;
+            equalled.getSetting(key, dst);
+            STEEL_UT_ASSERT(dst == stringValue, "[UT006] failed at copying value through assignation");
         }
 
         {
@@ -250,7 +301,8 @@ namespace Steel
             cf.setSetting(key, intValue);
             cf.save();
             ConfigFile cf2(path);
-            int ret = cf2.getSettingAsInt(key);
+            int ret = intValue + 1;
+            cf2.getSetting(key, ret);
             STEEL_UT_ASSERT(ret == intValue, "[UT007] failed persistency test");
         }
 

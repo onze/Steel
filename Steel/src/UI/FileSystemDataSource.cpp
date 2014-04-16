@@ -329,7 +329,9 @@ namespace Steel
             // and we want to expand it
             ConfigFile cf(File(fullpath.CString()).subfile(confFileName()));
 
-            if(cf.getSettingAsBool(FileSystemDataSource::EXPAND_ATTRIBUTE, false))
+            bool expandAttribute;
+            cf.getSetting(FileSystemDataSource::EXPAND_ATTRIBUTE, expandAttribute, false);
+            if(expandAttribute)
             {
                 row->ExpandRow();
                 // don't forget to also expand the button

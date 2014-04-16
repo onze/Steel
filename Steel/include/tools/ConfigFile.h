@@ -3,6 +3,7 @@
 
 #include <json/json.h>
 
+#include "steeltypes.h"
 #include "File.h"
 #include "StringUtils.h"
 
@@ -25,11 +26,13 @@ namespace Steel
         virtual bool operator==(const ConfigFile &other) const;
         virtual bool operator!=(const ConfigFile &other) const;
 
-        Ogre::String getSetting(Ogre::String const &key, Ogre::String const &defaultValue = StringUtils::BLANK) const;
-        int getSettingAsBool(Ogre::String const &key, bool defaultValue = false) const;
-        int getSettingAsInt(Ogre::String const &key, int defaultValue = 0) const;
-        float getSettingAsFloat(Ogre::String const &key, float defaultValue = .0f) const;
-        unsigned long getSettingAsUnsignedLong(Ogre::String const &key, unsigned long defaultValue = 0UL) const;
+        bool getSetting(Ogre::String const &key, Ogre::String &dst, Ogre::String const &defaultValue = StringUtils::BLANK) const;
+        bool getSetting(Ogre::String const &key, bool &dst, bool defaultValue = false) const;
+        bool getSetting(Ogre::String const &key, s32 &dst, s32 defaultValue = 0) const;
+        bool getSetting(Ogre::String const &key, u32 &dst, u32 defaultValue = 0U) const;
+        bool getSetting(Ogre::String const &key, u64 &dst, u64 defaultValue = 0UL) const;
+        bool getSetting(Ogre::String const &key, f32 &dst, f32 defaultValue = .0f) const;
+        bool getSetting(Ogre::String const &key, Ogre::Vector3 &dst, Ogre::Vector3 const& defaultValue = Ogre::Vector3::ZERO) const;
 
         ConfigFile &setSetting(Ogre::String key, Ogre::String const &value);
         ConfigFile &setSetting(Ogre::String key, Json::Value const &value);

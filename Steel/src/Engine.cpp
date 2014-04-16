@@ -123,7 +123,11 @@ namespace Steel
         mRenderWindow->getCustomAttribute("WINDOW", &windowHandle);
         mWindowHandle = Ogre::StringConverter::toString(windowHandle);
         postWindowingSetup(mRenderWindow->getWidth(), mRenderWindow->getHeight());
-        mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
+        {
+            bool exclusive;
+            mConfig.getSetting(Engine::NONEDIT_MODE_GRABS_INPUT, exclusive, true);
+            mInputMan.grabInput(exclusive);
+        }
     }
 
     void Engine::embeddedInit(Ogre::String plugins, std::string windowHandle, unsigned int width, unsigned int height,
@@ -150,7 +154,9 @@ namespace Steel
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         mConfig.load();
 
-        Debug::init(defaultLog, logListener, mConfig.getSettingAsBool(Engine::COLORED_DEBUG, true));
+        bool useColors;
+        mConfig.getSetting(Engine::COLORED_DEBUG, useColors, true);
+        Debug::init(defaultLog, logListener, useColors);
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
         mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), StringUtils::BLANK);
@@ -215,9 +221,13 @@ namespace Steel
 
         // engine ready.
         // unit testing
-        if(Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests"), false))
+        bool utests;
+        mConfig.getSetting("Engine::utests", utests, false);
+
+        if(utests)
         {
-            bool abortOnFail = Ogre::StringConverter::parseBool(mConfig.getSetting("Engine::utests_abort_on_fail"), true);
+            bool abortOnFail;
+            mConfig.getSetting("Engine::utests_abort_on_fail", abortOnFail, true);
 
             UnitTestExecutionContext context;
             context.engine = this;
@@ -704,7 +714,9 @@ namespace Steel
         else
             Debug::error(intro)("no UI yet !").endl();
 
-        setupReferencePathsLookupTable(config.getSetting(Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING));
+        Ogre::String source;
+        config.getSetting(Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING, source);
+        setupReferencePathsLookupTable(source);
     }
 
     void Engine::setupReferencePathsLookupTable(Ogre::String const &source)
@@ -826,7 +838,9 @@ namespace Steel
 //         Debug::log("Engine::stopEditMode()").endl();
         mEditMode = false;
         mUI->stopEditMode();
-        mInputMan.grabInput(mConfig.getSettingAsBool(Engine::NONEDIT_MODE_GRABS_INPUT, true));
+        bool exclusive;
+        mConfig.getSetting(Engine::NONEDIT_MODE_GRABS_INPUT, exclusive, true);
+        mInputMan.grabInput(exclusive);
 
         fireOnStopEditMode();
     }
@@ -834,4 +848,6 @@ namespace Steel
 }
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
+
 
