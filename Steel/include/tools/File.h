@@ -91,9 +91,6 @@ namespace Steel
         File &write(Ogre::String s, OpenMode mode = OM_APPEND);
 
         /// returns the file name (extension is part of the name)
-        Ogre::String fileBaseName() const;
-
-        /// returns the file name (extension is part of the name)
         Ogre::String fileName() const;
 
         /// return true is the file exists.
@@ -111,6 +108,9 @@ namespace Steel
         /// Returns the path pointed to by this file.
         Ogre::String fullPath() const;
         
+        /// Returns the absolute file path, that is <current directory>/fullpath
+        Ogre::String absPath() const;
+        
         /// Returns true if the path is absolute (does not starts with /)
         bool isPathAbsolute() const;
 
@@ -119,6 +119,8 @@ namespace Steel
          * Note that the subfile might not exist.
          */
         File subfile(Ogre::String const filename) const;
+        File operator/(Ogre::String const filename) const;
+        
 
         /// The file/dir containing this file instance.
         File parentDir() const;
@@ -169,12 +171,21 @@ namespace Steel
          * Returns File::ANY if the File instance points neither to a file nor to a dir.
          */
         NodeType nodeType();
+        
+        /// returns the file name (extension is part of the name) const version.
+        Ogre::String fileBaseName() const;
+        /// returns the file name (extension is part of the name)
+        Ogre::String &fileBaseName();
 
-        /// returns the file path (!! excludes its name).
+        /// returns the file path (!! excludes its name). const version.
         Ogre::String path() const;
+        /// returns the file path (!! excludes its name).
+        Ogre::String &path();
 
-        /// returns the file extension.
+        /// returns the file extension. const version.
         Ogre::String extension() const;
+        /// returns the file extension.
+        Ogre::String &extension();
 
     protected:
 

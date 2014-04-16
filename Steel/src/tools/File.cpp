@@ -131,20 +131,16 @@ namespace Steel
         sInotifyFD = -1;
     }
 
-    Ogre::String File::extension() const
-    {
-        return mExtension;
-    }
+    Ogre::String File::path() const {return mPath;}
+    Ogre::String &File::path() {return mPath;}
 
-    Ogre::String File::path() const
-    {
-        return mPath;
-    }
+    Ogre::String File::fileBaseName() const {return mBaseName;}
+    Ogre::String &File::fileBaseName() {return mBaseName;}
 
-    File File::parentDir() const
-    {
-        return File(mPath);
-    }
+    Ogre::String File::extension() const {return mExtension;}
+    Ogre::String &File::extension() {return mExtension;}
+
+    File File::parentDir() const {return File(mPath);}
 
     void File::mkdir() const
     {
@@ -348,11 +344,6 @@ namespace Steel
         return ifile;
     }
 
-    Ogre::String File::fileBaseName() const
-    {
-        return mBaseName;
-    }
-
     Ogre::String File::fileName() const
     {
         Ogre::String s = mBaseName;
@@ -363,11 +354,9 @@ namespace Steel
         return s;
     }
 
-    Ogre::String File::fullPath() const
-    {
-        return mPath + fileName();
-    }
-    
+    Ogre::String File::fullPath() const{return mPath + fileName();}
+    Ogre::String File::absPath() const{return File(File::getCurrentDirectory()).subfile(fullPath());}
+
     bool File::isPathAbsolute() const
     {
         return Poco::Path(mPath.c_str()).isAbsolute();
@@ -568,6 +557,11 @@ namespace Steel
 #else
         return File(fullPath() + "\\" + filename);
 #endif
+    }
+    
+    File File::operator/(Ogre::String const filename) const
+    {
+        return subfile(filename);
     }
 
     void File::setPath(Ogre::String path)
