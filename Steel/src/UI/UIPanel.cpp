@@ -1,4 +1,7 @@
 
+#include <string>
+#include <OgreString.h>
+
 #include <Rocket/Core.h>
 #include <../Source/Core/StyleSheetFactory.h>
 #include <../Source/Core/XMLNodeHandlerHead.h>
@@ -7,6 +10,8 @@
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI.h>
 #include <MyGUI_IResource.h>
+#include <MyGUI_Widget.h>
+#include <MyGUI_ComboBox.h>
 
 #include "Debug.h"
 #include "UI/UIPanel.h"
@@ -132,6 +137,9 @@ namespace Steel
                 Debug::error("layout ", mContextName + "Layout ", "loaded from resource ", resource, " has no content.").endl();
                 return;
             }
+
+            std::vector<MyGUI::Widget *> widgets(mMyGUIData.layout.begin(), mMyGUIData.layout.end());
+            setupMyGUIWidgetsLogic(widgets);
         }
     }
 
@@ -309,9 +317,131 @@ namespace Steel
     {
     }
 
-    void UIPanel::loadGUI(Ogre::String const & /*path*/)
+    void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
+        // events
+        static const std::string SteelOnChange = "SteelOnChange";
+        static const std::string SteelOnClick = "SteelOnClick";
 
+        // parse UI tree depth-first, subscribe to:
+        // - all button clicks
+        // - all combobox udpates
+        // - all scrollbar updates
+        while(fringe.size() > 0)
+        {
+            MyGUI::Widget *widget = fringe.back();
+            fringe.pop_back();
+            
+            // register to relevant node events
+            if(MyGUI::Button::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnClick))
+                widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
+
+            if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnChange))
+                static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
+
+            if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnChange))
+                static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIScrollChangePosition);
+
+            // add children
+            MyGUI::EnumeratorWidgetPtr it = widget->getEnumerator();
+
+            while(it.next())
+                fringe.push_back(it.current());
+        }
+    }
+
+    void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
+    {
+        static const std::string SteelOnClick = "SteelOnClick";
+        Ogre::String commands = button->getUserString(SteelOnClick);
+        executeWidgetCommands(button, commands);
+    }
+
+    void UIPanel::OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index)
+    {
+        static const std::string SteelOnChange = "SteelOnChange";
+        Ogre::String commands = comboBox->getUserString(SteelOnChange);
+        executeWidgetCommands(comboBox, commands);
+    }
+
+    void UIPanel::OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index)
+    {
+        static const std::string SteelOnChange = "SteelOnChange";
+        Ogre::String commands = scrollBar->getUserString(SteelOnChange);
+        executeWidgetCommands(scrollBar, commands);
+    }
+
+    void UIPanel::executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const &commandsLine)
+    {
+        if(0 == commandsLine.size())
+            return;
+
+        static const Ogre::String commandSeparator = ";";
+        //commands
+        static const Ogre::String SteelSetVariable = "SteelSetVariable";
+        static const Ogre::String SteelCommand = "SteelCommand";
+
+        std::vector<Ogre::String> commands = StringUtils::split(commandsLine, commandSeparator);
+
+        while(commands.size())
+        {
+            Ogre::String const command = commands.back();
+            commands.pop_back();
+
+            if(SteelSetVariable == command)
+                executeSetVariableCommand(widget);
+            else if(SteelCommand == command)
+                executeEngineCommand(widget);
+        }
+    }
+
+    void UIPanel::executeSetVariableCommand(MyGUI::Widget *widget)
+    {
+        static const std::string SteelVariableName = "SteelVariableName";
+
+        if(!hasWidgetKey(widget, SteelVariableName))
+            return;
+
+        if(MyGUI::ComboBox::getClassTypeName() != widget->getTypeName())
+        {
+            Debug::error("UIPanel::bindSetVariableMyGUIDelegate() on ", widget, ": wrong widget type. Skipping.").endl();
+            return;
+        }
+
+        Ogre::String variableName = widget->getUserString(SteelVariableName).c_str();
+        MyGUI::ComboBox *cbBox = static_cast<MyGUI::ComboBox *>(widget);
+
+        size_t index = cbBox->getIndexSelected();
+
+        if(MyGUI::ITEM_NONE != index)
+            setVariable(variableName, cbBox->getItemNameAt(index).asUTF8_c_str());
+    }
+
+    void UIPanel::executeEngineCommand(MyGUI::Widget *widget)
+    {
+        static const std::string SteelCommand = "SteelCommand";
+
+        if(!hasWidgetKey(widget, SteelCommand))
+            return;
+
+        std::string command = widget->getUserString(SteelCommand);
+        // all commands are postponed to next frame
+        mUI.editor().processCommand("engine.register."+command);
+    }
+
+    bool UIPanel::hasEvent(MyGUI::Widget *widget, Ogre::String const &eventName)
+    {
+        return hasWidgetKey(widget, eventName);
+    }
+
+    bool UIPanel::hasWidgetKey(MyGUI::Widget *widget, Ogre::String const &eventName)
+    {
+        return !widget->getUserString(eventName).empty();
+    }
+
+    void UIPanel::setVariable(Ogre::String key, Ogre::String value)
+    {
+        mMyGUIData.UIVariables[key] = value;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

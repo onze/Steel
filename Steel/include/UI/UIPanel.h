@@ -14,6 +14,10 @@ namespace MyGUI
 {
     class Widget;
     typedef std::vector< Widget *> VectorWidgetPtr;
+    
+    class ComboBox;
+    class ScrollBar;
+    
     class IResource;
 }
 
@@ -62,8 +66,25 @@ namespace Steel
 
     protected:
         void buildDependences();
-        void loadGUI(Ogre::String const& path);
         
+        /// Parses through the UI tree and sets up widget logic, given their userData
+        void setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &widgets);
+        
+        // MyGUI callbacks
+        void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
+        void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
+        void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
+        
+        void executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const& commandsLine);
+        void executeSetVariableCommand(MyGUI::Widget *widget);
+        void executeEngineCommand(MyGUI::Widget *widget);
+        
+        // widget inspection helpers
+        bool hasEvent(MyGUI::Widget *widget, Ogre::String const& eventName);
+        bool hasWidgetKey(MyGUI::Widget *widget, Ogre::String const& eventName);
+        
+        /// write access to UI shared variables
+        void setVariable(Ogre::String key, Ogre::String value);
         //not owned
         UI &mUI;
         
@@ -87,6 +108,8 @@ namespace Steel
         {
             MyGUI::VectorWidgetPtr layout;
             MyGUI::IResource *resource;
+            typedef std::map<Ogre::String, Ogre::String> StringStringMap;
+            StringStringMap UIVariables;
         };
         MyGUIData mMyGUIData;
         
