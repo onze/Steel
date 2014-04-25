@@ -10,8 +10,12 @@
 
 namespace Steel
 {
-    HUD::HUD(): UIPanel("HUD", "data/ui/current/hud/hud.rml"), Ogre::FrameListener(),
-        mEngine(nullptr), mUI(nullptr), mShowFPS(false)
+    HUD::HUD(UI &ui, Ogre::String const &): UIPanel(ui, "HUD", "data/ui/current/hud/hud.rml"), Ogre::FrameListener(),
+        mEngine(nullptr), mShowFPS(false)
+    {}
+
+    HUD::HUD(UI &ui): UIPanel(ui, "HUD", "data/ui/current/hud/hud.rml"), Ogre::FrameListener(),
+        mEngine(nullptr), mShowFPS(false)
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -19,15 +23,13 @@ namespace Steel
 #endif
     }
 
-    HUD::HUD(const HUD &other)
+    HUD::HUD(const HUD &o): UIPanel(o)
     {
-
     }
 
     HUD::~HUD()
     {
         mEngine = nullptr;
-        mUI = nullptr;
     }
 
     void HUD::saveConfig(ConfigFile &config) const
@@ -43,12 +45,11 @@ namespace Steel
         return *this;
     }
 
-    void HUD::init(int width, int height, Engine *engine, UI *ui)
+    void HUD::init(int width, int height, Engine *engine)
     {
         Debug::log("HUD::init()").endl();
         UIPanel::init(width, height);
         mEngine = engine;
-        mUI = ui;
     }
 
     bool HUD::frameRenderingQueued(const Ogre::FrameEvent &evt)

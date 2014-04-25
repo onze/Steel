@@ -62,12 +62,12 @@ namespace Steel
 
 
     public:
-        Editor();
-        Editor(const Editor &other);
+        Editor(UI &ui);
+        Editor(Steel::Editor const& o);
         virtual ~Editor();
-        virtual Editor &operator=(const Editor &other);
+        virtual Editor &operator=(const Editor &o);
 
-        void init(unsigned int width, unsigned int height, Steel::Engine *engine = nullptr, Steel::UI *ui = nullptr);
+        void init(unsigned int width, unsigned int height, Steel::Engine *engine = nullptr);
     protected:
         // this init should not be called from outside, since it does not have all necessary parameters. It is called upon UIPanel::reload though.
         virtual void init(unsigned int width, unsigned int height);
@@ -126,6 +126,8 @@ namespace Steel
         void removeDebugValue(Ogre::String const &entryName);
 
     private:
+        void loadExtraControls();
+        
         /// make a command out of a Rocket event.
         void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
         /// make a command out of a Rocket event.
@@ -151,7 +153,6 @@ namespace Steel
 
         //not owned
         Engine *mEngine;
-        UI *mUI;
         InputManager *mInputMan;
 
         //owned

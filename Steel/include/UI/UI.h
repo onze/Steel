@@ -8,13 +8,19 @@
 #include <OIS.h>
 
 #include <Rocket/Core.h>
-
 #include "UI/RenderInterfaceOgre3D.h"
 
 #include "EngineEventListener.h"
 #include "InputSystem/InputEventListener.h"
 #include "Editor.h"
 #include "HUD.h"
+
+namespace MyGUI
+{
+    class Gui;
+    class OgrePlatform;
+    class KeyCode;
+}
 
 namespace Rocket
 {
@@ -34,8 +40,8 @@ namespace Steel
     class UI: public Rocket::Core::SystemInterface, public Ogre::RenderQueueListener, public EngineEventListener, public InputEventListener
     {
     public:
-        typedef std::map<Input::Code, Rocket::Core::Input::KeyIdentifier> KeyIdentifierMap;
-        typedef std::map<Input::Code, int> MouseIdentifierMap;
+        typedef std::map<Input::Code, Rocket::Core::Input::KeyIdentifier> RocketKeyIdentifierMap;
+        typedef std::map<Input::Code, int> RocketMouseIdentifierMap;
         UI();
         UI(const UI &o);
         virtual ~UI();
@@ -72,9 +78,9 @@ namespace Steel
 
         ///maps OIS mouse/key codes to Rocket's
         void buildCodeMaps();
-        Rocket::Core::Input::KeyIdentifier getKeyIdentifier(Input::Code key) const;
-        int getMouseIdentifier(Input::Code button) const;
-        int getKeyModifierState();
+        Rocket::Core::Input::KeyIdentifier getRocketKeyIdentifier(Input::Code key) const;
+        int getRocketMouseIdentifier(Input::Code button) const;
+        int getRocketKeyModifierState();
 
         bool keyPressed(Input::Code key, Input::Event const &evt);
         bool keyReleased(Input::Code key, Input::Event const &evt);
@@ -97,9 +103,11 @@ namespace Steel
         Ogre::String resourceGroup() const {return "UI";}
         Editor &editor() {return mEditor;}
         File dataDir() const {return mUIDataDir;}
-        KeyIdentifierMap &keyIdentifiers() {return mKeyIdentifiers;}
+        RocketKeyIdentifierMap &rocketKeyIdentifiers() {return mRocketKeyIdentifiers;}
 
     protected:
+        MyGUI::KeyCode getMyGUIKeyIdentifier(Input::Code key) const;
+        
         // not owned
         InputManager *mInputMan;
         Ogre::RenderWindow *mWindow;
@@ -113,10 +121,20 @@ namespace Steel
         // rocket stuff
         Rocket::RenderInterfaceOgre3D *mRocketRenderInterface;
         Rocket::Core::Context *mMainContext;
+        /// maps Steel::Codes to rocket ones for input injection into Rocket UI
+        RocketKeyIdentifierMap mRocketKeyIdentifiers;
+        RocketMouseIdentifierMap mRocketMouseIdentifiers;
+        
+        // mygui stuff
+        typedef std::map<Steel::Input::Code, MyGUI::KeyCode> MyGUIKeyMap;
+        struct MyGUIData
+        {
+            MyGUI::Gui *gui;
+            MyGUI::OgrePlatform *platform;
+            MyGUIKeyMap keyMap;
+        };
+        MyGUIData mMyGUIData;
 
-        /// maps OIS key codes to rocket ones for input injection into Rocket UI
-        KeyIdentifierMap mKeyIdentifiers;
-        MouseIdentifierMap mMouseIdentifiers;
         ///editor panel
         Editor mEditor;
         ///hud panel

@@ -6,41 +6,48 @@
 #include <Rocket/Core/EventListener.h>
 #include <OgrePrerequisites.h>
 
-#include <tools/File.h>
-#include <tools/FileEventListener.h>
+#include "steeltypes.h"
+#include "tools/File.h"
+#include "tools/FileEventListener.h"
+
+namespace MyGUI
+{
+    class Widget;
+    typedef std::vector< Widget *> VectorWidgetPtr;
+    class IResource;
+}
 
 namespace Steel
-{    
+{
+    class UI;
+    
     class UIPanel: public Rocket::Core::EventListener, public FileEventListener
     {
     public:
-        UIPanel();
-        UIPanel(Ogre::String contextName, File mDocumentFile);
-        UIPanel(const UIPanel &other);
+        UIPanel(UI &ui);
+        UIPanel(UI &ui, Ogre::String contextName, File mDocumentFile);
+        UIPanel(const UIPanel &o);
         virtual ~UIPanel();
-        virtual UIPanel &operator=(const UIPanel &other);
+        virtual UIPanel &operator=(const UIPanel &o);
 
         virtual void init(unsigned int width, unsigned int height);
         virtual void shutdown();
+
         /// show the underlying document
         virtual void show();
         /// hides the underlying document
         virtual void hide();
+
         /// to be overloaded by subclasses that want to start listening to their document events
-        virtual void onShow()
-        {
-        };
+        virtual void onShow() {};
         /// to be overloaded by subclasses that want to stop listening to their document events
-        virtual void onHide()
-        {
-        };
+        virtual void onHide() {};
+
         /// true when the panel('s main document) is visible
         bool isVisible();
 
-        inline Rocket::Core::Context *context()
-        {
-            return mContext;
-        }
+        inline Rocket::Core::Context *context() {return mContext;}
+        
         /// Process the incoming events from mContext
         virtual void ProcessEvent(Rocket::Core::Event &event);
 
@@ -50,19 +57,17 @@ namespace Steel
         void reloadContent();
 
         // getters
-        inline unsigned height()
-        {
-            return mHeight;
-        }
-        inline unsigned width()
-        {
-            return mWidth;
-        }
+        inline unsigned height() const {return mHeight;}
+        inline unsigned width() const {return mWidth;}
 
     protected:
-
-        ///not owned
-        ///owned
+        void buildDependences();
+        void loadGUI(Ogre::String const& path);
+        
+        //not owned
+        UI &mUI;
+        
+        //owned
         /// screen size, in pixels.
         unsigned mWidth, mHeight;
         /// what displays documents
@@ -73,11 +78,24 @@ namespace Steel
         File mDocumentFile;
         /// root
         Rocket::Core::ElementDocument *mDocument;
+        
+        // MyGUI stuff
+        File layoutFile();
+        File resourceFile();
+        File skinFile();
+        struct MyGUIData
+        {
+            MyGUI::VectorWidgetPtr layout;
+            MyGUI::IResource *resource;
+        };
+        MyGUIData mMyGUIData;
+        
         /**
          * Set to true, watches mDocumentFile and reloads it when it chanes.
          * Document state persisence is left to subclasses, except for size and visibility
          */
         bool mAutoReload;
+        
         /** Files loaded by the main document, for which we might want to be notified of the changes too.
          * Those files are included as <link href="<path>" reloadonchange="true">
          * Main use case is styleSheets. Note that mAutoreload has to be true at panel's init.

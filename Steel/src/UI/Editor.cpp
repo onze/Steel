@@ -9,6 +9,8 @@
 #include <Rocket/Debugger.h>
 #include <Rocket/Core/Element.h>
 
+#include <MyGUI.h>
+
 #include "UI/Editor.h"
 #include "Debug.h"
 #include "tools/StringUtils.h"
@@ -39,8 +41,8 @@ namespace Steel
     const char *Editor::SELECTION_PATH_INFO_BOX = "selectionPathsInfoBox";
     const char *Editor::SELECTIONS_PATH_EDIT_BOX = "selection_path_editbox";
 
-    Editor::Editor(): UIPanel("Editor", "data/ui/current/editor/editor.rml"),
-        mEngine(nullptr), mUI(nullptr), mInputMan(nullptr), mFSResources(nullptr),
+    Editor::Editor(UI &ui): UIPanel(ui, "Editor", "data/ui/current/editor/editor.rml"),
+        mEngine(nullptr), mInputMan(nullptr), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
         mDebugValueMan()
     {
@@ -49,7 +51,7 @@ namespace Steel
 #endif
     }
 
-    Editor::Editor(const Editor &other)
+    Editor::Editor(Editor const &o): UIPanel(o)
     {
         Debug::error("Editor::Editor(const Editor& other) not implemented").endl().breakHere();
     }
@@ -65,7 +67,7 @@ namespace Steel
         }
     }
 
-    Editor &Editor::operator=(const Editor &other)
+    Editor &Editor::operator=(Editor const &o)
     {
         Debug::error("Editor::operator=(const Editor& other) not implemented").endl().breakHere();
         return *this;
@@ -113,10 +115,10 @@ namespace Steel
 
     void Editor::init(unsigned int width, unsigned int height)
     {
-        init(width, height, nullptr, nullptr);
+        init(width, height, nullptr);
     }
 
-    void Editor::init(unsigned int width, unsigned int height, Engine *engine, UI *ui)
+    void Editor::init(unsigned int width, unsigned int height, Engine *engine)
     {
         Debug::log("Editor::init()").endl();
 
@@ -126,11 +128,8 @@ namespace Steel
             mInputMan = engine->inputMan();
         }
 
-        if(nullptr != ui)
-            mUI = ui;
-
         mDebugValueMan.init("debugvaluemanager_select_entry", mDocument);
-        mDataDir = mUI->dataDir().subfile("editor").fullPath();
+        mDataDir = mUI.dataDir().subfile("editor").fullPath();
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         // true is for recursive search. Add to this resources.cfg
         resGroupMan->addResourceLocation(mDataDir.fullPath(), "FileSystem", "UI", true);
@@ -149,12 +148,35 @@ namespace Steel
             // elem->AddEventListener("submit",this);
         }
 
+//         loadGUI(mContextName);
+        loadExtraControls();
+
         mBrush.init(mEngine, this, mInputMan);
 
         mEngine->addEngineEventListener(this);
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
+    }
+    
+    void Editor::loadExtraControls()
+    {
+//         mMyGUIData.layout.at(0)->findWidget("Text")->castType<MyGUI::TextBox>()->setCaption("Resize window to see how ScrollView widget works");
+        
+        
+//         const MyGUI::IntSize& view = MyGUI::RenderManager::getInstance().getViewSize();
+//         const MyGUI::IntSize size(450, 450);
+//         
+//         MyGUI::Window* window = MyGUI::Gui::getInstance().createWidget<MyGUI::Window>("WindowCS", MyGUI::IntCoord((view.width - size.width) / 2, (view.height - size.height) / 2, size.width, size.height), MyGUI::Align::Default, "Main");
+//         window->setMinSize(150, 150);
+//         window->setCaption("ScrollView demo");
+//         MyGUI::ScrollView* scroll_view = window->createWidget<MyGUI::ScrollView>("ScrollView", MyGUI::IntCoord(2, 2, window->getClientCoord().width - 2, window->getClientCoord().height - 2), MyGUI::Align::Stretch);
+//         
+//         scroll_view->setCanvasSize(256, 256);
+//         MyGUI::ImageBox* image = scroll_view->createWidget<MyGUI::ImageBox>("ImageBox", MyGUI::IntCoord(0, 0, 256, 256), MyGUI::Align::Default);
+//         image->setImageTexture("Crystal_Clear_View.png");
+        
+//         new EditorPanel();
     }
 
     void Editor::onLevelSet(Level *level)
@@ -218,8 +240,8 @@ namespace Steel
 
     bool Editor::keyPressed(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->getKeyIdentifier(key);
-        mContext->ProcessKeyDown(keyIdentifier, mUI->getKeyModifierState());
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI.getRocketKeyIdentifier(key);
+        mContext->ProcessKeyDown(keyIdentifier, mUI.getRocketKeyModifierState());
 
         if(evt.text >= 32)
         {
@@ -235,8 +257,8 @@ namespace Steel
 
     bool Editor::keyReleased(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI->getKeyIdentifier(key);
-        mContext->ProcessKeyUp(keyIdentifier, mUI->getKeyModifierState());
+        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI.getRocketKeyIdentifier(key);
+        mContext->ProcessKeyUp(keyIdentifier, mUI.getRocketKeyModifierState());
 
         SelectionManager *selectionMan = mEngine->level()->selectionMan();
         Level *level = mEngine->level();
@@ -290,7 +312,7 @@ namespace Steel
 
 //                 if(nullptr == child || !child->IsPseudoClassSet("focus"))
 //                 {
-                    selectionMan->deleteSelection();
+                selectionMan->deleteSelection();
 //                 }
             }
             break;
@@ -322,7 +344,7 @@ namespace Steel
     bool Editor::mousePressed(Input::Code button, Input::Event const &evt)
     {
         if(hitTest(evt.position.x, evt.position.y, "menu"))
-            mContext->ProcessMouseButtonDown(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
+            mContext->ProcessMouseButtonDown(mUI.getRocketMouseIdentifier(button), mUI.getRocketKeyModifierState());
         else
             mBrush.mousePressed(button, evt);
 
@@ -331,14 +353,14 @@ namespace Steel
 
     bool Editor::mouseReleased(Input::Code button, Input::Event const &evt)
     {
-        mContext->ProcessMouseButtonUp(mUI->getMouseIdentifier(button), mUI->getKeyModifierState());
+        mContext->ProcessMouseButtonUp(mUI.getRocketMouseIdentifier(button), mUI.getRocketKeyModifierState());
         mBrush.mouseReleased(button, evt);
         return true;
     }
 
     bool Editor::mouseWheeled(int delta, Input::Event const &evt)
     {
-        auto keyModifierState = mUI->getKeyModifierState();
+        auto keyModifierState = mUI.getRocketKeyModifierState();
         mContext->ProcessMouseWheel(delta / -120, keyModifierState);
 
         if(!hitTest(evt.position.x, evt.position.y, "menu"))
@@ -370,7 +392,7 @@ namespace Steel
         }
         else
         {
-            mContext->ProcessMouseMove(position.x, position.y, mUI->getKeyModifierState());
+            mContext->ProcessMouseMove(position.x, position.y, mUI.getRocketKeyModifierState());
         }
 
         return true;

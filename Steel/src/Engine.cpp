@@ -89,9 +89,9 @@ namespace Steel
 
         if(nullptr != mLevel)
         {
-            mUI->init(uiDir(), &mInputMan, mRenderWindow, this);
-
             loadConfig(mConfig);
+            
+            mUI->init(uiDir(), &mInputMan, mRenderWindow, this);
 
             if(nullptr != newLevel)
                 fireOnLevelSetEvent();
