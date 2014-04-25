@@ -25,8 +25,8 @@ using namespace std;
 #include "Engine.h"
 #include "InputSystem/InputEventListener.h"
 #include "UI/UI.h"
-#include <SignalManager.h>
-#include <tests/UnitTestManager.h>
+#include "SignalManager.h"
+#include "tests/UnitTestManager.h"
 
 namespace Steel
 {
