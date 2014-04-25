@@ -3,9 +3,9 @@
 This project is an entity-based game engine, that makes use of the following libraries:
 - Ogre3d (rendering)
 - OIS (input system)
-- libRocket (UI)
+- libRocket + MyGUI (UI) (currently trying out different UI solutions to move away from libRocket)
 - Bullet (physics) + btOgre
-- Inotify (file change monitoring, linux)
+- Inotify (file changes monitoring on linux)
 
 ---
 
