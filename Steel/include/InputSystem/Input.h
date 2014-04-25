@@ -177,6 +177,7 @@ namespace Steel
             KC_MYCOMPUTER,
             KC_MAIL,
             KC_MEDIASELECT,
+            KC_SYSRQ,
 
             //not in OIS
             KC_ALT,
@@ -199,7 +200,6 @@ namespace Steel
             MC_POINTER,
         };
 
-        //POD
         class Event
         {
         public:
