@@ -93,7 +93,7 @@ namespace Steel
         ///general command processing method. dispatches the work to other process
         bool processCommand(std::vector< Ogre::String > command);
         /// submethod processing ui commands concerning options
-        bool processOptionCommand(std::vector< Ogre::String > command);
+        bool processOptionsCommand(std::vector< Ogre::String > command);
 
         //implements the OIS keyListener and mouseListener, as this allows the UI to pass them on as they arrive.
         bool keyPressed(Input::Code key, Input::Event const &evt);
@@ -126,8 +126,6 @@ namespace Steel
         void removeDebugValue(Ogre::String const &entryName);
 
     private:
-        void loadExtraControls();
-        
         /// make a command out of a Rocket event.
         void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
         /// make a command out of a Rocket event.

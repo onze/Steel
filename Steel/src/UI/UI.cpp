@@ -81,6 +81,12 @@ namespace Steel
 
     bool UI::processCommand(std::vector<Ogre::String> command)
     {
+        while(command.size() > 0 && command[0] == "ui")
+            command.erase(command.begin());
+        
+        if(0 == command.size())
+            return false;
+        
         if(command[0] == "reload")
         {
             reload();

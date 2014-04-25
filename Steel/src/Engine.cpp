@@ -587,17 +587,21 @@ namespace Steel
     bool Engine::processCommand(std::vector<Ogre::String> command)
     {
         static const Ogre::String intro = "Engine::processCommand(): ";
+        
+        while(command.size() > 0 && command[0] == "engine")
+            command.erase(command.begin());
+        
+        if(0 == command.size())
+            return false;
 
         if(command[0] == "level")
         {
-            command.erase(command.begin());
             mLevel->processCommand(command);
         }
         else if(command[0] == "ui")
         {
             if(nullptr != mUI)
             {
-                command.erase(command.begin());
                 return mUI->processCommand(command);
             }
             else
@@ -610,7 +614,6 @@ namespace Steel
         {
             if(nullptr != mUI)
             {
-                command.erase(command.begin());
                 return mUI->editor().processCommand(command);
             }
             else

@@ -342,8 +342,11 @@ namespace Steel
     void Level::processCommand(std::vector<Ogre::String> command)
     {
         Ogre::String intro = "Level::processCommand(" + StringUtils::join(command, ".") + ")";
-
-        if(command.size() == 0)
+        
+        while(command.size() > 0 && command[0] == "level")
+            command.erase(command.begin());
+        
+        if(0 == command.size())
             return;
 
         if(command[0] == "load")

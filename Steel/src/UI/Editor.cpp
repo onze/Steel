@@ -148,35 +148,12 @@ namespace Steel
             // elem->AddEventListener("submit",this);
         }
 
-//         loadGUI(mContextName);
-        loadExtraControls();
-
         mBrush.init(mEngine, this, mInputMan);
 
         mEngine->addEngineEventListener(this);
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
-    }
-    
-    void Editor::loadExtraControls()
-    {
-//         mMyGUIData.layout.at(0)->findWidget("Text")->castType<MyGUI::TextBox>()->setCaption("Resize window to see how ScrollView widget works");
-        
-        
-//         const MyGUI::IntSize& view = MyGUI::RenderManager::getInstance().getViewSize();
-//         const MyGUI::IntSize size(450, 450);
-//         
-//         MyGUI::Window* window = MyGUI::Gui::getInstance().createWidget<MyGUI::Window>("WindowCS", MyGUI::IntCoord((view.width - size.width) / 2, (view.height - size.height) / 2, size.width, size.height), MyGUI::Align::Default, "Main");
-//         window->setMinSize(150, 150);
-//         window->setCaption("ScrollView demo");
-//         MyGUI::ScrollView* scroll_view = window->createWidget<MyGUI::ScrollView>("ScrollView", MyGUI::IntCoord(2, 2, window->getClientCoord().width - 2, window->getClientCoord().height - 2), MyGUI::Align::Stretch);
-//         
-//         scroll_view->setCanvasSize(256, 256);
-//         MyGUI::ImageBox* image = scroll_view->createWidget<MyGUI::ImageBox>("ImageBox", MyGUI::IntCoord(0, 0, 256, 256), MyGUI::Align::Default);
-//         image->setImageTexture("Crystal_Clear_View.png");
-        
-//         new EditorPanel();
     }
 
     void Editor::onLevelSet(Level *level)
@@ -879,31 +856,24 @@ namespace Steel
     {
         /*static const*/ Ogre::String intro = "Editor::processCommand(): ";
 
+        while(command.size() > 0 && command[0] == "editor")
+            command.erase(command.begin());
+
+        if(0 == command.size())
+            return false;
+
         auto level = mEngine->level();
         auto selectionMan = level->selectionMan();
 
         // dispatch the command to the right subprocessing function
-        if(command[0] == "editor")
-        {
-            command.erase(command.begin());
 
-            if(command.size() == 0)
-                Debug::warning(intro)("no command given.").endl();
-            else if(command[0] == "hide")
-                mEngine->stopEditMode();
-            else if(command[0] == "options")
-            {
-                command.erase(command.begin());
-                return processOptionCommand(command);
-            }
-            else
-            {
-                Debug::warning(intro)("unkown command: ")(command).endl();
-                return false;
-            }
-        }
+        if(command[0] == "hide")
+            mEngine->stopEditMode();
+        else if(command[0] == "options")
+            return processOptionsCommand(command);
         else if(command[0] == "debugvaluemanager")
         {
+            Debug::error("TODO: check implementation").endl().breakHere();
             command.erase(command.begin());
             // second call erase the id of the debug value manager. We have a single one for now, so that selection is easy.
             command.erase(command.end());
@@ -1133,9 +1103,12 @@ namespace Steel
         return form;
     }
 
-    bool Editor::processOptionCommand(std::vector<Ogre::String> command)
+    bool Editor::processOptionsCommand(std::vector<Ogre::String> command)
     {
-        if(command.size() == 0)
+        while(command.size() > 0 && command[0] == "options")
+        command.erase(command.begin());
+        
+        if(0 == command.size())
             return false;
 
         if(command[0] == "resourceGroupsInfos")
@@ -1147,7 +1120,7 @@ namespace Steel
         }
         else
         {
-            Debug::warning("Editor::processOptionCommand(): unknown command: ")(command).endl();
+            Debug::warning("Editor::processOptionsCommand(): unknown command: ")(command).endl();
             return false;
         }
 
