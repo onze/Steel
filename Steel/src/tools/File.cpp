@@ -120,8 +120,8 @@ namespace Steel
         if(sInotifyFD < 0)
             return sInotifyFD;
 
-        std::thread t(File::poolAndNotify);
-        t.detach();
+//         std::thread t(File::poolAndNotify);
+//         t.detach();
         return 0;
     }
 
@@ -207,13 +207,13 @@ namespace Steel
                 struct inotify_event *iEvent = (inotify_event *)(buffer + offset);
 
                 FileEvent event;
-                sStaticLock.lock();
 
-                if(iEvent->mask & IN_MODIFY)
+                if(iEvent->mask & (IN_MODIFY))
                     event = FileEvent(iEvent->wd, IN_MODIFY);
                 else
                     continue;
 
+                sStaticLock.lock();
                 auto it = sListeners.find(event);
 
                 if(it == sListeners.end())
@@ -267,26 +267,39 @@ namespace Steel
 
     void File::addFileListener(FileEventListener *listener)
     {
-//         File::addFileListener(this, listener);
+        File::addFileListener(this, listener);
     }
 
     void File::removeFileListener(FileEventListener *listener)
     {
-//         File::removeFileListener(this, listener);
+        File::removeFileListener(this, listener);
     }
 
 // static
     void File::addFileListener(File *file, FileEventListener *listener)
     {
-        sStaticLock.lock();
+         sStaticLock.lock();
 
 //         if(!file->isDir())
 //             file->setPath(file->parentDir());
 //         Poco::DirectoryWatcher watcher(file->fullPath());
 
-
+        if(!file->exists())
+        {
+            sStaticLock.unlock();
+            Debug::error("File::addFileListener(): file not found: ")(*file).endl();
+            return;
+        }
 
         int wd = inotify_add_watch(sInotifyFD, file->fullPath().c_str(), IN_MODIFY);
+
+        if(-1 == wd)
+        {
+            sStaticLock.unlock();
+            Debug::error("File::addFileListener(): inotify error with ")(*file).endl();
+            return;
+        }
+
         FileEvent fileEvent(wd, IN_MODIFY);
 //         Debug::log("File::addFileListener(): getting wd ")(wd)(" for path ")(file->fullPath()).endl();
         auto it = sListeners.find(fileEvent);
@@ -354,8 +367,8 @@ namespace Steel
         return s;
     }
 
-    Ogre::String File::fullPath() const{return mPath + fileName();}
-    Ogre::String File::absPath() const{return File(File::getCurrentDirectory()).subfile(fullPath());}
+    Ogre::String File::fullPath() const {return mPath + fileName();}
+    Ogre::String File::absPath() const {return File(File::getCurrentDirectory()).subfile(fullPath());}
 
     bool File::isPathAbsolute() const
     {
@@ -558,7 +571,7 @@ namespace Steel
         return File(fullPath() + "\\" + filename);
 #endif
     }
-    
+
     File File::operator/(Ogre::String const filename) const
     {
         return subfile(filename);
@@ -570,3 +583,4 @@ namespace Steel
     }
 } /* namespace Steel */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
