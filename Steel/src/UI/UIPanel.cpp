@@ -394,13 +394,10 @@ namespace Steel
         static const Ogre::String SteelSetVariable = "SteelSetVariable";
         static const Ogre::String SteelCommand = "SteelCommand";
 
-        std::vector<Ogre::String> commands = StringUtils::split(commandsLine, commandSeparator);
+        std::vector<Ogre::String> const commands = StringUtils::split(commandsLine, commandSeparator);
 
-        while(commands.size())
+        for(auto const & command : commands)
         {
-            Ogre::String const command = commands.back();
-            commands.pop_back();
-
             if(SteelSetVariable == command)
                 executeSetVariableCommand(widget);
             else if(SteelCommand == command)
@@ -437,9 +434,48 @@ namespace Steel
         if(!hasWidgetKey(widget, SteelCommand))
             return;
 
-        std::string command = widget->getUserString(SteelCommand);
+        std::string raw_command = widget->getUserString(SteelCommand);
+        std::string command = replaceDynamicValues(raw_command);
         // all commands are postponed to next frame
-        mUI.editor().processCommand("engine.register."+command);
+        mUI.editor().processCommand("engine.register." + command);
+    }
+
+    std::string UIPanel::replaceDynamicValues(std::string const &in) const
+    {
+        std::string const delimBegin = "$(";
+        std::string const delimEnd = ")";
+        std::string out = "";
+        std::string::size_type j = 0 , i = 0;
+
+        while(j < in.size() && std::string::npos != (i = in.find(delimBegin, j)))
+        {
+            out += in.substr(j, i);
+
+            j = in.find(delimEnd, i + 2);
+
+            if(std::string::npos == j)
+            {
+                Debug::warning("UIPanel::replaceDynamicValues(): unclosed dynamic value ").quotes(in.substr(i))(" in ").quotes(in)(". Skipping.").endl();
+                return in;
+            }
+
+            std::string key = in.substr(i + 2, (j++) - (i + 2)), value = "";
+            auto it = mMyGUIData.UIVariables.find(key);
+
+            if(mMyGUIData.UIVariables.cend() != it)
+                value = it->second;
+
+            out += value;
+        }
+
+        out += in.substr(j);
+
+        return out;
+    }
+
+    void UIPanel::setVariable(Ogre::String key, Ogre::String value)
+    {
+        mMyGUIData.UIVariables[key] = value;
     }
 
     bool UIPanel::hasEvent(MyGUI::Widget *widget, Ogre::String const &eventName)
@@ -450,11 +486,6 @@ namespace Steel
     bool UIPanel::hasWidgetKey(MyGUI::Widget *widget, Ogre::String const &eventName)
     {
         return !widget->getUserString(eventName).empty();
-    }
-
-    void UIPanel::setVariable(Ogre::String key, Ogre::String value)
-    {
-        mMyGUIData.UIVariables[key] = value;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
