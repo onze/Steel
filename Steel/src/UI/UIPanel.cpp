@@ -317,6 +317,19 @@ namespace Steel
     {
     }
 
+    bool UIPanel::MyGUIHitTest(int const x, int const y) const
+    {
+        for(MyGUI::Widget const * const widget : mMyGUIData.layout)
+        {
+            MyGUI::IntCoord const coords = widget->getAbsoluteCoord();
+
+            if(x >= coords.left && x <= coords.right() && y > coords.top && y < coords.bottom())
+                return true;
+        }
+
+        return false;
+    }
+
     void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
         // events
@@ -331,7 +344,7 @@ namespace Steel
         {
             MyGUI::Widget *widget = fringe.back();
             fringe.pop_back();
-            
+
             // register to relevant node events
             if(MyGUI::Button::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnClick))
                 widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);

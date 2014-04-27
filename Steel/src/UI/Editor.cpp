@@ -166,7 +166,7 @@ namespace Steel
         level->selectionMan()->removeListener(this);
     }
 
-    bool Editor::hitTest(int x, int y, Rocket::Core::String childId)
+    bool Editor::rocketHitTest(int x, int y, Rocket::Core::String childId)
     {
         Rocket::Core::Element *elem = mDocument;
 
@@ -320,9 +320,9 @@ namespace Steel
 
     bool Editor::mousePressed(Input::Code button, Input::Event const &evt)
     {
-        if(hitTest(evt.position.x, evt.position.y, "menu"))
+        if(rocketHitTest(evt.position.x, evt.position.y, "menu"))
             mContext->ProcessMouseButtonDown(mUI.getRocketMouseIdentifier(button), mUI.getRocketKeyModifierState());
-        else
+        else if(!MyGUIHitTest(evt.position.x, evt.position.y))
             mBrush.mousePressed(button, evt);
 
         return true;
@@ -340,7 +340,7 @@ namespace Steel
         auto keyModifierState = mUI.getRocketKeyModifierState();
         mContext->ProcessMouseWheel(delta / -120, keyModifierState);
 
-        if(!hitTest(evt.position.x, evt.position.y, "menu"))
+        if(!rocketHitTest(evt.position.x, evt.position.y, "menu") && !MyGUIHitTest(evt.position.x, evt.position.y))
         {
             mBrush.mouseWheeled(delta, evt);
         }
@@ -350,7 +350,7 @@ namespace Steel
 
     bool Editor::mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt)
     {
-        bool hoveringMenu = hitTest(position.x, position.y, "menu");
+        bool hoveringMenu = rocketHitTest(position.x, position.y, "menu");
 
         if((!mIsDraggingFromMenu && !hoveringMenu) || (mBrush.isDragging() || mBrush.isInContiniousMode() || mBrush.isSelecting()))
         {

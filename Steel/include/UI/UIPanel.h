@@ -59,6 +59,9 @@ namespace Steel
         virtual void onFileChangeEvent(File file);
         /// reload Rocket files and update context content
         void reloadContent();
+        
+        bool MyGUIHitTest(int const x, int const y) const;
+        std::string replaceDynamicValues(std::string const &in) const;
 
         // getters
         inline unsigned height() const {return mHeight;}

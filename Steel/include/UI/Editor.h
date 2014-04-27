@@ -84,7 +84,7 @@ namespace Steel
 
         /** returns whether the given screen coordinates collide with the child element with given Id.
          * If no Id is given, the hit test is made with the main document.**/
-        bool hitTest(int x, int y, Rocket::Core::String childId = "body");
+        bool rocketHitTest(int x, int y, Rocket::Core::String childId = "body");
 
         /// take a rocket event and dispatch it to process*Event
         void ProcessEvent(Rocket::Core::Event &event);
