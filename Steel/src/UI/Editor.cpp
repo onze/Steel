@@ -33,6 +33,7 @@ namespace Steel
 {
 
     const Ogre::String Editor::MENU_TAB_INDEX_SETTING = "Editor::menuTabIndex";
+    const Ogre::String Editor::MENUTAB_ITEMNAME_SETTING = "Editor::menuTabItemName";
 
     const char *Editor::SELECTION_TAGS_INFO_BOX = "selectionTagsInfoBox";
     const char *Editor::SELECTIONS_TAG_EDIT_BOX = "selection_tags_editbox";
@@ -40,12 +41,13 @@ namespace Steel
 
     const char *Editor::SELECTION_PATH_INFO_BOX = "selectionPathsInfoBox";
     const char *Editor::SELECTIONS_PATH_EDIT_BOX = "selection_path_editbox";
-    
+
     const Ogre::String Editor::TERRABRUSH_INTENSITY_MYGUIVAR = "terrabrushIntensity";
     const Ogre::String Editor::TERRABRUSH_RADIUS_MYGUIVAR = "terrabrushRadius";
+    const Ogre::String Editor::MENUTAB_CONTROLNAME_MYGUIVAR = "editorMenuTab";
 
     Editor::Editor(UI &ui): UIPanel(ui, "Editor", "data/ui/current/editor/editor.rml"),
-        mEngine(nullptr), mInputMan(nullptr), 
+        mEngine(nullptr), mInputMan(nullptr),
         mSignals(), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
         mDebugValueMan()
@@ -80,6 +82,13 @@ namespace Steel
     void Editor::loadConfig(ConfigFile const &config)
     {
         mBrush.loadConfig(config);
+
+        {
+            Ogre::String tabName;
+
+            if(config.getSetting(Editor::MENUTAB_ITEMNAME_SETTING, tabName))
+                setMyGUIVariable(Editor::MENUTAB_CONTROLNAME_MYGUIVAR, tabName);
+        }
     }
 
     void Editor::saveConfig(ConfigFile &config) const
@@ -156,21 +165,27 @@ namespace Steel
         registerSignal(mSignals.brushIntensityUpdate = getMyGUIVariableUpdateSignal(Editor::TERRABRUSH_INTENSITY_MYGUIVAR));
         registerSignal(mSignals.brushRadiusUpdate = getMyGUIVariableUpdateSignal(Editor::TERRABRUSH_RADIUS_MYGUIVAR));
 
+        registerSignal(mSignals.menuTabChanged = getMyGUIVariableUpdateSignal(Editor::MENUTAB_CONTROLNAME_MYGUIVAR));
+
         mEngine->addEngineEventListener(this);
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
     }
-    
+
     void Editor::onSignal(Signal signal, SignalEmitter *const src)
     {
         if(mSignals.brushIntensityUpdate ==  signal)
         {
             mBrush.setIntensity(Ogre::StringConverter::parseReal(getMyGUIVariable(Editor::TERRABRUSH_INTENSITY_MYGUIVAR), 2.));
         }
-        else if(mSignals.brushRadiusUpdate==  signal)
+        else if(mSignals.brushRadiusUpdate ==  signal)
         {
             mBrush.setRadius(Ogre::StringConverter::parseReal(getMyGUIVariable(Editor::TERRABRUSH_RADIUS_MYGUIVAR), 10.));
+        }
+        else if(mSignals.menuTabChanged ==  signal)
+        {
+            mEngine->config().setSetting(Editor::MENUTAB_ITEMNAME_SETTING, getMyGUIVariable(Editor::MENUTAB_CONTROLNAME_MYGUIVAR));
         }
     }
 
@@ -1124,8 +1139,8 @@ namespace Steel
     bool Editor::processOptionsCommand(std::vector<Ogre::String> command)
     {
         while(command.size() > 0 && command[0] == "options")
-        command.erase(command.begin());
-        
+            command.erase(command.begin());
+
         if(0 == command.size())
             return false;
 

@@ -45,8 +45,10 @@ namespace Steel
     class Editor: public UIPanel, public SelectionManager::Listener, public EngineEventListener
     {
     private:
-        /// Editor menu tab index setting name
+        /// libRocket Editor menu tab index setting name
         static const Ogre::String MENU_TAB_INDEX_SETTING;
+        /// MyGUI Editor menu tab label
+        static const Ogre::String MENUTAB_ITEMNAME_SETTING;
 
         /// Name of the UI Editor element that contains tags elements.
         static const char *SELECTION_TAGS_INFO_BOX;
@@ -63,6 +65,9 @@ namespace Steel
         /// Name of the MyGUIVariable upon the change of which the editor brush intensity gets updated
         static const Ogre::String TERRABRUSH_INTENSITY_MYGUIVAR;
         static const Ogre::String TERRABRUSH_RADIUS_MYGUIVAR;
+        
+        /// name of the menuTab control variable updated upon tab changed
+        static const Ogre::String MENUTAB_CONTROLNAME_MYGUIVAR;
 
 
     public:
@@ -163,6 +168,7 @@ namespace Steel
         {
             Signal brushIntensityUpdate;
             Signal brushRadiusUpdate;
+            Signal menuTabChanged;
         };
         Signals mSignals;
         /// resources available (for levels, models, BTs, etc)
