@@ -31,7 +31,7 @@ namespace Steel
     {
 
         /// Initialise the debug system, linking it to 3 Ogre::Log instances (default, warnings, errors).
-        void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors = true);
+        void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors = true, bool ogreConsoleOutput = true);
         /// Displays a message telling an error message will appear and can be ignored (used in utests).
         void ignoreNextErrorMessage();
 
@@ -43,7 +43,7 @@ namespace Steel
         public:
             static Ogre::String sIndentString;
             DebugObject();
-            DebugObject(Ogre::Log *log);
+            DebugObject(Ogre::Log *log, bool ogreConsoleOutput = true);
             DebugObject(const DebugObject &o);
             DebugObject &operator=(const DebugObject &o);
 
@@ -148,6 +148,7 @@ namespace Steel
             Ogre::String mPre;
             Ogre::String mPost;
             int mIndents;
+            bool mOgreConsoleOutput;
         };
 
         ///default log in direct access

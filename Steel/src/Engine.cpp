@@ -33,6 +33,7 @@ namespace Steel
 
     const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT = "Engine::nonEditModeGrabsInput";
     const Ogre::String Engine::COLORED_DEBUG = "Engine::coloredDebug";
+    const Ogre::String Engine::OGRE_CONSOLE_OUTPUT = "Engine::ogreConsoleOutput";
 
     Engine::Engine(Ogre::String confFilename): InputEventListener(),
         mRootDir("."), mConfig(confFilename),
@@ -154,13 +155,13 @@ namespace Steel
         std::cout << "Engine::preWindowingSetup()" << std::endl;
         mConfig.load();
 
-        bool useColors;
+        bool useColors, ogreConsoleOutput;
         mConfig.getSetting(Engine::COLORED_DEBUG, useColors, false);
-        Debug::init(defaultLog, logListener, useColors);
-        Debug::log("Debug setup.").endl();
+        mConfig.getSetting(Engine::OGRE_CONSOLE_OUTPUT, ogreConsoleOutput, true);
+        Debug::init(defaultLog, logListener, useColors, ogreConsoleOutput);
+        Debug::log("Debug system ready.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
         mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), StringUtils::BLANK);
-
 
         // setup a renderer
         Ogre::RenderSystemList renderers = mRoot->getAvailableRenderers();
@@ -215,7 +216,6 @@ namespace Steel
         mRayCaster = new RayCaster(this);
 
         setCurrentLevel(createLevel("DefaultLevel"));
-
 
         Debug::log.unIndent();
 

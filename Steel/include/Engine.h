@@ -26,6 +26,7 @@ namespace Steel
 
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
         static const Ogre::String COLORED_DEBUG;
+        static const Ogre::String OGRE_CONSOLE_OUTPUT;
 
         class Stats
         {

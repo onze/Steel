@@ -28,12 +28,12 @@ namespace Steel
 
         Ogre::String DebugObject::sIndentString = Ogre::String("    ");
 
-        void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors/* = true*/)
+        void init(Ogre::String defaultLogName, Ogre::LogListener *logListener, bool useColors/* = true*/, bool ogreConsoleOutput/* = true*/)
         {
             Ogre::LogManager *olm = new Ogre::LogManager();
-            Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, true, false);
+            Ogre::Log *defaultLog = olm->createLog(defaultLogName, true, ogreConsoleOutput, false);
 
-            log = DebugObject(defaultLog);
+            log = DebugObject(defaultLog, ogreConsoleOutput);
 
             if(logListener)
                 defaultLog->addListener(logListener);
@@ -68,15 +68,15 @@ namespace Steel
             warning("next error can be safely ignored").endl();
         }
 
-        DebugObject::DebugObject(): mLog(nullptr), mMsg(StringUtils::blank()), mIndents(0)
+        DebugObject::DebugObject(): mLog(nullptr), mMsg(StringUtils::blank()), mIndents(0), mOgreConsoleOutput(true)
         {
         }
 
-        DebugObject::DebugObject(Ogre::Log *log): mLog(log), mMsg(StringUtils::blank()), mIndents(0)
+        DebugObject::DebugObject(Ogre::Log *log, bool ogreConsoleOutput): mLog(log), mMsg(StringUtils::blank()), mIndents(0), mOgreConsoleOutput(ogreConsoleOutput)
         {
         }
 
-        DebugObject::DebugObject(const DebugObject &o): mLog(o.mLog), mMsg(o.mMsg), mIndents(o.mIndents)
+        DebugObject::DebugObject(const DebugObject &o): mLog(o.mLog), mMsg(o.mMsg), mIndents(o.mIndents), mOgreConsoleOutput(o.mOgreConsoleOutput)
         {
         }
 
@@ -87,6 +87,7 @@ namespace Steel
                 mLog = o.mLog;
                 mMsg = o.mMsg;
                 mIndents = o.mIndents;
+                mOgreConsoleOutput = o.mOgreConsoleOutput;
             }
 
             return *this;
@@ -290,25 +291,24 @@ namespace Steel
         DebugObject &DebugObject::flush(bool breakline/* = false*/)
         {
             //                         std::replace(mMsg.begin(),mMsg.end(),"\n","\n\t");
-            if(nullptr == mLog)
+            if(mOgreConsoleOutput && nullptr != mLog)
             {
-                std::cout << "[RAW]" << mPre << mMsg << mPost;
+                mLog->logMessage(mPre + mMsg + mPost);
+            }
+            else
+            {
+                std::cout << mPre << mMsg << mPost;
 
                 if(breakline)
                     std::cout << std::endl;
                 else
                     std::cout.flush();
-
-                mMsg.clear();
             }
-            else
-            {
-                mLog->logMessage(mPre + mMsg + mPost);
-                mMsg.clear();
 
-                for(int i = 0; i < mIndents; ++i)
-                    mMsg.append(DebugObject::sIndentString);
-            }
+            mMsg.clear();
+
+            for(int i = 0; i < mIndents; ++i)
+                mMsg.append(DebugObject::sIndentString);
 
             return *this;
         }
