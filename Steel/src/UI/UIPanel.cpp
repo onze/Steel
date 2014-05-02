@@ -13,6 +13,7 @@
 #include <MyGUI_ComboBox.h>
 #include <MyGUI_EditBox.h>
 #include <MyGUI_ScrollBar.h>
+#include <MyGUI_TabControl.h>
 #include <MyGUI_Widget.h>
 
 #include "Debug.h"
@@ -354,15 +355,14 @@ namespace Steel
             // register to relevant node events
             if(MyGUI::Button::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnClick))
                 widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
-
-            if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
                 static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
-
-            if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
                 static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIScrollChangePosition);
-
-            if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
                 static_cast<MyGUI::EditBox *>(widget)->eventEditSelectAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIEditSelectAccept);
+            else if(MyGUI::TabControl::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+                static_cast<MyGUI::TabControl *>(widget)->eventTabChangeSelect += MyGUI::newDelegate(this, &UIPanel::OnMyGUITabControlChangeSelect);
 
             // add children
             MyGUI::EnumeratorWidgetPtr it = widget->getEnumerator();
@@ -394,6 +394,12 @@ namespace Steel
     {
         Ogre::String commands = editBox->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(editBox, commands);
+    }
+
+    void UIPanel::OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index)
+    {
+        Ogre::String commands = tabControl->getUserString(UIPanel::SteelOnChange);
+        executeWidgetCommands(tabControl, commands);
     }
 
     void UIPanel::executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const &commandsLine)
@@ -440,6 +446,14 @@ namespace Steel
         {
             MyGUI::EditBox *downcastedWidget = static_cast<MyGUI::EditBox *>(widget);
             value = downcastedWidget->getCaption();
+        }
+        else if(MyGUI::TabControl::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::TabControl *downcastedWidget = static_cast<MyGUI::TabControl *>(widget);
+            size_t index = downcastedWidget->getIndexSelected();
+
+            if(MyGUI::ITEM_NONE != index)
+                value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
         }
         else
         {
@@ -504,7 +518,7 @@ namespace Steel
 
     void UIPanel::setMyGUIVariable(Ogre::String key, Ogre::String value)
     {
-        Debug::log("UIPanel::setMyGUIVariable(", key, "=", value, ")").endl();
+        Debug::log("UIPanel::setMyGUIVariable(", key, " = ", value, ")").endl();
         bool newValue = false;
         auto it = mMyGUIData.UIVariables.find(key);
 

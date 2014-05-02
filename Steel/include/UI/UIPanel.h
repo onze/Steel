@@ -20,6 +20,7 @@ namespace MyGUI
     class ComboBox;
     class EditBox;
     class ScrollBar;
+    class TabControl;
     
     class IResource;
 }
@@ -88,6 +89,7 @@ namespace Steel
         void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
         void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
         void OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
+        void OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index);
         
         void executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const& commandsLine);
         void executeSetVariableCommand(MyGUI::Widget *widget);
