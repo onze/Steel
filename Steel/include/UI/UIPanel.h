@@ -9,6 +9,8 @@
 #include "steeltypes.h"
 #include "tools/File.h"
 #include "tools/FileEventListener.h"
+#include <SignalEmitter.h>
+#include <SignalListener.h>
 
 namespace MyGUI
 {
@@ -16,6 +18,7 @@ namespace MyGUI
     typedef std::vector< Widget *> VectorWidgetPtr;
     
     class ComboBox;
+    class EditBox;
     class ScrollBar;
     
     class IResource;
@@ -25,8 +28,15 @@ namespace Steel
 {
     class UI;
     
-    class UIPanel: public Rocket::Core::EventListener, public FileEventListener
+    class UIPanel: public Rocket::Core::EventListener, public FileEventListener, public SignalListener, public SignalEmitter
     {
+        static const std::string SteelOnClick;
+        static const std::string SteelOnChange;
+        //commands
+        static const Ogre::String commandSeparator;
+        static const Ogre::String SteelSetVariable;
+        static const Ogre::String SteelCommand;
+        
     public:
         UIPanel(UI &ui);
         UIPanel(UI &ui, Ogre::String contextName, File mDocumentFile);
@@ -77,6 +87,7 @@ namespace Steel
         void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
         void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
         void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
+        void OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
         
         void executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const& commandsLine);
         void executeSetVariableCommand(MyGUI::Widget *widget);
@@ -87,7 +98,11 @@ namespace Steel
         bool hasWidgetKey(MyGUI::Widget *widget, Ogre::String const& eventName);
         
         /// write access to UI shared variables
-        void setVariable(Ogre::String key, Ogre::String value);
+        Ogre::String getMyGUIVariable(Ogre::String key) const;
+        void setMyGUIVariable(Ogre::String key, Ogre::String value);
+        /// Returns the signal emitted by the panel when the given variable is updated
+        Signal getMyGUIVariableUpdateSignal(Ogre::String const& variableName);
+        
         //not owned
         UI &mUI;
         

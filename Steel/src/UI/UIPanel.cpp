@@ -10,18 +10,28 @@
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI.h>
 #include <MyGUI_IResource.h>
-#include <MyGUI_Widget.h>
 #include <MyGUI_ComboBox.h>
+#include <MyGUI_EditBox.h>
+#include <MyGUI_ScrollBar.h>
+#include <MyGUI_Widget.h>
 
 #include "Debug.h"
 #include "UI/UIPanel.h"
 #include "UI/UI.h"
 #include "tools/OgreUtils.h"
+#include <SignalManager.h>
 
 namespace Steel
 {
 
-    UIPanel::UIPanel(UI &ui): Rocket::Core::EventListener(),
+    const std::string UIPanel::SteelOnClick = "SteelOnClick";
+    const std::string UIPanel::SteelOnChange = "SteelOnChange";
+
+    const Ogre::String UIPanel::commandSeparator = ";";
+    const Ogre::String UIPanel::SteelSetVariable = "SteelSetVariable";
+    const Ogre::String UIPanel::SteelCommand = "SteelCommand";
+
+    UIPanel::UIPanel(UI &ui): Rocket::Core::EventListener(), SignalListener(), SignalEmitter(),
         mUI(ui),
         mWidth(0), mHeight(0),
         mContext(nullptr), mContextName(StringUtils::BLANK), mDocumentFile(StringUtils::BLANK), mDocument(nullptr),
@@ -29,7 +39,7 @@ namespace Steel
     {
     }
 
-    UIPanel::UIPanel(UI &ui, Ogre::String contextName, File mDocumentFile): Rocket::Core::EventListener(),
+    UIPanel::UIPanel(UI &ui, Ogre::String contextName, File mDocumentFile): Rocket::Core::EventListener(), SignalListener(), SignalEmitter(),
         mUI(ui),
         mWidth(0), mHeight(0),
         mContext(nullptr), mContextName(contextName), mDocumentFile(mDocumentFile), mDocument(nullptr),
@@ -39,7 +49,7 @@ namespace Steel
             Debug::error("UIPanel::UIPanel(): panel resource ").quotes(mDocumentFile)(" not found.").endl().breakHere();
     }
 
-    UIPanel::UIPanel(const UIPanel &o) : Rocket::Core::EventListener(o),
+    UIPanel::UIPanel(const UIPanel &o) : Rocket::Core::EventListener(o), SignalListener(), SignalEmitter(),
         mUI(o.mUI),
         mWidth(o.mWidth), mHeight(o.mHeight),
         mContext(o.mContext), mContextName(o.mContextName), mDocumentFile(o.mDocumentFile), mDocument(o.mDocument),
@@ -332,10 +342,6 @@ namespace Steel
 
     void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
-        // events
-        static const std::string SteelOnChange = "SteelOnChange";
-        static const std::string SteelOnClick = "SteelOnClick";
-
         // parse UI tree depth-first, subscribe to:
         // - all button clicks
         // - all combobox udpates
@@ -346,14 +352,17 @@ namespace Steel
             fringe.pop_back();
 
             // register to relevant node events
-            if(MyGUI::Button::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnClick))
+            if(MyGUI::Button::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnClick))
                 widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
 
-            if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnChange))
+            if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
                 static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
 
-            if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName() && hasEvent(widget, SteelOnChange))
+            if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
                 static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIScrollChangePosition);
+
+            if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+                static_cast<MyGUI::EditBox *>(widget)->eventEditSelectAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIEditSelectAccept);
 
             // add children
             MyGUI::EnumeratorWidgetPtr it = widget->getEnumerator();
@@ -365,23 +374,26 @@ namespace Steel
 
     void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
     {
-        static const std::string SteelOnClick = "SteelOnClick";
         Ogre::String commands = button->getUserString(SteelOnClick);
         executeWidgetCommands(button, commands);
     }
 
     void UIPanel::OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index)
     {
-        static const std::string SteelOnChange = "SteelOnChange";
-        Ogre::String commands = comboBox->getUserString(SteelOnChange);
+        Ogre::String commands = comboBox->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(comboBox, commands);
     }
 
     void UIPanel::OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index)
     {
-        static const std::string SteelOnChange = "SteelOnChange";
-        Ogre::String commands = scrollBar->getUserString(SteelOnChange);
+        Ogre::String commands = scrollBar->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(scrollBar, commands);
+    }
+
+    void UIPanel::OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox)
+    {
+        Ogre::String commands = editBox->getUserString(UIPanel::SteelOnChange);
+        executeWidgetCommands(editBox, commands);
     }
 
     void UIPanel::executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const &commandsLine)
@@ -389,18 +401,13 @@ namespace Steel
         if(0 == commandsLine.size())
             return;
 
-        static const Ogre::String commandSeparator = ";";
-        //commands
-        static const Ogre::String SteelSetVariable = "SteelSetVariable";
-        static const Ogre::String SteelCommand = "SteelCommand";
-
-        std::vector<Ogre::String> const commands = StringUtils::split(commandsLine, commandSeparator);
+        std::vector<Ogre::String> const commands = StringUtils::split(commandsLine, UIPanel::commandSeparator);
 
         for(auto const & command : commands)
         {
-            if(SteelSetVariable == command)
+            if(UIPanel::SteelSetVariable == command)
                 executeSetVariableCommand(widget);
-            else if(SteelCommand == command)
+            else if(UIPanel::SteelCommand == command)
                 executeEngineCommand(widget);
         }
     }
@@ -412,19 +419,35 @@ namespace Steel
         if(!hasWidgetKey(widget, SteelVariableName))
             return;
 
-        if(MyGUI::ComboBox::getClassTypeName() != widget->getTypeName())
+        Ogre::String variableName = widget->getUserString(SteelVariableName).c_str();
+
+        std::string value;
+
+        if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName())
         {
-            Debug::error("UIPanel::bindSetVariableMyGUIDelegate() on ", widget, ": wrong widget type. Skipping.").endl();
+            MyGUI::ComboBox *downcastedWidget = static_cast<MyGUI::ComboBox *>(widget);
+            size_t index = downcastedWidget->getIndexSelected();
+
+            if(MyGUI::ITEM_NONE != index)
+                value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
+        }
+        else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::ScrollBar *downcastedWidget = static_cast<MyGUI::ScrollBar *>(widget);
+            value = Ogre::StringConverter::toString(downcastedWidget->getScrollPosition() * 100 / downcastedWidget->getScrollRange());
+        }
+        else if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::EditBox *downcastedWidget = static_cast<MyGUI::EditBox *>(widget);
+            value = downcastedWidget->getCaption();
+        }
+        else
+        {
+            Debug::error("UIPanel::bindSetVariableMyGUIDelegate() on ", widget, ": unhandled widget type. Skipping.").endl();
             return;
         }
 
-        Ogre::String variableName = widget->getUserString(SteelVariableName).c_str();
-        MyGUI::ComboBox *cbBox = static_cast<MyGUI::ComboBox *>(widget);
-
-        size_t index = cbBox->getIndexSelected();
-
-        if(MyGUI::ITEM_NONE != index)
-            setVariable(variableName, cbBox->getItemNameAt(index).asUTF8_c_str());
+        setMyGUIVariable(variableName, value);
     }
 
     void UIPanel::executeEngineCommand(MyGUI::Widget *widget)
@@ -473,9 +496,35 @@ namespace Steel
         return out;
     }
 
-    void UIPanel::setVariable(Ogre::String key, Ogre::String value)
+    Ogre::String UIPanel::getMyGUIVariable(Ogre::String key) const
     {
+        auto it = mMyGUIData.UIVariables.find(key);
+        return mMyGUIData.UIVariables.cend() == it ? StringUtils::BLANK : it->second;
+    }
+
+    void UIPanel::setMyGUIVariable(Ogre::String key, Ogre::String value)
+    {
+        Debug::log("UIPanel::setMyGUIVariable(", key, "=", value, ")").endl();
+        bool newValue = false;
+        auto it = mMyGUIData.UIVariables.find(key);
+
+        if(mMyGUIData.UIVariables.end() == it)
+            newValue = true;
+        else
+            newValue = mMyGUIData.UIVariables[key] != value;
+
         mMyGUIData.UIVariables[key] = value;
+
+        if(newValue)
+            emit(getMyGUIVariableUpdateSignal(key));
+    }
+
+    Signal UIPanel::getMyGUIVariableUpdateSignal(Ogre::String const &variableName)
+    {
+        if(StringUtils::BLANK == variableName)
+            return INVALID_SIGNAL;
+
+        return SignalManager::instance().toSignal("__UIPanel__" + mContextName + "__MyGUIVariable__" + variableName + "__UpdateSignal");
     }
 
     bool UIPanel::hasEvent(MyGUI::Widget *widget, Ogre::String const &eventName)
