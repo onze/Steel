@@ -94,7 +94,6 @@ namespace Steel
             void loadConfig(ConfigFile const &config);
             void saveConfig(ConfigFile &config) const;
 
-            //getters
             inline BrushMode mode()
             {
                 return mMode;
@@ -121,9 +120,15 @@ namespace Steel
             //setters
             void setMode(BrushMode mode);
 
+            /// strength of the brush, in [0,100]
             float intensity();
+            /// sets the strength of the brush, kept in [0,100]
+            void setIntensity(float value);
 
+            /// area the brush covers, in [0,100]
             float radius();
+            /// sets the area the brush covers, kept in [0,100]
+            void setRadius(float value);
             
             inline bool isDragging()
             {

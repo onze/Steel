@@ -17,6 +17,7 @@
 #include "OgreMeshManager.h"
 #include "tools/StringUtils.h"
 #include "Debug.h"
+#include <Numeric.h>
 
 namespace Steel
 {
@@ -111,7 +112,17 @@ namespace Steel
         if(sTerraBrushVisual == nullptr)
             return .0f;
 
-        return sTerraBrushVisual->getScale().y / 3.f;
+        return sTerraBrushVisual->getScale().y;
+    }
+
+    void EditorBrush::setIntensity(float value)
+    {
+        checkTerraScaleFactorValue();
+        value = Numeric::clamp(value, .0f, 100.f)/10.;
+        mTerraScale.y = value;
+
+        if(nullptr != sTerraBrushVisual)
+            sTerraBrushVisual->setScale(mTerraScale);
     }
 
     float EditorBrush::radius()
@@ -120,6 +131,16 @@ namespace Steel
             return .0f;
 
         return (sTerraBrushVisual->getScale().x + sTerraBrushVisual->getScale().z) / 2.f;
+    }
+
+    void EditorBrush::setRadius(float value)
+    {
+        checkTerraScaleFactorValue();
+        value = Numeric::clamp(value, .0f, 100.f);
+        mTerraScale.x = mTerraScale.z = value;
+
+        if(nullptr != sTerraBrushVisual)
+            sTerraBrushVisual->setScale(mTerraScale);
     }
 
     Selection EditorBrush::mousePressedSelectionUpdate(Input::Code button, Input::Event const &evt)
@@ -839,7 +860,10 @@ namespace Steel
         switch(mMode)
         {
             case BrushMode::TERRAFORM:
-                if(sTerraBrushVisual == nullptr)
+                if(nullptr == mEngine)
+                    break;
+
+                if(nullptr == sTerraBrushVisual)
                 {
                     auto level = mEngine->level();
 
