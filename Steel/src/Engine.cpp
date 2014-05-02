@@ -155,7 +155,7 @@ namespace Steel
         mConfig.load();
 
         bool useColors;
-        mConfig.getSetting(Engine::COLORED_DEBUG, useColors, true);
+        mConfig.getSetting(Engine::COLORED_DEBUG, useColors, false);
         Debug::init(defaultLog, logListener, useColors);
         Debug::log("Debug setup.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
@@ -222,7 +222,7 @@ namespace Steel
         // engine ready.
         // unit testing
         bool utests;
-        mConfig.getSetting("Engine::utests", utests, false);
+        mConfig.getSetting("Engine::utests", utests, true);
 
         if(utests)
         {
