@@ -1,10 +1,10 @@
 #include <iostream>
 
 #include "tools/ConfigFile.h"
-#include <tools/StringUtils.h>
-#include <tools/JsonUtils.h>
-#include <Debug.h>
-#include <tests/UnitTestManager.h>
+#include "tools/StringUtils.h"
+#include "tools/JsonUtils.h"
+#include "Debug.h"
+#include "tests/UnitTestManager.h"
 
 namespace Steel
 {
@@ -60,14 +60,16 @@ namespace Steel
         Json::Reader reader;
         Json::Value settings;
 
-        if(!reader.parse(mFile.read(), settings, true))
+        if(!reader.parse(mFile.read(), settings, false))
         {
             // can't debug
             if(Debug::isInit)
-                Debug::error("in ConfigFile::load(): can't parse configFile ")(mFile).endl();
+                Debug::error("in ConfigFile::load(): can't parse configFile ", mFile, ". Errors: ", reader.getFormattedErrorMessages()).endl();
             else
             {
-                std::cerr << "in ConfigFile::load(): can't parse configFile " << mFile.fullPath().c_str() << std::endl;
+                std::cerr << "in ConfigFile::load(): can't parse configFile " << mFile.fullPath().c_str()
+                          << ". Errors: " << reader.getFormattedErrorMessages()
+                          << std::endl;
             }
 
             return;
@@ -160,7 +162,7 @@ namespace Steel
         dst = defaultValue;
         return false;
     }
-    
+
     bool ConfigFile::getSetting(const Ogre::String &key, u32 &dst, u32 defaultValue) const
     {
         if(mSettings.size() != 0)
@@ -171,7 +173,7 @@ namespace Steel
                 return true;
             }
         }
-        
+
         dst = defaultValue;
         return false;
     }
@@ -190,7 +192,7 @@ namespace Steel
         dst = defaultValue;
         return false;
     }
-    
+
     bool ConfigFile::getSetting(const Ogre::String &key, f32 &dst, f32 defaultValue) const
     {
         if(mSettings.size() != 0)
@@ -201,7 +203,7 @@ namespace Steel
                 return true;
             }
         }
-        
+
         dst = defaultValue;
         return false;
     }
