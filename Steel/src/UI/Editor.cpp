@@ -40,9 +40,13 @@ namespace Steel
 
     const char *Editor::SELECTION_PATH_INFO_BOX = "selectionPathsInfoBox";
     const char *Editor::SELECTIONS_PATH_EDIT_BOX = "selection_path_editbox";
+    
+    const Ogre::String Editor::TERRABRUSH_INTENSITY_MYGUIVAR = "terrabrushIntensity";
+    const Ogre::String Editor::TERRABRUSH_RADIUS_MYGUIVAR = "terrabrushRadius";
 
     Editor::Editor(UI &ui): UIPanel(ui, "Editor", "data/ui/current/editor/editor.rml"),
-        mEngine(nullptr), mInputMan(nullptr), mFSResources(nullptr),
+        mEngine(nullptr), mInputMan(nullptr), 
+        mSignals(), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
         mDebugValueMan()
     {
@@ -149,11 +153,25 @@ namespace Steel
         }
 
         mBrush.init(mEngine, this, mInputMan);
+        registerSignal(mSignals.brushIntensityUpdate = getMyGUIVariableUpdateSignal(Editor::TERRABRUSH_INTENSITY_MYGUIVAR));
+        registerSignal(mSignals.brushRadiusUpdate = getMyGUIVariableUpdateSignal(Editor::TERRABRUSH_RADIUS_MYGUIVAR));
 
         mEngine->addEngineEventListener(this);
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
+    }
+    
+    void Editor::onSignal(Signal signal, SignalEmitter *const src)
+    {
+        if(mSignals.brushIntensityUpdate ==  signal)
+        {
+            mBrush.setIntensity(Ogre::StringConverter::parseReal(getMyGUIVariable(Editor::TERRABRUSH_INTENSITY_MYGUIVAR), 2.));
+        }
+        else if(mSignals.brushRadiusUpdate==  signal)
+        {
+            mBrush.setRadius(Ogre::StringConverter::parseReal(getMyGUIVariable(Editor::TERRABRUSH_RADIUS_MYGUIVAR), 10.));
+        }
     }
 
     void Editor::onLevelSet(Level *level)

@@ -59,6 +59,10 @@ namespace Steel
         static const char *SELECTION_PATH_INFO_BOX;
         /// Name of the UI Editor element that get user input for tag elements.
         static const char *SELECTIONS_PATH_EDIT_BOX;
+        
+        /// Name of the MyGUIVariable upon the change of which the editor brush intensity gets updated
+        static const Ogre::String TERRABRUSH_INTENSITY_MYGUIVAR;
+        static const Ogre::String TERRABRUSH_RADIUS_MYGUIVAR;
 
 
     public:
@@ -124,7 +128,8 @@ namespace Steel
                            float min = .0f, float max = 1.f, float init = -1.f);
         /// Shortcut to DebugValueManager::removeDebugValue.
         void removeDebugValue(Ogre::String const &entryName);
-
+        
+        virtual void onSignal(Signal signal, SignalEmitter *const src);
     private:
         /// make a command out of a Rocket event.
         void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
@@ -154,6 +159,12 @@ namespace Steel
         InputManager *mInputMan;
 
         //owned
+        struct Signals
+        {
+            Signal brushIntensityUpdate;
+            Signal brushRadiusUpdate;
+        };
+        Signals mSignals;
         /// resources available (for levels, models, BTs, etc)
         FileSystemDataSource *mFSResources;
         File mDataDir;
