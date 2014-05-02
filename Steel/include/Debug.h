@@ -4,12 +4,18 @@
 #include <Rocket/Core/String.h>
 #include "steeltypes.h"
 #include "tools/StringUtils.h"
+#include "UI/UI.h"
 
 // #define STEEL_ASSERT(EXPRESSION, ...) 
 // if(!EXPRESSION) 
 // { 
 //     Debug::error("STEEL_ASSERT: ", ##EXPRESSION, __VA_ARGS__).endl().breakHere(); 
 // }
+
+namespace MyGUI
+{
+    class Widget;
+}
 
 namespace Steel
 {
@@ -58,6 +64,7 @@ namespace Steel
             DebugObject &operator()(const char *msg);
             DebugObject &operator()(Ogre::String const &msg);
             DebugObject &operator()(Json::Value const &msg);
+            DebugObject &operator()(MyGUI::Widget const* const widget);
             DebugObject &operator()(Rocket::Core::String const &msg);
             DebugObject &operator()(Ogre::StringVectorPtr const vec);
             DebugObject &operator()(Ogre::StringVector const &vec);

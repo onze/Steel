@@ -7,6 +7,7 @@
 
 #include <Ogre.h>
 #include <json/json.h>
+#include <MyGUI_Widget.h>
 
 #include "Debug.h"
 #include "SignalManager.h"
@@ -173,8 +174,15 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(Json::Value const &msg)
         {
-            mMsg.append(msg.toStyledString());
-            return *this;
+            return (*this)(msg.toStyledString());
+        }
+
+        DebugObject &DebugObject::operator()(MyGUI::Widget const *const widget)
+        {
+            return (*this)("MyGUI::Widget{",
+                           "typeName: ", widget->getTypeName(), ", ",
+                           "name: ", widget->getName(),
+                           "}");
         }
 
         DebugObject &DebugObject::operator()(Rocket::Core::String const &msg)
@@ -184,10 +192,7 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(Ogre::StringVectorPtr const vec)
         {
-            if(vec.isNull())
-                return (*this)(*vec);
-            else
-                return (*this)("nullptr ptr !");
+            return vec.isNull() ? (*this)("nullptr ptr !") : (*this)(*vec);
         }
 
         DebugObject &DebugObject::operator()(Ogre::StringVector const &vec)
@@ -197,16 +202,16 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(BTShapeToken const &token)
         {
-            (*this)("BTShapeToken{type: ")(toString(token.type));
-            (*this)(", begin: ")(token.begin);
-            (*this)(", end: ")(token.end);
-            (*this)(", contentFile: ")(token.contentFile);
-            return (*this)("}");
+            return (*this)("BTShapeToken{type: ", toString(token.type),
+                           ", begin: ", token.begin,
+                           ", end: ", token.end,
+                           ", contentFile: ", token.contentFile,
+                           "}");
         }
 
         DebugObject &DebugObject::operator()(BTShapeStream *const shapeStream)
         {
-            this->operator()("BTShapeStream[").endl().indent();
+            (*this)("BTShapeStream[").endl().indent();
 
             for(auto it = shapeStream->mData.begin(); it != shapeStream->mData.end(); ++it)
                 (*this)(*it)(", ").endl();
@@ -227,12 +232,12 @@ namespace Steel
             }
             else
             {
-                (*this)("BTNode{").endl().indent();
-                (*this)("begin:")(node->begin())(", ").endl();
-                (*this)("end:")(node->end())(", ").endl();
-                (*this)("state:")(node->state())(", ").endl();
-                (*this)("token:")(node->token())(", ").endl();
-                (*this)("}").unIndent();
+                (*this)("BTNode{").endl().indent()
+                ("begin: ", node->begin(), ", ").endl()
+                ("end: ", node->end(), ", ").endl()
+                ("state: ", node->state(), ", ").endl()
+                ("token: ", node->token(), ", ").endl()
+                ("}").unIndent();
             }
 
             return *this;
@@ -259,7 +264,7 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(Ogre::ResourceGroupManager::LocationList const &list)
         {
-            this->operator()("Ogre::ResourceGroupManager::LocationList[");
+            (*this)("Ogre::ResourceGroupManager::LocationList[");
 
             for(auto it = list.begin(); it != list.end(); ++it)
                 this->operator()((*it)->archive->getName())(", ");
@@ -269,7 +274,7 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list)
         {
-            this->operator()("Ogre::ResourceGroupManager::ResourceDeclarationList[");
+            (*this)("Ogre::ResourceGroupManager::ResourceDeclarationList[");
 
             for(auto it = list.begin(); it != list.end(); ++it)
                 this->operator()((*it).resourceName)(", ");
@@ -293,6 +298,8 @@ namespace Steel
                     std::cout << std::endl;
                 else
                     std::cout.flush();
+
+                mMsg.clear();
             }
             else
             {
@@ -333,6 +340,7 @@ namespace Steel
             mIndents = 0;
             return *this;
         }
+
         DebugObject &DebugObject::breakHere()
         {
 #ifdef DEBUG
