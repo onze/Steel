@@ -35,22 +35,21 @@ file(
 
 include_directories(
     Steel/include
-    /usr/include/jsoncpp
+    /media/a0/cpp/libs/jsoncpp/jsoncpp/include
     /usr/include/ois
     /media/a0/cpp/libs/ogre/OgreMain/include
     /media/a0/cpp/libs/ogre/Components/Terrain/include
     /media/a0/cpp/libs/ogre/Components/Paging/include
     /media/a0/cpp/libs/ogre/build/include
-    /media/a0/cpp/libs/libRocket.github.onze/Include
-    
     /media/a0/cpp/libs/btogre/include
+    /media/a0/cpp/libs/libRocket.github.onze/Include
     /media/a0/cpp/libs/mygui/MyGUIEngine/include
     /media/a0/cpp/libs/mygui/Platforms/Ogre/OgrePlatform/include
-    /media/a0/cpp/libs/mygui/Common
 )
 
 link_directories(
     /media/a0/cpp/libs/ogre/build/lib
+    /media/a0/cpp/libs/jsoncpp/build/lib
     /usr/lib/x86_64-linux-gnu/
     /media/a0/cpp/libs/libRocket.github.onze/Build
     /usr/local/lib
@@ -85,6 +84,5 @@ target_link_libraries(
     LinearMath
     BtOgre
     MyGUIEngine
-    Common
     MyGUI.OgrePlatform
 )

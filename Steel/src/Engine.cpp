@@ -161,6 +161,7 @@ namespace Steel
         Debug::init(defaultLog, logListener, useColors, ogreConsoleOutput);
         Debug::log("Debug system ready.").endl();
         Debug::log("cwd: ")(mRootDir).endl();
+        Debug::log("setting up Ogre").endl();
         mRoot = new Ogre::Root(mRootDir.subfile(plugins).fullPath(), StringUtils::BLANK);
 
         // setup a renderer
@@ -209,6 +210,8 @@ namespace Steel
         // makes sure the window is usable (for instance for gui init) once out of init.
         mRenderWindow->update();
         mRoot->clearEventTimes();
+        Debug::log("Ogre ready").endl();
+        
         mUI = new UI();
 
         mInputMan.init(this);
