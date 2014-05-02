@@ -1,7 +1,4 @@
 
-#include <string>
-#include <OgreString.h>
-
 #include <Rocket/Core.h>
 #include <../Source/Core/StyleSheetFactory.h>
 #include <../Source/Core/XMLNodeHandlerHead.h>
@@ -20,13 +17,14 @@
 #include "UI/UIPanel.h"
 #include "UI/UI.h"
 #include "tools/OgreUtils.h"
-#include <SignalManager.h>
+#include "SignalManager.h"
 
 namespace Steel
 {
 
     const std::string UIPanel::SteelOnClick = "SteelOnClick";
     const std::string UIPanel::SteelOnChange = "SteelOnChange";
+    const std::string UIPanel::SteelBind = "SteelBind";
 
     const Ogre::String UIPanel::commandSeparator = ";";
     const Ogre::String UIPanel::SteelSetVariable = "SteelSetVariable";
@@ -36,7 +34,7 @@ namespace Steel
         mUI(ui),
         mWidth(0), mHeight(0),
         mContext(nullptr), mContextName(StringUtils::BLANK), mDocumentFile(StringUtils::BLANK), mDocument(nullptr),
-        mAutoReload(false), mDependencies(std::set<File *>())
+        mAutoReload(false), mDependencies(), mSignalToWidgetsBindings()
     {
     }
 
@@ -44,7 +42,7 @@ namespace Steel
         mUI(ui),
         mWidth(0), mHeight(0),
         mContext(nullptr), mContextName(contextName), mDocumentFile(mDocumentFile), mDocument(nullptr),
-        mAutoReload(false), mDependencies(std::set<File *>())
+        mAutoReload(false), mDependencies(), mSignalToWidgetsBindings()
     {
         if(!mDocumentFile.exists())
             Debug::error("UIPanel::UIPanel(): panel resource ").quotes(mDocumentFile)(" not found.").endl().breakHere();
@@ -54,7 +52,7 @@ namespace Steel
         mUI(o.mUI),
         mWidth(o.mWidth), mHeight(o.mHeight),
         mContext(o.mContext), mContextName(o.mContextName), mDocumentFile(o.mDocumentFile), mDocument(o.mDocument),
-        mAutoReload(o.mAutoReload), mDependencies(o.mDependencies)
+        mAutoReload(o.mAutoReload), mDependencies(o.mDependencies), mSignalToWidgetsBindings(o.mSignalToWidgetsBindings)
     {
         Debug::error("UIPanel::UIPanel=(const UIPanel& o) not implemented").endl().breakHere();
 
@@ -149,6 +147,7 @@ namespace Steel
                 return;
             }
 
+            mSignalToWidgetsBindings.clear();
             std::vector<MyGUI::Widget *> widgets(mMyGUIData.layout.begin(), mMyGUIData.layout.end());
             setupMyGUIWidgetsLogic(widgets);
         }
@@ -270,6 +269,7 @@ namespace Steel
 
         // MyGUI
         {
+            mSignalToWidgetsBindings.clear();
 
             if(mMyGUIData.layout.size())
             {
@@ -343,6 +343,7 @@ namespace Steel
 
     void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
+        Debug::log("UIPanel::setupMyGUIWidgetsLogic() on ", mContextName).endl();
         // parse UI tree depth-first, subscribe to:
         // - all button clicks
         // - all combobox udpates
@@ -353,16 +354,29 @@ namespace Steel
             fringe.pop_back();
 
             // register to relevant node events
-            if(MyGUI::Button::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnClick))
+            std::string const widgetTypeName = widget->getTypeName();
+            bool hasOnClick = hasEvent(widget, UIPanel::SteelOnClick);
+            bool hasOnChange = hasEvent(widget, UIPanel::SteelOnChange);
+
+            if(MyGUI::Button::getClassTypeName() == widgetTypeName && hasOnClick)
                 widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
-            else if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::ComboBox::getClassTypeName() == widgetTypeName && hasOnChange)
                 static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
-            else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::ScrollBar::getClassTypeName() == widgetTypeName && hasOnChange)
                 static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIScrollChangePosition);
-            else if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::EditBox::getClassTypeName() == widgetTypeName && hasOnChange)
                 static_cast<MyGUI::EditBox *>(widget)->eventEditSelectAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIEditSelectAccept);
-            else if(MyGUI::TabControl::getClassTypeName() == widget->getTypeName() && hasEvent(widget, UIPanel::SteelOnChange))
+            else if(MyGUI::TabControl::getClassTypeName() == widgetTypeName && hasOnChange)
                 static_cast<MyGUI::TabControl *>(widget)->eventTabChangeSelect += MyGUI::newDelegate(this, &UIPanel::OnMyGUITabControlChangeSelect);
+
+            // register binding
+            if(hasWidgetKey(widget, UIPanel::SteelBind))
+            {
+                std::string variableName = widget->getUserString(UIPanel::SteelBind);
+
+                if(!variableName.empty())
+                    bindMyGUIWidgetToVariable(widget, variableName);
+            }
 
             // add children
             MyGUI::EnumeratorWidgetPtr it = widget->getEnumerator();
@@ -370,6 +384,14 @@ namespace Steel
             while(it.next())
                 fringe.push_back(it.current());
         }
+        Debug::log("UIPanel::setupMyGUIWidgetsLogic() done !").endl();
+    }
+
+    void UIPanel::bindMyGUIWidgetToVariable(MyGUI::Widget *const widget, Ogre::String const &variableName)
+    {
+        setMyGUIWidgetValue(widget, getMyGUIVariable(variableName));
+        Signal signal = getMyGUIVariableUpdateSignal(variableName);
+        mSignalToWidgetsBindings.emplace(std::make_pair(signal, std::make_pair(variableName, SignalToWidgetsBindings::mapped_type::second_type()))).first->second.second.insert(widget);
     }
 
     void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
@@ -429,39 +451,8 @@ namespace Steel
 
         std::string value;
 
-        if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName())
-        {
-            MyGUI::ComboBox *downcastedWidget = static_cast<MyGUI::ComboBox *>(widget);
-            size_t index = downcastedWidget->getIndexSelected();
-
-            if(MyGUI::ITEM_NONE != index)
-                value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
-        }
-        else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName())
-        {
-            MyGUI::ScrollBar *downcastedWidget = static_cast<MyGUI::ScrollBar *>(widget);
-            value = Ogre::StringConverter::toString(downcastedWidget->getScrollPosition() * 100 / downcastedWidget->getScrollRange());
-        }
-        else if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName())
-        {
-            MyGUI::EditBox *downcastedWidget = static_cast<MyGUI::EditBox *>(widget);
-            value = downcastedWidget->getCaption();
-        }
-        else if(MyGUI::TabControl::getClassTypeName() == widget->getTypeName())
-        {
-            MyGUI::TabControl *downcastedWidget = static_cast<MyGUI::TabControl *>(widget);
-            size_t index = downcastedWidget->getIndexSelected();
-
-            if(MyGUI::ITEM_NONE != index)
-                value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
-        }
-        else
-        {
-            Debug::error("UIPanel::bindSetVariableMyGUIDelegate() on ", widget, ": unhandled widget type. Skipping.").endl();
-            return;
-        }
-
-        setMyGUIVariable(variableName, value);
+        if(getMyGUIWidgetValue(widget, value))
+            setMyGUIVariable(variableName, value);
     }
 
     void UIPanel::executeEngineCommand(MyGUI::Widget *widget)
@@ -529,8 +520,11 @@ namespace Steel
 
         mMyGUIData.UIVariables[key] = value;
 
+        // emitting on same value may provoke infinite variable->widget->variable loops
         if(newValue)
+        {
             emit(getMyGUIVariableUpdateSignal(key));
+        }
     }
 
     Signal UIPanel::getMyGUIVariableUpdateSignal(Ogre::String const &variableName)
@@ -550,6 +544,99 @@ namespace Steel
     {
         return !widget->getUserString(eventName).empty();
     }
+
+    void UIPanel::onSignal(Signal signal, SignalEmitter *const /*src*/)
+    {
+        DispatchSignalToBoundWidgets(signal);
+    }
+
+    void UIPanel::DispatchSignalToBoundWidgets(Signal signal)
+    {
+        SignalToWidgetsBindings::iterator it = mSignalToWidgetsBindings.find(signal);
+
+        if(mSignalToWidgetsBindings.end() != it)
+        {
+            Ogre::String const value = it->second.first;
+            SignalToWidgetsBindings::mapped_type::second_type widgets = it->second.second;
+
+            for(MyGUI::Widget * const widget : widgets)
+                setMyGUIWidgetValue(widget, value);
+        }
+    }
+
+    bool UIPanel::getMyGUIWidgetValue(MyGUI::Widget *const widget, Ogre::String &value)
+    {
+        if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::ComboBox *downcastedWidget = static_cast<MyGUI::ComboBox *>(widget);
+            size_t index = downcastedWidget->getIndexSelected();
+
+            if(MyGUI::ITEM_NONE != index)
+                value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
+        }
+        else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::ScrollBar *downcastedWidget = static_cast<MyGUI::ScrollBar *>(widget);
+            value = Ogre::StringConverter::toString(downcastedWidget->getScrollPosition() * 100 / downcastedWidget->getScrollRange());
+        }
+        else if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::EditBox *downcastedWidget = static_cast<MyGUI::EditBox *>(widget);
+            value = downcastedWidget->getCaption();
+        }
+        else if(MyGUI::TabControl::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::TabControl *downcastedWidget = static_cast<MyGUI::TabControl *>(widget);
+            size_t index = downcastedWidget->getIndexSelected();
+
+            if(MyGUI::ITEM_NONE != index)
+                value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
+        }
+        else
+        {
+            Debug::error("UIPanel::getMyGUIWidgetValue() on ", widget, ": unhandled widget type. Skipping.").endl();
+            return false;
+        }
+
+        return true;
+    }
+
+    void UIPanel::setMyGUIWidgetValue(MyGUI::Widget *const widget, Ogre::String const &value)
+    {
+        if(MyGUI::ComboBox::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::ComboBox *downcastedWidget = static_cast<MyGUI::ComboBox *>(widget);
+            size_t index = downcastedWidget->findItemIndexWith(value);
+
+            if(MyGUI::ITEM_NONE != index)
+                downcastedWidget->setIndexSelected(index);
+        }
+        else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::ScrollBar *downcastedWidget = static_cast<MyGUI::ScrollBar *>(widget);
+            size_t position = (size_t)Ogre::StringConverter::parseInt(value, 0);
+            downcastedWidget->setScrollPosition(position);
+        }
+        else if(MyGUI::EditBox::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::EditBox *downcastedWidget = static_cast<MyGUI::EditBox *>(widget);
+            downcastedWidget->setCaption(value);
+        }
+        else if(MyGUI::TabControl::getClassTypeName() == widget->getTypeName())
+        {
+            MyGUI::TabControl *downcastedWidget = static_cast<MyGUI::TabControl *>(widget);
+            size_t index = downcastedWidget->findItemIndexWith(value);
+
+            if(MyGUI::ITEM_NONE != index)
+                downcastedWidget->setIndexSelected(index);
+        }
+        else
+        {
+            Debug::error("UIPanel::setMyGUIWidgetValue() on ", widget, ": unhandled widget type. Skipping.").endl();
+            return;
+        }
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

@@ -33,6 +33,7 @@ namespace Steel
     {
         static const std::string SteelOnClick;
         static const std::string SteelOnChange;
+        static const std::string SteelBind;
         //commands
         static const Ogre::String commandSeparator;
         static const Ogre::String SteelSetVariable;
@@ -71,18 +72,25 @@ namespace Steel
         /// reload Rocket files and update context content
         void reloadContent();
         
+        /// Returns true iff the given coodinates hit at least one of the MyGUI widgets.
         bool MyGUIHitTest(int const x, int const y) const;
+        
+        /// Replaces a $(MyGUI_variables) with its value in the given string
         std::string replaceDynamicValues(std::string const &in) const;
 
         // getters
         inline unsigned height() const {return mHeight;}
         inline unsigned width() const {return mWidth;}
+        
+        /// Dispatches signals. //!\\ Subclasses can override it but still want to call this version.
+        virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
 
     protected:
         void buildDependences();
         
         /// Parses through the UI tree and sets up widget logic, given their userData
         void setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &widgets);
+        void bindMyGUIWidgetToVariable(MyGUI::Widget *const widget, const Ogre::String &variableName);
         
         // MyGUI callbacks
         void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
@@ -95,15 +103,22 @@ namespace Steel
         void executeSetVariableCommand(MyGUI::Widget *widget);
         void executeEngineCommand(MyGUI::Widget *widget);
         
+        void DispatchSignalToBoundWidgets(Signal signal);
+        
         // widget inspection helpers
         bool hasEvent(MyGUI::Widget *widget, Ogre::String const& eventName);
         bool hasWidgetKey(MyGUI::Widget *widget, Ogre::String const& eventName);
         
-        /// write access to UI shared variables
+        /// read access to UI shared variables
         Ogre::String getMyGUIVariable(Ogre::String key) const;
+        /// write access to UI shared variables
         void setMyGUIVariable(Ogre::String key, Ogre::String value);
+        
         /// Returns the signal emitted by the panel when the given variable is updated
         Signal getMyGUIVariableUpdateSignal(Ogre::String const& variableName);
+        
+        bool getMyGUIWidgetValue(MyGUI::Widget *const widget, Ogre::String& value);
+        void setMyGUIWidgetValue(MyGUI::Widget *const widget, Ogre::String const& value);
         
         //not owned
         UI &mUI;
@@ -144,6 +159,10 @@ namespace Steel
          * Main use case is styleSheets. Note that mAutoreload has to be true at panel's init.
          */
         std::set<File *> mDependencies;
+        
+        /// {variable update signal: widget to update}
+        typedef std::map<Signal, std::pair<Ogre::String, std::set<MyGUI::Widget *>>> SignalToWidgetsBindings;
+        SignalToWidgetsBindings mSignalToWidgetsBindings; 
     };
 }
 #endif
