@@ -201,6 +201,16 @@ namespace Steel
             return (*this)(vec);
         }
 
+        DebugObject &DebugObject::operator()(File const &file)
+        {
+            Ogre::String const abspath = file.absPath();
+            if(file.isPathAbsolute())
+                return (*this)(abspath);
+
+            Ogre::String const fullpath = file.fullPath();
+            return (*this)("(", abspath.substr(0, abspath.length() - fullpath.length()), ")", fullpath);
+        }
+
         DebugObject &DebugObject::operator()(BTShapeToken const &token)
         {
             return (*this)("BTShapeToken{type: ", toString(token.type),

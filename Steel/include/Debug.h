@@ -68,6 +68,7 @@ namespace Steel
             DebugObject &operator()(Rocket::Core::String const &msg);
             DebugObject &operator()(Ogre::StringVectorPtr const vec);
             DebugObject &operator()(Ogre::StringVector const &vec);
+            DebugObject &operator()(File const& file);
             DebugObject &operator()(BTShapeToken const &token);
             DebugObject &operator()(BTShapeStream *const shapeStream);
             DebugObject &operator()(BTNodeState state);
