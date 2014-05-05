@@ -23,6 +23,8 @@ namespace Steel
     {
     public:
 
+        static Ogre::String const Separator;
+        
         typedef std::pair<int, uint32_t> FileEvent;
         typedef std::pair<Ogre::String, std::set<FileEventListener *> > ListenersEntry;
 
@@ -111,7 +113,7 @@ namespace Steel
         /// Returns the absolute file path, that is <current directory>/fullpath
         Ogre::String absPath() const;
         
-        /// Returns true if the path is absolute (does not starts with /)
+        /// Returns true if the path is absolute (starts with /)
         bool isPathAbsolute() const;
 
         /**
@@ -164,7 +166,7 @@ namespace Steel
          * Only instances pointing to an existing directory return a non-empty list.
          * NodeType filter indicates whether to return folders, files, or both (default).
          */
-        std::vector<File> ls(NodeType filter = ANY, bool include_hidden = false);
+        std::vector<File> ls(NodeType filter = ANY, bool include_hidden = false) const;
 
         /**
          * Returns the type of the node as a NodeType compatible value.

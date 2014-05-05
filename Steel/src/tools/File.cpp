@@ -32,6 +32,12 @@ namespace Steel
     auto SYSCALL_ALIAS_read = read;
 
 #if defined(_WIN32)
+    Ogre::String const File::Separator = "\\";
+#else
+    Ogre::String const File::Separator = "/";
+#endif
+
+#if defined(_WIN32)
     auto SYSCALL_ALIAS_mkdir = _mkdir;
 #else
     auto SYSCALL_ALIAS_mkdir = mkdir;
@@ -278,7 +284,7 @@ namespace Steel
 // static
     void File::addFileListener(File *file, FileEventListener *listener)
     {
-         sStaticLock.lock();
+        sStaticLock.lock();
 
 //         if(!file->isDir())
 //             file->setPath(file->parentDir());
@@ -368,7 +374,13 @@ namespace Steel
     }
 
     Ogre::String File::fullPath() const {return mPath + fileName();}
-    Ogre::String File::absPath() const {return File(File::getCurrentDirectory()).subfile(fullPath());}
+    Ogre::String File::absPath() const
+    {
+        if(isPathAbsolute())
+            return fullPath();
+
+        return File::getCurrentDirectory()/fullPath();
+    }
 
     bool File::isPathAbsolute() const
     {
@@ -429,7 +441,7 @@ namespace Steel
 #endif
     }
 
-    std::vector<File> File::ls(File::NodeType filter, bool include_hidden)
+    std::vector<File> File::ls(File::NodeType filter, bool include_hidden) const
     {
         if(!(exists() && isDir()))
             return std::vector<File>(0);
@@ -565,11 +577,12 @@ namespace Steel
 
     File File::subfile(Ogre::String const filename) const
     {
-#ifdef __unix
-        return File(fullPath() + "/" + filename);
-#else
-        return File(fullPath() + "\\" + filename);
-#endif
+        Ogre::String path = fullPath();
+
+        if(!Ogre::StringUtil::endsWith(path, File::Separator))
+            path += File::Separator;
+
+        return File(path + filename);
     }
 
     File File::operator/(Ogre::String const filename) const
