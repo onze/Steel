@@ -102,7 +102,8 @@ namespace Steel
         ////getters
         Ogre::String resourceGroup() const {return "UI";}
         Editor &editor() {return mEditor;}
-        File dataDir() const {return mUIDataDir;}
+        Engine *const engine() const {return mEngine;}
+        File UIDataDir() const {return mUIDataDir;}
         RocketKeyIdentifierMap &rocketKeyIdentifiers() {return mRocketKeyIdentifiers;}
 
     protected:

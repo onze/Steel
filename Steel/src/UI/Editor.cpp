@@ -142,7 +142,7 @@ namespace Steel
         }
 
         mDebugValueMan.init("debugvaluemanager_select_entry", mDocument);
-        mDataDir = mUI.dataDir().subfile("editor").fullPath();
+        mDataDir = mUI.UIDataDir().subfile("editor").fullPath();
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         // true is for recursive search. Add to this resources.cfg
         resGroupMan->addResourceLocation(mDataDir.fullPath(), "FileSystem", "UI", true);
