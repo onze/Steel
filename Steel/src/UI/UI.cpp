@@ -7,6 +7,8 @@
 
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI.h>
+#include "tools/3dParties/MyGUI/TreeControl.h"
+#include "tools/3dParties/MyGUI/TreeControlItem.h"
 
 #include "UI/UI.h"
 #include "UI/RenderInterfaceOgre3D.h"
@@ -166,8 +168,13 @@ namespace Steel
 
         // MyGui shutdown
         {
+            
             if(nullptr != mMyGUIData.gui)
             {
+                MyGUI::FactoryManager& factory = MyGUI::FactoryManager::getInstance();
+                factory.unregisterFactory<MyGUI::TreeControl>("Widget");
+                factory.unregisterFactory<MyGUI::TreeControlItem>("Widget");
+            
                 mMyGUIData.gui->destroyAllChildWidget();
                 mMyGUIData.gui->shutdown();
                 delete mMyGUIData.gui;
@@ -243,6 +250,10 @@ namespace Steel
 
             mMyGUIData.gui = new MyGUI::Gui();
             mMyGUIData.gui->initialise("MyGUI_Core.xml");
+            
+            MyGUI::FactoryManager& factory = MyGUI::FactoryManager::getInstance();
+            factory.registerFactory<MyGUI::TreeControl>("Widget");
+            factory.registerFactory<MyGUI::TreeControlItem>("Widget");
         }
 
         //UI init

@@ -7,10 +7,11 @@
 #include <OgrePrerequisites.h>
 
 #include "steeltypes.h"
+
 #include "tools/File.h"
 #include "tools/FileEventListener.h"
-#include <SignalEmitter.h>
-#include <SignalListener.h>
+#include "SignalEmitter.h"
+#include "SignalListener.h"
 
 namespace MyGUI
 {
@@ -21,19 +22,28 @@ namespace MyGUI
     class EditBox;
     class ScrollBar;
     class TabControl;
+    class TreeControl;
+    class TreeControlNode;
     
     class IResource;
+    class ResourceSkin;
 }
 
 namespace Steel
 {
     class UI;
+    class MyGUITreeControlDataSource;
     
     class UIPanel: public Rocket::Core::EventListener, public FileEventListener, public SignalListener, public SignalEmitter
     {
         static const std::string SteelOnClick;
         static const std::string SteelOnChange;
         static const std::string SteelBind;
+        static const std::string SteelInsertWidget;
+        static const std::string TreeControl;
+        static const std::string SteelTreeControlDataSourceType;
+        static const std::string SteelTreeControlDataSourceType_FileTree;
+        static const std::string SteelTreeControlDataSourceRoot;
         //commands
         static const Ogre::String commandSeparator;
         static const Ogre::String SteelSetVariable;
@@ -91,6 +101,7 @@ namespace Steel
         /// Parses through the UI tree and sets up widget logic, given their userData
         void setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &widgets);
         void bindMyGUIWidgetToVariable(MyGUI::Widget *const widget, const Ogre::String &variableName);
+        void insertMyGUICustomWidgets(MyGUI::Widget *const widget);
         
         // MyGUI callbacks
         void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
@@ -139,12 +150,15 @@ namespace Steel
         File layoutFile();
         File resourceFile();
         File skinFile();
+        typedef std::vector<MyGUITreeControlDataSource *> MyGUITreeControlDataSourceVector;
         struct MyGUIData
         {
             MyGUI::VectorWidgetPtr layout;
+            MyGUI::ResourceSkin *skin;
             MyGUI::IResource *resource;
             typedef std::map<Ogre::String, Ogre::String> StringStringMap;
             StringStringMap UIVariables;
+            MyGUITreeControlDataSourceVector treeControlDataSources;
         };
         MyGUIData mMyGUIData;
         

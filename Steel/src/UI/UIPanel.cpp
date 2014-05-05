@@ -17,7 +17,10 @@
 #include "UI/UIPanel.h"
 #include "UI/UI.h"
 #include "tools/OgreUtils.h"
+#include <tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h>
+#include <tools/3dParties/MyGUI/TreeControl.h>
 #include "SignalManager.h"
+#include <Engine.h>
 
 namespace Steel
 {
@@ -25,6 +28,11 @@ namespace Steel
     const std::string UIPanel::SteelOnClick = "SteelOnClick";
     const std::string UIPanel::SteelOnChange = "SteelOnChange";
     const std::string UIPanel::SteelBind = "SteelBind";
+    const std::string UIPanel::SteelInsertWidget = "SteelInsertWidget";
+    const std::string UIPanel::TreeControl = "TreeControl";
+    const std::string UIPanel::SteelTreeControlDataSourceType = "SteelTreeControlDataSourceType";
+    const std::string UIPanel::SteelTreeControlDataSourceType_FileTree = "FileTree";
+    const std::string UIPanel::SteelTreeControlDataSourceRoot = "SteelTreeControlDataSourceRoot";
 
     const Ogre::String UIPanel::commandSeparator = ";";
     const Ogre::String UIPanel::SteelSetVariable = "SteelSetVariable";
@@ -118,6 +126,8 @@ namespace Steel
                     Debug::error("could not load skin", skin).endl().breakHere();
                     return;
                 }
+
+                mMyGUIData.skin = static_cast<MyGUI::ResourceSkin *>(MyGUI::ResourceManager::getInstance().findByName(skin.fullPath()));
             }
 
             File resource = resourceFile();
@@ -344,6 +354,7 @@ namespace Steel
     void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
         Debug::log("UIPanel::setupMyGUIWidgetsLogic() on ", mContextName).endl();
+
         // parse UI tree depth-first, subscribe to:
         // - all button clicks
         // - all combobox udpates
@@ -378,13 +389,80 @@ namespace Steel
                     bindMyGUIWidgetToVariable(widget, variableName);
             }
 
-            // add children
+            // insert custom widgets
+            insertMyGUICustomWidgets(widget);
+
+            // register children for processing
             MyGUI::EnumeratorWidgetPtr it = widget->getEnumerator();
 
             while(it.next())
                 fringe.push_back(it.current());
         }
+
         Debug::log("UIPanel::setupMyGUIWidgetsLogic() done !").endl();
+    }
+
+    void UIPanel::insertMyGUICustomWidgets(MyGUI::Widget *const widget)
+    {
+        if(hasWidgetKey(widget, UIPanel::SteelInsertWidget))
+        {
+            Ogre::String widgetType = widget->getUserString(UIPanel::UIPanel::SteelInsertWidget);
+
+            // clear widget
+            while(widget->getChildCount() > 0)
+                widget->removeChildNode(widget->getChildAt(0));
+
+            if(UIPanel::TreeControl == widgetType)
+            {
+                MyGUI::TreeControl *treeControl = static_cast<MyGUI::TreeControl *>(widget->createWidgetT(MyGUI::TreeControl::getClassTypeName(), "Tree", MyGUI::IntCoord(MyGUI::IntPoint(), widget->getClientCoord().size()), MyGUI::Align::Stretch));
+
+                if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceType))
+                {
+                    Ogre::String dataSourceType = widget->getUserString(UIPanel::SteelTreeControlDataSourceType);
+
+                    if(UIPanel::SteelTreeControlDataSourceType_FileTree == dataSourceType)
+                    {
+                        Ogre::String dataSourceRoot = StringUtils::BLANK; // optional
+
+                        if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceRoot))
+                            dataSourceRoot = widget->getUserString(UIPanel::SteelTreeControlDataSourceRoot);
+
+                        MyGUIFileSystemDataSource *dataSource = new MyGUIFileSystemDataSource();
+
+                        File sourcePath = mUI.engine()->dataDir();
+
+                        if(StringUtils::BLANK != dataSourceRoot)
+                            sourcePath = sourcePath / dataSourceRoot;
+
+                        dataSource->init(treeControl, sourcePath.fullPath());
+                        mMyGUIData.treeControlDataSources.push_back(dataSource);
+                    }
+                    else
+                    {
+                        Debug::warning(STEEL_FUNC_INTRO, "with widget ", widget, " invalid data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
+                    }
+                }
+                else
+                {
+                    Debug::warning(STEEL_FUNC_INTRO, "widget ", widget, " is missing a data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
+                }
+
+
+                MyGUI::TreeControlNode *pRoot = treeControl->getRoot();
+                pRoot->setText("root");
+                MyGUI::TreeControlNode *pNode = new MyGUI::TreeControlNode("Item0", "Data");
+                pRoot->add(pNode);
+            }
+            else if("Button" == widgetType)
+            {
+                MyGUI::Button *button = widget->createWidget<MyGUI::Button>(MyGUI::WidgetStyle::Child, "Button", MyGUI::IntCoord(MyGUI::IntPoint(), widget->getClientCoord().size()), MyGUI::Align::Stretch);
+                button->setCaption("my button");
+            }
+            else
+            {
+                Debug::warning(STEEL_FUNC_INTRO, "widget ",  widget, " should be inserted an unknown widget type ").quotes(widgetType)(". Skipping.").endl();
+            }
+        }
     }
 
     void UIPanel::bindMyGUIWidgetToVariable(MyGUI::Widget *const widget, Ogre::String const &variableName)
