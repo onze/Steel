@@ -180,10 +180,7 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(MyGUI::Widget const *const widget)
         {
-            return (*this)("MyGUI::Widget{",
-                           "typeName: ", widget->getTypeName(), ", ",
-                           "name: ", widget->getName(),
-                           "}");
+            return (*this)("MyGUI::Widget<",widget->getTypeName(),">{").quotes(widget->getName())("}");
         }
 
         DebugObject &DebugObject::operator()(Rocket::Core::String const &msg)

@@ -50,7 +50,7 @@ namespace Steel
             Ogre::String getFileName();
             void setColors(Ogre::String pre = StringUtils::BLANK, Ogre::String post = StringUtils::BLANK);
 
-            DebugObject &operator()();
+            DebugObject &operator()(); // usefull in macro arg expansions (__VA_ARGS__)
             DebugObject &operator()(const Ogre::Degree msg);
             DebugObject &operator()(const Ogre::Radian msg);
             DebugObject &operator()(const Ogre::Vector2 msg);
