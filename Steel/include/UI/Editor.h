@@ -32,6 +32,30 @@ namespace Rocket
     }
 }
 
+namespace MyGUI
+{
+    class DDContainer;
+    class DDItemInfo;
+    class ItemBox;
+    class IBNotifyItemData;
+    class Widget;
+    class IBDrawItemInfo;
+    
+    namespace types
+    {
+        template<typename T>
+        struct TCoord;
+        
+        template<typename T>
+        struct TPoint;
+    }
+    typedef types::TCoord<int> IntCoord;
+    typedef types::TPoint<int> IntPoint;
+    
+    class TreeControlItem;
+    class TreeControlItemDecorator;
+}
+
 namespace Steel
 {
 
@@ -61,18 +85,18 @@ namespace Steel
         static const char *SELECTION_PATH_INFO_BOX;
         /// Name of the UI Editor element that get user input for tag elements.
         static const char *SELECTIONS_PATH_EDIT_BOX;
-        
+
         /// Name of the MyGUIVariable upon the change of which the editor brush intensity gets updated
         static const Ogre::String TERRABRUSH_INTENSITY_MYGUIVAR;
         static const Ogre::String TERRABRUSH_RADIUS_MYGUIVAR;
-        
+
         /// name of the menuTab control variable updated upon tab changed
         static const Ogre::String MENUTAB_CONTROLNAME_MYGUIVAR;
 
 
     public:
         Editor(UI &ui);
-        Editor(Steel::Editor const& o);
+        Editor(Steel::Editor const &o);
         virtual ~Editor();
         virtual Editor &operator=(const Editor &o);
 
@@ -133,8 +157,19 @@ namespace Steel
                            float min = .0f, float max = 1.f, float init = -1.f);
         /// Shortcut to DebugValueManager::removeDebugValue.
         void removeDebugValue(Ogre::String const &entryName);
-        
+
         virtual void onSignal(Signal signal, SignalEmitter *const src);
+
+        /// Creates a widget for the item (thge item was added to the ItemBox)
+        void MyGUIRequestCreateWidgetItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item);
+        void MyGUIRequestDrawItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item, const MyGUI::IBDrawItemInfo& _info) ;
+        void MyGUIRequestCoordWidgetItem(MyGUI::ItemBox* _sender, MyGUI::IntCoord& _coord, bool _drop);
+        
+        void MyGUIMouseItemActivate(MyGUI::ItemBox *_sender, size_t _index);
+        void MyGUIStartDrag(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool &_result);
+        void MyGUIRequestDrop(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool &_result);
+        void MyGUIDropResult(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool _result);
+        void MyGUINotifyItem(MyGUI::ItemBox *_sender, const MyGUI::IBNotifyItemData &_info);
     private:
         /// make a command out of a Rocket event.
         void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
@@ -144,6 +179,9 @@ namespace Steel
         void processChangeEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
         /// make a command out of a Rocket event.
         void processDragDropEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
+        
+        /// Called whenever an item of the resource treeControl is dropped
+        void MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const& pos);
 
         void refreshSelectionTagsWidget();
         void populateSelectionTagsWidget(std::list< Ogre::String > tags);
@@ -181,6 +219,9 @@ namespace Steel
         /// true during the dragging of a item from the edior's menu.
         bool mIsDraggingFromMenu;
         DebugValueManager mDebugValueMan;
+        
+        /// handles drag and dropping of the MyGUI::TreeControl dedicated to resources
+        MyGUI::TreeControlItemDecorator *mResourceTreeControlItemDecorator;
 
     };
 }

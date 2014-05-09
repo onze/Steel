@@ -6,6 +6,7 @@
 
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI.h>
+#include <MyGUI_Delegate.h>
 #include <MyGUI_IResource.h>
 #include <MyGUI_ComboBox.h>
 #include <MyGUI_EditBox.h>
@@ -14,13 +15,13 @@
 #include <MyGUI_Widget.h>
 
 #include "Debug.h"
+#include "Engine.h"
 #include "UI/UIPanel.h"
 #include "UI/UI.h"
-#include "tools/OgreUtils.h"
-#include <tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h>
-#include <tools/3dParties/MyGUI/TreeControl.h>
 #include "SignalManager.h"
-#include <Engine.h>
+#include "tools/OgreUtils.h"
+#include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
+#include "tools/3dParties/MyGUI/TreeControl.h"
 
 namespace Steel
 {
@@ -364,6 +365,9 @@ namespace Steel
             MyGUI::Widget *widget = fringe.back();
             fringe.pop_back();
 
+            // replace custom widgets
+            insertMyGUICustomWidgets(widget);
+
             // register to relevant node events
             std::string const widgetTypeName = widget->getTypeName();
             bool hasOnClick = hasEvent(widget, UIPanel::SteelOnClick);
@@ -389,9 +393,6 @@ namespace Steel
                     bindMyGUIWidgetToVariable(widget, variableName);
             }
 
-            // insert custom widgets
-            insertMyGUICustomWidgets(widget);
-
             // register children for processing
             MyGUI::EnumeratorWidgetPtr it = widget->getEnumerator();
 
@@ -402,19 +403,37 @@ namespace Steel
         Debug::log("UIPanel::setupMyGUIWidgetsLogic() done !").endl();
     }
 
-    void UIPanel::insertMyGUICustomWidgets(MyGUI::Widget *const widget)
+    MyGUI::Widget *const UIPanel::findMyGUIChildWidget(Ogre::String const &name)
+    {
+        MyGUI::Widget *child = nullptr;
+
+        for(auto const& parent : mMyGUIData.layout)
+        {
+            child = parent->findWidget(name);
+
+            if(nullptr != child)
+                break;
+        }
+
+        return child;
+    }
+
+    void UIPanel::insertMyGUICustomWidgets(MyGUI::Widget *&widget)
     {
         if(hasWidgetKey(widget, UIPanel::SteelInsertWidget))
         {
-            Ogre::String widgetType = widget->getUserString(UIPanel::UIPanel::SteelInsertWidget);
+            Ogre::String widgetType = widget->getUserString(UIPanel::SteelInsertWidget);
 
-            // clear widget
+            // clear widgets
             while(widget->getChildCount() > 0)
                 widget->removeChildNode(widget->getChildAt(0));
 
+            // generic properties
+            Ogre::String controlName = widget->getName() + "_Child"; // its unique child at this point
+
             if(UIPanel::TreeControl == widgetType)
             {
-                MyGUI::TreeControl *treeControl = static_cast<MyGUI::TreeControl *>(widget->createWidgetT(MyGUI::TreeControl::getClassTypeName(), "Tree", MyGUI::IntCoord(MyGUI::IntPoint(), widget->getClientCoord().size()), MyGUI::Align::Stretch));
+                MyGUI::TreeControl *treeControl = static_cast<MyGUI::TreeControl *>(widget->createWidgetT(MyGUI::TreeControl::getClassTypeName(), "Tree", MyGUI::IntCoord(MyGUI::IntPoint(), widget->getClientCoord().size()), MyGUI::Align::Stretch, controlName));
 
                 if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceType))
                 {
@@ -422,19 +441,20 @@ namespace Steel
 
                     if(UIPanel::SteelTreeControlDataSourceType_FileTree == dataSourceType)
                     {
-                        Ogre::String dataSourceRoot = StringUtils::BLANK; // optional
-
-                        if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceRoot))
-                            dataSourceRoot = widget->getUserString(UIPanel::SteelTreeControlDataSourceRoot);
-
                         MyGUIFileSystemDataSource *dataSource = new MyGUIFileSystemDataSource();
+                        {
+                            Ogre::String dataSourceRoot = StringUtils::BLANK; // optional
 
-                        File sourcePath = mUI.engine()->dataDir();
+                            if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceRoot))
+                                dataSourceRoot = widget->getUserString(UIPanel::SteelTreeControlDataSourceRoot);
 
-                        if(StringUtils::BLANK != dataSourceRoot)
-                            sourcePath = sourcePath / dataSourceRoot;
+                            File sourcePath = mUI.engine()->dataDir();
 
-                        dataSource->init(treeControl, sourcePath.fullPath());
+                            if(StringUtils::BLANK != dataSourceRoot)
+                                sourcePath = sourcePath / dataSourceRoot;
+
+                            dataSource->init(treeControl, sourcePath.fullPath());
+                        }
                         mMyGUIData.treeControlDataSources.push_back(dataSource);
                     }
                     else
@@ -446,7 +466,6 @@ namespace Steel
                 {
                     Debug::warning(STEEL_FUNC_INTRO, "widget ", widget, " is missing a data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
                 }
-
 
                 MyGUI::TreeControlNode *pRoot = treeControl->getRoot();
                 pRoot->setText("root");

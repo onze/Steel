@@ -356,7 +356,7 @@ namespace MyGUI
 
             if(nIndex >= (size_t)mnTopIndex)
             {
-                // FIXME проверка вставлена так как падает индекс айтема больше чем всего айтемов
+                // FIXME проверка вставлена так как падает индекс айтема больше чем всего айтемовcheck inserted as index falls more than just aytema aytemov
                 if(nItem >= mItemWidgets.size())
                     break;
 
@@ -391,6 +391,8 @@ namespace MyGUI
                             pIcon->setItemResourceInfo(IconInfo);
                     }
                 }
+                
+                requestDecorateTreeControlItem(this, pItem, pNode);
 
                 nOffset += mnItemHeight;
                 nItem++;

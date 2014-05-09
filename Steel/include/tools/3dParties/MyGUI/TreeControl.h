@@ -22,6 +22,7 @@ namespace MyGUI
 
         typedef delegates::CMultiDelegate2<TreeControl *, TreeControlNode *> EventHandle_TreeControlPtrNodePtr;
         typedef delegates::CMultiDelegate2<TreeControl *, size_t> EventHandle_TreeControlPtrSizeT;
+        typedef delegates::CDelegate3<TreeControl *, TreeControlItem *, TreeControlNode *> Request_TreeControlPtrTreeControlItemPtrNodePtr;
 
         TreeControl();
 
@@ -44,6 +45,14 @@ namespace MyGUI
         EventHandle_TreeControlPtrNodePtr eventTreeNodeContextMenu;
         EventHandle_TreeControlPtrNodePtr eventTreeNodePrepare;
         EventHandle_TreeControlPtrSizeT eventTreeScrolled;
+        
+        /** Event : Request for item decoration (adding more than just the node's text). Note: called once per update (ie may times)\n
+         *      signature : void method(MyGUI::TreeControl *_sender, MyGUI::TreeControlItem *_item, MyGUI::TreeControlNode *_node)
+         *      @param _sender widget that called this event
+         *      @param _item item widget item pointer
+         *      @param _info item info
+         */
+        Request_TreeControlPtrTreeControlItemPtrNodePtr requestDecorateTreeControlItem;
 
     protected:
         virtual void initialiseOverride();

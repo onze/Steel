@@ -101,7 +101,7 @@ namespace Steel
         /// Parses through the UI tree and sets up widget logic, given their userData
         void setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &widgets);
         void bindMyGUIWidgetToVariable(MyGUI::Widget *const widget, const Ogre::String &variableName);
-        void insertMyGUICustomWidgets(MyGUI::Widget *const widget);
+        void insertMyGUICustomWidgets(MyGUI::Widget *&widget);
         
         // MyGUI callbacks
         void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
@@ -115,6 +115,8 @@ namespace Steel
         void executeEngineCommand(MyGUI::Widget *widget);
         
         void DispatchSignalToBoundWidgets(Signal signal);
+        
+        MyGUI::Widget*const findMyGUIChildWidget(Ogre::String const& name);
         
         // widget inspection helpers
         bool hasEvent(MyGUI::Widget *widget, Ogre::String const& eventName);

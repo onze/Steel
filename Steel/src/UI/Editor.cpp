@@ -24,6 +24,9 @@
 #include "models/OgreModelManager.h"
 #include "models/PhysicsModelManager.h"
 #include "tools/JsonUtils.h"
+#include <tools/3dParties/MyGUI/TreeControlItemDecorator.h>
+#include <tools/3dParties/MyGUI/TreeControlItem.h>
+#include <tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h>
 #include "models/AgentManager.h"
 #include "SelectionManager.h"
 #include "models/LocationModel.h"
@@ -50,7 +53,7 @@ namespace Steel
         mEngine(nullptr), mInputMan(nullptr),
         mSignals(), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
-        mDebugValueMan()
+        mDebugValueMan(), mResourceTreeControlItemDecorator(nullptr)
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -114,6 +117,12 @@ namespace Steel
 
     void Editor::shutdown()
     {
+        if(nullptr != mResourceTreeControlItemDecorator)
+        {
+            delete mResourceTreeControlItemDecorator;
+            mResourceTreeControlItemDecorator = nullptr;
+        }
+
         mBrush.shutdown();
 
         if(nullptr != mEngine->level())
@@ -151,6 +160,20 @@ namespace Steel
 
         mFSResources = new FileSystemDataSource("resources", mEngine->resourcesDir());
         UIPanel::init(width, height);
+
+        // finalize MYGui setup
+        {
+            MyGUI::TreeControl *resourceTree = (MyGUI::TreeControl *)findMyGUIChildWidget("ResourceTreeControl_Child");
+
+            if(nullptr != resourceTree)
+            {
+                // decoration here means addind drag and drop properties to the tree's items
+                mResourceTreeControlItemDecorator = new MyGUI::TreeControlItemDecorator(resourceTree);
+                mResourceTreeControlItemDecorator->setEnableDragAndDrop(false, true);
+                mResourceTreeControlItemDecorator->eventItemDropped += MyGUI::newDelegate(this, &Editor::MyGUIResourceTreeItemDropped);
+                mResourceTreeControlItemDecorator->setTextColour(MyGUI::Colour::White);
+            }
+        }
         mFSResources->localizeDatagridBody(mDocument);
         auto elem = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
 
@@ -171,7 +194,104 @@ namespace Steel
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
+
+        // TODO: delete test
+        if(0)
+        {
+            MyGUI::IntCoord coords(0, 0, 350, 250);
+            MyGUI::ItemBox *draggable = MyGUI::Gui::getInstance().createWidget<MyGUI::ItemBox>("ItemBox", coords, MyGUI::Align::Stretch, "Main", "draggable");
+//             MyGUI::Button *button = draggable->createWidget<MyGUI::Button>("Button", MyGUI::IntCoord(0, 0, 150, 25), MyGUI::Align::Stretch, "DraggableButton");
+//             button->setCaption("DRAG ME BABY");
+            draggable->addItem(Ogre::String("DRAG ME BABY"));
+            draggable->addItem(Ogre::String("ONE MORE TIME"));
+            mMyGUIData.layout.push_back(draggable);
+
+            draggable->setNeedDragDrop(true);
+
+            draggable->requestCreateWidgetItem = MyGUI::newDelegate(this, &Editor::MyGUIRequestCreateWidgetItem);
+            draggable->requestCoordItem = MyGUI::newDelegate(this, &Editor::MyGUIRequestCoordWidgetItem);
+            draggable->requestDrawItem = MyGUI::newDelegate(this, &Editor::MyGUIRequestDrawItem);
+
+            draggable->eventMouseItemActivate += MyGUI::newDelegate(this, &Editor::MyGUIMouseItemActivate);//Click on item
+            draggable->eventStartDrag += MyGUI::newDelegate(this, &Editor::MyGUIStartDrag);
+            draggable->eventRequestDrop += MyGUI::newDelegate(this, &Editor::MyGUIRequestDrop);//moving mouse over container, but not dropped yet
+            draggable->eventDropResult += MyGUI::newDelegate(this, &Editor::MyGUIDropResult);
+            draggable->eventNotifyItem += MyGUI::newDelegate(this, &Editor::MyGUINotifyItem);//Notify about event in item widget
+            //draggable->eventSelectItemAccept += MyGUI::newDelegate(this, &Editor::MyGUISelectItemAccept);
+        }
     }
+
+    void Editor::MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const& pos)
+    {
+        if(MyGUIHitTest(pos.left, pos.top))
+            return;
+
+        File file = *node->getData<MyGUIFileSystemDataSource::ControlNodeDataType>();
+
+        if(!file.exists())
+        {
+            Debug::error(STEEL_FUNC_INTRO, "file not found: ", file).endl();
+            return;
+        }
+
+        Ogre::String rawCommand = "instanciate." + file.fullPath();
+        processCommand(rawCommand);
+    }
+
+    void Editor::MyGUIRequestCreateWidgetItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item)
+    {
+        Debug::log(STEEL_FUNC_INTRO, _item, " from ", _sender).endl();
+        // see BaseItemBox.h
+        MyGUI::TextBox *textBox = (MyGUI::TextBox *)_item->findWidget("MyCaption");
+
+        if(nullptr == textBox)
+        {
+            _item->createWidget<MyGUI::TextBox>("TextBox", _item->getClientCoord(), MyGUI::Align::Stretch, "MyCaption");
+        }
+    }
+    void Editor::MyGUIRequestCoordWidgetItem(MyGUI::ItemBox *_sender, MyGUI::IntCoord &_coord, bool _drop)
+    {
+        Debug::log(STEEL_FUNC_INTRO, "from ", _sender, " while drop: ", _drop).endl();
+        _coord = MyGUI::IntCoord(0, 0, _sender->getClientCoord().right(), 25);
+    }
+    void Editor::MyGUIRequestDrawItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item, const MyGUI::IBDrawItemInfo &_info)
+    {
+        Debug::log(STEEL_FUNC_INTRO, _item, " from ", _sender, " for update: ", _info.update, " for drag: ", _info.drag).endl();
+        Ogre::String dataValue = *_sender->getItemDataAt<Ogre::String>(_info.index);
+        Debug::log("data: ", dataValue).endl();
+
+        MyGUI::TextBox *textBox = (MyGUI::TextBox *)_item->findWidget("MyCaption");
+
+        if(nullptr == textBox)
+        {
+            textBox = _item->createWidget<MyGUI::TextBox>("TextBox", _item->getClientCoord(), MyGUI::Align::Stretch, "MyCaption");
+            textBox->setNeedMouseFocus(false);
+        }
+
+        if(_info.active)
+            dataValue += "[active]";
+
+        if(_info.drag)
+            dataValue += "[drag]";
+
+        if(_info.select)
+            dataValue += "[select]";
+
+        if(_info.update)
+            dataValue += "[update]";
+
+        textBox->castType<MyGUI::TextBox>()->setCaption(dataValue.c_str());
+    }
+    void Editor::MyGUIMouseItemActivate(MyGUI::ItemBox *_sender, size_t _index)
+    {Debug::log(STEEL_FUNC_INTRO, _sender, " at ", _index).endl();}
+    void Editor::MyGUIStartDrag(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool &_result)
+    {Debug::log(STEEL_FUNC_INTRO, _sender).endl(); _result = true;}
+    void Editor::MyGUIRequestDrop(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool &_result)
+    {Debug::log(STEEL_FUNC_INTRO, _sender).endl(); _result = true;}
+    void Editor::MyGUIDropResult(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool _result)
+    {Debug::log(STEEL_FUNC_INTRO, _sender).endl(); _result = true;}
+    void Editor::MyGUINotifyItem(MyGUI::ItemBox *_sender, const MyGUI::IBNotifyItemData &_info)
+    {Debug::log(STEEL_FUNC_INTRO, _sender, " ", _info.notify).endl();}
 
     void Editor::onSignal(Signal signal, SignalEmitter *const src)
     {
@@ -1172,4 +1292,5 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 
