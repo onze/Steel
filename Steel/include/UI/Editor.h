@@ -159,18 +159,7 @@ namespace Steel
         void removeDebugValue(Ogre::String const &entryName);
 
         virtual void onSignal(Signal signal, SignalEmitter *const src);
-
-        /// Creates a widget for the item (thge item was added to the ItemBox)
-        void MyGUIRequestCreateWidgetItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item);
-        void MyGUIRequestDrawItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item, const MyGUI::IBDrawItemInfo& _info) ;
-        void MyGUIRequestCoordWidgetItem(MyGUI::ItemBox* _sender, MyGUI::IntCoord& _coord, bool _drop);
         
-        void MyGUIMouseItemActivate(MyGUI::ItemBox *_sender, size_t _index);
-        void MyGUIStartDrag(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool &_result);
-        void MyGUIRequestDrop(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool &_result);
-        void MyGUIDropResult(MyGUI::DDContainer *_sender, const MyGUI::DDItemInfo &_info, bool _result);
-        void MyGUINotifyItem(MyGUI::ItemBox *_sender, const MyGUI::IBNotifyItemData &_info);
-    private:
         /// make a command out of a Rocket event.
         void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
         /// make a command out of a Rocket event.
