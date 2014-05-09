@@ -7,7 +7,6 @@
 #include <OgreStringConverter.h>
 #include <Rocket/Core/String.h>
 
-#include <steeltypes.h>
 
 namespace Steel
 {
