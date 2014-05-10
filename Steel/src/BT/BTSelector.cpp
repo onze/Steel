@@ -55,7 +55,7 @@ namespace Steel
                         ++it;
                         break;
                     case ERROR:
-                        std::cout << "in BTSelector::run() child returned ERROR !" << std::endl;
+                        std::cout << STEEL_METH_INTRO<<"child returned ERROR !" << std::endl;
                         ++it;
                         break;
                 }

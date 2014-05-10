@@ -141,7 +141,7 @@ namespace Steel
         // propagate path if either has one and not the other
         if(!propagatePath(this, dst))
         {
-            Debug::warning("in LocationModel::addDestination(): cannot propagate paths. Aborting.").endl();
+            Debug::warning(STEEL_METH_INTRO, "cannot propagate paths. Aborting.").endl();
             return false;
         }
 
@@ -209,7 +209,7 @@ namespace Steel
 
         if(!propagatePath(this, src))
         {
-            Debug::warning("in LocationModel::addSource(): cannot propagate paths. Aborting.").endl();
+            Debug::warning(STEEL_METH_INTRO, "cannot propagate paths. Aborting.").endl();
             return false;
         }
 
@@ -258,7 +258,7 @@ namespace Steel
 //         Agent *agent=mAgentMan->getAgent(mAttachedAgent);
 //         Ogre::Vector3 position=Ogre::Vector3::ZERO;
 //         if(nullptr==agent)
-//             Debug::error("in LocationModel::position(): invalid attached agent ")(mAttachedAgent).endl();
+        //             Debug::error(STEEL_METH_INTRO, "invalid attached agent ")(mAttachedAgent).endl();
 //         else
 //             position=agent->position();
 //         return position;

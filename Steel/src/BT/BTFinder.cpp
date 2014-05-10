@@ -88,13 +88,11 @@ namespace Steel
 
     AgentId BTFinder::nextLocationInPathStrategyFindFn(BTModel *btModel)
     {
-        static Ogre::String intro = "in BTFinder::nextLocationInPathStrategyFindFn(): ";
-
         auto locMan = btModel->level()->locationModelMan();
 
         if(nullptr == locMan)
         {
-            Debug::error(intro)("Level has no locationModelManager. Cannot process to path lookup. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "Level has no locationModelManager. Cannot process to path lookup. Aborting.").endl();
             return INVALID_ID;
         }
 
@@ -133,9 +131,7 @@ namespace Steel
 
             if(LocationModel::EMPTY_PATH == sourcePath)
             {
-                Debug::error(intro)("agent ")(btModel->ownerAgent())("'s btModel ")
-                (btModel->level()->agentMan()->getAgent(btModel->ownerAgent())->btModelId())
-                (" with shape ").quotes(btModel->shapeName())(" has no path. Aborting.").endl();
+                Debug::error(STEEL_METH_INTRO, "agent ", btModel->ownerAgent(), "'s btModel ", btModel->level()->agentMan()->getAgent(btModel->ownerAgent())->btModelId(), " with shape ").quotes(btModel->shapeName())(" has no path. Aborting.").endl();
                 btModel->kill();
                 return INVALID_ID;
             }

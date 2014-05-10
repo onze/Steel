@@ -104,7 +104,7 @@ namespace Steel
     {
         if(nullptr == listener)
         {
-            Debug::warning("in SignalManager::registerListener(): trying to insert a nullptr listener for signal ");
+            Debug::warning(STEEL_METH_INTRO, "trying to insert a nullptr listener for signal ");
             Debug::warning(signal)(" / ")(fromSignal(signal)).endl();
             return;
         }

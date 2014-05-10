@@ -707,26 +707,23 @@ namespace Steel
 
     bool Agent::stopFollowingPath(AgentId aid)
     {
-        static Ogre::String intro = "in Agent::stopFollowingPath(): ";
-
         Agent *pathAgent;
 
         if(nullptr == (pathAgent = mLevel->agentMan()->getAgent(aid)))
         {
-            Debug::error(intro)("was asked to stop following an invalid AgentId ")(aid)(". Aborting").endl();
+            Debug::error(STEEL_METH_INTRO, "was asked to stop following an invalid AgentId ", aid, ". Aborting").endl();
             return false;
         }
 
         if(!pathAgent->hasLocationPath())
         {
-            Debug::error(intro)("target agent ")(aid)(" has no location path to unfollow. Aborting").endl();
+            Debug::error(STEEL_METH_INTRO, "target agent ", aid, " has no location path to unfollow. Aborting").endl();
             return false;
         }
 
         if(pathAgent->locationPath() != BTPath())
         {
-            Debug::error(intro)("target agent ")(aid)("'s location path ").quotes(pathAgent->locationPath())
-            (" is different from selected agents (").quotes(BTPath())("). Aborting").endl();
+            Debug::error(STEEL_METH_INTRO, "target agent ", aid, "'s location path ").quotes(pathAgent->locationPath())(" is different from selected agents (").quotes(BTPath())("). Aborting").endl();
             return false;
         }
 

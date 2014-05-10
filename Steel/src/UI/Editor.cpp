@@ -268,13 +268,11 @@ namespace Steel
 
     AgentId Editor::instanciateFromMeshFile(File &meshFile, Ogre::Vector3 &pos, Ogre::Quaternion &rot)
     {
-        static const Ogre::String intro = "Editor::instanciateFromMeshFile(";
-        Debug::log(intro)(meshFile)(" pos=")(pos)(" rot=")(rot).endl();
         Level *level = mEngine->level();
 
         if(level == nullptr)
         {
-            Debug::warning(intro + "): no level to instanciate stuff in.").endl();
+            Debug::warning(STEEL_METH_INTRO, meshFile, " pos: ", pos, " rot: ", rot, ". no level to instanciate stuff in.").endl();
             return INVALID_ID;
         }
 
@@ -284,7 +282,7 @@ namespace Steel
 
         if(!level->linkAgentToModel(aid, ModelType::OGRE, mid))
         {
-            Debug::error(intro + "): could not level->linkAgentToModel(")(aid)(", ModelType::OGRE, ")(mid)(")").endl();
+            Debug::error(STEEL_METH_INTRO, meshFile, " pos: ", pos, " rot: ", rot, ". could not level->linkAgentToModel(", aid, ", ModelType::OGRE, mid: ", mid, ")").endl();
             return INVALID_ID;
         }
 
@@ -461,7 +459,6 @@ namespace Steel
 
     void Editor::onShow()
     {
-        static const Ogre::String intro = "Editor::onShow(): ";
         mBrush.onShow();
 
         // (re)load state
@@ -533,8 +530,6 @@ namespace Steel
 
     void Editor::refreshSelectionPathWidget()
     {
-        static const Ogre::String intro = "Editor::refreshSelectionPathWidget(): ";
-
         if(nullptr == mEngine->level())
             return;
 
@@ -577,7 +572,7 @@ namespace Steel
 
         if(nullptr == elem)
         {
-            Debug::error(intro)("child ").quotes(Editor::SELECTION_PATH_INFO_BOX)("not found. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "child ").quotes(Editor::SELECTION_PATH_INFO_BOX)("not found. Aborting.").endl();
             return;
         }
 
@@ -750,8 +745,7 @@ namespace Steel
             }
             else
             {
-                Debug::log("in Editor::processClickEvent(): ")("rawCommand: ").quotes(rawCommand)
-                (", text input is empty. Not setting the empty tag.").endl();
+                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", text input is empty. Not setting the empty tag.").endl();
                 return;
             }
         }
@@ -770,7 +764,7 @@ namespace Steel
             }
             else
             {
-                Debug::log("in Editor::processClickEvent(): ")("rawCommand: ").quotes(rawCommand)
+                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)
                 (", text input is empty. Not setting the empty tag.").endl();
                 return;
             }
@@ -787,7 +781,6 @@ namespace Steel
 
     void Editor::processChangeEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
     {
-        static const Ogre::String intro = "Editor::processChangeEvent(): ";
         Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
         Ogre::String rawCommand = event_value;
         bool verbose = true;
@@ -803,8 +796,7 @@ namespace Steel
 
             if(children.size() != 1)
             {
-                Debug::warning(intro)("did not find 1 single sibling of ")(elem->GetTagName())
-                (" tagged \"select\". Aborting command ").quotes(rawCommand).endl();
+                Debug::warning(STEEL_METH_INTRO, "did not find 1 single sibling of ")(elem->GetTagName())(" tagged \"select\". Aborting command ").quotes(rawCommand).endl();
                 return;
             }
 
@@ -845,10 +837,7 @@ namespace Steel
             {
                 if(mDebugEvents)
                 {
-                    Debug::log("in Editor::processChangeEvent(): ")
-                    ("rawCommand: ").quotes(rawCommand)
-                    (", event_value: ").quotes(event_value)
-                    (" does not end with a new line. Skipping.").endl();
+                    Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", event_value: ").quotes(event_value)(" does not end with a new line. Skipping.").endl();
                 }
 
                 return;
@@ -872,10 +861,7 @@ namespace Steel
             {
                 if(mDebugEvents)
                 {
-                    Debug::log("in Editor::processChangeEvent(): ")
-                    ("rawCommand: ").quotes(rawCommand)
-                    (", event_value: ").quotes(event_value)
-                    (" does not end with a new line. Skipping.").endl();
+                    Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", event_value: ").quotes(event_value)(" does not end with a new line. Skipping.").endl();
                 }
 
                 return;
@@ -930,8 +916,6 @@ namespace Steel
 
     bool Editor::processCommand(std::vector<Ogre::String> command)
     {
-        /*static const*/ Ogre::String intro = "Editor::processCommand(): ";
-
         while(command.size() > 0 && command[0] == "editor")
             command.erase(command.begin());
 
@@ -967,13 +951,11 @@ namespace Steel
         }
         else if(command[0] == "instanciate")
         {
-            intro += "instanciate: ";
             command.erase(command.begin());
 
             if(command.size() == 0)
             {
-                Debug::error(intro)("command \"")(command);
-                Debug::error("\" contains no file !").endl();
+                Debug::error(STEEL_METH_INTRO, "instanciate: command ").quotes(command)(" contains no file !").endl();
                 return false;
             }
 
@@ -989,8 +971,7 @@ namespace Steel
             }
             else
             {
-                Debug::warning(intro)("file \"")(file)("\" not found for command \"");
-                Debug::warning(command)("\". Aborted.").endl();
+                Debug::warning(STEEL_METH_INTRO, "instanciate: file ").quotes(file)(" not found for command ").quotes(command)(". Aborted.").endl();
                 return false;
             }
         }
@@ -1002,7 +983,7 @@ namespace Steel
             {
                 if(command.size() < 2)
                 {
-                    Debug::error(intro)("command ").quotes(command)(" is incomplete").endl();
+                    Debug::error(STEEL_METH_INTRO, "command ").quotes(command)(" is incomplete").endl();
                     return false;
                 }
 
@@ -1014,7 +995,7 @@ namespace Steel
 
                     if(command.size() == 0)
                     {
-                        Debug::error(intro)("no tag to set").endl();
+                        Debug::error(STEEL_METH_INTRO, "no tag to set").endl();
                         return false;
                     }
 
@@ -1037,7 +1018,7 @@ namespace Steel
 
                     if(command.size() == 0)
                     {
-                        Debug::error(intro)("no tag to unset").endl();
+                        Debug::error(STEEL_METH_INTRO, "no tag to unset").endl();
                         return false;
                     }
 
@@ -1057,7 +1038,7 @@ namespace Steel
                 }
                 else
                 {
-                    Debug::warning(intro)("unknown command: \"")(command)("\".").endl();
+                    Debug::warning(STEEL_METH_INTRO, "unknown command:").quotes(command)(".").endl();
                     return false;
                 }
             }
@@ -1065,8 +1046,7 @@ namespace Steel
             {
                 if(command.size() < 2)
                 {
-                    Debug::error(intro)("command \"")(command);
-                    Debug::error("\" is incomplete").endl();
+                    Debug::error(STEEL_METH_INTRO, "command ").quotes(command)(" is incomplete").endl();
                     return false;
                 }
 
@@ -1078,13 +1058,13 @@ namespace Steel
 
                     if(command.size() == 0)
                     {
-                        Debug::error(intro)("no path to set").endl();
+                        Debug::error(STEEL_METH_INTRO, "no path to set").endl();
                         return false;
                     }
 
                     if(!selectionMan->hasSelection() || selectionMan->selection().size() > 1)
                     {
-                        Debug::error(intro)("need to select 1 model linked to a LocationModel.").endl();
+                        Debug::error(STEEL_METH_INTRO, "need to select 1 model linked to a LocationModel.").endl();
                         return false;
                     }
 
@@ -1109,19 +1089,19 @@ namespace Steel
                 }
                 else
                 {
-                    Debug::warning(intro)("unknown path command: \"")(command)("\".").endl();
+                    Debug::warning(STEEL_METH_INTRO, "unknown path command: \"")(command)("\".").endl();
                     return false;
                 }
             }
             else
             {
-                Debug::warning(intro)("unknown selection command: \"")(command)("\".").endl();
+                Debug::warning(STEEL_METH_INTRO, "unknown selection command: \"")(command)("\".").endl();
                 return false;
             }
         }
         else
         {
-            Debug::warning(intro)("unknown editor command: \"")(command)("\".").endl();
+            Debug::warning(STEEL_METH_INTRO, "unknown editor command: \"")(command)("\".").endl();
             return false;
         }
 
@@ -1143,7 +1123,7 @@ namespace Steel
 
         if("input" != tagName && "select" != tagName)
         {
-            Debug::error("in Editor::getFormControlInputValue(): trying to use elem with id ").quotes(elementId)
+            Debug::error(STEEL_METH_INTRO, "trying to use elem with id ").quotes(elementId)
             (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
             return "";
         }
@@ -1168,7 +1148,7 @@ namespace Steel
 
         if("input" != tagName && "select" != tagName)
         {
-            Debug::error("in Editor::setFormControlInputValue(): trying to use elem with id ").quotes(elementId)
+            Debug::error(STEEL_METH_INTRO, "trying to use elem with id ").quotes(elementId)
             (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
             return nullptr;
         }

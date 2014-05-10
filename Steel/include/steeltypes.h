@@ -13,9 +13,6 @@
 #include "tools/StringUtils.h"
 #include "BT/btnodetypes.h"
 
-#define STEEL_METH_INTRO Ogre::String(typeid(*this).name(), __func__)+"(): "
-#define STEEL_FUNC_INTRO Ogre::String(__func__)+"(): "
-
 // http://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
 #define STEEL_UNUSED(expr) do { (void)(expr); } while (0)
 

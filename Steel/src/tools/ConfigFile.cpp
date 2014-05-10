@@ -64,10 +64,11 @@ namespace Steel
         {
             // can't debug
             if(Debug::isInit)
-                Debug::error("in ConfigFile::load(): can't parse configFile ", mFile, ". Errors: ", reader.getFormattedErrorMessages()).endl();
+                Debug::error(STEEL_METH_INTRO, "can't parse configFile ", mFile, ". Errors: ", reader.getFormattedErrorMessages()).endl();
             else
             {
-                std::cerr << "in ConfigFile::load(): can't parse configFile " << mFile.fullPath().c_str()
+                std::cerr << STEEL_METH_INTRO
+                          <<"can't parse configFile " << mFile.fullPath().c_str()
                           << ". Errors: " << reader.getFormattedErrorMessages()
                           << std::endl;
             }

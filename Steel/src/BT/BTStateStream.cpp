@@ -61,14 +61,12 @@ namespace Steel
 
     bool BTStateStream::buildFromShapeStream(BTShapeStream *shapeStream)
     {
-        static const Ogre::String intro = "in BTStateStream::buildFromShapeStream(): ";
-
         if(!empty())
             clear();
 
         if(nullptr == shapeStream)
         {
-            Debug::warning(intro)("trying to build from nullptr shapeStream. Aborting.").endl();
+            Debug::warning(STEEL_METH_INTRO, "trying to build from nullptr shapeStream. Aborting.").endl();
             return false;
         }
 
@@ -84,7 +82,7 @@ namespace Steel
 
             if(tokenSize == 0)
             {
-                Debug::error(intro)("got size 0 for token ")(token).endl();
+                Debug::error(STEEL_METH_INTRO, "got size 0 for token ")(token).endl();
                 return false;
             }
 
@@ -102,8 +100,7 @@ namespace Steel
 
             if(!placeStateAt(mStateOffsets[i], token))
             {
-                Debug::error(intro)("can't place state of type ")((int)token.type)
-                ("(")(toString(token.type))(") at offset ")(mStateOffsets[i])("/")(mDataSize).endl();
+                Debug::error(STEEL_METH_INTRO, "can't place state of type ")((int)token.type, "(")(toString(token.type), ") at offset ", mStateOffsets[i], "/", mDataSize).endl();
                 return false;
             }
         }
@@ -277,8 +274,7 @@ namespace Steel
     bool utest_BTStateStream(UnitTestExecutionContext const *context)
     {
         return true;
-        Ogre::String intro = "in test_BTShapeStream(): file ", abortMsg = "Aborting unit test.";
-
+        
         // get the shape stream
         BTShapeManager shapeMan;
         Ogre::String streamId = "utests/shapes/A - sequence";
@@ -287,13 +283,13 @@ namespace Steel
 
         if(!rootFile.exists())
         {
-            Debug::warning(intro)(rootFile)(" not found. ")(abortMsg).endl();
+            Debug::warning(STEEL_METH_INTRO, rootFile," not found. Aborting unit test.").endl();
             return false;
         }
 
         if(!shapeMan.buildShapeStream(streamId, rootFile, shapeStream))
         {
-            Debug::error(intro)("Could not create shape stream, see above for details.")(abortMsg).endl();
+            Debug::error(STEEL_METH_INTRO, "Could not create shape stream, see above for details. Aborting unit test.").endl();
             return false;
         }
 

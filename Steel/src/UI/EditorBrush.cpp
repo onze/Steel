@@ -118,7 +118,7 @@ namespace Steel
     void EditorBrush::setIntensity(float value)
     {
         checkTerraScaleFactorValue();
-        value = Numeric::clamp(value, .0f, 100.f)/10.;
+        value = Numeric::clamp(value, .0f, 100.f) / 10.;
         mTerraScale.y = value;
 
         if(nullptr != sTerraBrushVisual)
@@ -333,7 +333,6 @@ namespace Steel
 
     bool EditorBrush::mouseReleased(Input::Code button, const Input::Event &evt)
     {
-        static const Ogre::String intro = "in EditorBrush::mouseReleased(): ";
         auto level = mEngine->level();
         SelectionManager *selectionMan = level->selectionMan();
 
@@ -417,9 +416,9 @@ namespace Steel
                         if(nullptr != mLinkingValidatedAlternateCallbackFn)
                         {
                             if(mLinkingValidatedAlternateCallbackFn(mFirstLinkedAgent, aid))
-                                Debug::log(intro)("alternate link operation succeeded.").endl();
+                                Debug::log(STEEL_METH_INTRO, "alternate link operation succeeded.").endl();
                             else
-                                Debug::log(intro)("alternate link operation failed.").endl();
+                                Debug::log(STEEL_METH_INTRO, "alternate link operation failed.").endl();
                         }
                     }
                     else
@@ -427,9 +426,9 @@ namespace Steel
                         if(nullptr != mLinkingValidatedCallbackFn)
                         {
                             if(mLinkingValidatedCallbackFn(mFirstLinkedAgent, aid))
-                                Debug::log(intro)("link operation succeeded.").endl();
+                                Debug::log(STEEL_METH_INTRO, "link operation succeeded.").endl();
                             else
-                                Debug::log(intro)("link operation failed.").endl();
+                                Debug::log(STEEL_METH_INTRO, "link operation failed.").endl();
                         }
                     }
                 }
@@ -841,7 +840,7 @@ namespace Steel
 
             case BrushMode::NONE:
             default:
-                Debug::warning("in EditorBrush::setMode(): ")("unknown mode ").quotes(toString(mode)).endl();
+                Debug::warning(STEEL_METH_INTRO, "unknown mode ").quotes(toString(mode)).endl();
                 mMode = BrushMode::NONE;
                 break;
         }

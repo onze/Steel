@@ -35,10 +35,10 @@ namespace Steel
 
     ModelId LocationModelManager::newModel()
     {
-        ModelId mid= INVALID_ID;
+        ModelId mid = INVALID_ID;
         return newModel(mid);
     }
-    
+
     ModelId LocationModelManager::newModel(ModelId &mid)
     {
         allocateModel(mid);
@@ -63,7 +63,7 @@ namespace Steel
         return true;
     }
 
-    void LocationModelManager::toJson(Json::Value &root, std::list<ModelId> const& modelIds)
+    void LocationModelManager::toJson(Json::Value &root, std::list<ModelId> const &modelIds)
     {
         if(mPathsRoots.size())
             root[LocationModelManager::PATH_ROOTS_ATTRIBUTE] = JsonUtils::toJson(mPathsRoots);
@@ -99,18 +99,17 @@ namespace Steel
 
     bool LocationModelManager::linkLocations(ModelId srcId, ModelId dstId)
     {
-        static const Ogre::String intro = "in LocationModelManager::linkLocations(): ";
         LocationModel *src = at(srcId), *dst = at(dstId);
 
         if(nullptr == src)
         {
-            Debug::error(intro)("source model ")(srcId)(" is not valid.").endl();
+            Debug::error(STEEL_METH_INTRO, "source model ")(srcId)(" is not valid.").endl();
             return false;
         }
 
         if(nullptr == dst)
         {
-            Debug::error(intro)("destination model ")(dstId)(" is not valid.").endl();
+            Debug::error(STEEL_METH_INTRO, "destination model ")(dstId)(" is not valid.").endl();
             return false;
         }
 
@@ -122,14 +121,14 @@ namespace Steel
 
         if(!src->addDestination(dst->attachedAgent()))
         {
-            Debug::error(intro)("source model ")(srcId)(" cannot take model ")
+            Debug::error(STEEL_METH_INTRO, "source model ")(srcId)(" cannot take model ")
             (dstId)("'s agent ")(dst->attachedAgent())(") as a new destination. Aborting").endl();
             return false;
         }
 
         if(!dst->addSource(src->attachedAgent()))
         {
-            Debug::error(intro)("destination model ")(dstId)(" cannot take model ")
+            Debug::error(STEEL_METH_INTRO, "destination model ")(dstId)(" cannot take model ")
             (srcId)("'s agent ")(src->attachedAgent())(") as a new source. Aborting").endl();
             src->removeDestination(dst->attachedAgent());
             return false;
@@ -162,19 +161,17 @@ namespace Steel
 
     bool LocationModelManager::unlinkLocations(ModelId mid0, ModelId mid1)
     {
-        static const Ogre::String intro = "in LocationModelManager::linkLocations(): ";
-
         LocationModel *m0 = at(mid0), *m1 = at(mid1);
 
         if(nullptr == m0)
         {
-            Debug::error(intro)("model ")(mid0)(" is not valid.").endl();
+            Debug::error(STEEL_METH_INTRO, "model ", mid0, " is not valid.").endl();
             return false;
         }
 
         if(nullptr == m1)
         {
-            Debug::error(intro)("model ")(mid1)(" is not valid.").endl();
+            Debug::error(STEEL_METH_INTRO, "model ", mid1, " is not valid.").endl();
             return false;
         }
 
@@ -201,13 +198,11 @@ namespace Steel
 
     void LocationModelManager::unlinkLocation(ModelId mid)
     {
-        static const Ogre::String intro = "in LocationModelManager::unlinkLocation(): ";
-
         LocationModel *model = at(mid);
 
         if(nullptr == model)
         {
-            Debug::error(intro)("model ")(mid)(" is not valid.").endl();
+            Debug::error(STEEL_METH_INTRO, "model ", mid, " is not valid.").endl();
             return;
         }
 
@@ -376,11 +371,9 @@ namespace Steel
 
     void LocationModelManager::setModelPath(ModelId mid, LocationPathName const &name)
     {
-        static const Ogre::String intro = "in LocationModelManager::setModelPath(): ";
-
         if(LocationModel::EMPTY_PATH == name)
         {
-            Debug::error(intro)("path name cannot be the empty string").endl();
+            Debug::error(STEEL_METH_INTRO, "path name cannot be the empty string").endl();
             return;
         }
 

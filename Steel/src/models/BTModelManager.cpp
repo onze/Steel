@@ -38,11 +38,10 @@ namespace Steel
     bool BTModelManager::fromSingleJson(Json::Value &root, ModelId &id)
     {
         Json::Value value;
-        Ogre::String intro = "in BTModelManager::fromSingleJson():\n" + root.toStyledString() + "\n";
 
         if(root.isNull())
         {
-            Debug::error(intro)("Empty root. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "Empty root. Aborting.").endl();
             return false;
         }
 
@@ -50,7 +49,7 @@ namespace Steel
 
         if(value.isNull())
         {
-            Debug::error(intro)("unknown BTModel ")(BTModel::SHAPE_NAME_ATTRIBUTE)(" ").quotes(value)(". Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "unknown BTModel ", BTModel::SHAPE_NAME_ATTRIBUTE, " ").quotes(value)(". Aborting.").endl();
             return false;
         }
 
@@ -59,7 +58,7 @@ namespace Steel
 
         if(!rootFile.exists())
         {
-            Debug::error(intro)("rootFile ")(rootFile)(" not found. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "rootFile ", rootFile, " not found. Aborting.").endl();
             return false;
         }
 
@@ -76,7 +75,7 @@ namespace Steel
         // agentTags
         if(!mModels[id].deserializeTags(root))
         {
-            Debug::error(intro)("could not deserialize tags. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "could not deserialize tags. Aborting.").endl();
             return false;
         }
 
@@ -85,15 +84,12 @@ namespace Steel
 
     bool BTModelManager::buildFromFile(File const &rootFile, ModelId &id)
     {
-        Ogre::String intro = "in BTModelManager::buildFromFile(" + rootFile.fullPath() + "): ";
-
         // get the stream
         BTShapeStream *shapeStream = nullptr;
 
         if(!mBTShapeMan.buildShapeStream(rootFile.fileName(), rootFile, shapeStream))
         {
-            Debug::error(intro)("could not generate a BT shape root node ")(rootFile);
-            Debug::error(", see above for details. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "could not generate a BT shape root node ", rootFile, ", see above for details. Aborting.").endl();
             return false;
         }
 

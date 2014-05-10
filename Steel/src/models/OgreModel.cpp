@@ -211,7 +211,6 @@ namespace Steel
 
     bool OgreModel::fromJson(const Json::Value &node, Ogre::SceneNode *levelRoot, Ogre::SceneManager *sceneManager, const Ogre::String &resourceGroupName)
     {
-        Ogre::String intro = "in OgreModel::fromJson(): ";
         // data to gather
         Ogre::String meshName;
         Ogre::Vector3 pos(Ogre::Vector3::ZERO);
@@ -223,7 +222,7 @@ namespace Steel
 
         // position
         if(node[OgreModel::POSITION_ATTRIBUTE].isNull())
-            Debug::error(intro)("position is null: no translation applied.").endl();
+            Debug::error(STEEL_METH_INTRO, "position is null: no translation applied.").endl();
         else
             pos = JsonUtils::asVector3(node[OgreModel::POSITION_ATTRIBUTE], pos);
 
@@ -239,7 +238,7 @@ namespace Steel
         value = node[OgreModel::ENTITY_MESH_NAME_ATTRIBUTE];
 
         if(value.isNull() && !(allWasFine = false))
-            Debug::error(intro)("field ").quotes(OgreModel::ENTITY_MESH_NAME_ATTRIBUTE)(" is null.").endl();
+            Debug::error(STEEL_METH_INTRO, "field ").quotes(OgreModel::ENTITY_MESH_NAME_ATTRIBUTE)(" is null.").endl();
         else
             meshName = Ogre::String(value.asString());
 
@@ -251,9 +250,9 @@ namespace Steel
             value = node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE];
 
             if(!value.isString())
-                Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is not a string.").endl();
+                Debug::error(STEEL_METH_INTRO, "field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is not a string.").endl();
             else if(value.isNull())
-                Debug::error(intro)("field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
+                Debug::error(STEEL_METH_INTRO, "field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
             else
                 materialName = Ogre::String(value.asString());
         }
@@ -275,15 +274,14 @@ namespace Steel
             // make sure we've been called with all arguments, because they're all needed now
             if(levelRoot == nullptr || sceneManager == nullptr)
             {
-                Debug::error(intro)("a new mesh is required, but sceneManager or levelRoot are nullptr.");
-                Debug::error(" Aborting.").endl();
+                Debug::error(STEEL_METH_INTRO, "a new mesh is required, but sceneManager or levelRoot are nullptr. Aborting.").endl();
                 return false;
             }
 
             // make sure the new meshName is valid
             if(meshName.length() == 0 || !Ogre::ResourceGroupManager::getSingletonPtr()->resourceExistsInAnyGroup(meshName))
             {
-                Debug::error(intro)("could not find resource ").quotes(meshName)(" in any group. Aborting.").endl();
+                Debug::error(STEEL_METH_INTRO, "could not find resource ").quotes(meshName)(" in any group. Aborting.").endl();
                 return false;
             }
 
@@ -314,7 +312,7 @@ namespace Steel
 
         if(!mm->resourceExists(resName))
         {
-            Debug::error("in OgreModel::setMaterial(): material ").quotes(resName)(" does not exist. Using default.").endl();
+            Debug::error(STEEL_METH_INTRO, "material ").quotes(resName)(" does not exist. Using default.").endl();
             resName = OgreModel::MISSING_MATERIAL_NAME;
         }
 
@@ -324,9 +322,9 @@ namespace Steel
 
     bool OgreModel::isVisible() const
     {
-        return nullptr == mEntity ? false : mEntity->isVisible();    
+        return nullptr == mEntity ? false : mEntity->isVisible();
     }
-    
+
     void OgreModel::setVisible(bool flag)
     {
         if(nullptr != mEntity)

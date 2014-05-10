@@ -483,19 +483,18 @@ namespace Steel
 
     void SelectionManager::selectMemo(Ogre::String memo)
     {
-        static const Ogre::String intro = "in SelectionManager::selectMemo(): ";
         clearSelection();
         auto it = mMemos.find(memo);
 
         if(it != mMemos.end())
         {
             auto selection = (*it).second;
-            Debug::log(intro)("selecting ")(mSelection)(" from memo ")(memo).endl();
+            Debug::log(STEEL_METH_INTRO, "selecting ", mSelection, " from memo ", memo).endl();
             setSelectedAgents(selection);
         }
         else
         {
-            Debug::log(intro)(" found no selection under memo ")(memo).endl();
+            Debug::log(STEEL_METH_INTRO, "found no selection under memo ", memo).endl();
         }
     }
 

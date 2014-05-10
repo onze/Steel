@@ -534,16 +534,14 @@ namespace Steel
 
     bool File::readInto(Json::Value &root, bool keepComments)
     {
-        Ogre::String intro = "in File<" + fullPath() + ">::readInto(): ";
-
         if(!exists())
         {
-            Ogre::String msg = "Could not open :" + fullPath() + ": file not found.";
+            Ogre::String msg = "could not open :" + fullPath() + ": file not found.";
 
             if(Debug::isInit)
-                Debug::error(intro)(msg).endl();
+                Debug::error(STEEL_METH_INTRO, msg).endl();
             else
-                std::cerr << intro.c_str() << msg.c_str() << std::endl;
+                std::cerr << STEEL_METH_INTRO.c_str() << msg.c_str() << std::endl;
 
             return false;
         }
@@ -557,9 +555,9 @@ namespace Steel
             Ogre::String msg = "Could not parse content:" + reader.getFormatedErrorMessages() + "\non :" + content;
 
             if(Debug::isInit)
-                Debug::error(intro)(msg).endl();
+                Debug::error(STEEL_METH_INTRO, msg).endl();
             else
-                std::cerr << intro.c_str() << msg.c_str() << std::endl;
+                std::cerr << STEEL_METH_INTRO.c_str() << msg.c_str() << std::endl;
 
             return false;
         }

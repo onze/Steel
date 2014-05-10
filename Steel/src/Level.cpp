@@ -157,11 +157,9 @@ namespace Steel
 
     bool Level::linkAgentToModel(AgentId aid, ModelType mType, ModelId mid)
     {
-        Ogre::String intro = "Level::linkAgentToModel(): ";
-
         if(aid == INVALID_ID)
         {
-            Debug::error(intro)("aid ")(aid)(" does not exist.").endl();
+            Debug::error(STEEL_METH_INTRO, "aid ", aid, " does not exist.").endl();
             return false;
         }
 
@@ -171,21 +169,19 @@ namespace Steel
 
         if(mm == nullptr)
         {
-            Debug::error(intro)("mType ")((long int) mType)(" aka ")
-            .quotes(toString(mType))(" does not exist.").endl();
+            Debug::error(STEEL_METH_INTRO, "mType ", (long int) mType, " aka ").quotes(toString(mType))(" does not exist.").endl();
             return false;
         }
 
         if(mid == INVALID_ID)
         {
-            Debug::error(intro)("invalid model id.").endl();
+            Debug::error(STEEL_METH_INTRO, "invalid model id.").endl();
             return false;
         }
 
         if(!agent->linkToModel(mType, mid))
         {
-            Debug::error(intro)("linkage agent ")(aid)("<->model<")(toString(mType))(">");
-            Debug::error(mid)(" failed.").endl();
+            Debug::error(STEEL_METH_INTRO, "linkage agent ", aid, "<->model<", toString(mType), ">", mid, " failed.").endl();
             return false;
         }
 
@@ -266,8 +262,7 @@ namespace Steel
     {
         if(nullptr != modelManager(type))
         {
-            Debug::error("in Level::registerManager(): a manager for type ").quotes(toString(type))
-            (" already exists ! Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "a manager for type ").quotes(toString(type))(" already exists ! Aborting.").endl();
             return;
         }
 
@@ -295,8 +290,6 @@ namespace Steel
 
     void Level::getAgentsIdsFromSceneNodes(std::list<Ogre::SceneNode *> &nodes, Selection &selection)
     {
-        static const Ogre::String intro = "in Level::getAgentsIdsFromSceneNodes(): ";
-
         for(std::list<Ogre::SceneNode *>::iterator it = nodes.begin(); it != nodes.end(); ++it)
         {
             auto any = (*it)->getUserObjectBindings().getUserAny();
@@ -308,7 +301,7 @@ namespace Steel
 
             if(mAgentMan->isIdFree(aid))
             {
-                Debug::warning(intro)("found sceneNode with invalid agentId ")(aid)(". Deleting it.").endl();
+                Debug::warning(STEEL_METH_INTRO, "found sceneNode with invalid agentId ", aid, ". Deleting it.").endl();
                 OgreUtils::destroySceneNode(*it);
             }
             else
@@ -342,10 +335,10 @@ namespace Steel
     void Level::processCommand(std::vector<Ogre::String> command)
     {
         Ogre::String intro = "Level::processCommand(" + StringUtils::join(command, ".") + ")";
-        
+
         while(command.size() > 0 && command[0] == "level")
             command.erase(command.begin());
-        
+
         if(0 == command.size())
             return;
 
@@ -631,7 +624,7 @@ namespace Steel
             return loadTerrainSlotFromSerialization(root);
         else
         {
-            Debug::warning(intro)("instanciation type unknown: ")(instancitationType).endl();
+            Debug::warning(STEEL_METH_INTRO, "instanciation type unknown: ", instancitationType).endl();
             return false;
         }
 
@@ -753,8 +746,6 @@ namespace Steel
 
     ModelId Level::modelIdUnderMouse(ModelType mType)
     {
-        static const Ogre::String intro = "in Level::ModelIdUnderMouse(mType=" + toString(mType) + "): ";
-
         ModelId mid = INVALID_ID;
         AgentId aid = agentIdUnderMouse();
 
@@ -764,7 +755,7 @@ namespace Steel
         Agent *agent = agentMan()->getAgent(aid);
 
         if(nullptr == agent)
-            Debug::error(intro)("can't find agent ")(aid).endl();
+            Debug::error(STEEL_METH_INTRO, "can't find agent ", aid).endl();
         else
             mid = agent->modelId(mType);
 
@@ -820,8 +811,6 @@ namespace Steel
 
     bool Level::dynamicFillSerialization(Json::Value &node, AgentId aid)
     {
-        static const Ogre::String intro = "in Level::dynamicFillSerialization(): ";
-
         if(node.isArray())
         {
             // array: provcess each value
@@ -876,7 +865,7 @@ namespace Steel
 
                         if(INVALID_ID == aid_um)
                         {
-                            Debug::error(intro)("no agent under mouse.").endl();
+                            Debug::error(STEEL_METH_INTRO, "no agent under mouse.").endl();
                             return false;
                         }
 
@@ -897,7 +886,7 @@ namespace Steel
 
                         if(INVALID_ID == mid_um)
                         {
-                            Debug::error(intro)("no OgreModel under mouse.").endl();
+                            Debug::error(STEEL_METH_INTRO, "no OgreModel under mouse.").endl();
                             return false;
                         }
 
@@ -913,7 +902,7 @@ namespace Steel
                     // drops farther than 5km away are forbidden
                     if(slotPosition.length() > 5000)
                     {
-                        Debug::error(intro)("slot drop position is invalid (>5k units away):")(slotPosition)(". Aborted.").endl();
+                        Debug::error(STEEL_METH_INTRO, "slot drop position is invalid (>5k units away):")(slotPosition)(". Aborted.").endl();
                         return false;
                     }
 
@@ -1040,7 +1029,7 @@ namespace Steel
 
                     if(!overrides.isObject())
                     {
-                        Debug::error(intro)("invalid overrides:")(overrides)(". Was expecting an object. Aborting").endl();
+                        Debug::error(STEEL_METH_INTRO, "invalid overrides:", overrides, ". Was expecting an object. Aborting").endl();
                         revertAgent = true;
                         break;
                     }

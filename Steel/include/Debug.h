@@ -12,6 +12,16 @@
 //     Debug::error("STEEL_ASSERT: ", ##EXPRESSION, __VA_ARGS__).endl().breakHere(); 
 // }
 
+#if OGRE_COMPILER == OGRE_COMPILER_GNUC
+#define __CLASS_NAME__ Steel::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ Steel::methodName(__PRETTY_FUNCTION__)
+#define STEEL_METH_INTRO (Ogre::String(__METHOD_NAME__)+": ")
+#else
+#define STEEL_METH_INTRO (Ogre::String(typeid(*this).name())+"::"+Ogre::String(__func__)+"(): ")
+#endif
+
+#define STEEL_FUNC_INTRO (Ogre::String(__func__)+"(): ")
+
 namespace MyGUI
 {
     class Widget;
@@ -19,7 +29,26 @@ namespace MyGUI
 
 namespace Steel
 {
-
+    //http://stackoverflow.com/a/15775519/2909588
+    inline std::string methodName(const std::string& prettyFunction)
+    {
+        size_t colons = prettyFunction.find("::");
+        size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+        size_t end = prettyFunction.rfind("(") - begin;
+        
+        return prettyFunction.substr(begin,end) + "()";
+    }
+    inline std::string className(const std::string& prettyFunction)
+    {
+        size_t colons = prettyFunction.find("::");
+        if (colons == std::string::npos)
+            return "::";
+        size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+        size_t end = colons - begin;
+        
+        return prettyFunction.substr(begin,end);
+    }
+    
     class Action;
     class ActionCombo;
     class BTNode;

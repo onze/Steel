@@ -146,13 +146,11 @@ namespace Steel
 
     void BTNavigator::run(BTModel *btModel, float timestep)
     {
-        static Ogre::String intro = "in BTNavigator::run(): ";
-
         Agent *agent = btModel->level()->agentMan()->getAgent(btModel->ownerAgent());
 
         if(nullptr == agent)
         {
-            Debug::error(intro)("owner agent ")(btModel->ownerAgent())(" does not exists. Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "owner agent ", btModel->ownerAgent(), " does not exists. Aborting.").endl();
             mState = BTNodeState::FAILURE;
             return;
         }
@@ -173,7 +171,7 @@ namespace Steel
 
                 if(nullptr == (targetAgent = btModel->level()->agentMan()->getAgent(mTargetAgent)))
                 {
-                    Debug::error(intro)("targetAgent ")(mTargetAgent)(" does not exists. Aborting.").endl();
+                    Debug::error(STEEL_METH_INTRO, "targetAgent ", mTargetAgent, " does not exists. Aborting.").endl();
                     mState = BTNodeState::FAILURE;
                     return;
                 }

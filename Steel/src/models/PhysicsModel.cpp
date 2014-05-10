@@ -301,11 +301,11 @@ namespace Steel
         value = root[PhysicsModel::EMIT_ON_TAG_ATTRIBUTE];
 
         if(!mIsGhost && !value.isNull())
-            Debug::error("in PhysicsModel::fromJson(): unexpected field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Skipped.").endl();
+            Debug::error(STEEL_METH_INTRO, "unexpected field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Skipped.").endl();
         else if(mIsGhost)
         {
             if((!value.isNull() && !value.isObject()) && !(allWasFine = false))
-                Debug::error("in PhysicsModel::fromJson(): invalid field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Aborting.").endl();
+                Debug::error(STEEL_METH_INTRO, "invalid field  ").quotes(PhysicsModel::EMIT_ON_TAG_ATTRIBUTE)(". Aborting.").endl();
             else
             {
                 bool aborted = false;
@@ -320,7 +320,7 @@ namespace Steel
 
                     if(INVALID_TAG == tag && !(allWasFine = false))
                     {
-                        Debug::error("in PhysicsModel::fromJson(): invalid tag ")(tag)(" / ").quotes(tagName).endl();
+                        Debug::error(STEEL_METH_INTRO, "invalid tag ")(tag)(" / ").quotes(tagName).endl();
                         break;
                     }
 
@@ -329,7 +329,7 @@ namespace Steel
 
                     if(!signals.isArray() && !(allWasFine = false))
                     {
-                        Debug::error("in PhysicsModel::fromJson(): invalid signals for tag ").quotes(tagName).endl();
+                        Debug::error(STEEL_METH_INTRO, "invalid signals for tag ").quotes(tagName).endl();
                         break;
                     }
 
@@ -342,8 +342,7 @@ namespace Steel
                         if(signal_value.isNull() || !signal_value.isString())
                         {
                             aborted = true;
-                            Debug::error("in PhysicsModel::fromJson(): invalid signal ").quotes(signal_value.asString())
-                            (" for tag ").quotes(tagName).endl();
+                            Debug::error(STEEL_METH_INTRO, "invalid signal ").quotes(signal_value.asString())(" for tag ").quotes(tagName).endl();
                             break;
                         }
 
@@ -362,8 +361,7 @@ namespace Steel
         // final check
         if(!allWasFine)
         {
-            Debug::error("json was:").endl()(root.toStyledString()).endl();
-            Debug::error("deserialisation aborted.").endl();
+            Debug::error("json was:").endl()(root.toStyledString()).endl()("deserialisation aborted.").endl();
             return false;
         }
 
@@ -587,8 +585,7 @@ namespace Steel
         if(shape == PhysicsModel::BBOX_SHAPE_NAME_TRIMESH)
             return BS_TRIMESH;
 
-        Debug::error("in PhysicsModel::BBoxShapeFromString(): unknown value ").quotes(shape)
-        (". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
+        Debug::error(STEEL_METH_INTRO, "unknown value ").quotes(shape)(". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
         return BS_SPHERE;
     }
 
@@ -606,8 +603,7 @@ namespace Steel
         if(shape == BS_TRIMESH)
             return PhysicsModel::BBOX_SHAPE_NAME_TRIMESH;
 
-        Debug::error("in PhysicsModel::StringShapeFromBBox(): unknown value ").quotes(shape)
-        (". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
+        Debug::error(STEEL_METH_INTRO, "unknown value ").quotes(shape)(". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
         return PhysicsModel::BBOX_SHAPE_NAME_SPHERE;
     }
 

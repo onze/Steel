@@ -37,6 +37,7 @@ namespace Steel
         MyGUIFileSystemDataSource();
         ~MyGUIFileSystemDataSource();
         
+        /// Control is the TreeControl fed with items, dataRoot is the path to the root (relative to )
         virtual void init(MyGUI::TreeControl *const control, Ogre::String const &dataRoot);
         virtual void notifyTreeNodePrepare(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node) override;
         

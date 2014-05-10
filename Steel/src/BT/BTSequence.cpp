@@ -28,8 +28,6 @@ namespace Steel
 
     bool BTSequence::parseNodeContent(Json::Value &root)
     {
-        static Ogre::String intro = "in BTSequence::parseNodeContent(): ";
-
         if(root.isMember(MAX_LOOPS_ATTRIBUTE))
         {
             mMaxLoops = JsonUtils::asUnsignedLong(root[MAX_LOOPS_ATTRIBUTE], 0);
@@ -82,7 +80,7 @@ namespace Steel
                 break;
 
             default:
-                Debug::error("in BTSequence::childReturned(): ")("child returned state ")(state).endl();
+                Debug::error(STEEL_METH_INTRO, "child returned state ", state).endl();
                 break;
         }
     }

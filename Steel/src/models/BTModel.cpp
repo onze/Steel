@@ -70,7 +70,7 @@ namespace Steel
         mBlackBoardModelId = INVALID_ID;
         return switchShapeTo(shapeStream);
     }
-    
+
     Ogre::String BTModel::shapeName()
     {
         return mStateStream.shapeStream()->mName;
@@ -100,12 +100,11 @@ namespace Steel
 
     void BTModel::toJson(Json::Value &node)
     {
-        static const Ogre::String intro = "in BTModel::toJson(): ";
         BTShapeStream *st = mStateStream.shapeStream();
 
         if(nullptr == st)
         {
-            Debug::error(intro)("stateStream's has no shapeStream !").endl();
+            Debug::error(STEEL_METH_INTRO, "stateStream's has no shapeStream !").endl();
             node[BTModel::SHAPE_NAME_ATTRIBUTE] = Json::Value::null;
         }
         else
@@ -128,8 +127,6 @@ namespace Steel
     {
         bool debug = false;
 
-        static const Ogre::String intro = "in BTModel::update(): ";
-
         if(mPaused || mKilled)
             return;
 
@@ -149,7 +146,7 @@ namespace Steel
 
                 if(BTShapeTokenType::BTUnknownToken == token.type)
                 {
-                    Debug::error(intro)("node #")(prevStateIndex)(" with token ")(mStateStream.tokenAt(prevStateIndex))
+                    Debug::error(STEEL_METH_INTRO, "node #")(prevStateIndex)(" with token ")(mStateStream.tokenAt(prevStateIndex))
                     ("yielded an unknown token type as index ")(mCurrentStateIndex)
                     (". Node:")(node).endl()("Aborting BTNode update.").endl();
                     kill();
@@ -175,7 +172,7 @@ namespace Steel
 
                     if(node->begin() == newIndex)
                     {
-                        Debug::error(intro)("node #")(mCurrentStateIndex)(" with token ")(token)
+                        Debug::error(STEEL_METH_INTRO, "node #")(mCurrentStateIndex)(" with token ")(token)
                         (" has SKIPT_TO state pointing to itself. To run again, it should keep the READY state.").endl()
                         ("Aborting tree run.");
                         mStatesStack.clear();
@@ -231,7 +228,7 @@ namespace Steel
                     return;
 
                 default:
-                    Debug::error(intro)("node #")(mCurrentStateIndex)(" with token ")(token)
+                    Debug::error(STEEL_METH_INTRO, "node #")(mCurrentStateIndex)(" with token ")(token)
                     ("yielded an unknown state.")(". Node:")(node).endl()("Aborting BTNode update.").endl();
                     return;
             }
@@ -247,15 +244,15 @@ namespace Steel
     {
         mBlackBoardModelId = mid;
     }
-    
+
     void BTModel::setPath(Ogre::String const &name)
     {
         if(LocationModel::EMPTY_PATH == name)
             return;
-        
+
         setVariable(BTModel::CURRENT_PATH_NAME_VARIABLE, name);
     }
-    
+
     void BTModel::unsetPath()
     {
         unsetVariable(BTModel::CURRENT_PATH_NAME_VARIABLE);
@@ -281,7 +278,7 @@ namespace Steel
 
             if(nullptr == bbModel)
             {
-                Debug::error("in BTModel::setVariable(): could not get ownerAgent ")(mOwnerAgent)(" a blackboard model. Aborting.").endl();
+                Debug::error(STEEL_METH_INTRO, "could not get ownerAgent ", mOwnerAgent, " a blackboard model. Aborting.").endl();
                 kill();
                 return;
             }
@@ -319,7 +316,7 @@ namespace Steel
 
             if(nullptr == bbModel)
             {
-                Debug::error("in BTModel::setVariable(): could not get ownerAgent ")(mOwnerAgent)(" a blackboard model. Aborting.").endl();
+                Debug::error(STEEL_METH_INTRO, "could not get ownerAgent ", mOwnerAgent, " a blackboard model. Aborting.").endl();
                 kill();
                 return;
             }
@@ -347,50 +344,51 @@ namespace Steel
 
         return bbModel->getAgentIdVariable(name);
     }
-    
+
     void BTModel::unsetVariable(Ogre::String const &name)
     {
         BlackBoardModel *bbModel = mLevel->blackBoardModelMan()->at(mBlackBoardModelId);
-        
+
         if(nullptr != bbModel)
             bbModel->unsetVariable(name);
     }
-    
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // UNIT TESTS
-    bool utest_BTrees(UnitTestExecutionContext const* context)
+    bool utest_BTrees(UnitTestExecutionContext const *context)
     {
-        static const Ogre::String intro="in test_BTrees(): file ";
-        
         Engine *engine = context->engine;
-        
-        BTModelManager *btModelMan=new BTModelManager(engine->level(),"/media/a0/cpp/1210/usmb/install_dir/data/raw_resources/BT");
+
+        BTModelManager *btModelMan = new BTModelManager(engine->level(), "/media/a0/cpp/1210/usmb/install_dir/data/raw_resources/BT");
         // load BTree serialization
         File rootFile("/media/a0/cpp/1210/usmb/data/resources/BTree models/patrol.model");
+
         if(!rootFile.exists())
         {
-            Debug::warning(intro)(rootFile)("not found. Aborting unit test.").endl();
+            Debug::warning(STEEL_METH_INTRO, rootFile, "not found. Aborting unit test.").endl();
             return false;
         }
-        Ogre::String content=rootFile.read();
+
+        Ogre::String content = rootFile.read();
         Json::Reader reader;
         Json::Value root;
         bool parsingOk = reader.parse(content, root, false);
-        if (!parsingOk)
+
+        if(!parsingOk)
         {
-            Debug::error(intro)("could not parse this:").endl();
-            Debug::error(content).endl();
-            Debug::error(reader.getFormattedErrorMessages()).endl();
+            Debug::error(STEEL_METH_INTRO, "could not parse this:").endl()(content).endl()(reader.getFormattedErrorMessages()).endl();
             return false;
         }
+
         // instanciate it
-        ModelId mid=INVALID_ID;
-        if(!btModelMan->fromSingleJson(root, mid) || mid==INVALID_ID)
+        ModelId mid = INVALID_ID;
+
+        if(!btModelMan->fromSingleJson(root, mid) || mid == INVALID_ID)
         {
-            Debug::error(intro)("Model id is invalid. See above for details.").endl();
+            Debug::error(STEEL_METH_INTRO, "Model id is invalid. See above for details.").endl();
             return false;
         }
-        
+
         Debug::log("test_BTrees(): passed").endl();
         return true;
     }

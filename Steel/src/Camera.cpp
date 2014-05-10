@@ -27,11 +27,11 @@ namespace Steel
 {
 
     Camera::Camera(Engine *engine, Level *level): EngineEventListener(),
-    mEngine(engine), mLevel(level), 
-    mSceneManager(mLevel->sceneManager()),
-    mCamera(mSceneManager->createCamera("mainCamera")),
-    mCameraNode(mSceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode")),
-    mAgentAttachedTo(INVALID_ID)
+        mEngine(engine), mLevel(level),
+        mSceneManager(mLevel->sceneManager()),
+        mCamera(mSceneManager->createCamera("mainCamera")),
+        mCameraNode(mSceneManager->getRootSceneNode()->createChildSceneNode("mainCameraNode")),
+        mAgentAttachedTo(INVALID_ID)
     {
         mCamera->setPosition(0.0, 0.0, -.0);
 
@@ -56,9 +56,9 @@ namespace Steel
     Camera::~Camera()
     {
         mEngine->removeEngineEventListener(this);
-        
+
         detachFromAgent();
-        
+
         if(nullptr != mCameraNode)
         {
             mCameraNode->detachAllObjects();
@@ -78,8 +78,8 @@ namespace Steel
         mCameraNode->yaw(Ogre::Degree(x), Ogre::SceneNode::TS_WORLD);
         mCameraNode->pitch(Ogre::Degree(y), Ogre::SceneNode::TS_LOCAL);
     }
-    
-    void Camera::lookAt(Ogre::Vector3 const& pos)
+
+    void Camera::lookAt(Ogre::Vector3 const &pos)
     {
         mCameraNode->lookAt(pos, Ogre::Node::TransformSpace::TS_WORLD);
     }
@@ -88,7 +88,7 @@ namespace Steel
     {
         if(root.isNull())
         {
-            Debug::warning("in Camera::fromJson(): root is null !").endl();
+            Debug::warning(STEEL_METH_INTRO, "root is null !").endl();
             return false;
         }
 
@@ -98,7 +98,7 @@ namespace Steel
         Ogre::Vector3 pos;
 
         if(value.isNull())
-            Debug::warning("in Camera::fromJson(): missing field 'position'.").endl();
+            Debug::warning(STEEL_METH_INTRO, "missing field 'position'.").endl();
         else
             pos = Ogre::StringConverter::parseVector3(value.asString());
 
@@ -108,7 +108,7 @@ namespace Steel
         Ogre::Quaternion rot;
 
         if(value.isNull())
-            Debug::warning("in Camera::fromJson(): missing field 'rotation'.").endl();
+            Debug::warning(STEEL_METH_INTRO, "missing field 'rotation'.").endl();
         else
             rot = Ogre::StringConverter::parseQuaternion(value.asString());
 
@@ -182,8 +182,8 @@ namespace Steel
         Ogre::Vector3 screenPosition = mCamera->getProjectionMatrix() * mCamera->getViewMatrix() * worldPosition;
         return Ogre::Vector2(0.5f + 0.5f * screenPosition.x, 0.5f - 0.5f * screenPosition.y);
     }
-    
-    Ogre::Vector3 Camera::worldPosition(Ogre::Vector2 const& screenPosition, float dist)
+
+    Ogre::Vector3 Camera::worldPosition(Ogre::Vector2 const &screenPosition, float dist)
     {
         Ogre::Ray ray(mCamera->getCameraToViewportRay(screenPosition.x, screenPosition.y));
         return ray.getPoint(dist);
