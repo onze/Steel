@@ -208,7 +208,7 @@ namespace Steel
 
         if(!file.exists())
         {
-            Debug::error(STEEL_FUNC_INTRO, "file not found: ", file).endl();
+            Debug::error(STEEL_METH_INTRO, "file not found: ", file).endl();
             return;
         }
 

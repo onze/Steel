@@ -459,12 +459,12 @@ namespace Steel
                     }
                     else
                     {
-                        Debug::warning(STEEL_FUNC_INTRO, "with widget ", widget, " invalid data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
+                        Debug::warning(STEEL_METH_INTRO, "with widget ", widget, " invalid data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
                     }
                 }
                 else
                 {
-                    Debug::warning(STEEL_FUNC_INTRO, "widget ", widget, " is missing a data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
+                    Debug::warning(STEEL_METH_INTRO, "widget ", widget, " is missing a data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
                 }
 
                 MyGUI::TreeControlNode *pRoot = treeControl->getRoot();
@@ -479,7 +479,7 @@ namespace Steel
             }
             else
             {
-                Debug::warning(STEEL_FUNC_INTRO, "widget ",  widget, " should be inserted an unknown widget type ").quotes(widgetType)(". Skipping.").endl();
+                Debug::warning(STEEL_METH_INTRO, "widget ",  widget, " should be inserted an unknown widget type ").quotes(widgetType)(". Skipping.").endl();
             }
         }
     }
