@@ -155,6 +155,9 @@ namespace Steel
 
     void Agent::tag(Tag tag)
     {
+        if(INVALID_TAG == tag)
+            return;
+
         std::map<Tag, unsigned>::iterator it = mTags.find(tag);
 
         if(mTags.end() == it)

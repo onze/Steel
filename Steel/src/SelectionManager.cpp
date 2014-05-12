@@ -500,6 +500,9 @@ namespace Steel
 
     void SelectionManager::tagSelection(Tag tag)
     {
+        if(INVALID_TAG == tag)
+            return;
+
         for(AgentId const & aid : mSelection)
         {
             Agent *agent = mLevel->agentMan()->getAgent(aid);
