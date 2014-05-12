@@ -137,6 +137,9 @@ namespace Steel
         bool mousePressed(Input::Code button, Input::Event const &evt);
         bool mouseReleased(Input::Code button, Input::Event const &evt);
         bool mouseWheeled(int delta, Input::Event const &evt);
+        
+        /// Display debug tags info in the console
+        void printTagsInfos();
 
         /// used to reattach the debugger on reload
         virtual void onFileChangeEvent(File file);

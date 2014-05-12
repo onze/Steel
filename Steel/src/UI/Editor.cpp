@@ -1276,6 +1276,8 @@ namespace Steel
 
         if(command[0] == "resourceGroupsInfos")
             OgreUtils::resourceGroupsInfos();
+        else if(command[0] == "tagsInfos")
+            printTagsInfos();
         else if(command[0] == "switch_debug_events")
         {
             mDebugEvents = !mDebugEvents;
@@ -1288,6 +1290,27 @@ namespace Steel
         }
 
         return true;
+    }
+
+    void Editor::printTagsInfos()
+    {
+        // get tags
+        auto const tagsVec = TagManager::instance().tags();
+        Debug::log(STEEL_METH_INTRO, "total tags: ", tagsVec.size(), ":", tagsVec).endl();
+
+        // make pairs
+        std::vector<std::pair<Tag, Ogre::String>> pairs;
+
+        for(auto const & tag : tagsVec)
+            pairs.push_back(std::make_pair(tag, TagManager::instance().fromTag(tag)));
+
+        //sort em by string value
+        std::sort(pairs.begin(), pairs.end(), [](std::pair<Tag, Ogre::String> const & left, std::pair<Tag, Ogre::String> const & right)->bool {return left.first < right.first;});
+
+        for(auto const & pair : pairs)
+            Debug::log("tag: ", pair.first, " value: ", pair.second).endl();
+
+        Debug::log("done.").endl();
     }
 
     void Editor::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max, float init)
