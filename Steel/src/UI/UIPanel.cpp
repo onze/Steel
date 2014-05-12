@@ -28,6 +28,7 @@ namespace Steel
 
     const std::string UIPanel::SteelOnClick = "SteelOnClick";
     const std::string UIPanel::SteelOnChange = "SteelOnChange";
+    const std::string UIPanel::SteelOnSubmit = "SteelOnSubmit";
     const std::string UIPanel::SteelBind = "SteelBind";
     const std::string UIPanel::SteelInsertWidget = "SteelInsertWidget";
     const std::string UIPanel::TreeControl = "TreeControl";
@@ -372,15 +373,27 @@ namespace Steel
             std::string const widgetTypeName = widget->getTypeName();
             bool hasOnClick = hasEvent(widget, UIPanel::SteelOnClick);
             bool hasOnChange = hasEvent(widget, UIPanel::SteelOnChange);
+            bool hasOnSubmit = hasEvent(widget, UIPanel::SteelOnSubmit);
 
+            // button
             if(MyGUI::Button::getClassTypeName() == widgetTypeName && hasOnClick)
                 widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
-            else if(MyGUI::ComboBox::getClassTypeName() == widgetTypeName && hasOnChange)
-                static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
+            // combobox
+            else if(MyGUI::ComboBox::getClassTypeName() == widgetTypeName)
+            {
+                if(hasOnChange)
+                    static_cast<MyGUI::ComboBox *>(widget)->eventComboChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboChangePosition);
+
+                if(hasOnSubmit)
+                    static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
+            }
+            // scrollbar
             else if(MyGUI::ScrollBar::getClassTypeName() == widgetTypeName && hasOnChange)
                 static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIScrollChangePosition);
-            else if(MyGUI::EditBox::getClassTypeName() == widgetTypeName && hasOnChange)
+            // editbox
+            else if(MyGUI::EditBox::getClassTypeName() == widgetTypeName && hasOnSubmit)
                 static_cast<MyGUI::EditBox *>(widget)->eventEditSelectAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIEditSelectAccept);
+            // tabcontrol
             else if(MyGUI::TabControl::getClassTypeName() == widgetTypeName && hasOnChange)
                 static_cast<MyGUI::TabControl *>(widget)->eventTabChangeSelect += MyGUI::newDelegate(this, &UIPanel::OnMyGUITabControlChangeSelect);
 
@@ -407,7 +420,7 @@ namespace Steel
     {
         MyGUI::Widget *child = nullptr;
 
-        for(auto const& parent : mMyGUIData.layout)
+        for(auto const & parent : mMyGUIData.layout)
         {
             child = parent->findWidget(name);
 
@@ -425,8 +438,8 @@ namespace Steel
             Ogre::String widgetType = widget->getUserString(UIPanel::SteelInsertWidget);
 
             // clear widgets
-            while(widget->getChildCount() > 0)
-                widget->removeChildNode(widget->getChildAt(0));
+            MyGUI::EnumeratorWidgetPtr widgetIterator(widget->getEnumerator());
+            MyGUI::Gui::getInstance().destroyWidgets(widgetIterator);
 
             // generic properties
             Ogre::String controlName = widget->getName() + "_Child"; // its unique child at this point
@@ -499,6 +512,12 @@ namespace Steel
 
     void UIPanel::OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index)
     {
+        Ogre::String commands = comboBox->getUserString(UIPanel::SteelOnSubmit);
+        executeWidgetCommands(comboBox, commands);
+    }
+
+    void UIPanel::OnMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index)
+    {
         Ogre::String commands = comboBox->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(comboBox, commands);
     }
@@ -511,7 +530,7 @@ namespace Steel
 
     void UIPanel::OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox)
     {
-        Ogre::String commands = editBox->getUserString(UIPanel::SteelOnChange);
+        Ogre::String commands = editBox->getUserString(UIPanel::SteelOnSubmit);
         executeWidgetCommands(editBox, commands);
     }
 
@@ -670,6 +689,8 @@ namespace Steel
 
             if(MyGUI::ITEM_NONE != index)
                 value = downcastedWidget->getItemNameAt(index).asUTF8_c_str();
+            else
+                value = downcastedWidget->getCaption().asUTF8_c_str();
         }
         else if(MyGUI::ScrollBar::getClassTypeName() == widget->getTypeName())
         {
@@ -694,6 +715,7 @@ namespace Steel
             Debug::error("UIPanel::getMyGUIWidgetValue() on ", widget, ": unhandled widget type. Skipping.").endl();
             return false;
         }
+
 
         return true;
     }

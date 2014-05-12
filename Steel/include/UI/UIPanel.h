@@ -36,8 +36,10 @@ namespace Steel
     
     class UIPanel: public Rocket::Core::EventListener, public FileEventListener, public SignalListener, public SignalEmitter
     {
+    protected:
         static const std::string SteelOnClick;
         static const std::string SteelOnChange;
+        static const std::string SteelOnSubmit;
         static const std::string SteelBind;
         static const std::string SteelInsertWidget;
         static const std::string TreeControl;
@@ -95,24 +97,25 @@ namespace Steel
         /// Dispatches signals. //!\\ Subclasses can override it but still want to call this version.
         virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
 
-    protected:
-        void buildDependences();
+        // MyGUI callbacks
+        void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
+        void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
+        void OnMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index);
+        void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
+        void OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
+        void OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index);
         
         /// Parses through the UI tree and sets up widget logic, given their userData
         void setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &widgets);
         void bindMyGUIWidgetToVariable(MyGUI::Widget *const widget, const Ogre::String &variableName);
         void insertMyGUICustomWidgets(MyGUI::Widget *&widget);
         
-        // MyGUI callbacks
-        void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
-        void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
-        void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
-        void OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
-        void OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index);
-        
         void executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const& commandsLine);
         void executeSetVariableCommand(MyGUI::Widget *widget);
         void executeEngineCommand(MyGUI::Widget *widget);
+    protected:
+        void buildDependences();
+        
         
         void DispatchSignalToBoundWidgets(Signal signal);
         
