@@ -1,6 +1,7 @@
 
 #include "Debug.h"
 #include "TagManager.h"
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -17,6 +18,17 @@ namespace Steel
     {
     }
 
+    std::vector<Tag> TagManager::tags() const
+    {
+        std::vector<Tag> _tags;
+        _tags.reserve(mTagsMap.size());
+
+        for(auto const & it : mTagsMap)
+            _tags.push_back(it.second);
+
+        return _tags;
+    }
+
     Tag TagManager::toTag(const Ogre::String &tag)
     {
         if(0 == tag.size())
@@ -30,6 +42,7 @@ namespace Steel
             mTagsMap[tag] = returnedValue = mNextTag;
             mInverseTagsMap[mNextTag] = tag;
             ++mNextTag;
+            SignalManager::instance().emit(newTagCreatedSignal());
         }
         else
         {
@@ -49,11 +62,12 @@ namespace Steel
         return output;
     }
 
-    Ogre::String TagManager::fromTag(const Steel::Tag tag) const
+    Ogre::String const& TagManager::fromTag(const Steel::Tag tag) const
     {
         if(INVALID_TAG == tag)
         {
-            return "<INVALID_TAG>";
+            static Ogre::String const invalid_tag = "<INVALID_TAG>";
+            return invalid_tag;
         }
 
         auto it = mInverseTagsMap.find(tag);
@@ -63,17 +77,34 @@ namespace Steel
             return it->second;
         }
 
-        return "unknown tag";
+        static Ogre::String const invalid_tag = "<UNKNOWN_TAG>";
+        return invalid_tag;
     }
-
+    
     std::list<Ogre::String> TagManager::fromTags(std::set< Steel::Tag > tags) const
     {
         std::list<Ogre::String> output;
-
+        
         for(auto const & tag : tags)
             output.push_back(fromTag(tag));
-
+        
         return output;
+    }
+    
+    std::vector<Ogre::String> TagManager::fromTags(std::vector< Steel::Tag > tags) const
+    {
+        std::vector<Ogre::String> output;
+        
+        for(auto const & tag : tags)
+            output.push_back(fromTag(tag));
+        
+        return output;
+    }
+
+    Signal TagManager::newTagCreatedSignal() const
+    {
+        static Signal newTagCreatedSignal = SignalManager::instance().toSignal("__TagManager::newTagCreatedSignal");
+        return newTagCreatedSignal;
     }
 
 }

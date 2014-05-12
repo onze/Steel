@@ -7,36 +7,43 @@ namespace Steel
 {
     class TagManager
     {
-        public:
-            inline static TagManager &instance()
-            {
-                if(nullptr==TagManager::sInstance)
-                    TagManager::sInstance=new TagManager();
-                return *TagManager::sInstance;
-            }
+    public:
+        inline static TagManager &instance()
+        {
+            if(nullptr == TagManager::sInstance)
+                TagManager::sInstance = new TagManager();
 
-            TagManager();
-            virtual ~TagManager();
+            return *TagManager::sInstance;
+        }
 
-            Tag toTag(const Ogre::String& tag);
+        TagManager();
+        virtual ~TagManager();
 
-            std::list<Tag> toTags(std::list<Ogre::String> tags);
+        std::vector<Tag> tags() const;
 
-            Ogre::String fromTag(const Tag tag) const;
+        Tag toTag(const Ogre::String &tag);
 
-            std::list<Ogre::String> fromTags(std::set<Tag> tags) const;
+        std::list<Tag> toTags(std::list<Ogre::String> tags);
 
-        private:
-            static TagManager *sInstance;
+        Ogre::String const &fromTag(const Tag tag) const;
 
-            /// Value of the next created signal.
-            Tag mNextTag;
+        std::list<Ogre::String> fromTags(std::set<Tag> tags) const;
+        std::vector<Ogre::String> fromTags(std::vector<Tag> tags) const;
 
-            /// Maps string tags to long values, used internally.
-            std::map<Ogre::String, Tag> mTagsMap;
+        /// Emitted each time a new tag is created
+        Signal newTagCreatedSignal() const;
+
+    private:
+        static TagManager *sInstance;
+
+        /// Value of the next created signal.
+        Tag mNextTag;
+
+        /// Maps string tags to long values, used internally.
+        std::map<Ogre::String, Tag> mTagsMap;
 #ifdef DEBUG
-            /// mTagsMap's reverse mapping, for debug purposes.
-            std::map<Tag, Ogre::String> mInverseTagsMap;
+        /// mTagsMap's reverse mapping, for debug purposes.
+        std::map<Tag, Ogre::String> mInverseTagsMap;
 #endif
     };
 }
