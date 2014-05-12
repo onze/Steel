@@ -55,7 +55,7 @@ namespace Steel
 
         File const &cwd = *(node->getData<ControlNodeDataType>());
         auto subFiles = cwd.ls(File::ANY);
-        Debug::log(STEEL_METH_INTRO, "cwd: ", cwd, " found ", subFiles.size(), " subfiles.").endl();
+//         Debug::log(STEEL_METH_INTRO, "cwd: ", cwd, " found ", subFiles.size(), " subfiles.").endl();
         std::sort(subFiles.begin(), subFiles.end());
 
         for(File const & subFile : subFiles)
