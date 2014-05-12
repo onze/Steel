@@ -1,4 +1,4 @@
-
+#include <algorithm>
 #include <json/json.h>
 
 #include <Rocket/Controls/ElementFormControlInput.h>
@@ -24,9 +24,9 @@
 #include "models/OgreModelManager.h"
 #include "models/PhysicsModelManager.h"
 #include "tools/JsonUtils.h"
-#include <tools/3dParties/MyGUI/TreeControlItemDecorator.h>
-#include <tools/3dParties/MyGUI/TreeControlItem.h>
-#include <tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h>
+#include "tools/3dParties/MyGUI/TreeControlItemDecorator.h"
+#include "tools/3dParties/MyGUI/TreeControlItem.h"
+#include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
 #include "models/AgentManager.h"
 #include "SelectionManager.h"
 #include "models/LocationModel.h"
@@ -53,7 +53,7 @@ namespace Steel
         mEngine(nullptr), mInputMan(nullptr),
         mSignals(), mFSResources(nullptr),
         mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
-        mDebugValueMan(), mResourceTreeControlItemDecorator(nullptr)
+        mDebugValueMan(), mMyGUIWidgets()
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -117,10 +117,11 @@ namespace Steel
 
     void Editor::shutdown()
     {
-        if(nullptr != mResourceTreeControlItemDecorator)
+        //MyGUI stuff
         {
-            delete mResourceTreeControlItemDecorator;
-            mResourceTreeControlItemDecorator = nullptr;
+            mMyGUIWidgets.resourceTreeControlItemDecorator = nullptr;
+            mMyGUIWidgets.selectionTagCloud = nullptr;
+            mMyGUIWidgets.tagsListComboBox = nullptr;
         }
 
         mBrush.shutdown();
@@ -170,12 +171,26 @@ namespace Steel
                 if(nullptr != resourceTree)
                 {
                     // decoration here means addind drag and drop properties to the tree's items
-                    mResourceTreeControlItemDecorator = new MyGUI::TreeControlItemDecorator(resourceTree);
-                    mResourceTreeControlItemDecorator->setEnableDragAndDrop(false, true);
-                    mResourceTreeControlItemDecorator->eventItemDropped += MyGUI::newDelegate(this, &Editor::MyGUIResourceTreeItemDropped);
-                    mResourceTreeControlItemDecorator->setTextColour(MyGUI::Colour::White);
+                    mMyGUIWidgets.resourceTreeControlItemDecorator = new MyGUI::TreeControlItemDecorator(resourceTree);
+                    mMyGUIWidgets.resourceTreeControlItemDecorator->setEnableDragAndDrop(false, true);
+                    mMyGUIWidgets.resourceTreeControlItemDecorator->eventItemDropped += MyGUI::newDelegate(this, &Editor::MyGUIResourceTreeItemDropped);
+                    mMyGUIWidgets.resourceTreeControlItemDecorator->setTextColour(MyGUI::Colour::White);
                 }
             }
+
+            // all tags related
+            {
+                mMyGUIWidgets.selectionTagCloud = (decltype(mMyGUIWidgets.selectionTagCloud))findMyGUIChildWidget("EditorSelectionTagCloud");
+                mMyGUIWidgets.selectionTagCloud->requestCreateWidgetItem = MyGUI::newDelegate(this, &Editor::MyGUIRequestCreateSelectionTagItem);
+                mMyGUIWidgets.selectionTagCloud->requestDrawItem = MyGUI::newDelegate(this, &Editor::MyGUIRequestDrawSelectionTagItem);
+                mMyGUIWidgets.selectionTagCloud->requestCoordItem = MyGUI::newDelegate(this, &Editor::MyGUIRequestCoordWidgetItem);
+                mMyGUIWidgets.tagsListComboBox = (decltype(mMyGUIWidgets.tagsListComboBox))findMyGUIChildWidget("TagsListComboBox");
+                mMyGUIWidgets.tagsListComboBox->removeAllItems();
+            }
+
+            // other widgets that are useful to keep a handle on for frequent references
+            mMyGUIWidgets.selectionPathCloud = (decltype(mMyGUIWidgets.selectionPathCloud))findMyGUIChildWidget("EditorSelectionPathCloud");
+
         }
         mFSResources->localizeDatagridBody(mDocument);
         auto elem = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
@@ -193,10 +208,76 @@ namespace Steel
 
         registerSignal(mSignals.menuTabChanged = getMyGUIVariableUpdateSignal(Editor::MENUTAB_CONTROLNAME_MYGUIVAR));
 
+        registerSignal(mSignals.newTagCreated = TagManager::instance().newTagCreatedSignal());
+        updateTagsList();
+
         mEngine->addEngineEventListener(this);
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
+    }
+
+    void Editor::updateTagsList()
+    {
+        if(nullptr != mMyGUIWidgets.tagsListComboBox)
+        {
+            auto const tagsVec = TagManager::instance().tags();
+            std::vector<Ogre::String> tagsStringVec = TagManager::instance().fromTags(tagsVec);
+            std::sort(tagsStringVec.begin(), tagsStringVec.end(), [](Ogre::String const & left, Ogre::String const & right)->bool {return left < right;});
+            mMyGUIWidgets.tagsListComboBox->removeAllItems();
+
+            for(auto const & tagString : tagsStringVec)
+                mMyGUIWidgets.tagsListComboBox->addItem(tagString);
+        }
+    }
+
+    void Editor::MyGUIRequestDrawSelectionTagItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item, const MyGUI::IBDrawItemInfo &_info)
+    {
+        Ogre::String dataValue = *_sender->getItemDataAt<Ogre::String>(_info.index);
+//         Debug::log(STEEL_METH_INTRO, "data: ", dataValue, " from ", _sender).endl();
+
+        // set tag value
+        MyGUI::TextBox *textBox = (MyGUI::TextBox *)_item->findWidget("tagTextbox");
+        textBox->setCaption(dataValue.c_str());
+        textBox->setVisible(true);
+
+        // set button callback
+        MyGUI::Button *untagBtn = (MyGUI::Button *)_item->findWidget("untagBtn");
+        untagBtn->setUserString(UIPanel::SteelCommand, "engine.editor.selection.tag.unset." + dataValue);
+    }
+
+    void Editor::MyGUIRequestCoordWidgetItem(MyGUI::ItemBox *_sender, MyGUI::IntCoord &_coord, bool _drop)
+    {
+//         Debug::log(STEEL_METH_INTRO, "from ", _sender, " while drop: ", _drop).endl();
+        // with an itembox there is no way to have items of different sizes (http://www.ogre3d.org/addonforums/viewtopic.php?f=17&t=29742)
+        // so lets place one item on a new row.
+        int border = 0;
+        _coord = MyGUI::IntCoord(border, 0, _sender->getClientCoord().right() - border, 20);
+    }
+
+    void Editor::MyGUIRequestCreateSelectionTagItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item)
+    {
+//         Debug::log(STEEL_METH_INTRO, _item, " from ", _sender).endl();
+
+        auto clientCoords = _sender->getClientCoord();
+        int const btnSize = 20;
+        int const border = 2;
+
+        MyGUI::TextBox *textBox = _item->createWidget<MyGUI::TextBox>("TextBox", MyGUI::IntCoord(border, 0, clientCoords.width - btnSize - 3 * border, _item->getHeight()), MyGUI::Align::Left | MyGUI::Align::VCenter, "tagTextbox");
+        textBox->setVisible(true);
+        textBox->eventMouseWheel += MyGUI::newDelegate(this, &Editor::MyGUISelectionTagItemMouseWheel);
+
+
+        MyGUI::Button *untagBtn = _item->createWidget<MyGUI::Button>("Button", MyGUI::IntCoord(clientCoords.right() - btnSize - border, 0, btnSize, _item->getHeight()), MyGUI::Align::Right | MyGUI::Align::VCenter, "untagBtn");
+        untagBtn->setCaption("X");
+        untagBtn->eventMouseButtonClick += MyGUI::newDelegate((UIPanel *)this, &UIPanel::OnMyGUIMouseButtonClick);
+        untagBtn->setUserString(UIPanel::SteelOnClick, UIPanel::SteelCommand);
+        untagBtn->eventMouseWheel += MyGUI::newDelegate(this, &Editor::MyGUISelectionTagItemMouseWheel);
+    }
+
+    void Editor::MyGUISelectionTagItemMouseWheel(MyGUI::Widget *_sender, int _rel)
+    {
+        mMyGUIWidgets.selectionTagCloud->_riseMouseWheel(_rel);
     }
 
     void Editor::MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const &pos)
@@ -229,6 +310,10 @@ namespace Steel
         else if(mSignals.menuTabChanged ==  signal)
         {
             mEngine->config().setSetting(Editor::MENUTAB_ITEMNAME_SETTING, getMyGUIVariable(Editor::MENUTAB_CONTROLNAME_MYGUIVAR));
+        }
+        else if(mSignals.newTagCreated ==  signal)
+        {
+            updateTagsList();
         }
     }
 
@@ -591,33 +676,48 @@ namespace Steel
 
     void Editor::populateSelectionTagsWidget(std::list<Ogre::String> tags)
     {
-        static const Ogre::String intro = "Editor::populateSelectionTagWidget(): ";
+//         Debug::log(STEEL_METH_INTRO, "tags: ", tags).endl();
 
-        if(nullptr == mDocument)
-            return;
-
-        Rocket::Core::Element *elem = mDocument->GetElementById(Editor::SELECTION_TAGS_INFO_BOX);
-
-        if(nullptr == elem)
+        // libRocket
+        if(nullptr != mDocument)
         {
-            Debug::error(intro)("child with id ").quotes(Editor::SELECTION_TAGS_INFO_BOX)(" not found. Aborting.").endl();
-            return;
+            Rocket::Core::Element *elem = mDocument->GetElementById(Editor::SELECTION_TAGS_INFO_BOX);
+
+            if(nullptr != elem)
+            {
+
+                // Emtpy it
+                while(nullptr != elem->GetFirstChild())
+                {
+                    Rocket::Core::Element *child = elem->GetFirstChild();
+                    elem->RemoveChild(child);
+                }
+
+                // Repopulate it
+                for(auto const & it : tags)
+                {
+                    Rocket::Core::Element *child = mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
+                    decorateSelectionTagWidgetItem(child, it.c_str());
+                    elem->AppendChild(child);
+                    child->RemoveReference();
+                }
+            }
+            else
+            {
+                Debug::error(STEEL_METH_INTRO, "child with id ").quotes(Editor::SELECTION_TAGS_INFO_BOX)(" not found. Aborting.").endl();
+            }
         }
 
-        // Emtpy it
-        while(nullptr != elem->GetFirstChild())
+        // MyGUI
         {
-            Rocket::Core::Element *child = elem->GetFirstChild();
-            elem->RemoveChild(child);
-        }
+            if(nullptr != mMyGUIWidgets.selectionTagCloud)
+            {
+                mMyGUIWidgets.selectionTagCloud->removeAllItems();
 
-        // Repopulate it
-        for(auto const & it : tags)
-        {
-            Rocket::Core::Element *child = mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
-            decorateSelectionTagWidgetItem(child, it.c_str());
-            elem->AppendChild(child);
-            child->RemoveReference();
+                // add tags buttons
+                for(auto const & tag : tags)
+                    mMyGUIWidgets.selectionTagCloud->addItem(tag);
+            }
         }
     }
 
@@ -745,7 +845,8 @@ namespace Steel
             }
             else
             {
-                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", text input is empty. Not setting the empty tag.").endl();
+                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)
+                (", text input is empty. Not setting the empty tag.").endl();
                 return;
             }
         }
@@ -764,8 +865,7 @@ namespace Steel
             }
             else
             {
-                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)
-                (", text input is empty. Not setting the empty tag.").endl();
+                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", text input is empty. Not setting the empty tag.").endl();
                 return;
             }
         }
@@ -1001,12 +1101,18 @@ namespace Steel
 
                     if(nullptr != level && selectionMan->hasSelection())
                     {
-                        selectionMan->tagSelection(TagManager::instance().toTag(StringUtils::join(command, ".")));
-                        refreshSelectionTagsWidget();
-                        auto form = setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX, "");
+                        Ogre::String const tagString(StringUtils::join(command, "."));
+                        Tag tag = TagManager::instance().toTag(tagString);
 
-                        if(nullptr != form)
-                            form->Focus();
+                        if(INVALID_TAG != tag)
+                        {
+                            selectionMan->tagSelection(tag);
+                            refreshSelectionTagsWidget();
+                            auto form = setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX, "");
+
+                            if(nullptr != form)
+                                form->Focus();
+                        }
                     }
                     else
                         return false;
@@ -1024,7 +1130,8 @@ namespace Steel
 
                     if(nullptr != mEngine->level() && mEngine->level()->selectionMan()->hasSelection())
                     {
-                        mEngine->level()->selectionMan()->untagSelection(TagManager::instance().toTag(StringUtils::join(command, ".")));
+                        Tag tag = TagManager::instance().toTag(StringUtils::join(command, "."));
+                        mEngine->level()->selectionMan()->untagSelection(tag);
                         refreshSelectionTagsWidget();
                         auto form = setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX, "");
 

@@ -37,6 +37,7 @@ namespace MyGUI
     class DDContainer;
     class DDItemInfo;
     class ItemBox;
+    class ListBox;
     class IBNotifyItemData;
     class Widget;
     class IBDrawItemInfo;
@@ -52,6 +53,7 @@ namespace MyGUI
     typedef types::TCoord<int> IntCoord;
     typedef types::TPoint<int> IntPoint;
     
+    class ScrollView;
     class TreeControlItem;
     class TreeControlItemDecorator;
 }
@@ -169,8 +171,16 @@ namespace Steel
         /// make a command out of a Rocket event.
         void processDragDropEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
         
+    private:
         /// Called whenever an item of the resource treeControl is dropped
         void MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const& pos);
+        
+        /// Creates a MyGUI widget to represent a tag of the currently selected agent.
+        void MyGUIRequestCreateSelectionTagItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item);
+        void MyGUIRequestDrawSelectionTagItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item, const MyGUI::IBDrawItemInfo& _info);
+        void MyGUIRequestCoordWidgetItem(MyGUI::ItemBox* _sender, MyGUI::IntCoord& _coord, bool _drag);
+        void MyGUISelectionTagItemMouseWheel(MyGUI::Widget* _sender, int _rel);
+        void updateTagsList();
 
         void refreshSelectionTagsWidget();
         void populateSelectionTagsWidget(std::list< Ogre::String > tags);
@@ -196,6 +206,7 @@ namespace Steel
             Signal brushIntensityUpdate;
             Signal brushRadiusUpdate;
             Signal menuTabChanged;
+            Signal newTagCreated;
         };
         Signals mSignals;
         /// resources available (for levels, models, BTs, etc)
@@ -210,7 +221,19 @@ namespace Steel
         DebugValueManager mDebugValueMan;
         
         /// handles drag and dropping of the MyGUI::TreeControl dedicated to resources
-        MyGUI::TreeControlItemDecorator *mResourceTreeControlItemDecorator;
+        struct MyGUIWidgets
+        {
+            MyGUIWidgets():
+            resourceTreeControlItemDecorator(nullptr),
+            selectionTagCloud(nullptr),
+            tagsListComboBox(nullptr)
+            {}
+            MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator;
+            MyGUI::ItemBox *selectionTagCloud;
+            MyGUI::ScrollView *selectionPathCloud;
+            MyGUI::ComboBox *tagsListComboBox;
+        };
+        MyGUIWidgets mMyGUIWidgets;
 
     };
 }
