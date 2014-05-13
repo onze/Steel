@@ -79,7 +79,7 @@ namespace MyGUI
         draggable->setCaption(_node->getText());
         draggable->setUserData(_item);
     }
-
+    
     void TreeControlItemDecorator::treeItemMouseSetFocus(MyGUI::Widget *_sender, MyGUI::Widget *_old)
     {
         (*_sender->getUserData<MyGUI::TreeControlItem *>())->_riseMouseSetFocus(_old);

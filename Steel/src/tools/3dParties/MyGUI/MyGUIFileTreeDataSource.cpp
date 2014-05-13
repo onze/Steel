@@ -91,16 +91,12 @@ namespace Steel
 
     void MyGUIFileSystemDataSource::notifyTreeNodeSelected(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node)
     {
-        File const &file = *(node->getData<ControlNodeDataType>());
-
-        if(file.isFile())
+        if(!node->hasChildren())
             return;
-
-        bool expanded = !node->isExpanded();
-        node->setExpanded(expanded);
-
+        
+        File const &file = *(node->getData<ControlNodeDataType>());
         ConfigFile conf = confFile(file);
-        conf.setSetting("expand", Ogre::StringConverter::toString(expanded));
+        conf.setSetting("expand", Ogre::StringConverter::toString(node->isExpanded()));
         conf.save();
     }
 
