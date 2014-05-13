@@ -16,6 +16,13 @@
 // http://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
 #define STEEL_UNUSED(expr) do { (void)(expr); } while (0)
 
+#define STEEL_DELETE(MYPTR) \
+if(nullptr != MYPTR) \
+{ \
+    delete MYPTR; \
+    MYPTR = nullptr; \
+}
+
 #define STEEL_BIT(N) 1<<N
 
 // eases enum serialization
