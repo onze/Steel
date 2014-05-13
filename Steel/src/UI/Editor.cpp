@@ -30,6 +30,7 @@
 #include "models/AgentManager.h"
 #include "SelectionManager.h"
 #include "models/LocationModel.h"
+#include <models/LocationModelManager.h>
 #include "TagManager.h"
 
 namespace Steel

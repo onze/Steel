@@ -147,15 +147,15 @@ namespace Steel
         ///Return the level's model manager for the given type.
         ModelManager *modelManager(ModelType modelType);
 
-        inline OgreModelManager *ogreModelMan() {return mOgreModelMan;}
-        inline PhysicsModelManager *physicsModelMan() {return mPhysicsModelMan;}
-        inline Ogre::SceneManager *sceneManager() {return mSceneManager;}
+        inline OgreModelManager *const ogreModelMan() const {return mOgreModelMan;}
+        inline PhysicsModelManager *const physicsModelMan() const {return mPhysicsModelMan;}
+        inline Ogre::SceneManager *const sceneManager() const {return mSceneManager;}
         inline TerrainManager *terrainManager() {return &mTerrainMan;}
-        inline BTModelManager *BTModelMan() {return mBTModelMan;}
-        inline AgentManager *agentMan() {return mAgentMan;}
-        inline SelectionManager *selectionMan() {return mSelectionMan;}
-        inline LocationModelManager *locationModelMan() {return mLocationModelMan;}
-        inline BlackBoardModelManager *blackBoardModelMan() {return mBlackBoardModelManagerMan;}
+        inline BTModelManager *const BTModelMan() const {return mBTModelMan;}
+        inline AgentManager *const agentMan() const {return mAgentMan;}
+        inline SelectionManager *const selectionMan() const {return mSelectionMan;}
+        inline LocationModelManager *const locationModelMan() const {return mLocationModelMan;}
+        inline BlackBoardModelManager *const blackBoardModelMan() const {return mBlackBoardModelManagerMan;}
 
         inline Engine *const engine() const {return mEngine;}
         inline Ogre::Viewport *viewport() const {return mViewport;}
@@ -217,3 +217,4 @@ namespace Steel
 
 #endif /* STEEL_LEVEL_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
