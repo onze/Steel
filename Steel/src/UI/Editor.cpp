@@ -156,8 +156,6 @@ namespace Steel
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         // true is for recursive search. Add to this resources.cfg
         resGroupMan->addResourceLocation(mDataDir.fullPath(), "FileSystem", "UI", true);
-        //resGroupMan->addResourceLocation(mDataDir.subfile("images").fullPath(), "FileSystem", "UI",true);
-        //resGroupMan->declareResource("inode-directory.png","Texture","UI");
 
         mFSResources = new FileSystemDataSource("resources", mEngine->resourcesDir());
         UIPanel::init(width, height);
@@ -188,8 +186,13 @@ namespace Steel
                 mMyGUIWidgets.tagsListComboBox->removeAllItems();
             }
 
+            // all path related
+            {
+                mMyGUIWidgets.selectionPathTextBox = (decltype(mMyGUIWidgets.selectionPathTextBox))findMyGUIChildWidget("EditorSelectionPathTextBox");
+                mMyGUIWidgets.pathsListComboBox = (decltype(mMyGUIWidgets.pathsListComboBox))findMyGUIChildWidget("PathsListComboBox");
+                mMyGUIWidgets.pathsListComboBox->removeAllItems();
+            }
             // other widgets that are useful to keep a handle on for frequent references
-            mMyGUIWidgets.selectionPathCloud = (decltype(mMyGUIWidgets.selectionPathCloud))findMyGUIChildWidget("EditorSelectionPathCloud");
 
         }
         mFSResources->localizeDatagridBody(mDocument);
@@ -211,10 +214,40 @@ namespace Steel
         registerSignal(mSignals.newTagCreated = TagManager::instance().newTagCreatedSignal());
         updateTagsList();
 
+        if(nullptr != mEngine->level())
+        {
+            registerSignal(mSignals.newPathCreated = mEngine->level()->locationModelMan()->newLocationPathCreatedSignal());
+            registerSignal(mSignals.pathDeleted = mEngine->level()->locationModelMan()->locationPathDeletedSignal());
+        }
+
+        updatePathsList();
+
         mEngine->addEngineEventListener(this);
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
+    }
+
+    void Editor::updatePathsList()
+    {
+        if(nullptr != mMyGUIWidgets.pathsListComboBox)
+        {
+            mMyGUIWidgets.pathsListComboBox->removeAllItems();
+
+            if(nullptr == mEngine->level())
+                return;
+
+            LocationModelManager *locationMan = mEngine->level()->locationModelMan();
+
+            if(nullptr == locationMan)
+                return;
+
+            std::vector<LocationPathName> pathsVec = locationMan->locationPathNames();
+            std::sort(pathsVec.begin(), pathsVec.end(), [](LocationPathName const & left, LocationPathName const & right)->bool {return left < right;});
+
+            for(LocationPathName const & path : pathsVec)
+                mMyGUIWidgets.pathsListComboBox->addItem(path);
+        }
     }
 
     void Editor::updateTagsList()
@@ -315,11 +348,16 @@ namespace Steel
         {
             updateTagsList();
         }
+        else if(mSignals.newPathCreated ==  signal || mSignals.pathDeleted == signal)
+        {
+            updatePathsList();
+        }
     }
 
     void Editor::onLevelSet(Level *level)
     {
         level->selectionMan()->addListener(this);
+        updatePathsList();
     }
 
     void Editor::onLevelUnset(Level *level)
@@ -621,47 +659,74 @@ namespace Steel
         auto level = mEngine->level();
         auto selectionMan = level->selectionMan();
 
-        Rocket::Core::String innerRML = "";
+        // libRocket
+        {
+            Rocket::Core::String innerRML = "";
 
-        if(selectionMan->selection().size() == 0)
-        {
-            innerRML = "empty selection";
-        }
-        else if(selectionMan->selection().size() > 1)
-        {
-            innerRML = "single selection only";
-        }
-        else
-        {
-            Agent *agent = level->agentMan()->getAgent(selectionMan->selection().front());
-
-            if(nullptr == agent)
-                innerRML = "no path found in selection";
+            if(selectionMan->selection().size() == 0)
+            {
+                innerRML = "empty selection";
+            }
+            else if(selectionMan->selection().size() > 1)
+            {
+                innerRML = "single selection only";
+            }
             else
             {
-                LocationModel *model = agent->locationModel();
+                Agent *agent = level->agentMan()->getAgent(selectionMan->selection().front());
 
-                if(nullptr == model || !model->hasPath())
+                if(nullptr == agent)
                     innerRML = "no path found in selection";
                 else
                 {
-                    innerRML = model->path().c_str();
+                    LocationModel *model = agent->locationModel();
+
+                    if(nullptr == model || !model->hasPath())
+                        innerRML = "no path found in selection";
+                    else
+                    {
+                        innerRML = model->path().c_str();
+                    }
                 }
+            }
+
+            if(nullptr != mDocument)
+            {
+
+                Rocket::Core::Element *elem = mDocument->GetElementById(Editor::SELECTION_PATH_INFO_BOX);
+
+                if(nullptr == elem)
+                    Debug::error(STEEL_METH_INTRO, "child ").quotes(Editor::SELECTION_PATH_INFO_BOX)("not found. Aborting.").endl();
+                else
+                    elem->SetInnerRML(innerRML);
             }
         }
 
-        if(nullptr == mDocument)
-            return;
-
-        Rocket::Core::Element *elem = mDocument->GetElementById(Editor::SELECTION_PATH_INFO_BOX);
-
-        if(nullptr == elem)
+        // MyGUI
         {
-            Debug::error(STEEL_METH_INTRO, "child ").quotes(Editor::SELECTION_PATH_INFO_BOX)("not found. Aborting.").endl();
-            return;
-        }
+            Ogre::String value = "";
 
-        elem->SetInnerRML(innerRML);
+            if(selectionMan->selection().size() == 0)
+            {
+                value = "empty selection";
+            }
+            else if(selectionMan->selection().size() > 1)
+            {
+                value = "single selection only";
+            }
+            else
+            {
+                Agent *agent = level->agentMan()->getAgent(selectionMan->selection().front());
+                LocationModel *model = agent->locationModel();
+
+                if(nullptr == model || !model->hasPath())
+                    value = "no path found in selection";
+                else
+                    value = model->path();
+            }
+
+            mMyGUIWidgets.selectionPathTextBox->setCaption(value);
+        }
     }
 
     void Editor::refreshSelectionTagsWidget()
@@ -1278,6 +1343,8 @@ namespace Steel
             OgreUtils::resourceGroupsInfos();
         else if(command[0] == "tagsInfos")
             printTagsInfos();
+        else if(command[0] == "pathsInfos")
+            printPathsInfos();
         else if(command[0] == "switch_debug_events")
         {
             mDebugEvents = !mDebugEvents;
@@ -1296,7 +1363,7 @@ namespace Steel
     {
         // get tags
         auto const tagsVec = TagManager::instance().tags();
-        Debug::log(STEEL_METH_INTRO, "total tags: ", tagsVec.size(), ":", tagsVec).endl();
+        Debug::log(STEEL_METH_INTRO, "total tags: ", tagsVec.size()).endl();
 
         // make pairs
         std::vector<std::pair<Tag, Ogre::String>> pairs;
@@ -1309,6 +1376,39 @@ namespace Steel
 
         for(auto const & pair : pairs)
             Debug::log("tag: ", pair.first, " value: ", pair.second).endl();
+
+        Debug::log("done.").endl();
+    }
+
+    void Editor::printPathsInfos()
+    {
+        Level const *const level = mEngine->level();
+
+        if(nullptr == level)
+        {
+            Debug::log(STEEL_METH_INTRO, "no current level !").endl();
+        }
+        else
+        {
+            LocationModelManager const *const locationMan = level->locationModelMan();
+
+            if(nullptr == locationMan)
+            {
+                Debug::log(STEEL_METH_INTRO, "current level has no locationModelManager !").endl();
+            }
+            else
+            {
+                // get paths
+                auto pathsVec = locationMan->locationPathNames();
+                Debug::log(STEEL_METH_INTRO, "total paths: ", pathsVec.size()).endl();
+
+                //sort em by string value
+                std::sort(pathsVec.begin(), pathsVec.end(), [](LocationPathName const & left, LocationPathName const & right)->bool {return left < right;});
+
+                for(auto const & path : pathsVec)
+                    Debug::log("path: ", path).endl();
+            }
+        }
 
         Debug::log("done.").endl();
     }

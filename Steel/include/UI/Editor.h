@@ -56,6 +56,7 @@ namespace MyGUI
     class ScrollView;
     class TreeControlItem;
     class TreeControlItemDecorator;
+    class TextBox;
 }
 
 namespace Steel
@@ -140,6 +141,8 @@ namespace Steel
         
         /// Display debug tags info in the console
         void printTagsInfos();
+        /// Display current level's LocationModel's paths in the console
+        void printPathsInfos();
 
         /// used to reattach the debugger on reload
         virtual void onFileChangeEvent(File file);
@@ -183,7 +186,11 @@ namespace Steel
         void MyGUIRequestDrawSelectionTagItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item, const MyGUI::IBDrawItemInfo& _info);
         void MyGUIRequestCoordWidgetItem(MyGUI::ItemBox* _sender, MyGUI::IntCoord& _coord, bool _drag);
         void MyGUISelectionTagItemMouseWheel(MyGUI::Widget* _sender, int _rel);
+        /// Synchronizes the tags combobox to the TagManager's available tags
         void updateTagsList();
+        
+        /// Synchronizes the paths combobox to the current level's locationModelManager available paths
+        void updatePathsList();
 
         void refreshSelectionTagsWidget();
         void populateSelectionTagsWidget(std::list< Ogre::String > tags);
@@ -210,6 +217,8 @@ namespace Steel
             Signal brushRadiusUpdate;
             Signal menuTabChanged;
             Signal newTagCreated;
+            Signal newPathCreated;
+            Signal pathDeleted;
         };
         Signals mSignals;
         /// resources available (for levels, models, BTs, etc)
@@ -232,9 +241,12 @@ namespace Steel
             tagsListComboBox(nullptr)
             {}
             MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator;
+            
             MyGUI::ItemBox *selectionTagCloud;
-            MyGUI::ScrollView *selectionPathCloud;
             MyGUI::ComboBox *tagsListComboBox;
+            
+            MyGUI::TextBox *selectionPathTextBox;
+            MyGUI::ComboBox *pathsListComboBox;
         };
         MyGUIWidgets mMyGUIWidgets;
 
