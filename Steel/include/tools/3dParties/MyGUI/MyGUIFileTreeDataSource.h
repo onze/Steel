@@ -17,14 +17,14 @@ namespace Steel
     class MyGUITreeControlDataSource
     {
     public:
-        
-        MyGUITreeControlDataSource();
-        ~MyGUITreeControlDataSource();
-        
-        virtual void init(MyGUI::TreeControl *const control);
-        
-        virtual void notifyTreeNodePrepare(MyGUI::TreeControl* pTreeControl, MyGUI::TreeControlNode* pNode) = 0;
 
+        MyGUITreeControlDataSource();
+        virtual ~MyGUITreeControlDataSource();
+
+        virtual void init(MyGUI::TreeControl *const control);
+        virtual void shutdown(){};
+        virtual void notifyTreeNodePrepare(MyGUI::TreeControl *pTreeControl, MyGUI::TreeControlNode *pNode) = 0;
+        virtual void notifyTreeNodeSelected(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node){};
     protected:
         MyGUI::TreeControl *mControl;
     };
@@ -33,18 +33,23 @@ namespace Steel
     {
     public:
         typedef File ControlNodeDataType;
-        
+
         MyGUIFileSystemDataSource();
-        ~MyGUIFileSystemDataSource();
-        
+        virtual ~MyGUIFileSystemDataSource();
+
         /// Control is the TreeControl fed with items, dataRoot is the path to the root (relative to )
-        virtual void init(MyGUI::TreeControl *const control, Ogre::String const &dataRoot);
+        virtual void init(MyGUI::TreeControl *const control, Ogre::String const &dataRoot, Ogre::String const &confFileBaseName = StringUtils::BLANK);
         virtual void notifyTreeNodePrepare(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node) override;
-        
+        virtual void notifyTreeNodeSelected(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node);
+
     private:
         // Not enough parameters. Use the public one.
         virtual void init(MyGUI::TreeControl *const control);
+        Steel::ConfigFile confFile(File const &dir);
+        bool isDirectoryExpanded(File const &file);
+
         Ogre::String mDataRoot;
+        Ogre::String mConfFileBaseName;
     };
 }
 

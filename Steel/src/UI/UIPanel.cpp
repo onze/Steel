@@ -35,6 +35,7 @@ namespace Steel
     const std::string UIPanel::SteelTreeControlDataSourceType = "SteelTreeControlDataSourceType";
     const std::string UIPanel::SteelTreeControlDataSourceType_FileTree = "FileTree";
     const std::string UIPanel::SteelTreeControlDataSourceRoot = "SteelTreeControlDataSourceRoot";
+    const std::string UIPanel::SteelTreeControlDataSourceConfigFileBaseName = "SteelTreeControlDataSourceConfigFileBaseName";
 
     const Ogre::String UIPanel::commandSeparator = ";";
     const Ogre::String UIPanel::SteelSetVariable = "SteelSetVariable";
@@ -281,6 +282,14 @@ namespace Steel
 
         // MyGUI
         {
+            while(mMyGUIData.treeControlDataSources.size())
+            {
+                MyGUITreeControlDataSource *dataSource = mMyGUIData.treeControlDataSources.back();
+                mMyGUIData.treeControlDataSources.pop_back();
+                dataSource->shutdown();
+                delete dataSource;
+            }
+
             mSignalToWidgetsBindings.clear();
 
             if(mMyGUIData.layout.size())
@@ -457,16 +466,20 @@ namespace Steel
                         MyGUIFileSystemDataSource *dataSource = new MyGUIFileSystemDataSource();
                         {
                             Ogre::String dataSourceRoot = StringUtils::BLANK; // optional
+                            Ogre::String dataSourceConfFileBaseName = StringUtils::BLANK; // optional
 
                             if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceRoot))
                                 dataSourceRoot = widget->getUserString(UIPanel::SteelTreeControlDataSourceRoot);
+
+                            if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceConfigFileBaseName))
+                                dataSourceConfFileBaseName = widget->getUserString(UIPanel::SteelTreeControlDataSourceConfigFileBaseName);
 
                             File sourcePath = mUI.engine()->dataDir();
 
                             if(StringUtils::BLANK != dataSourceRoot)
                                 sourcePath = sourcePath / dataSourceRoot;
 
-                            dataSource->init(treeControl, sourcePath.fullPath());
+                            dataSource->init(treeControl, sourcePath.fullPath(), dataSourceConfFileBaseName);
                         }
                         mMyGUIData.treeControlDataSources.push_back(dataSource);
                     }

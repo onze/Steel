@@ -46,6 +46,8 @@ namespace Steel
         static const std::string SteelTreeControlDataSourceType;
         static const std::string SteelTreeControlDataSourceType_FileTree;
         static const std::string SteelTreeControlDataSourceRoot;
+        /// node settings are stored in a hidden file named after this variable's value
+        static const std::string SteelTreeControlDataSourceConfigFileBaseName;
         //commands
         static const Ogre::String commandSeparator;
         static const Ogre::String SteelSetVariable;

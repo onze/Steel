@@ -6,6 +6,8 @@
 #include "tools/3dParties/MyGUI/TreeControl.h"
 #include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
 #include "tools/File.h"
+#include <tools/ConfigFile.h>
+#include <tools/OgreUtils.h>
 #include "Debug.h"
 
 namespace Steel
@@ -23,12 +25,13 @@ namespace Steel
     {
         mControl = control;
         mControl->eventTreeNodePrepare += MyGUI::newDelegate(this, &MyGUITreeControlDataSource::notifyTreeNodePrepare);
+        mControl->eventTreeNodeSelected += MyGUI::newDelegate(this, &MyGUITreeControlDataSource::notifyTreeNodeSelected);
     }
 
     ////////////////////////////////////////////////////////////////////
 
     MyGUIFileSystemDataSource::MyGUIFileSystemDataSource() : MyGUITreeControlDataSource(),
-        mDataRoot(StringUtils::BLANK)
+        mDataRoot(StringUtils::BLANK), mConfFileBaseName(StringUtils::BLANK)
     {
     }
 
@@ -38,15 +41,32 @@ namespace Steel
 
     void MyGUIFileSystemDataSource::init(MyGUI::TreeControl *const control)
     {
-        STEEL_WRONG_CODE_PATH();
+        STEEL_WRONG_CODE_PATH(STEEL_METH_INTRO);
     }
 
-    void MyGUIFileSystemDataSource::init(MyGUI::TreeControl *const control, Ogre::String const &dataRoot)
+    void MyGUIFileSystemDataSource::init(MyGUI::TreeControl *const control, Ogre::String const &dataRoot, Ogre::String const &confFileBaseName/* = StringUtils::BLANK*/)
     {
         this->MyGUITreeControlDataSource::init(control);
 
         mDataRoot = dataRoot;
+        mConfFileBaseName = confFileBaseName;
         mControl->getRoot()->setData(File(mDataRoot));
+    }
+
+    Steel::ConfigFile MyGUIFileSystemDataSource::confFile(File const &dir)
+    {
+        if(StringUtils::BLANK == mConfFileBaseName)
+            return ConfigFile("");
+
+        return ConfigFile(dir / ("." + mConfFileBaseName + ".conf"));
+    }
+
+    bool MyGUIFileSystemDataSource::isDirectoryExpanded(File const &file)
+    {
+        ConfigFile conf = confFile(file);
+        bool expandAttribute;
+        conf.getSetting("expand", expandAttribute, false);
+        return expandAttribute;
     }
 
     void MyGUIFileSystemDataSource::notifyTreeNodePrepare(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node)
@@ -63,9 +83,25 @@ namespace Steel
             Ogre::String nodeType = subFile.isDir() ? "Folder" : "Unknown";
             MyGUI::TreeControlNode *child = new MyGUI::TreeControlNode(subFile.fileName(), nodeType);
             child->setPrepared(subFile.isFile());
+            child->setExpanded(isDirectoryExpanded(subFile));
             child->setData(subFile);
             node->add(child);
         }
+    }
+
+    void MyGUIFileSystemDataSource::notifyTreeNodeSelected(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node)
+    {
+        File const &file = *(node->getData<ControlNodeDataType>());
+
+        if(file.isFile())
+            return;
+
+        bool expanded = !node->isExpanded();
+        node->setExpanded(expanded);
+
+        ConfigFile conf = confFile(file);
+        conf.setSetting("expand", Ogre::StringConverter::toString(expanded));
+        conf.save();
     }
 
 }
