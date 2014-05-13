@@ -29,6 +29,7 @@ namespace Steel
     const std::string UIPanel::SteelOnClick = "SteelOnClick";
     const std::string UIPanel::SteelOnChange = "SteelOnChange";
     const std::string UIPanel::SteelOnSubmit = "SteelOnSubmit";
+    const std::string UIPanel::SteelOnToggle = "SteelOnToggle";
     const std::string UIPanel::SteelBind = "SteelBind";
     const std::string UIPanel::SteelInsertWidget = "SteelInsertWidget";
     const std::string UIPanel::TreeControl = "TreeControl";
@@ -383,10 +384,16 @@ namespace Steel
             bool hasOnClick = hasEvent(widget, UIPanel::SteelOnClick);
             bool hasOnChange = hasEvent(widget, UIPanel::SteelOnChange);
             bool hasOnSubmit = hasEvent(widget, UIPanel::SteelOnSubmit);
+            bool hasOnToggle = hasEvent(widget, UIPanel::SteelOnToggle);
 
             // button
-            if(MyGUI::Button::getClassTypeName() == widgetTypeName && hasOnClick)
-                widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
+            if(MyGUI::Button::getClassTypeName() == widgetTypeName)
+            {
+                if(hasOnClick)
+                    widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
+                else if(hasOnToggle)
+                    widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClickForCheckboxToggle);
+            }
             // combobox
             else if(MyGUI::ComboBox::getClassTypeName() == widgetTypeName)
             {
@@ -517,6 +524,15 @@ namespace Steel
         mSignalToWidgetsBindings.emplace(std::make_pair(signal, std::make_pair(variableName, SignalToWidgetsBindings::mapped_type::second_type()))).first->second.second.insert(widget);
     }
 
+    void UIPanel::OnMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button)
+    {
+        MyGUI::Button *checkbox = button->castType<MyGUI::Button>();
+        checkbox->setStateSelected(!checkbox->getStateSelected());
+        
+        Ogre::String commands = button->getUserString(SteelOnToggle);
+        executeWidgetCommands(button, commands);
+    }
+    
     void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
     {
         Ogre::String commands = button->getUserString(SteelOnClick);

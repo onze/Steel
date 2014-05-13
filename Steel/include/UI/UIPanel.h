@@ -40,6 +40,7 @@ namespace Steel
         static const std::string SteelOnClick;
         static const std::string SteelOnChange;
         static const std::string SteelOnSubmit;
+        static const std::string SteelOnToggle;
         static const std::string SteelBind;
         static const std::string SteelInsertWidget;
         static const std::string TreeControl;
@@ -101,6 +102,7 @@ namespace Steel
 
         // MyGUI callbacks
         void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
+        void OnMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
         void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
         void OnMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index);
         void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
