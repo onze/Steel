@@ -5,6 +5,7 @@
 #include <Level.h>
 #include <models/AgentManager.h>
 #include <Debug.h>
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -30,6 +31,10 @@ namespace Steel
     std::vector<ModelId> LocationModelManager::fromJson(Json::Value &root)
     {
         mPathsRoots = JsonUtils::asStringUnsignedLongMap(root[LocationModelManager::PATH_ROOTS_ATTRIBUTE]);
+
+        if(mPathsRoots.size() > 0)
+            SignalManager::instance().emit(newLocationPathCreatedSignal());
+
         return _ModelManager<LocationModel>::fromJson(root[ModelManager::MODELS_ATTRIBUTES]);
     }
 
@@ -421,16 +426,54 @@ namespace Steel
 
         auto name = agent->locationPath();
 
-        if(force)
-            mPathsRoots.erase(name);
+        // if model was root of another path, remove that path
+        for(auto const & pair : mPathsRoots)
+        {
+            if(aid == pair.second)
+            {
+                mPathsRoots.erase(pair.first);
+                SignalManager::instance().emit(locationPathDeletedSignal());
+                break;
+            }
+        }
 
-        mPathsRoots.emplace(name, aid);
+        auto it = mPathsRoots.insert(std::make_pair(name, aid));
+
+        if(it.second) // newly inserted
+            SignalManager::instance().emit(newLocationPathCreatedSignal());
+        else if(force)
+        {
+            it.first->second = aid;
+        }
     }
 
     AgentId LocationModelManager::pathRoot(LocationPathName const &name)
     {
         auto it = mPathsRoots.find(name);
         return mPathsRoots.end() == it ? INVALID_ID : it->second;
+    }
+
+    Signal LocationModelManager::newLocationPathCreatedSignal() const
+    {
+        static Signal newPathCreatedSignal = SignalManager::instance().toSignal("LocationModelManager::newPathCreatedSignal");
+        return newPathCreatedSignal;
+    }
+
+    Signal LocationModelManager::locationPathDeletedSignal() const
+    {
+        static Signal locationPathDeletedSignal = SignalManager::instance().toSignal("LocationModelManager::locationPathDeletedSignal");
+        return locationPathDeletedSignal;
+    }
+
+    std::vector<LocationPathName> LocationModelManager::locationPathNames() const
+    {
+        std::vector<LocationPathName> pathNames;
+        pathNames.reserve(mPathsRoots.size());
+
+        for(auto const & it : mPathsRoots)
+            pathNames.push_back(it.first);
+
+        return pathNames;
     }
 }
 

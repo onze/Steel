@@ -70,6 +70,12 @@ namespace Steel
         void updateDebugLines(ModelId mid);
         /// Updates the debug line between 2 models, if one exists.
         void updateDebugLine(ModelPair const &key);
+        
+        /// Emitted (not fired !) each time a new path is created.
+        Signal newLocationPathCreatedSignal() const;
+        /// Emitted (not fired !) each time a path is deleted (or renamed).
+        Signal locationPathDeletedSignal() const;
+        std::vector<LocationPathName> locationPathNames() const;
 
     private:
         /// The pair content is (src, dst)

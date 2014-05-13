@@ -30,7 +30,7 @@ namespace Steel
         std::list<Ogre::String> fromTags(std::set<Tag> tags) const;
         std::vector<Ogre::String> fromTags(std::vector<Tag> tags) const;
 
-        /// Emitted each time a new tag is created
+        /// Emitted (not fired !) each time a new tag is created.
         Signal newTagCreatedSignal() const;
 
     private:
