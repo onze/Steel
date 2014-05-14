@@ -1,7 +1,5 @@
 #include "UI/HUD.h"
 
-#include <Rocket/Core/Element.h>
-
 #include <Engine.h>
 #include <UI/UI.h>
 #include <Debug.h>
@@ -10,11 +8,11 @@
 
 namespace Steel
 {
-    HUD::HUD(UI &ui, Ogre::String const &): UIPanel(ui, "HUD", "data/ui/current/hud/hud.rml"), Ogre::FrameListener(),
+    HUD::HUD(UI &ui, Ogre::String const &): UIPanel(ui, "hud", "data/ui/current/hud/"), Ogre::FrameListener(),
         mEngine(nullptr), mShowFPS(false)
     {}
 
-    HUD::HUD(UI &ui): UIPanel(ui, "HUD", "data/ui/current/hud/hud.rml"), Ogre::FrameListener(),
+    HUD::HUD(UI &ui): UIPanel(ui, "Hud", "data/ui/current/hud/"), Ogre::FrameListener(),
         mEngine(nullptr), mShowFPS(false)
     {
 #ifdef DEBUG
@@ -52,30 +50,16 @@ namespace Steel
         mEngine = engine;
     }
 
-    bool HUD::frameRenderingQueued(const Ogre::FrameEvent &evt)
+    bool HUD::frameRenderingQueued(const Ogre::FrameEvent &/*evt*/)
     {
-        Rocket::Core::Element *elem;
-
-        if(mShowFPS)
+//         if(mShowFPS)
         {
-            if(mDocument != nullptr)
-            {
-                elem = mDocument->GetElementById("fps");
-
-                if(elem != nullptr)
-                {
-                    Ogre::RenderTarget::FrameStats ogreStats = mEngine->renderWindow()->getStatistics();
-                    elem->SetInnerRML(Ogre::StringConverter::toString(static_cast<int>(ogreStats.avgFPS)).c_str());
-                }
-
-                elem = mDocument->GetElementById("camPos");
-
-                if(elem != nullptr)
-                {
-                    auto camPos = mEngine->level()->camera()->camNode()->getPosition();
-                    elem->SetInnerRML(Ogre::StringConverter::toString(camPos).c_str());
-                }
-            }
+            //TODO: new UI for this
+            //Ogre::RenderTarget::FrameStats ogreStats = mEngine->renderWindow()->getStatistics();
+            //elem->SetInnerRML(Ogre::StringConverter::toString(static_cast<int>(ogreStats.avgFPS)).c_str());
+                
+//             auto camPos = mEngine->level()->camera()->camNode()->getPosition();
+//                     elem->SetInnerRML(Ogre::StringConverter::toString(camPos).c_str());
         }
 
         return true;

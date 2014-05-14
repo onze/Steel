@@ -180,12 +180,7 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(MyGUI::Widget const *const widget)
         {
-            return (*this)("MyGUI::Widget<",widget->getTypeName(),">{").quotes(widget->getName())("}");
-        }
-
-        DebugObject &DebugObject::operator()(Rocket::Core::String const &msg)
-        {
-            return (*this)(Ogre::String(msg.CString()));
+            return (*this)("MyGUI::Widget<", widget->getTypeName(), ">{").quotes(widget->getName())("}");
         }
 
         DebugObject &DebugObject::operator()(Ogre::StringVectorPtr const vec)
@@ -201,6 +196,7 @@ namespace Steel
         DebugObject &DebugObject::operator()(File const &file)
         {
             Ogre::String const abspath = file.absPath();
+
             if(file.isPathAbsolute())
                 return (*this)(abspath);
 

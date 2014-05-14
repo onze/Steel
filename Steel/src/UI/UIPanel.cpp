@@ -1,9 +1,4 @@
 
-#include <Rocket/Core.h>
-#include <../Source/Core/StyleSheetFactory.h>
-#include <../Source/Core/XMLNodeHandlerHead.h>
-#include <../Source/Core/DocumentHeader.h>
-
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI.h>
 #include <MyGUI_Delegate.h>
@@ -42,43 +37,37 @@ namespace Steel
     const Ogre::String UIPanel::SteelSetVariable = "SteelSetVariable";
     const Ogre::String UIPanel::SteelCommand = "SteelCommand";
 
-    UIPanel::UIPanel(UI &ui): Rocket::Core::EventListener(), SignalListener(), SignalEmitter(),
+    UIPanel::UIPanel(UI &ui): FileEventListener(), SignalListener(), SignalEmitter(),
         mUI(ui),
-        mWidth(0), mHeight(0),
-        mContext(nullptr), mContextName(StringUtils::BLANK), mDocumentFile(StringUtils::BLANK), mDocument(nullptr),
+        mWidth(0), mHeight(0), mIsVisible(false),
+        mName(Ogre::StringUtil::BLANK), mResourceDir(),
         mAutoReload(false), mDependencies(), mSignalToWidgetsBindings()
     {
     }
 
-    UIPanel::UIPanel(UI &ui, Ogre::String contextName, File mDocumentFile): Rocket::Core::EventListener(), SignalListener(), SignalEmitter(),
+    UIPanel::UIPanel(UI &ui, Ogre::String const &name, File resourceDir): FileEventListener(), SignalListener(), SignalEmitter(),
         mUI(ui),
-        mWidth(0), mHeight(0),
-        mContext(nullptr), mContextName(contextName), mDocumentFile(mDocumentFile), mDocument(nullptr),
+        mWidth(0), mHeight(0), mIsVisible(false),
+        mName(name), mResourceDir(resourceDir),
         mAutoReload(false), mDependencies(), mSignalToWidgetsBindings()
     {
-        if(!mDocumentFile.exists())
-            Debug::error("UIPanel::UIPanel(): panel resource ").quotes(mDocumentFile)(" not found.").endl().breakHere();
+        if(!mResourceDir.exists())
+        {
+            if(!mResourceDir.isPathAbsolute())
+                mResourceDir = mUI.UIDataDir() / mResourceDir;
+        }
+
+        if(!mResourceDir.exists())
+            Debug::error("UIPanel::UIPanel(): panel resource location ").quotes(mResourceDir)(" not found.").endl().breakHere();
     }
 
-    UIPanel::UIPanel(const UIPanel &o) : Rocket::Core::EventListener(o), SignalListener(), SignalEmitter(),
+    UIPanel::UIPanel(const UIPanel &o) : FileEventListener(o), SignalListener(o), SignalEmitter(o),
         mUI(o.mUI),
-        mWidth(o.mWidth), mHeight(o.mHeight),
-        mContext(o.mContext), mContextName(o.mContextName), mDocumentFile(o.mDocumentFile), mDocument(o.mDocument),
+        mWidth(o.mWidth), mHeight(o.mHeight), mIsVisible(o.mIsVisible),
+        mName(o.mName), mResourceDir(o.mResourceDir),
         mAutoReload(o.mAutoReload), mDependencies(o.mDependencies), mSignalToWidgetsBindings(o.mSignalToWidgetsBindings)
     {
         Debug::error("UIPanel::UIPanel=(const UIPanel& o) not implemented").endl().breakHere();
-
-//         if(nullptr != mDocument)
-//             mDocument->GetContext()->UnloadDocument(mDocument);
-//
-//         if(mDocument != o.mDocument)
-//         {
-//             mDocument = o.mDocument;
-//             mDocument->AddReference();
-//         }
-//
-//         mContextName = o.mContextName;
-//         mAutoReload = o.mAutoReload;
     }
 
     UIPanel::~UIPanel()
@@ -97,12 +86,6 @@ namespace Steel
         mWidth = width;
         mHeight = height;
 
-        //libRocket
-        {
-            mContext = Rocket::Core::CreateContext(mContextName.c_str(), Rocket::Core::Vector2i(width, height));
-            mDocument = mContext->LoadDocument(mDocumentFile.fullPath().c_str());
-        }
-
         if(mAutoReload)
         {
             buildDependences();
@@ -119,7 +102,7 @@ namespace Steel
             mMyGUIData.resource = nullptr;
 
             auto rgm = Ogre::ResourceGroupManager::getSingletonPtr();
-            rgm->addResourceLocation((mDocumentFile.parentDir() / "images").absPath(), "FileSystem", mUI.resourceGroup());
+            rgm->addResourceLocation((mResourceDir / "images").absPath(), "FileSystem", mUI.resourceGroup());
 
             File skin = skinFile();
 
@@ -127,12 +110,12 @@ namespace Steel
             {
                 if(!MyGUI::ResourceManager::getInstance().load(skin.fullPath()))
                 {
-                    Debug::error("could not load skin", skin).endl().breakHere();
+                    Debug::error(STEEL_METH_INTRO, "could not load skin ", skin).endl().breakHere();
                     return;
                 }
-
-                mMyGUIData.skin = static_cast<MyGUI::ResourceSkin *>(MyGUI::ResourceManager::getInstance().findByName(skin.fullPath()));
             }
+            else
+                Debug::warning(STEEL_METH_INTRO, "panel ", mName, " has no skin at ", skin).endl();
 
             File resource = resourceFile();
 
@@ -140,16 +123,18 @@ namespace Steel
             {
                 if(!MyGUI::ResourceManager::getInstance().load(resource.fullPath()))
                 {
-                    Debug::error("could not load resource ", resource).endl();
+                    Debug::error(STEEL_METH_INTRO, "could not load resource ", resource).endl();
                     return;
                 }
             }
+            else
+                Debug::warning(STEEL_METH_INTRO, "panel ", mName, " has no resource at ", resource).endl();
 
-            MyGUI::ResourceLayout *RLayout = MyGUI::LayoutManager::getInstance().getByName(mContextName + "Layout", false);
+            MyGUI::ResourceLayout *RLayout = MyGUI::LayoutManager::getInstance().getByName(layoutName(), false);
 
             if(nullptr == RLayout)
             {
-                Debug::error("ResourceLayout ", mContextName + "Layout ", "not found in resource ", resource).endl();
+                Debug::error(STEEL_METH_INTRO, "ResourceLayout ", layoutName(), " not found in resource ", resource).endl();
                 return;
             }
 
@@ -157,7 +142,7 @@ namespace Steel
 
             if(0 == mMyGUIData.layout.size())
             {
-                Debug::error("layout ", mContextName + "Layout ", "loaded from resource ", resource, " has no content.").endl();
+                Debug::error(STEEL_METH_INTRO, "layout ", layoutName(), " loaded from resource ", resource, " has no content.").endl();
                 return;
             }
 
@@ -167,88 +152,49 @@ namespace Steel
         }
     }
 
+    Ogre::String UIPanel::layoutName()
+    {
+        return mName + "Layout";
+    }
+
     void UIPanel::buildDependences()
     {
-        // libRocket
-        {
-            //mDocumentFile.addFileListener(this);
-            mDependencies.insert(new File(mDocumentFile));
-            // listen on dependencies changes:
-            // all <link> elements *in the body* with the attribute 'reloadonchange' set to true;
-
-            Rocket::Core::ElementList links;
-            mDocument->GetElementsByTagName(links, "reloadonchange");
-
-            for(auto it = links.begin(); it != links.end(); ++it)
-            {
-                Rocket::Core::Element *elem = *it;
-                Rocket::Core::String value;
-                elem->GetAttribute("path")->GetInto<Rocket::Core::String>(value);
-                File file = mDocumentFile.parentDir().subfile(value.CString());
-
-                if(!file.exists())
-                    continue;
-
-                mDependencies.insert(new File(file));
-            }
-        }
-
         // MyGUI
         {
-            mDependencies.insert(new File(layoutFile()));
+            mDependencies.insert(new File(resourceFile()));
         }
     }
 
-    File UIPanel::layoutFile()
+    File UIPanel::resourceFile() // where the layout is
     {
-        File layoutFile = mDocumentFile.absPath();
-        layoutFile.extension() = "layout";
-        return layoutFile;
-    }
-
-    File UIPanel::resourceFile()
-    {
-        File resourceFile = mDocumentFile.absPath();
-        resourceFile.extension() = "myguiproject.resource.xml";
-        return resourceFile;
+        return (mResourceDir / mName).absPath() + ".myguiproject.resource.xml";
     }
 
     File UIPanel::skinFile()
     {
-        File skinFile = mDocumentFile.absPath();
-        skinFile.extension() = "mygui_skin.xml";
-        return skinFile;
+        return (mResourceDir / mName).absPath() + ".mygui_skin.xml";
     }
 
     void UIPanel::onFileChangeEvent(File file)
     {
-        Debug::log("reloading content from file ")(file);
+        Debug::log(STEEL_METH_INTRO, "reloading content from file ", file).endl();
         reloadContent();
     }
 
     void UIPanel::reloadContent()
     {
-        if(nullptr == mContext)
-        {
-            Debug::log("UIPanel::reloadContent(): no main document to reload. Skipping operation.");
-            return;
-        }
+        bool visible = isVisible();
 
-        // save state
-        bool shown = mDocument->IsVisible();
-        Rocket::Core::Vector2i dims = mContext->GetDimensions();
-
-        if(shown)
+        if(visible)
             this->hide();
 
         this->shutdown();
-        MyGUI::ResourceManager::getInstance().removeByName(layoutFile().fullPath());
-        Rocket::Core::StyleSheetFactory::ClearStyleSheetCache();
+        MyGUI::ResourceManager::getInstance().removeByName(resourceFile().fullPath());
 
         // load state
-        this->init(dims.x, dims.y);
+        this->init(mWidth, mHeight);
 
-        if(shown)
+        if(visible)
             this->show();
     }
 
@@ -260,25 +206,6 @@ namespace Steel
             begin->removeFileListener(this);
             delete begin;
             mDependencies.erase(mDependencies.begin());
-        }
-
-        //libRocket
-        {
-            if(nullptr != mDocument)
-            {
-                mDocumentFile.removeFileListener(this);
-                mDocument->GetContext()->UnloadDocument(mDocument);
-                mDocument->RemoveReference();
-                mDocument = nullptr;
-            }
-
-            if(nullptr != mContext)
-            {
-                mContext->UnloadAllDocuments();
-                mContext->UnloadAllMouseCursors();
-                mContext->RemoveReference();
-                mContext = nullptr;
-            }
         }
 
         // MyGUI
@@ -309,30 +236,19 @@ namespace Steel
 
     void UIPanel::show()
     {
-        // Rocket
-        {
-            if(nullptr != mDocument)
-                mDocument->Show();
-        }
-
         // MyGUI
         {
             for(MyGUI::Widget * widget : mMyGUIData.layout)
                 widget->setVisible(true);
         }
-
+        mIsVisible = true;
         onShow();
     }
 
     void UIPanel::hide()
     {
+        mIsVisible = false;
         onHide();
-
-        // Rocket
-        {
-            if(nullptr != mDocument)
-                mDocument->Hide();
-        }
 
         // MyGUI
         {
@@ -343,11 +259,7 @@ namespace Steel
 
     bool UIPanel::isVisible()
     {
-        return mDocument->IsVisible();
-    }
-
-    void UIPanel::ProcessEvent(Rocket::Core::Event &event)
-    {
+        return mIsVisible;
     }
 
     bool UIPanel::MyGUIHitTest(int const x, int const y) const
@@ -365,7 +277,7 @@ namespace Steel
 
     void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
-        Debug::log("UIPanel::setupMyGUIWidgetsLogic() on ", mContextName).endl();
+        Debug::log(STEEL_METH_INTRO, "name: ", mName).endl();
 
         // parse UI tree depth-first, subscribe to:
         // - all button clicks
@@ -528,11 +440,11 @@ namespace Steel
     {
         MyGUI::Button *checkbox = button->castType<MyGUI::Button>();
         checkbox->setStateSelected(!checkbox->getStateSelected());
-        
+
         Ogre::String commands = button->getUserString(SteelOnToggle);
         executeWidgetCommands(button, commands);
     }
-    
+
     void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
     {
         Ogre::String commands = button->getUserString(SteelOnClick);
@@ -628,7 +540,7 @@ namespace Steel
 
             if(std::string::npos == j)
             {
-                Debug::warning("UIPanel::replaceDynamicValues(): unclosed dynamic value ").quotes(in.substr(i))(" in ").quotes(in)(". Skipping.").endl();
+                Debug::warning(STEEL_METH_INTRO, "unclosed dynamic value ").quotes(in.substr(i))(" in ").quotes(in)(". Skipping.").endl();
                 return in;
             }
 
@@ -677,7 +589,7 @@ namespace Steel
         if(StringUtils::BLANK == variableName)
             return INVALID_SIGNAL;
 
-        return SignalManager::instance().toSignal("__UIPanel__" + mContextName + "__MyGUIVariable__" + variableName + "__UpdateSignal");
+        return SignalManager::instance().toSignal("__UIPanel__" + mName + "__MyGUIVariable__" + variableName + "__UpdateSignal");
     }
 
     bool UIPanel::hasEvent(MyGUI::Widget *widget, Ogre::String const &eventName)
@@ -741,7 +653,7 @@ namespace Steel
         }
         else
         {
-            Debug::error("UIPanel::getMyGUIWidgetValue() on ", widget, ": unhandled widget type. Skipping.").endl();
+            Debug::error(STEEL_METH_INTRO, "on ", widget, ": unhandled widget type. Skipping.").endl();
             return false;
         }
 
@@ -780,7 +692,7 @@ namespace Steel
         }
         else
         {
-            Debug::error("UIPanel::setMyGUIWidgetValue() on ", widget, ": unhandled widget type. Skipping.").endl();
+            Debug::error(STEEL_METH_INTRO, "on ", widget, ": unhandled widget type. Skipping.").endl();
             return;
         }
     }

@@ -1,15 +1,14 @@
 #ifndef STEEL_DEBUG_H_
 #define STEEL_DEBUG_H_
 
-#include <Rocket/Core/String.h>
 #include "steeltypes.h"
 #include "tools/StringUtils.h"
 #include "UI/UI.h"
 
-// #define STEEL_ASSERT(EXPRESSION, ...) 
-// if(!EXPRESSION) 
-// { 
-//     Debug::error("STEEL_ASSERT: ", ##EXPRESSION, __VA_ARGS__).endl().breakHere(); 
+// #define STEEL_ASSERT(EXPRESSION, ...)
+// if(!EXPRESSION)
+// {
+//     Debug::error("STEEL_ASSERT: ", ##EXPRESSION, __VA_ARGS__).endl().breakHere();
 // }
 
 #if OGRE_COMPILER == OGRE_COMPILER_GNUC
@@ -30,25 +29,27 @@ namespace MyGUI
 namespace Steel
 {
     //http://stackoverflow.com/a/15775519/2909588
-    inline std::string methodName(const std::string& prettyFunction)
+    inline std::string methodName(const std::string &prettyFunction)
     {
         size_t colons = prettyFunction.find("::");
-        size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+        size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
         size_t end = prettyFunction.rfind("(") - begin;
-        
-        return prettyFunction.substr(begin,end) + "()";
+
+        return prettyFunction.substr(begin, end) + "()";
     }
-    inline std::string className(const std::string& prettyFunction)
+    inline std::string className(const std::string &prettyFunction)
     {
         size_t colons = prettyFunction.find("::");
-        if (colons == std::string::npos)
+
+        if(colons == std::string::npos)
             return "::";
-        size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+
+        size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
         size_t end = colons - begin;
-        
-        return prettyFunction.substr(begin,end);
+
+        return prettyFunction.substr(begin, end);
     }
-    
+
     class Action;
     class ActionCombo;
     class BTNode;
@@ -93,11 +94,10 @@ namespace Steel
             DebugObject &operator()(const char *msg);
             DebugObject &operator()(Ogre::String const &msg);
             DebugObject &operator()(Json::Value const &msg);
-            DebugObject &operator()(MyGUI::Widget const* const widget);
-            DebugObject &operator()(Rocket::Core::String const &msg);
+            DebugObject &operator()(MyGUI::Widget const *const widget);
             DebugObject &operator()(Ogre::StringVectorPtr const vec);
             DebugObject &operator()(Ogre::StringVector const &vec);
-            DebugObject &operator()(File const& file);
+            DebugObject &operator()(File const &file);
             DebugObject &operator()(BTShapeToken const &token);
             DebugObject &operator()(BTShapeStream *const shapeStream);
             DebugObject &operator()(BTNodeState state);
@@ -146,7 +146,7 @@ namespace Steel
             {
                 return this->operator()("(")(pair.first)(", ")(pair.second)(")");
             }
-            
+
             /// prints n or more parameters side by side
             template<class First, class Second, class ...Others>
             DebugObject &operator()(First first, Second second, Others... others)

@@ -1,14 +1,6 @@
 #include <algorithm>
 #include <json/json.h>
 
-#include <Rocket/Controls/ElementFormControlInput.h>
-#include <Rocket/Controls/ElementTabSet.h>
-#include <Rocket/Controls/ElementFormControlSelect.h>
-#include <Rocket/Controls/ElementFormControlTextArea.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Debugger.h>
-#include <Rocket/Core/Element.h>
-
 #include <MyGUI.h>
 
 #include "UI/Editor.h"
@@ -17,7 +9,6 @@
 #include "tools/OgreUtils.h"
 #include "Level.h"
 #include "Engine.h"
-#include "UI/FileSystemDataSource.h"
 #include "UI/UI.h"
 #include "Camera.h"
 #include "models/Agent.h"
@@ -30,13 +21,12 @@
 #include "models/AgentManager.h"
 #include "SelectionManager.h"
 #include "models/LocationModel.h"
-#include <models/LocationModelManager.h>
+#include "models/LocationModelManager.h"
 #include "TagManager.h"
 
 namespace Steel
 {
-
-    const Ogre::String Editor::MENU_TAB_INDEX_SETTING = "Editor::menuTabIndex";
+    const Ogre::String Editor::MENU_WINDOW_POSITION_SETTING = "Editor::windowPosition";
     const Ogre::String Editor::MENUTAB_ITEMNAME_SETTING = "Editor::menuTabItemName";
 
     const char *Editor::SELECTION_TAGS_INFO_BOX = "selectionTagsInfoBox";
@@ -50,11 +40,11 @@ namespace Steel
     const Ogre::String Editor::TERRABRUSH_RADIUS_MYGUIVAR = "terrabrushRadius";
     const Ogre::String Editor::MENUTAB_CONTROLNAME_MYGUIVAR = "editorMenuTab";
 
-    Editor::Editor(UI &ui): UIPanel(ui, "Editor", "data/ui/current/editor/editor.rml"),
+    Editor::Editor(UI &ui): UIPanel(ui, "editor", "data/ui/current/editor/"),
         mEngine(nullptr), mInputMan(nullptr),
-        mSignals(), mFSResources(nullptr),
-        mDataDir(), mBrush(), mDebugEvents(false), mIsDraggingFromMenu(false),
-        mDebugValueMan(), mMyGUIWidgets()
+        mSignals(),
+        mDataDir(), mBrush(), mDebugEvents(false),
+        mMyGUIWidgets()
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -69,12 +59,6 @@ namespace Steel
     Editor::~Editor()
     {
         shutdown();
-
-        if(nullptr != mFSResources)
-        {
-            delete mFSResources;
-            mFSResources = nullptr;
-        }
     }
 
     Editor &Editor::operator=(Editor const &o)
@@ -92,28 +76,21 @@ namespace Steel
 
             if(config.getSetting(Editor::MENUTAB_ITEMNAME_SETTING, tabName))
                 setMyGUIVariable(Editor::MENUTAB_CONTROLNAME_MYGUIVAR, tabName);
+
+            if(nullptr != mMyGUIWidgets.mainWindow)
+            {
+                auto coords = mMyGUIWidgets.mainWindow->getPosition();
+                Ogre::Vector2 position;
+
+                if(config.getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
+                    mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
+            }
         }
     }
 
     void Editor::saveConfig(ConfigFile &config) const
     {
         mBrush.saveConfig(config);
-        saveMenuTabIndexSetting(config);
-    }
-
-    void Editor::saveMenuTabIndexSetting(ConfigFile &config) const
-    {
-        // save state
-        if(nullptr != mDocument)
-        {
-            auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
-
-            if(nullptr != elem)
-            {
-                int tabNo = elem->GetActiveTab();
-                config.setSetting(Editor::MENU_TAB_INDEX_SETTING, Ogre::StringConverter::toString(tabNo));
-            }
-        }
     }
 
     void Editor::shutdown()
@@ -123,6 +100,9 @@ namespace Steel
             mMyGUIWidgets.resourceTreeControlItemDecorator = nullptr;
             mMyGUIWidgets.selectionTagCloud = nullptr;
             mMyGUIWidgets.tagsListComboBox = nullptr;
+            mMyGUIWidgets.selectionPathTextBox = nullptr;
+            mMyGUIWidgets.pathsListComboBox = nullptr;
+            mMyGUIWidgets.mainWindow = nullptr;
         }
 
         mBrush.shutdown();
@@ -133,7 +113,6 @@ namespace Steel
         }
 
         mEngine->removeEngineEventListener(this);
-        mDebugValueMan.shutdown();
         UIPanel::shutdown();
     }
 
@@ -152,13 +131,11 @@ namespace Steel
             mInputMan = engine->inputMan();
         }
 
-        mDebugValueMan.init("debugvaluemanager_select_entry", mDocument);
         mDataDir = mUI.UIDataDir().subfile("editor").fullPath();
         auto resGroupMan = Ogre::ResourceGroupManager::getSingletonPtr();
         // true is for recursive search. Add to this resources.cfg
         resGroupMan->addResourceLocation(mDataDir.fullPath(), "FileSystem", "UI", true);
 
-        mFSResources = new FileSystemDataSource("resources", mEngine->resourcesDir());
         UIPanel::init(width, height);
 
         // finalize MYGui setup
@@ -194,16 +171,17 @@ namespace Steel
                 mMyGUIWidgets.pathsListComboBox->removeAllItems();
             }
             // other widgets that are useful to keep a handle on for frequent references
+            mMyGUIWidgets.mainWindow = (decltype(mMyGUIWidgets.mainWindow))findMyGUIChildWidget("Root");
+            mMyGUIWidgets.mainWindow->eventWindowChangeCoord += MyGUI::newDelegate(this, &Editor::MyGUIEditorWindowChangeCoord);;
 
-        }
-        mFSResources->localizeDatagridBody(mDocument);
-        auto elem = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
+            if(nullptr != mMyGUIWidgets.mainWindow)
+            {
+                auto coords = mMyGUIWidgets.mainWindow->getPosition();
+                Ogre::Vector2 position;
 
-        if(elem != nullptr)
-        {
-            elem->SetValue("MyLevel");
-            // does not work for some reason
-            // elem->AddEventListener("submit",this);
+                if(mEngine->config().getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
+                    mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
+            }
         }
 
         mBrush.init(mEngine, this, mInputMan);
@@ -227,6 +205,12 @@ namespace Steel
 
         if(nullptr != mEngine->level())
             mEngine->level()->selectionMan()->addListener(this);
+    }
+
+    void Editor::MyGUIEditorWindowChangeCoord(MyGUI::Window *window)
+    {
+        MyGUI::IntPoint const position = window->getPosition();
+        mEngine->config().setSetting(Editor::MENU_WINDOW_POSITION_SETTING, Ogre::StringConverter::toString(Ogre::Vector2(position.left, position.top)));
     }
 
     void Editor::updatePathsList()
@@ -366,30 +350,6 @@ namespace Steel
         level->selectionMan()->removeListener(this);
     }
 
-    bool Editor::rocketHitTest(int x, int y, Rocket::Core::String childId)
-    {
-        Rocket::Core::Element *elem = mDocument;
-
-        if(elem != nullptr)
-        {
-            if((elem = elem->GetElementById(childId)) != nullptr)
-            {
-                const Rocket::Core::Vector2f &tl = elem->GetAbsoluteOffset(Rocket::Core::Box::PADDING);
-                int left = tl.x;
-                int top = tl.y;
-                const Rocket::Core::Vector2f &box = elem->GetBox(Rocket::Core::Box::BORDER).GetSize(
-                                                        Rocket::Core::Box::BORDER);
-                int right = left + box.x;
-                int bottom = top + box.y;
-
-                if(x >= left && y >= top && x <= right && y <= bottom)
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
     AgentId Editor::instanciateFromMeshFile(File &meshFile, Ogre::Vector3 &pos, Ogre::Quaternion &rot)
     {
         Level *level = mEngine->level();
@@ -415,26 +375,11 @@ namespace Steel
 
     bool Editor::keyPressed(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI.getRocketKeyIdentifier(key);
-        mContext->ProcessKeyDown(keyIdentifier, mUI.getRocketKeyModifierState());
-
-        if(evt.text >= 32)
-        {
-            mContext->ProcessTextInput((Rocket::Core::word) evt.text);
-        }
-        else if(keyIdentifier == Rocket::Core::Input::KI_RETURN)
-        {
-            mContext->ProcessTextInput((Rocket::Core::word) '\n');
-        }
-
         return true;
     }
 
     bool Editor::keyReleased(Input::Code key, Input::Event const &evt)
     {
-        Rocket::Core::Input::KeyIdentifier keyIdentifier = mUI.getRocketKeyIdentifier(key);
-        mContext->ProcessKeyUp(keyIdentifier, mUI.getRocketKeyModifierState());
-
         SelectionManager *selectionMan = mEngine->level()->selectionMan();
         Level *level = mEngine->level();
 
@@ -482,15 +427,8 @@ namespace Steel
                 break;
 
             case Input::Code::KC_DELETE:
-            {
-//                 auto child = mDocument->GetElementById("editor");
-
-//                 if(nullptr == child || !child->IsPseudoClassSet("focus"))
-//                 {
                 selectionMan->deleteSelection();
-//                 }
-            }
-            break;
+                break;
 
             case Input::Code::KC_F5:
                 processCommand("engine.register.ui.reload");
@@ -518,9 +456,7 @@ namespace Steel
 
     bool Editor::mousePressed(Input::Code button, Input::Event const &evt)
     {
-        if(rocketHitTest(evt.position.x, evt.position.y, "menu"))
-            mContext->ProcessMouseButtonDown(mUI.getRocketMouseIdentifier(button), mUI.getRocketKeyModifierState());
-        else if(!MyGUIHitTest(evt.position.x, evt.position.y))
+        if(!MyGUIHitTest(evt.position.x, evt.position.y))
             mBrush.mousePressed(button, evt);
 
         return true;
@@ -528,17 +464,13 @@ namespace Steel
 
     bool Editor::mouseReleased(Input::Code button, Input::Event const &evt)
     {
-        mContext->ProcessMouseButtonUp(mUI.getRocketMouseIdentifier(button), mUI.getRocketKeyModifierState());
         mBrush.mouseReleased(button, evt);
         return true;
     }
 
     bool Editor::mouseWheeled(int delta, Input::Event const &evt)
     {
-        auto keyModifierState = mUI.getRocketKeyModifierState();
-        mContext->ProcessMouseWheel(delta / -120, keyModifierState);
-
-        if(!rocketHitTest(evt.position.x, evt.position.y, "menu") && !MyGUIHitTest(evt.position.x, evt.position.y))
+        if(!MyGUIHitTest(evt.position.x, evt.position.y))
         {
             mBrush.mouseWheeled(delta, evt);
         }
@@ -548,37 +480,16 @@ namespace Steel
 
     bool Editor::mouseMoved(Ogre::Vector2 const &position, Input::Event const &evt)
     {
-        bool hoveringMenu = rocketHitTest(position.x, position.y, "menu");
-
-        if((!mIsDraggingFromMenu && !hoveringMenu) || (mBrush.isDragging() || mBrush.isInContiniousMode() || mBrush.isSelecting()))
-        {
+        if(!MyGUIHitTest(position.x, position.y) || (mBrush.isDragging() || mBrush.isInContiniousMode() || mBrush.isSelecting()))
             mBrush.mouseMoved(position, evt);
-            Rocket::Core::Element *elem;
-
-            elem = mDocument->GetElementById("editor_terrabrush_intensity");
-
-            if(elem != nullptr)
-                elem->SetInnerRML(Ogre::StringConverter::toString(mBrush.intensity()).c_str());
-
-            elem = mDocument->GetElementById("editor_terrabrush_radius");
-
-            if(elem != nullptr)
-                elem->SetInnerRML(Ogre::StringConverter::toString(mBrush.radius()).c_str());
-        }
-        else
-        {
-            mContext->ProcessMouseMove(position.x, position.y, mUI.getRocketKeyModifierState());
-        }
 
         return true;
     }
 
     void Editor::onFileChangeEvent(File file)
     {
-        Debug::log("Editor::onFileChangeEvent(): ")(file.fullPath()).endl();
+        Debug::log(STEEL_METH_INTRO, file.fullPath()).endl();
         UIPanel::onFileChangeEvent(file);
-        Rocket::Debugger::SetContext(mContext);
-        Rocket::Debugger::SetVisible(true);
     }
 
     void Editor::onShow()
@@ -586,47 +497,8 @@ namespace Steel
         mBrush.onShow();
 
         // (re)load state
-        // active menu tab
-        auto elem = (Rocket::Controls::ElementTabSet *) mDocument->GetElementById("editor_tabset");
-
-        if(nullptr != elem)
-        {
-            int tabNo;
-            mEngine->config().getSetting(Editor::MENU_TAB_INDEX_SETTING, tabNo, 0);
-            elem->SetActiveTab(tabNo);
-        }
-
-        // ## reconnect to document
-        // data sources
-        mFSResources->refresh(mDocument);
-        mDebugValueMan.refresh(mDocument);
-
-        // events
-        if(nullptr != mDocument)
-        {
-            mDocument->AddEventListener("click", this);
-            mDocument->AddEventListener("dragstart", this);
-            mDocument->AddEventListener("dragdrop", this);
-            mDocument->AddEventListener("change", this);
-            mDocument->AddEventListener("submit", this);
-        }
-
-        // debugger
-        Rocket::Debugger::SetContext(mContext);
-        Rocket::Debugger::SetVisible(true);
-
-        // set brush shape
-        auto select_form = static_cast<Rocket::Controls::ElementFormControlSelect *>(mDocument->GetElementById("editor_select_terrabrush_shape"));
-
-        if(select_form != nullptr and select_form->GetNumOptions() > 0)
-        {
-            int index = select_form->GetSelection();
-
-            if(index < 0)
-                select_form->SetSelection(0);
-            else
-                processCommand(Ogre::String("editorbrush.terrabrush.distribution.") + select_form->GetOption(index)->GetValue().CString());
-        }
+        // TODO: set brush shape
+        // processCommand(Ogre::String("editorbrush.terrabrush.distribution.") + select_form->GetOption(index)->GetValue().CString());
 
         refreshSelectionTagsWidget();
         refreshSelectionPathWidget();
@@ -634,15 +506,6 @@ namespace Steel
 
     void Editor::onHide()
     {
-        if(nullptr != mDocument)
-        {
-            mDocument->RemoveEventListener("click", this);
-            mDocument->RemoveEventListener("dragdrop", this);
-            mDocument->RemoveEventListener("change", this);
-            mDocument->RemoveEventListener("submit", this);
-            saveMenuTabIndexSetting(mEngine->config());
-        }
-
         mBrush.onHide();
     }
 
@@ -659,49 +522,6 @@ namespace Steel
 
         auto level = mEngine->level();
         auto selectionMan = level->selectionMan();
-
-        // libRocket
-        {
-            Rocket::Core::String innerRML = "";
-
-            if(selectionMan->selection().size() == 0)
-            {
-                innerRML = "empty selection";
-            }
-            else if(selectionMan->selection().size() > 1)
-            {
-                innerRML = "single selection only";
-            }
-            else
-            {
-                Agent *agent = level->agentMan()->getAgent(selectionMan->selection().front());
-
-                if(nullptr == agent)
-                    innerRML = "no path found in selection";
-                else
-                {
-                    LocationModel *model = agent->locationModel();
-
-                    if(nullptr == model || !model->hasPath())
-                        innerRML = "no path found in selection";
-                    else
-                    {
-                        innerRML = model->path().c_str();
-                    }
-                }
-            }
-
-            if(nullptr != mDocument)
-            {
-
-                Rocket::Core::Element *elem = mDocument->GetElementById(Editor::SELECTION_PATH_INFO_BOX);
-
-                if(nullptr == elem)
-                    Debug::error(STEEL_METH_INTRO, "child ").quotes(Editor::SELECTION_PATH_INFO_BOX)("not found. Aborting.").endl();
-                else
-                    elem->SetInnerRML(innerRML);
-            }
-        }
 
         // MyGUI
         {
@@ -743,37 +563,6 @@ namespace Steel
     void Editor::populateSelectionTagsWidget(std::list<Ogre::String> tags)
     {
 //         Debug::log(STEEL_METH_INTRO, "tags: ", tags).endl();
-
-        // libRocket
-        if(nullptr != mDocument)
-        {
-            Rocket::Core::Element *elem = mDocument->GetElementById(Editor::SELECTION_TAGS_INFO_BOX);
-
-            if(nullptr != elem)
-            {
-
-                // Emtpy it
-                while(nullptr != elem->GetFirstChild())
-                {
-                    Rocket::Core::Element *child = elem->GetFirstChild();
-                    elem->RemoveChild(child);
-                }
-
-                // Repopulate it
-                for(auto const & it : tags)
-                {
-                    Rocket::Core::Element *child = mDocument->CreateElement(Editor::AGENT_TAG_ITEM_NAME);
-                    decorateSelectionTagWidgetItem(child, it.c_str());
-                    elem->AppendChild(child);
-                    child->RemoveReference();
-                }
-            }
-            else
-            {
-                Debug::error(STEEL_METH_INTRO, "child with id ").quotes(Editor::SELECTION_TAGS_INFO_BOX)(" not found. Aborting.").endl();
-            }
-        }
-
         // MyGUI
         {
             if(nullptr != mMyGUIWidgets.selectionTagCloud)
@@ -787,293 +576,8 @@ namespace Steel
         }
     }
 
-    void Editor::decorateSelectionTagWidgetItem(Rocket::Core::Element *item, Ogre::String const &tagName)
-    {
-        // default tag button: "tagName [x]"
-        Ogre::String rml = tagName + "<p style=\"margin-left:3px;\" onclick=\"selection.tag.unset.$tagName\">[x]</p>";
-
-        // try getting the closing button from the data templates
-        Rocket::Core::Element *elemTemplate = mDocument->GetElementById("SelectionTagWidget_AgentItem_Btn");
-
-        if(nullptr != elemTemplate && elemTemplate->GetNumChildren() > 0)
-        {
-            rml = tagName + elemTemplate->GetInnerRML().CString();
-        }
-
-        item->SetInnerRML(Ogre::StringUtil::replaceAll(rml, "$tagName", tagName).c_str());
-    }
-
-    void Editor::ProcessEvent(Rocket::Core::Event &event)
-    {
-        if(!isVisible())
-            return;
-
-// create the command
-        Rocket::Core::Element *elem = nullptr;
-
-// in case of drag&drop, elem points to the element being dragged
-        if(event == "dragdrop")
-        {
-            // ok in stable, not in dev
-            //             elem= static_cast<Rocket::Core::Element *>(event.GetParameter< void * >("drag_element", nullptr));
-            Rocket::Core::ElementReference *ref = static_cast<Rocket::Core::ElementReference *>(event.GetParameter<void *>(
-                    "drag_element", nullptr));
-            elem = **ref;
-            mIsDraggingFromMenu = false;
-        }
-        else if(event == "dragstart")
-            mIsDraggingFromMenu = true;
-        else
-        {
-            elem = event.GetTargetElement();
-            mIsDraggingFromMenu = false;
-        }
-
-        if(elem == nullptr)
-        {
-            if(mDebugEvents)
-                Debug::log("Editor::ProcessEvent(): no target element for event of type ")(event.GetType()).endl();
-
-            return;
-        }
-
-        auto etype = event.GetType();
-        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + etype, "NoValue").CString();
-
-        if(event_value == "NoValue")
-        {
-            if(elem->GetId() != "")
-            {
-                if(mDebugEvents)
-                {
-                    Debug::warning("Editor::ProcessEvent(): no event_value for event of type ")
-                    (event.GetType())(" with elem of id ")(elem->GetId()).endl();
-                }
-
-                return;
-            }
-        }
-
-        if(etype == "change")
-            processChangeEvent(event, elem);
-        else if(etype == "click")
-            processClickEvent(event, elem);
-        else if(etype == "dragdrop")
-            processDragDropEvent(event, elem);
-        else if(etype == "submit")
-            processSubmitEvent(event, elem);
-        else
-            Debug::log("Editor::ProcessEvent(): unknown event ot type:")(event.GetType())(" and value: ")(event_value).endl();
-
-        return;
-    }
-
-    void Editor::processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
-    {
-        Debug::log("Editor::processSubmitEvent(): type:")(event.GetType());
-        Debug::log(" and value: ")(elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString());
-        Debug::log.endl();
-    }
-
-    void Editor::processClickEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
-    {
-        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
-        Ogre::String rawCommand = event_value;
-
-        if(rawCommand == "engine.set_level")
-        {
-            auto inputField = (Rocket::Controls::ElementFormControlInput *) mDocument->GetElementById("level_name");
-
-            if(inputField == nullptr)
-            {
-                Debug::error("Editor::processClickEvent(): can't find level name input field with id=\"level_name\". Aborted.").endl();
-                return;
-            }
-
-            Ogre::String levelName = inputField->GetValue().CString();
-
-            if(levelName == "")
-            {
-                Debug::error("Editor::processClickEvent(): can't create a level with not name. Aborted.").endl();
-                return;
-            }
-
-            rawCommand += "." + levelName;
-        }
-        else if(rawCommand == "selection.tag.set")
-        {
-            Ogre::String content = getFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX);
-
-            if(content.size() > 0)
-            {
-                rawCommand += ".";
-                rawCommand += content;
-            }
-            else
-            {
-                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)
-                (", text input is empty. Not setting the empty tag.").endl();
-                return;
-            }
-        }
-        else if(Ogre::StringUtil::startsWith(rawCommand, "selection.tag.unset"))
-        {
-            // valid command, nothing to add
-        }
-        else if(rawCommand == "selection.path.set")
-        {
-            Ogre::String content = getFormControlInputValue(Editor::SELECTIONS_PATH_EDIT_BOX);
-
-            if(content.size() > 0)
-            {
-                rawCommand += ".";
-                rawCommand += content;
-            }
-            else
-            {
-                Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", text input is empty. Not setting the empty tag.").endl();
-                return;
-            }
-        }
-        else if(rawCommand == "NoValue")
-        {
-            return;
-        }
-
-        //         Debug::log("Editor::processClickEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
-        if(rawCommand.size())
-            processCommand(rawCommand);
-    }
-
-    void Editor::processChangeEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
-    {
-        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
-        Ogre::String rawCommand = event_value;
-        bool verbose = true;
-
-        if(Ogre::StringUtil::startsWith(rawCommand, "debugvaluemanager."))
-        {
-            if(Ogre::StringUtil::endsWith(rawCommand, ".update"))
-                verbose = false;
-
-            // parse sibling, looking for the select element
-            Rocket::Core::ElementList children;
-            elem->GetParentNode()->GetElementsByTagName(children, "select");
-
-            if(children.size() != 1)
-            {
-                Debug::warning(STEEL_METH_INTRO, "did not find 1 single sibling of ")(elem->GetTagName())(" tagged \"select\". Aborting command ").quotes(rawCommand).endl();
-                return;
-            }
-
-            Ogre::String id = children[0]->GetId().CString();
-
-            rawCommand += ".";
-            rawCommand += id;
-
-        }
-        else if(rawCommand == "editorbrush.terrabrush.distribution")
-        {
-            Rocket::Controls::ElementFormControlSelect *form = static_cast<Rocket::Controls::ElementFormControlSelect *>(elem);
-            auto optionId = form->GetSelection();
-
-            if(optionId > -1)
-            {
-                rawCommand += ".";
-                rawCommand += form->GetValue().CString();
-            }
-            else
-                return;
-        }
-        else if(rawCommand == "selection.tag.set")
-        {
-            bool linebreak = event.GetParameter<bool>("linebreak", false);
-
-            if(!linebreak)
-                return;
-
-            Ogre::String content = getFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX);
-
-            if(content.size() > 0)
-            {
-                rawCommand += ".";
-                rawCommand += content;
-            }
-            else
-            {
-                if(mDebugEvents)
-                {
-                    Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", event_value: ").quotes(event_value)(" does not end with a new line. Skipping.").endl();
-                }
-
-                return;
-            }
-        }
-        else if(rawCommand == "selection.path.set")
-        {
-            bool linebreak = event.GetParameter<bool>("linebreak", false);
-
-            if(!linebreak)
-                return;
-
-            Ogre::String content = getFormControlInputValue(Editor::SELECTIONS_PATH_EDIT_BOX);
-
-            if(content.size() > 0)
-            {
-                rawCommand += ".";
-                rawCommand += content;
-            }
-            else
-            {
-                if(mDebugEvents)
-                {
-                    Debug::log(STEEL_METH_INTRO, "rawCommand: ").quotes(rawCommand)(", event_value: ").quotes(event_value)(" does not end with a new line. Skipping.").endl();
-                }
-
-                return;
-            }
-        }
-
-        //         Debug::log("Editor::processChangeEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
-        if(rawCommand.size())
-            processCommand(rawCommand, verbose);
-    }
-
-    void Editor::processDragDropEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem)
-    {
-        Ogre::String event_value = elem->GetAttribute<Rocket::Core::String>("on" + event.GetType(), "NoValue").CString();
-        Ogre::String rawCommand = "";
-
-        if(elem->GetId() == mFSResources->GetDataSourceName())
-        {
-            rawCommand = "instanciate.";
-            File file = File(event_value);
-
-            if(!file.exists())
-            {
-                Debug::error("Editor::ProcessEvent(): file not found: ")(file).endl();
-                return;
-            }
-
-            rawCommand += file.fullPath();
-        }
-        else
-        {
-            Debug::warning("Editor::ProcessDragDropEvent() unknown element source for event of type: ")(event.GetType());
-            Debug::warning(" value: ")(event_value).endl();
-            return;
-        }
-
-        //         Debug::log("Editor::processDragDropEvent() event type:")(event.GetType())(" rawCommand:")(rawCommand).endl();
-        if(rawCommand.size())
-            processCommand(rawCommand);
-    }
-
     bool Editor::processCommand(Ogre::String rawCommand, bool verbose)
     {
-        if("NoValue" == rawCommand)
-            return true;
-
         if(verbose)
             Debug::log("Editor::processCommand(raw=")(rawCommand)(")").endl();
 
@@ -1097,14 +601,6 @@ namespace Steel
             mEngine->stopEditMode();
         else if(command[0] == "options")
             return processOptionsCommand(command);
-        else if(command[0] == "debugvaluemanager")
-        {
-            Debug::error("TODO: check implementation").endl().breakHere();
-            command.erase(command.begin());
-            // second call erase the id of the debug value manager. We have a single one for now, so that selection is easy.
-            command.erase(command.end());
-            return mDebugValueMan.processCommand(command);
-        }
         else if(command[0] == "editorbrush")
         {
             command.erase(command.begin());
@@ -1174,10 +670,6 @@ namespace Steel
                         {
                             selectionMan->tagSelection(tag);
                             refreshSelectionTagsWidget();
-                            auto form = setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX, "");
-
-                            if(nullptr != form)
-                                form->Focus();
                         }
                     }
                     else
@@ -1199,11 +691,6 @@ namespace Steel
                         Tag tag = TagManager::instance().toTag(StringUtils::join(command, "."));
                         mEngine->level()->selectionMan()->untagSelection(tag);
                         refreshSelectionTagsWidget();
-                        auto form = setFormControlInputValue(Editor::SELECTIONS_TAG_EDIT_BOX, "");
-
-                        if(nullptr != form)
-                            form->Focus();
-
                         return true;
                     }
                     else
@@ -1279,57 +766,6 @@ namespace Steel
         }
 
         return true;
-    }
-
-    Ogre::String Editor::getFormControlInputValue(Ogre::String elementId)
-    {
-        if(nullptr == mDocument)
-            return "";
-
-        Rocket::Core::Element *elem = mDocument->GetElementById(elementId.c_str());
-
-        if(nullptr == elem)
-            return "";
-
-        // try to assert we're actually using a form
-        Ogre::String tagName = elem->GetTagName().CString();
-
-        if("input" != tagName && "select" != tagName)
-        {
-            Debug::error(STEEL_METH_INTRO, "trying to use elem with id ").quotes(elementId)
-            (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
-            return "";
-        }
-
-        Rocket::Controls::ElementFormControlInput *form = static_cast<Rocket::Controls::ElementFormControlInput *>(elem);
-        Ogre::String content = form->GetValue().CString();
-        return content;
-    }
-
-    Rocket::Controls::ElementFormControlInput *Editor::setFormControlInputValue(Ogre::String elementId, Ogre::String value)
-    {
-        if(nullptr == mDocument)
-            return nullptr;
-
-        Rocket::Core::Element *elem = mDocument->GetElementById(elementId.c_str());
-
-        if(nullptr == elem)
-            return nullptr;
-
-        // try to assert we're actually using a form
-        Ogre::String tagName = elem->GetTagName().CString();
-
-        if("input" != tagName && "select" != tagName)
-        {
-            Debug::error(STEEL_METH_INTRO, "trying to use elem with id ").quotes(elementId)
-            (" and tagname ").quotes(tagName)(" as Rocket form. This would probably result in a segfault. Aborting.").endl();
-            return nullptr;
-        }
-
-        Rocket::Controls::ElementFormControlInput *form = static_cast<Rocket::Controls::ElementFormControlInput *>(elem);
-        Rocket::Core::String _value = value.c_str();
-        form->SetValue(_value);
-        return form;
     }
 
     bool Editor::processOptionsCommand(std::vector<Ogre::String> command)
@@ -1413,17 +849,6 @@ namespace Steel
 
         Debug::log("done.").endl();
     }
-
-    void Editor::addDebugValue(const Ogre::String &entryName, Steel::DebugValueManager::CallbackFunction callback, float min, float max, float init)
-    {
-        mDebugValueMan.addDebugValue(entryName, callback, min , max, init);
-    }
-
-    void Editor::removeDebugValue(const Ogre::String &entryName)
-    {
-        mDebugValueMan.removeDebugValue(entryName);
-    }
-
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

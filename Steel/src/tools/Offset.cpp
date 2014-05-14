@@ -87,8 +87,8 @@ namespace Steel
             // can happen
             if(nullptr != mEditor)
             {
+                #ifdef DEBUGVALUEMANAGER
                 float delta = 2.f;
-
                 mEditor->addDebugValue(mPrefix + ".offset.position.x",
                 [this](float v) {setPosition(v, mPosition.y, mPosition.z);},
                 mPosition.x - delta, mPosition.x + delta);
@@ -100,6 +100,7 @@ namespace Steel
                 mEditor->addDebugValue(mPrefix + ".offset.position.z",
                 [this](float v) {setPosition(mPosition.x, mPosition.y, v);},
                 mPosition.z - delta, mPosition.z + delta);
+                #endif
                 
                 mIsEditable = true;
             }
@@ -108,9 +109,11 @@ namespace Steel
         {
             if(nullptr != mEditor)
             {
+                #ifdef DEBUGVALUEMANAGER
                 mEditor->removeDebugValue(mPrefix + ".offset.position.x");
                 mEditor->removeDebugValue(mPrefix + ".offset.position.y");
                 mEditor->removeDebugValue(mPrefix + ".offset.position.z");
+                #endif
                 mIsEditable = false;
             }
         }

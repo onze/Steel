@@ -68,7 +68,7 @@ namespace Steel
             else
             {
                 std::cerr << STEEL_METH_INTRO
-                          <<"can't parse configFile " << mFile.fullPath().c_str()
+                          << "can't parse configFile " << mFile.fullPath().c_str()
                           << ". Errors: " << reader.getFormattedErrorMessages()
                           << std::endl;
             }
@@ -219,6 +219,24 @@ namespace Steel
                 dst = value.asString();
             else
                 dst = value.toStyledString(); // TODO: strip quotes ?
+
+            return true;
+        }
+
+        dst = defaultValue;
+        return false;
+    }
+
+    bool ConfigFile::getSetting(const Ogre::String &key, Ogre::Vector2 &dst, Ogre::Vector2 const &defaultValue) const
+    {
+        if(mSettings.isMember(key))
+        {
+            Json::Value value = mSettings[key];
+
+            if(value.isString())
+                dst = Ogre::StringConverter::parseVector2(value.asString(), defaultValue);
+            else
+                dst = Ogre::StringConverter::parseVector2(value.toStyledString(), defaultValue); // TODO: strip quotes ?
 
             return true;
         }

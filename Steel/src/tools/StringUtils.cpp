@@ -1,4 +1,3 @@
-#include <Rocket/Core/String.h>
 #include <OgreString.h>
 
 #include "tools/StringUtils.h"
@@ -43,16 +42,6 @@ namespace Steel
         return ret;
     }
 
-    std::vector<Ogre::String> StringUtils::split(Ogre::String src, Rocket::Core::String sep)
-    {
-        return StringUtils::split(src, Ogre::String(sep.CString()));
-    }
-
-    std::vector<Ogre::String> StringUtils::split(Rocket::Core::String src, Ogre::String sep)
-    {
-        return StringUtils::split(Ogre::String(src.CString()), sep);
-    }
-
     std::vector<Ogre::String> StringUtils::split(const char src[], const char sep[])
     {
         return StringUtils::split(Ogre::String(src), Ogre::String(sep));
@@ -69,11 +58,6 @@ namespace Steel
     {
         std::vector<Ogre::String> vec(list.begin(), list.end());
         return StringUtils::join<Ogre::String>(vec, joiner, start, end);
-    }
-
-    Rocket::Core::String StringUtils::join(Rocket::Core::StringList const &vec, Rocket::Core::String const &joiner, int start, int end)
-    {
-        return StringUtils::join(std::vector<Rocket::Core::String>(vec), joiner, start, end);
     }
 
     ////////////////////////////////////////////////////////////////////////////

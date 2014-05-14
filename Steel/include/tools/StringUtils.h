@@ -5,8 +5,6 @@
 
 #include <OgrePlatform.h>
 #include <OgreStringConverter.h>
-#include <Rocket/Core/String.h>
-
 
 namespace Steel
 {
@@ -22,12 +20,6 @@ namespace Steel
         
         /// Line separator.
         static const Ogre::String LINE_SEP;
-
-        /// split a string into parts, delimited by a given separator, not included in the returned resulting vector. Specialized for mixed types.
-        static std::vector<Ogre::String> split(Ogre::String src, Rocket::Core::String sep);
-
-        /// split a string into parts, delimited by a given separator, not included in the returned resulting vector. Specialized for mixed types.
-        static std::vector<Ogre::String> split(Rocket::Core::String src, Ogre::String sep);
 
         /// split a string into parts, delimited by a given separator, not included in the returned resulting vector. Specialized for old types.
         static std::vector<Ogre::String> split(const char src[], const char sep[]);
@@ -45,11 +37,6 @@ namespace Steel
         static Ogre::String join(std::list<Ogre::String> const &vec,
                                  Ogre::String const &joiner = StringUtils::BLANK,
                                  int start = 0, int end = INT_MIN);
-
-        /// join a Rocket::Core::StringList with the given joiner string. See generic header for details. Specialized for mixed types.
-        static Rocket::Core::String join(Rocket::Core::StringList const &vec,
-                                         Rocket::Core::String const &joiner = "",
-                                         int start = 0, int end = INT_MIN);
 
         /**
          * join a vector of strings with the given joiner string, from start to end indices in the given vector (uses the whole vector by default).

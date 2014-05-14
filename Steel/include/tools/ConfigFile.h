@@ -32,6 +32,7 @@ namespace Steel
         bool getSetting(Ogre::String const &key, u32 &dst, u32 defaultValue = 0U) const;
         bool getSetting(Ogre::String const &key, u64 &dst, u64 defaultValue = 0UL) const;
         bool getSetting(Ogre::String const &key, f32 &dst, f32 defaultValue = .0f) const;
+        bool getSetting(Ogre::String const &key, Ogre::Vector2 &dst, Ogre::Vector2 const& defaultValue = Ogre::Vector2::ZERO) const;
         bool getSetting(Ogre::String const &key, Ogre::Vector3 &dst, Ogre::Vector3 const& defaultValue = Ogre::Vector3::ZERO) const;
 
         ConfigFile &setSetting(Ogre::String key, Ogre::String const &value);

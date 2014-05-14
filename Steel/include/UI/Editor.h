@@ -4,7 +4,6 @@
 
 #include <OIS.h>
 #include <OgreString.h>
-// #include <Rocket/Controls.h>
 
 #include "steeltypes.h"
 #include "UI/UIPanel.h"
@@ -12,24 +11,15 @@
 #include "EngineEventListener.h"
 #include "InputSystem/Input.h"
 #include "EditorBrush.h"
+
+#ifdef DEBUGVALUEMANAGER
 #include "UI/DebugValueManager.h"
+#endif
 
 namespace std
 {
     template<class _Signature >
     class function;
-}
-
-namespace Rocket
-{
-    namespace Core
-    {
-        class Element;
-    }
-    namespace Controls
-    {
-        class ElementFormControlInput;
-    }
 }
 
 namespace MyGUI
@@ -41,22 +31,23 @@ namespace MyGUI
     class IBNotifyItemData;
     class Widget;
     class IBDrawItemInfo;
-    
+
     namespace types
     {
         template<typename T>
         struct TCoord;
-        
+
         template<typename T>
         struct TPoint;
     }
     typedef types::TCoord<int> IntCoord;
     typedef types::TPoint<int> IntPoint;
-    
+
     class ScrollView;
     class TreeControlItem;
     class TreeControlItemDecorator;
     class TextBox;
+    class Window;
 }
 
 namespace Steel
@@ -64,7 +55,6 @@ namespace Steel
 
     class Level;
     class ConfigFile;
-    class FileSystemDataSource;
     class UI;
     class InputManager;
     class Engine;
@@ -72,10 +62,10 @@ namespace Steel
     class Editor: public UIPanel, public SelectionManager::Listener, public EngineEventListener
     {
     private:
-        /// libRocket Editor menu tab index setting name
-        static const Ogre::String MENU_TAB_INDEX_SETTING;
         /// MyGUI Editor menu tab label
         static const Ogre::String MENUTAB_ITEMNAME_SETTING;
+        /// MyGUI main window position label
+        static const Ogre::String MENU_WINDOW_POSITION_SETTING;
 
         /// Name of the UI Editor element that contains tags elements.
         static const char *SELECTION_TAGS_INFO_BOX;
@@ -118,12 +108,6 @@ namespace Steel
         /// called right before the underlying document gets hidden
         virtual void onHide();
 
-        /** returns whether the given screen coordinates collide with the child element with given Id.
-         * If no Id is given, the hit test is made with the main document.**/
-        bool rocketHitTest(int x, int y, Rocket::Core::String childId = "body");
-
-        /// take a rocket event and dispatch it to process*Event
-        void ProcessEvent(Rocket::Core::Event &event);
         ///general command processing method. dispatches the work to other process
         bool processCommand(Ogre::String rawCommand, bool verbose = true);
         ///general command processing method. dispatches the work to other process
@@ -138,7 +122,7 @@ namespace Steel
         bool mousePressed(Input::Code button, Input::Event const &evt);
         bool mouseReleased(Input::Code button, Input::Event const &evt);
         bool mouseWheeled(int delta, Input::Event const &evt);
-        
+
         /// Display debug tags info in the console
         void printTagsInfos();
         /// Display current level's LocationModel's paths in the console
@@ -158,53 +142,30 @@ namespace Steel
         /// called right before a level is unset (becomes not current anymore).
         virtual void onLevelUnset(Level *level);
 
-
-        /// Shortcut to DebugValueManager::addDebugValue.
-        void addDebugValue(const Ogre::String &entryName,
-                           DebugValueManager::CallbackFunction callback,
-                           float min = .0f, float max = 1.f, float init = -1.f);
-        /// Shortcut to DebugValueManager::removeDebugValue.
-        void removeDebugValue(Ogre::String const &entryName);
-
         virtual void onSignal(Signal signal, SignalEmitter *const src);
-        
-        /// make a command out of a Rocket event.
-        void processSubmitEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
-        /// make a command out of a Rocket event.
-        void processClickEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
-        /// make a command out of a Rocket event.
-        void processChangeEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
-        /// make a command out of a Rocket event.
-        void processDragDropEvent(Rocket::Core::Event &event, Rocket::Core::Element *elem);
-        
+
     private:
         /// Called whenever an item of the resource treeControl is dropped
-        void MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const& pos);
-        
+        void MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const &pos);
+
         /// Creates a MyGUI widget to represent a tag of the currently selected agent.
-        void MyGUIRequestCreateSelectionTagItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item);
-        void MyGUIRequestDrawSelectionTagItem(MyGUI::ItemBox* _sender, MyGUI::Widget* _item, const MyGUI::IBDrawItemInfo& _info);
-        void MyGUIRequestCoordWidgetItem(MyGUI::ItemBox* _sender, MyGUI::IntCoord& _coord, bool _drag);
-        void MyGUISelectionTagItemMouseWheel(MyGUI::Widget* _sender, int _rel);
+        void MyGUIRequestCreateSelectionTagItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item);
+        void MyGUIRequestDrawSelectionTagItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item, const MyGUI::IBDrawItemInfo &_info);
+        void MyGUIRequestCoordWidgetItem(MyGUI::ItemBox *_sender, MyGUI::IntCoord &_coord, bool _drag);
+        void MyGUISelectionTagItemMouseWheel(MyGUI::Widget *_sender, int _rel);
         /// Synchronizes the tags combobox to the TagManager's available tags
         void updateTagsList();
-        
+
         /// Synchronizes the paths combobox to the current level's locationModelManager available paths
         void updatePathsList();
 
+        /// triggered when the main panel is moved/resized
+        void MyGUIEditorWindowChangeCoord(MyGUI::Window *window);
+
         void refreshSelectionTagsWidget();
         void populateSelectionTagsWidget(std::list< Ogre::String > tags);
-        void decorateSelectionTagWidgetItem(Rocket::Core::Element *item, const Ogre::String &tagName);
 
         void refreshSelectionPathWidget();
-
-        void saveMenuTabIndexSetting(ConfigFile &config) const;
-
-        /// Retrieve a libRocket form element element's "value" attribute value.
-        Ogre::String getFormControlInputValue(Ogre::String elementId);
-
-        /// Set a libRocket form element element's "value" attribute value.
-        Rocket::Controls::ElementFormControlInput *setFormControlInputValue(Ogre::String elementId, Ogre::String value);
 
         //not owned
         Engine *mEngine;
@@ -221,32 +182,37 @@ namespace Steel
             Signal pathDeleted;
         };
         Signals mSignals;
-        /// resources available (for levels, models, BTs, etc)
-        FileSystemDataSource *mFSResources;
+
         File mDataDir;
         /// handles mouse props wrt mEditMode
         EditorBrush mBrush;
         /// If set to true, will print all events with empty "value" attribute for elements whose "id" attribute is set.
         bool mDebugEvents;
-        /// true during the dragging of a item from the edior's menu.
-        bool mIsDraggingFromMenu;
+
+#ifdef DEBUGVALUEMANAGER
         DebugValueManager mDebugValueMan;
-        
+#endif
+
         /// handles drag and dropping of the MyGUI::TreeControl dedicated to resources
         struct MyGUIWidgets
         {
             MyGUIWidgets():
-            resourceTreeControlItemDecorator(nullptr),
-            selectionTagCloud(nullptr),
-            tagsListComboBox(nullptr)
+                resourceTreeControlItemDecorator(nullptr),
+                selectionTagCloud(nullptr),
+                tagsListComboBox(nullptr),
+                selectionPathTextBox(nullptr),
+                pathsListComboBox(nullptr),
+                mainWindow(nullptr)
             {}
             MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator;
-            
+
             MyGUI::ItemBox *selectionTagCloud;
             MyGUI::ComboBox *tagsListComboBox;
-            
+
             MyGUI::TextBox *selectionPathTextBox;
             MyGUI::ComboBox *pathsListComboBox;
+
+            MyGUI::Window *mainWindow;
         };
         MyGUIWidgets mMyGUIWidgets;
 

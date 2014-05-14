@@ -17,7 +17,7 @@
 #include "OgreMeshManager.h"
 #include "tools/StringUtils.h"
 #include "Debug.h"
-#include <Numeric.h>
+#include "Numeric.h"
 
 namespace Steel
 {
