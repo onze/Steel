@@ -30,6 +30,7 @@
 namespace Steel
 {
     const Ogre::String Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING = "Engine::referencePathsLookupTable";
+    const Ogre::String Engine::GHOST_CAMERA_ROTATION_SPEED_SETTING = "Engine::ghostCamRotationSpeed";
 
     const Ogre::String Engine::NONEDIT_MODE_GRABS_INPUT = "Engine::nonEditModeGrabsInput";
     const Ogre::String Engine::COLORED_DEBUG = "Engine::coloredDebug";
@@ -41,6 +42,7 @@ namespace Steel
         mMustAbortMainLoop(false), mIsInMainLoop(false),
         mLevel(nullptr), mRayCaster(nullptr), mUI(nullptr),
         mEditMode(false), mStats(),
+        mGhostCamRotationSpeed(.5f),
         mCommands(), mListeners(),
         mReferencePathsLookupTable()
     {
@@ -91,7 +93,7 @@ namespace Steel
         if(nullptr != mLevel)
         {
             loadConfig(mConfig);
-            
+
             mUI->init(uiDir(), &mInputMan, mRenderWindow, this);
 
             if(nullptr != newLevel)
@@ -211,7 +213,7 @@ namespace Steel
         mRenderWindow->update();
         mRoot->clearEventTimes();
         Debug::log("Ogre ready").endl();
-        
+
         mUI = new UI();
 
         mInputMan.init(this);
@@ -533,8 +535,7 @@ namespace Steel
         if(mInputMan.hasMouseMoved())
         {
             Ogre::Vector2 move = mInputMan.mouseMove();
-            auto point(mLevel->camera()->worldPosition( {.5f + move.x / mRenderWindow->getWidth() * 2, .5f + move.y / mRenderWindow->getHeight() * 2}, 1000.f));
-            mLevel->camera()->lookAt(point);
+            mLevel->camera()->lookTowards(-move.x, -move.y, mGhostCamRotationSpeed);
         }
     }
 
@@ -590,10 +591,10 @@ namespace Steel
     bool Engine::processCommand(std::vector<Ogre::String> command)
     {
         static const Ogre::String intro = "Engine::processCommand(): ";
-        
+
         while(command.size() > 0 && command[0] == "engine")
             command.erase(command.begin());
-        
+
         if(0 == command.size())
             return false;
 
@@ -707,6 +708,8 @@ namespace Steel
         else
             Debug::error(intro)("no UI yet !").endl();
 
+        config.setSetting(Engine::GHOST_CAMERA_ROTATION_SPEED_SETTING, mGhostCamRotationSpeed);
+
         config.save();
     }
 
@@ -723,6 +726,8 @@ namespace Steel
         Ogre::String source;
         config.getSetting(Engine::REFERENCE_PATH_LOOKUP_TABLE_SETTING, source);
         setupReferencePathsLookupTable(source);
+
+        config.getSetting(Engine::GHOST_CAMERA_ROTATION_SPEED_SETTING, mGhostCamRotationSpeed, mGhostCamRotationSpeed);
     }
 
     void Engine::setupReferencePathsLookupTable(Ogre::String const &source)

@@ -23,6 +23,8 @@ namespace Steel
 
         /// Reference lookup table setting name
         static const Ogre::String REFERENCE_PATH_LOOKUP_TABLE_SETTING;
+        /// Rotation speed of the camera in edit mode.
+        static const Ogre::String GHOST_CAMERA_ROTATION_SPEED_SETTING;
 
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
         static const Ogre::String COLORED_DEBUG;
@@ -213,6 +215,9 @@ namespace Steel
 
         bool mEditMode;
         Stats mStats;
+        
+        /// Rotation speed of the camera in edit mode.
+        float mGhostCamRotationSpeed;
 
         /// commands that will be executed at the beginning of next frame
         std::list<std::vector<Ogre::String> > mCommands;

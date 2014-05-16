@@ -26,7 +26,7 @@ namespace Steel
         bool fromJson(Json::Value &value);
 
         /// orient the camera center towards the given screen position
-        void lookTowards(float x, float y, float roll = .0f, float factor = 1.f);
+        void lookTowards(float x, float y, float factor = 1.f);
         void lookAt(Ogre::Vector3 const& pos);
 
         /// Serialization method

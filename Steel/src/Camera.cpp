@@ -71,7 +71,7 @@ namespace Steel
         mEngine = nullptr;
     }
 
-    void Camera::lookTowards(float x, float y, float roll, float factor)
+    void Camera::lookTowards(float x, float y, float factor)
     {
         x *= factor;
         y *= factor;
