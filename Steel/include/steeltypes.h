@@ -39,8 +39,17 @@ namespace Json
 
 namespace Steel
 {
-    typedef unsigned long AgentId;
-    typedef unsigned long ModelId;
+    typedef unsigned int u32;
+    typedef unsigned long u64;
+    typedef signed int s32;
+    typedef signed long s64;
+    typedef float f32;
+    typedef double f64;
+    
+    typedef u64 AgentId;
+    typedef u64 ModelId;
+    /// invalid Model/Agent id.
+    const u64 INVALID_ID = ULONG_MAX;
     typedef std::list<AgentId> Selection;
     typedef std::pair<ModelId, ModelId> ModelPair;
 
@@ -53,14 +62,11 @@ namespace Steel
     /// Basically what returns Ogre::Timer::get<whatevs>
     typedef long unsigned int TimeStamp;
 
+    typedef u32 RefCount;
 
-    typedef unsigned int RefCount;
-
-    /// invalid Model/Agent id.
-    const unsigned long INVALID_ID = ULONG_MAX;
 
     /// usable enum values need to stay contiguous starting at 0.
-    enum class ModelType : int
+    enum class ModelType : s32
     {
         //ModelType::FIRST should stay first
         FIRST = -1,
@@ -80,10 +86,10 @@ namespace Steel
     Ogre::String toString(ModelType e);
     ModelType toModelType(Ogre::String s);
 
-    typedef unsigned long Signal;
+    typedef u64 Signal;
     const Signal INVALID_SIGNAL = ULONG_MAX;
 
-    typedef unsigned long Tag;
+    typedef u64 Tag;
     const Signal INVALID_TAG = ULONG_MAX;
 
     /// Shape of the physic enveloppe of an OgreModel
@@ -99,14 +105,6 @@ namespace Steel
     typedef Ogre::String LocationPathName;
 
     typedef size_t Hash;
-    
-    typedef unsigned int u32;
-    typedef unsigned long u64;
-    typedef signed int s32;
-    typedef signed int s64;
-    typedef float f32;
-    typedef double f64;
-    
     
     class Engine;
     class Level;
