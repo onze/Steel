@@ -17,7 +17,7 @@ namespace Steel
     class EngineEventListener;
     class UI;
 
-    class Engine: public InputEventListener
+    class Engine: public InputEventListener, public SignalEmitter
     {
     public:
 
@@ -29,7 +29,7 @@ namespace Steel
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
         static const Ogre::String COLORED_DEBUG;
         static const Ogre::String OGRE_CONSOLE_OUTPUT;
-
+        
         class Stats
         {
         public:
@@ -136,7 +136,7 @@ namespace Steel
         inline std::string &windowHandle() {return mWindowHandle;}
 
         /// Returns a pointer to the current level, or nullptr if none is currently set.
-        inline Level *level() {return mLevel;}
+        inline Level *const level() const {return mLevel;}
 
         inline const Stats &stats() const {return mStats;}
 
@@ -145,12 +145,19 @@ namespace Steel
         //setters
 
         /// Sets application main directory.
-        void setRootDir(File rootdir);
+        void setRootDir(File const& rootdir);
 
         /// Sets application main directory.
         void setRootDir(Ogre::String rootdir);
 
         inline ConfigFile &config() {return mConfig;}
+        
+        enum class PublicSignal : u32
+        {
+            levelSet = 0,
+            levelUnset
+        };
+        Signal getSignal(Engine::PublicSignal signal) const;
 
     private:
         /// Simple factorization

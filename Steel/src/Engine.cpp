@@ -220,9 +220,9 @@ namespace Steel
 
         mRayCaster = new RayCaster(this);
 
-        setCurrentLevel(createLevel("DefaultLevel"));
-
         Debug::log.unIndent();
+
+        setCurrentLevel(createLevel("DefaultLevel"));
 
         // engine ready.
         // unit testing
@@ -336,12 +336,16 @@ namespace Steel
     {
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onLevelSet(mLevel);
+
+        fire(getSignal(PublicSignal::levelSet));
     }
 
     void Engine::fireOnLevelUnsetEvent()
     {
         for(auto listener : std::list<EngineEventListener *>(mListeners.begin(), mListeners.end()))
             listener->onLevelUnset(mLevel);
+
+        fire(getSignal(PublicSignal::levelUnset));
     }
 
     void Engine::fireOnBeforeLevelUpdate(float dt)
@@ -418,8 +422,8 @@ namespace Steel
                 mLevel->update(dt);
                 fireOnAfterLevelUpdate();
             }
-            else
-                SignalManager::instance().fireEmittedSignals();
+
+            SignalManager::instance().fireEmittedSignals();
 
             graphicsStart = timer.getMilliseconds();
             mStats.lastEngineDuration = static_cast<double>(graphicsStart - engineStart);
@@ -819,7 +823,7 @@ namespace Steel
         setRootDir(File(rootdir));
     }
 
-    void Engine::setRootDir(File rootdir)
+    void Engine::setRootDir(Steel::File const& rootdir)
     {
         std::string s = "Steel::Engine: setting application root dir to ";
 
@@ -856,9 +860,23 @@ namespace Steel
         fireOnStopEditMode();
     }
 
+    Signal Engine::getSignal(Engine::PublicSignal signal) const
+    {
+#define STEEL_ENGINE_GETSIGNAL_CASE(NAME) case NAME:return SignalManager::instance().toSignal("Steel::Engine::"#NAME)
+
+        switch(signal)
+        {
+                STEEL_ENGINE_GETSIGNAL_CASE(PublicSignal::levelSet);
+                STEEL_ENGINE_GETSIGNAL_CASE(PublicSignal::levelUnset);
+        }
+
+#undef STEEL_ENGINE_GETSIGNAL_CASE
+        return INVALID_SIGNAL;
+    }
 }
 
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
 
 
 
