@@ -17,7 +17,7 @@ namespace Steel
     {
         emit(SignalManager::instance().toSignal(signal), anonymous);
     }
-    
+
     void SignalEmitter::fire(const Signal signal, bool anonymous/* = false*/)
     {
         if(INVALID_SIGNAL == signal)
@@ -25,7 +25,7 @@ namespace Steel
         else
             SignalManager::instance().fire(signal, anonymous ? nullptr : this);
     }
-    
+
     void SignalEmitter::fire(const Ogre::String &signal, bool anonymous/* = false*/)
     {
         fire(SignalManager::instance().toSignal(signal), anonymous);

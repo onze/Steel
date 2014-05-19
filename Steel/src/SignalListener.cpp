@@ -18,8 +18,8 @@ namespace Steel
     {
         unregisterAllSignals();
     }
-    
-    void SignalListener::registerSignal(const Ogre::String& signal)
+
+    void SignalListener::registerSignal(const Ogre::String &signal)
     {
         registerSignal(SignalManager::instance().toSignal(signal));
     }
@@ -35,16 +35,17 @@ namespace Steel
 
     void SignalListener::unregisterSignal(Signal signal)
     {
-        int found=mRegisteredSignals.erase(signal);
+        int found = mRegisteredSignals.erase(signal);
+
         if(found)
         {
 #ifdef DEBUG
             mRegisteredSignalStrings.erase(SignalManager::instance().fromSignal(signal));
 #endif
-            SignalManager::instance().unregisterListener(signal,this);
+            SignalManager::instance().unregisterListener(signal, this);
         }
     }
-    
+
     void SignalListener::unregisterAllSignals()
     {
         while(mRegisteredSignals.size())

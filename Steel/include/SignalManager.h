@@ -50,7 +50,7 @@ namespace Steel
         Signal mNextSignal;
         /// Maps string signals to long values, used internally.
         std::map<Ogre::String, Signal> mSignalsMap;
-        
+
         /// mSignalsMap's reverse mapping, for debug purposes.
         std::map<Signal, Ogre::String> mInverseSignalsMap;
 
