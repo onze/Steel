@@ -351,7 +351,7 @@ namespace Steel
 
     bool Agent::hasModel(ModelType modelType) const
     {
-        return INVALID_ID == modelId(modelType);
+        return INVALID_ID != modelId(modelType);
     }
 
     ModelId Agent::modelId(ModelType mType) const
