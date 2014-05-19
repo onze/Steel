@@ -159,9 +159,15 @@ namespace Steel
 
         inline Engine *const engine() const {return mEngine;}
         inline Ogre::Viewport *viewport() const {return mViewport;}
+        
+        enum class PublicSignal : u32
+        {
+            loaded = 0
+        };
+        Signal getSignal(Level::PublicSignal signal) const;
     private:
         /// name used in debug output
-        Ogre::String logName();
+        Ogre::String logName() const;
 
         /// If found and set to true in an object of a model serialization, values of the object skip their way through dynamicFillSerialization.
         static const char *DF_CANCEL_DYNAMIC_FILLING_ATTRIBUTE;

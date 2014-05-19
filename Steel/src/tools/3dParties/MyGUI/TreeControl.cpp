@@ -10,7 +10,7 @@
 namespace MyGUI
 {
     TreeControlNode::TreeControlNode(TreeControl *pOwner) :
-    GenericNode<TreeControlNode, TreeControl>(pOwner),
+        GenericNode<TreeControlNode, TreeControl>(pOwner),
         mbIsPrepared(false),
         mbIsExpanded(true),
         mstrImage("Folder")
@@ -18,7 +18,7 @@ namespace MyGUI
     }
 
     TreeControlNode::TreeControlNode(const UString &strText, TreeControlNode *pParent) :
-    GenericNode<TreeControlNode, TreeControl>(strText, pParent),
+        GenericNode<TreeControlNode, TreeControl>(strText, pParent),
         mbIsPrepared(false),
         mbIsExpanded(false),
         mstrImage("Folder")
@@ -26,7 +26,7 @@ namespace MyGUI
     }
 
     TreeControlNode::TreeControlNode(const UString &strText, const UString &strImage, TreeControlNode *pParent) :
-    GenericNode<TreeControlNode, TreeControl>(strText, pParent),
+        GenericNode<TreeControlNode, TreeControl>(strText, pParent),
         mbIsPrepared(false),
         mbIsExpanded(false),
         mstrImage(strImage)
@@ -109,7 +109,7 @@ namespace MyGUI
         // FIXME перенесенно из конструктора, проверить смену скина
         mpRoot = new TreeControlNode(this);
 
-        //FIXME 
+        //FIXME
         setNeedKeyFocus(true);
 
         assignWidget(mpWidgetScroll, "VScroll");
@@ -153,6 +153,9 @@ namespace MyGUI
 
     void TreeControl::shutdownOverride()
     {
+        if(mbInvalidated)
+            Gui::getInstance().eventFrameStart -= newDelegate(this, &TreeControl::notifyFrameEntered);
+        
         mpWidgetScroll = nullptr;
         mClient = nullptr;
         // FIXME перенесенно из деструктора, проверить смену скина
@@ -391,7 +394,7 @@ namespace MyGUI
                             pIcon->setItemResourceInfo(IconInfo);
                     }
                 }
-                
+
                 requestDecorateTreeControlItem(this, pItem, pNode);
 
                 nOffset += mnItemHeight;
@@ -426,6 +429,16 @@ namespace MyGUI
 
         Gui::getInstance().eventFrameStart += newDelegate(this, &TreeControl::notifyFrameEntered);
         mbInvalidated = true;
+    }
+    
+    void TreeControl::reset()
+    {
+        if(nullptr != mpRoot)
+        {
+            mpRoot->removeAll();
+            mpRoot->setPrepared(false);
+            invalidate();
+        }
     }
 
     void TreeControl::scrollTo(size_t nPosition)

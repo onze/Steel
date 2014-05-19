@@ -188,7 +188,7 @@ namespace Steel
         return true;
     }
 
-    Ogre::String Level::logName()
+    Ogre::String Level::logName() const
     {
         return Ogre::String("Steel::Level<" + mName + ">");
     }
@@ -241,6 +241,7 @@ namespace Steel
         mTerrainMan.terrainPhysicsMan()->setWorldGravity(mGravity);
 
         Debug::log(logName() + ".load(): loaded ")(savefile)(" successfully.").unIndent().endl();
+        SignalManager::instance().fire(getSignal(PublicSignal::loaded));
         return true;
     }
 
@@ -256,6 +257,19 @@ namespace Steel
 
         Debug::log(logName() + ".save() into ")(savefile).endl();
         return true;
+    }
+
+    Signal Level::getSignal(Level::PublicSignal signal) const
+    {
+#define STEEL_LEVEL_GETSIGNAL_CASE(NAME) case NAME:return SignalManager::instance().toSignal(logName()+"::"+#NAME)
+
+        switch(signal)
+        {
+            STEEL_LEVEL_GETSIGNAL_CASE(PublicSignal::loaded);
+        }
+
+#undef STEEL_LEVEL_GETSIGNAL_CASE
+        return INVALID_SIGNAL;
     }
 
     void Level::registerManager(ModelType type, ModelManager *_manager)
@@ -552,7 +566,6 @@ namespace Steel
         // actually needed ?
         //mOgreModelMan.update(timestep);
         //mLocationModelMan.update(timestep);
-        SignalManager::instance().fireEmittedSignals();
         mBTModelMan->update(timestep);
     }
 

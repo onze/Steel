@@ -12,10 +12,6 @@
 #include "InputSystem/Input.h"
 #include "EditorBrush.h"
 
-#ifdef DEBUGVALUEMANAGER
-#include "UI/DebugValueManager.h"
-#endif
-
 namespace std
 {
     template<class _Signature >
@@ -186,12 +182,6 @@ namespace Steel
         File mDataDir;
         /// handles mouse props wrt mEditMode
         EditorBrush mBrush;
-        /// If set to true, will print all events with empty "value" attribute for elements whose "id" attribute is set.
-        bool mDebugEvents;
-
-#ifdef DEBUGVALUEMANAGER
-        DebugValueManager mDebugValueMan;
-#endif
 
         /// handles drag and dropping of the MyGUI::TreeControl dedicated to resources
         struct MyGUIWidgets
@@ -204,6 +194,7 @@ namespace Steel
                 pathsListComboBox(nullptr),
                 mainWindow(nullptr)
             {}
+            
             MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator;
 
             MyGUI::ItemBox *selectionTagCloud;

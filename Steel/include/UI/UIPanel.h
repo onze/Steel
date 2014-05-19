@@ -43,6 +43,7 @@ namespace Steel
         static const std::string TreeControl;
         static const std::string SteelTreeControlDataSourceType;
         static const std::string SteelTreeControlDataSourceType_FileTree;
+        static const std::string SteelTreeControlDataSourceType_AgentBrowser;
         static const std::string SteelTreeControlDataSourceRoot;
         /// node settings are stored in a hidden file named after this variable's value
         static const std::string SteelTreeControlDataSourceConfigFileBaseName;
@@ -50,6 +51,7 @@ namespace Steel
         static const Ogre::String commandSeparator;
         static const Ogre::String SteelSetVariable;
         static const Ogre::String SteelCommand;
+        static const Ogre::String SteelEmitSignal;
 
     public:
         UIPanel(UI &ui);
@@ -109,7 +111,14 @@ namespace Steel
         void executeWidgetCommands(MyGUI::Widget *widget, Ogre::String const &commandsLine);
         void executeSetVariableCommand(MyGUI::Widget *widget);
         void executeEngineCommand(MyGUI::Widget *widget);
+        void emitWidgetSignal(MyGUI::Widget *widget);
+        
+        static bool getDebugEvents() {return sDebugEvents;}
+        static void setDebugEvents(bool flag) {sDebugEvents=flag;}
     protected:
+        /// If set to true, events generate more debug data.
+        static bool sDebugEvents;
+        
         void buildDependences();
         Ogre::String layoutName();
 

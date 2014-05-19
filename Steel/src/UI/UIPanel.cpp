@@ -17,6 +17,7 @@
 #include "tools/OgreUtils.h"
 #include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
 #include "tools/3dParties/MyGUI/TreeControl.h"
+#include <tools/3dParties/MyGUI/MyGUIAgentBrowserDataSource.h>
 
 namespace Steel
 {
@@ -25,17 +26,21 @@ namespace Steel
     const std::string UIPanel::SteelOnChange = "SteelOnChange";
     const std::string UIPanel::SteelOnSubmit = "SteelOnSubmit";
     const std::string UIPanel::SteelOnToggle = "SteelOnToggle";
-    const std::string UIPanel::SteelBind = "SteelBind";
     const std::string UIPanel::SteelInsertWidget = "SteelInsertWidget";
     const std::string UIPanel::TreeControl = "TreeControl";
     const std::string UIPanel::SteelTreeControlDataSourceType = "SteelTreeControlDataSourceType";
     const std::string UIPanel::SteelTreeControlDataSourceType_FileTree = "FileTree";
+    const std::string UIPanel::SteelTreeControlDataSourceType_AgentBrowser = "AgentBrowser";
     const std::string UIPanel::SteelTreeControlDataSourceRoot = "SteelTreeControlDataSourceRoot";
     const std::string UIPanel::SteelTreeControlDataSourceConfigFileBaseName = "SteelTreeControlDataSourceConfigFileBaseName";
 
     const Ogre::String UIPanel::commandSeparator = ";";
     const Ogre::String UIPanel::SteelSetVariable = "SteelSetVariable";
     const Ogre::String UIPanel::SteelCommand = "SteelCommand";
+    const std::string UIPanel::SteelBind = "SteelBind";
+    const std::string UIPanel::SteelEmitSignal = "SteelEmitSignal";
+
+    bool UIPanel::sDebugEvents = false;
 
     UIPanel::UIPanel(UI &ui): FileEventListener(), SignalListener(), SignalEmitter(),
         mUI(ui),
@@ -83,6 +88,7 @@ namespace Steel
 
     void UIPanel::init(unsigned int width, unsigned int height)
     {
+        Debug::log(STEEL_METH_INTRO, mName).endl();
         mWidth = width;
         mHeight = height;
 
@@ -200,6 +206,8 @@ namespace Steel
 
     void UIPanel::shutdown()
     {
+        Debug::log(STEEL_METH_INTRO, mName).endl();
+
         while(mDependencies.size())
         {
             auto begin = *mDependencies.begin();
@@ -379,10 +387,11 @@ namespace Steel
                 if(hasWidgetKey(widget, UIPanel::SteelTreeControlDataSourceType))
                 {
                     Ogre::String dataSourceType = widget->getUserString(UIPanel::SteelTreeControlDataSourceType);
+                    MyGUITreeControlDataSource *dataSource = nullptr;
 
                     if(UIPanel::SteelTreeControlDataSourceType_FileTree == dataSourceType)
                     {
-                        MyGUIFileSystemDataSource *dataSource = new MyGUIFileSystemDataSource();
+                        MyGUIFileSystemDataSource *src = new MyGUIFileSystemDataSource();
                         {
                             Ogre::String dataSourceRoot = StringUtils::BLANK; // optional
                             Ogre::String dataSourceConfFileBaseName = StringUtils::BLANK; // optional
@@ -398,14 +407,25 @@ namespace Steel
                             if(StringUtils::BLANK != dataSourceRoot)
                                 sourcePath = sourcePath / dataSourceRoot;
 
-                            dataSource->init(treeControl, sourcePath.fullPath(), dataSourceConfFileBaseName);
+                            src->init(treeControl, sourcePath.fullPath(), dataSourceConfFileBaseName);
                         }
-                        mMyGUIData.treeControlDataSources.push_back(dataSource);
+                        dataSource  = src;
+                    }
+                    else if(UIPanel::SteelTreeControlDataSourceType_AgentBrowser == dataSourceType)
+                    {
+                        MyGUIAgentBrowserDataSource *src = new MyGUIAgentBrowserDataSource();
+                        {
+                            src->init(treeControl, mUI.engine());
+                        }
+                        dataSource = src;
                     }
                     else
                     {
                         Debug::warning(STEEL_METH_INTRO, "with widget ", widget, " invalid data source field ").quotes(UIPanel::SteelTreeControlDataSourceType).endl();
                     }
+
+                    if(nullptr != dataSource)
+                        mMyGUIData.treeControlDataSources.push_back(dataSource);
                 }
                 else
                 {
@@ -414,8 +434,6 @@ namespace Steel
 
                 MyGUI::TreeControlNode *pRoot = treeControl->getRoot();
                 pRoot->setText("root");
-                MyGUI::TreeControlNode *pNode = new MyGUI::TreeControlNode("Item0", "Data");
-                pRoot->add(pNode);
             }
             else if("Button" == widgetType)
             {
@@ -438,6 +456,9 @@ namespace Steel
 
     void UIPanel::OnMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", button).endl();
+
         MyGUI::Button *checkbox = button->castType<MyGUI::Button>();
         checkbox->setStateSelected(!checkbox->getStateSelected());
 
@@ -447,36 +468,54 @@ namespace Steel
 
     void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", button).endl();
+
         Ogre::String commands = button->getUserString(SteelOnClick);
         executeWidgetCommands(button, commands);
     }
 
     void UIPanel::OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", comboBox).endl();
+
         Ogre::String commands = comboBox->getUserString(UIPanel::SteelOnSubmit);
         executeWidgetCommands(comboBox, commands);
     }
 
     void UIPanel::OnMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", comboBox).endl();
+
         Ogre::String commands = comboBox->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(comboBox, commands);
     }
 
     void UIPanel::OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", scrollBar).endl();
+
         Ogre::String commands = scrollBar->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(scrollBar, commands);
     }
 
     void UIPanel::OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", editBox).endl();
+
         Ogre::String commands = editBox->getUserString(UIPanel::SteelOnSubmit);
         executeWidgetCommands(editBox, commands);
     }
 
     void UIPanel::OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index)
     {
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", tabControl).endl();
+
         Ogre::String commands = tabControl->getUserString(UIPanel::SteelOnChange);
         executeWidgetCommands(tabControl, commands);
     }
@@ -485,7 +524,7 @@ namespace Steel
     {
         if(0 == commandsLine.size())
             return;
-
+        
         std::vector<Ogre::String> const commands = StringUtils::split(commandsLine, UIPanel::commandSeparator);
 
         for(auto const & command : commands)
@@ -494,6 +533,8 @@ namespace Steel
                 executeSetVariableCommand(widget);
             else if(UIPanel::SteelCommand == command)
                 executeEngineCommand(widget);
+            else if(UIPanel::SteelEmitSignal == command)
+                emitWidgetSignal(widget);
         }
     }
 
@@ -520,9 +561,27 @@ namespace Steel
             return;
 
         std::string raw_command = widget->getUserString(SteelCommand);
+        
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "from ", widget, ", command: ", raw_command).endl();
+        
         std::string command = replaceDynamicValues(raw_command);
         // all commands are postponed to next frame
         mUI.editor().processCommand("engine.register." + command);
+    }
+
+    void UIPanel::emitWidgetSignal(MyGUI::Widget *widget)
+    {
+        if(!hasWidgetKey(widget, UIPanel::SteelEmitSignal))
+            return;
+
+        std::string raw_signal = widget->getUserString(SteelEmitSignal);
+        
+        if(UIPanel::getDebugEvents())
+            Debug::log(STEEL_METH_INTRO, "from ", widget, ", signal: ", raw_signal).endl();
+        
+        std::string signal = replaceDynamicValues(raw_signal);
+        SignalManager::instance().emit(signal);
     }
 
     std::string UIPanel::replaceDynamicValues(std::string const &in) const
@@ -566,7 +625,9 @@ namespace Steel
 
     void UIPanel::setMyGUIVariable(Ogre::String key, Ogre::String value)
     {
-        Debug::log("UIPanel::setMyGUIVariable(", key, " = ", value, ")").endl();
+        if(UIPanel::getDebugEvents())
+            Debug::log("UIPanel::setMyGUIVariable(", key, " = ", value, ")").endl();
+        
         bool newValue = false;
         auto it = mMyGUIData.UIVariables.find(key);
 

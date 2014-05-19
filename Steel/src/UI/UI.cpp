@@ -89,7 +89,7 @@ namespace Steel
 
     void UI::reload()
     {
-        Debug::log("UI::reload()").endl();
+        Debug::log(STEEL_METH_INTRO).endl();
 
         mHUD.reloadContent();
         mEditor.reloadContent();
@@ -97,6 +97,7 @@ namespace Steel
 
     void UI::shutdown()
     {
+        Debug::log(STEEL_METH_INTRO).endl();
         stopEditMode();
         mHUD.shutdown();
         mEditor.shutdown();
@@ -133,7 +134,8 @@ namespace Steel
                   Ogre::RenderWindow *window,
                   Engine *engine)
     {
-        Debug::log("UI::init()").endl();
+        Debug::log(STEEL_METH_INTRO).endl();
+        
         mUIDataDir = UIDataDir.subfile("current");
         mInputMan = inputMan;
         mWindow = window;

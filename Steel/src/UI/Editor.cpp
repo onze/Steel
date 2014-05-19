@@ -43,7 +43,7 @@ namespace Steel
     Editor::Editor(UI &ui): UIPanel(ui, "editor", "data/ui/current/editor/"),
         mEngine(nullptr), mInputMan(nullptr),
         mSignals(),
-        mDataDir(), mBrush(), mDebugEvents(false),
+        mDataDir(), mBrush(),
         mMyGUIWidgets()
     {
 #ifdef DEBUG
@@ -140,6 +140,11 @@ namespace Steel
 
         // finalize MYGui setup
         {
+            // resource tree
+            {
+                //mMyGUIWidgets.agentBrowserTreeControl = findMyGUIChildWidget("AgentBrowserTreeControl_Child");
+            }
+            
             // resource tree
             {
                 MyGUI::TreeControl *resourceTree = (MyGUI::TreeControl *)findMyGUIChildWidget("ResourceTreeControl_Child");
@@ -784,8 +789,7 @@ namespace Steel
             printPathsInfos();
         else if(command[0] == "switch_debug_events")
         {
-            mDebugEvents = !mDebugEvents;
-            Debug::log("flag DebugEvent ")(mDebugEvents ? "activated" : "deactivated").endl();
+            UIPanel::setDebugEvents(!UIPanel::getDebugEvents());
         }
         else
         {

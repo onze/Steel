@@ -34,6 +34,7 @@ namespace MyGUI
         void setSelection(TreeControlNode *pSelection);
 
         void invalidate();
+        void reset();
 
         virtual void setSize(const IntSize &Size);
         virtual void setCoord(const IntCoord &Bounds);

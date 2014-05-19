@@ -4,6 +4,7 @@
 #include "models/Agent.h"
 #include "models/BlackBoardModelManager.h"
 #include "Debug.h"
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -112,6 +113,8 @@ namespace Steel
 
     void BTModelManager::update(float timestep)
     {
+        SignalManager::instance().fireEmittedSignals();
+
         for(ModelId id = firstId(); id < lastId(); ++id)
         {
             BTModel *m = &(mModels[id]);

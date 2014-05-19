@@ -19,11 +19,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-    SET(RocketLibSuffix "_d")
     SET(GwenLibSuffix "d")
 #     SET(GwenRendererLibSuffix "D")
 ELSE(CMAKE_BUILD_TYPE MATCHES "Debug")
-    SET(RocketLibSuffix "")
     SET(GwenLibSuffix "")
 ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 
@@ -42,7 +40,6 @@ include_directories(
     /media/a0/cpp/libs/ogre/Components/Paging/include
     /media/a0/cpp/libs/ogre/build/include
     /media/a0/cpp/libs/btogre/include
-    /media/a0/cpp/libs/libRocket.github.onze/Include
     /media/a0/cpp/libs/mygui/MyGUIEngine/include
     /media/a0/cpp/libs/mygui/Platforms/Ogre/OgrePlatform/include
 )
@@ -51,7 +48,6 @@ link_directories(
     /media/a0/cpp/libs/ogre/build/lib
     /media/a0/cpp/libs/jsoncpp/build/lib
     /usr/lib/x86_64-linux-gnu/
-    /media/a0/cpp/libs/libRocket.github.onze/Build
     /usr/local/lib
     /media/a0/cpp/libs/btogre/build
     /media/a0/cpp/libs/mygui/build/lib
@@ -76,9 +72,6 @@ target_link_libraries(
     OgrePaging
     OIS
     jsoncpp
-    RocketCore${RocketLibSuffix}
-    RocketDebugger${RocketLibSuffix}
-    RocketControls${RocketLibSuffix}
     BulletDynamics
     BulletCollision
     LinearMath
