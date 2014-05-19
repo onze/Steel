@@ -24,6 +24,17 @@ namespace Steel
         mTagRegister.clear();
     }
 
+    std::vector<AgentId> AgentManager::getAgentIds() const
+    {
+        std::vector<AgentId> ids;
+        ids.reserve(mAgents.size());
+
+        for(auto const & pair : mAgents)
+            ids.push_back(pair.first);
+
+        return ids;
+    }
+
     AgentId AgentManager::getFreeAgentId()
     {
         if(mFreeList.size())

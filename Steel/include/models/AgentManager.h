@@ -30,6 +30,9 @@ namespace Steel
             void deleteAgent(AgentId id);
             void deleteAllAgents();
             
+            /// Returns all agent ids currently in use.
+            std::vector<AgentId> getAgentIds() const;
+            
             /// Path building condition on source agent
             bool agentCanBePathSource(AgentId const aid) const;
             bool agentCanBePathDestination(AgentId const aid) const;
