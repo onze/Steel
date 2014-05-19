@@ -349,6 +349,11 @@ namespace Steel
         return mLevel->modelManager(mType)->at(id);
     }
 
+    bool Agent::hasModel(ModelType modelType) const
+    {
+        return INVALID_ID == modelId(modelType);
+    }
+
     ModelId Agent::modelId(ModelType mType) const
     {
         auto it = mModelIds.find(mType);

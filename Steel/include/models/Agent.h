@@ -33,7 +33,7 @@ namespace Steel
         Agent(const Agent &t);
         /// shallow copy
         Agent &operator=(const Agent &);
-        
+
         static void staticInit();
 
         inline AgentId id() {return mId;}
@@ -51,6 +51,8 @@ namespace Steel
         /// Opposite of linkToModel
         void unlinkFromModel(ModelType modelType);
 
+        /// Returns true if the agent is linked to a model of the given type.
+        bool hasModel(ModelType modelType) const;
         /// Returns an address to the model of the given type, if any. returns nullptr otherwise.
         Model *model(ModelType modelType) const;
         /// Return the id of the model of the given type, if any. returns Steel::INVALID_ID otherwise.
@@ -103,31 +105,31 @@ namespace Steel
         /// Translates the agent by the given vector.
         void move(const Ogre::Vector3 &dpos);
         void setPosition(const Ogre::Vector3 &pos);
-        
+
         Ogre::Quaternion rotation() const;
         /// Rotate the graphic model by r.x in the x axis, etc.
         void rotate(const Ogre::Vector3 &rot);
         /// Rotate the graphic model by the given quaternion.
         void rotate(const Ogre::Quaternion &q);
         void setRotation(const Ogre::Quaternion &q);
-        
+
         Ogre::Vector3 scale() const;
         /// Rescale the agent by the given factor (current_scale*given_scale).
         void rescale(const Ogre::Vector3 &sca);
         void setScale(const Ogre::Vector3 &sca);
-        
+
         /// shortcut to PhysicsModel::angularVelocity
         Ogre::Vector3 angularVelocity() const;
         /// shortcut to PhysicsModel::velocity
         Ogre::Vector3 velocity() const;
         /// shortcut to PhysicsModel::mass
         float mass() const;
-        
+
         /// shortcut to PhysicsModel::applyImpulse
         void applyCentralImpulse(Ogre::Vector3 const &f);
         /// shortcut to PhysicsModel::applyCentralForce
         void applyCentralForce(Ogre::Vector3 const &f);
-        
+
         /// shortcut to PhysicsModel::applyTorque
         void applyTorque(Ogre::Vector3 const &tq);
         /// shortcut to PhysicsModel::applyTorqueImpulse
@@ -158,7 +160,7 @@ namespace Steel
         void untag(std::set<Tag> tags);
         std::set<Tag> tags() const;
         bool isTagged(Tag tag);
-        
+
         //////////////////////////////////////////////////////////////////////
         // persistence
         /// A persistent agent is saved with the level it lives in.
@@ -179,7 +181,7 @@ namespace Steel
         /// Emit with an auto lookup for the corresponding signal value.
         void emit(Agent::EventType e);
     public:
-        
+
 
     private:
         /// Tags used internally, grouped here.
@@ -188,7 +190,7 @@ namespace Steel
             Tag persistent;
         };
         static PropertyTags sPropertyTags;
-        
+
         /// Unique id.
         AgentId mId;
 
