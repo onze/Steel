@@ -10,6 +10,8 @@ namespace Steel
     public:
         void emit(const Signal signal, bool anonymous = false);
         void emit(const Ogre::String &signal, bool anonymous = false);
+        void fire(const Signal signal, bool anonymous = false);
+        void fire(const Ogre::String &signal, bool anonymous = false);
     };
 }
 

@@ -17,5 +17,18 @@ namespace Steel
     {
         emit(SignalManager::instance().toSignal(signal), anonymous);
     }
+    
+    void SignalEmitter::fire(const Signal signal, bool anonymous/* = false*/)
+    {
+        if(INVALID_SIGNAL == signal)
+            Debug::log("SignalEmitter::fire(")(signal)("/").quotes(SignalManager::instance().fromSignal(signal))(") is invalid !").endl().breakHere();
+        else
+            SignalManager::instance().fire(signal, anonymous ? nullptr : this);
+    }
+    
+    void SignalEmitter::fire(const Ogre::String &signal, bool anonymous/* = false*/)
+    {
+        fire(SignalManager::instance().toSignal(signal), anonymous);
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
