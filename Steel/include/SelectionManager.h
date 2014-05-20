@@ -13,7 +13,7 @@ namespace Steel
         class Listener
         {
         public:
-            virtual void onSelectionChanged(Selection &selection) = 0;
+            virtual void onSelectionChanged(Selection const& selection) = 0;
         };
         void addListener(Listener *listener);
         void removeListener(Listener *listener);

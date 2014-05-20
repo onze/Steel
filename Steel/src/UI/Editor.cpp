@@ -522,7 +522,7 @@ namespace Steel
         mBrush.onHide();
     }
 
-    void Editor::onSelectionChanged(Selection &selection)
+    void Editor::onSelectionChanged(Selection const&selection)
     {
         refreshSelectionTagsWidget();
         refreshSelectionPathWidget();

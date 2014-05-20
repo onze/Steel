@@ -131,7 +131,7 @@ namespace Steel
         Steel::AgentId instanciateFromMeshFile(Steel::File &meshFile, Ogre::Vector3 &pos, Ogre::Quaternion &rot);
 
         /// SelectionManager::Listener interface
-        void onSelectionChanged(Selection &selection);
+        void onSelectionChanged(Selection const&selection);
 
         /// called when a new level becomes the current level.
         virtual void onLevelSet(Level *level);
