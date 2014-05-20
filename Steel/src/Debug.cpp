@@ -166,6 +166,11 @@ namespace Steel
         {
             return (*this)(Ogre::String(msg));
         }
+        
+        DebugObject &DebugObject::operator()(ModelType mType)
+        {
+            return (*this)(toString(mType));
+        }
 
         DebugObject &DebugObject::operator()(Ogre::String const &msg)
         {

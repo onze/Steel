@@ -92,6 +92,7 @@ namespace Steel
             DebugObject &operator()(const long unsigned int msg);
             DebugObject &operator()(const float msg);
             DebugObject &operator()(const char *msg);
+            DebugObject &operator()(ModelType mtype);
             DebugObject &operator()(Ogre::String const &msg);
             DebugObject &operator()(Json::Value const &msg);
             DebugObject &operator()(MyGUI::Widget const *const widget);
