@@ -188,6 +188,7 @@ namespace Steel
         {
             MyGUIWidgets():
                 resourceTreeControlItemDecorator(nullptr),
+                agentBrowserTreeControlItemDecorator(nullptr),
                 selectionTagCloud(nullptr),
                 tagsListComboBox(nullptr),
                 selectionPathTextBox(nullptr),
@@ -196,6 +197,7 @@ namespace Steel
             {}
             
             MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator;
+            MyGUI::TreeControlItemDecorator *agentBrowserTreeControlItemDecorator;
 
             MyGUI::ItemBox *selectionTagCloud;
             MyGUI::ComboBox *tagsListComboBox;

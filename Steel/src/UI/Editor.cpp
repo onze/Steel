@@ -97,7 +97,8 @@ namespace Steel
     {
         //MyGUI stuff
         {
-            mMyGUIWidgets.resourceTreeControlItemDecorator = nullptr;
+            STEEL_DELETE(mMyGUIWidgets.agentBrowserTreeControlItemDecorator);
+            STEEL_DELETE(mMyGUIWidgets.resourceTreeControlItemDecorator);
             mMyGUIWidgets.selectionTagCloud = nullptr;
             mMyGUIWidgets.tagsListComboBox = nullptr;
             mMyGUIWidgets.selectionPathTextBox = nullptr;
@@ -142,7 +143,14 @@ namespace Steel
         {
             // resource tree
             {
-                //mMyGUIWidgets.agentBrowserTreeControl = findMyGUIChildWidget("AgentBrowserTreeControl_Child");
+                MyGUI::TreeControl *agentItemBrowserTree = (MyGUI::TreeControl *) findMyGUIChildWidget("AgentBrowserTreeControl_Child");
+                if(nullptr != agentItemBrowserTree)
+                {
+                    // decoration here means addind drag and drop properties to the tree's items
+                    mMyGUIWidgets.agentBrowserTreeControlItemDecorator = new MyGUI::TreeControlItemDecorator(agentItemBrowserTree);
+                    mMyGUIWidgets.agentBrowserTreeControlItemDecorator->setEnableDragAndDrop(false, false);
+                    mMyGUIWidgets.agentBrowserTreeControlItemDecorator->setTextColour(MyGUI::Colour::White);
+                }
             }
             
             // resource tree
