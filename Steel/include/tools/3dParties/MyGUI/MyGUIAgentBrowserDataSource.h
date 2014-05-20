@@ -5,6 +5,7 @@
 #include "tools/File.h"
 #include "MyGUIFileTreeDataSource.h"
 #include "SignalListener.h"
+#include <SelectionManager.h>
 
 namespace MyGUI
 {
@@ -32,7 +33,7 @@ namespace Steel
         };
     };
     
-    class MyGUIAgentBrowserDataSource: public MyGUITreeControlDataSource, public SignalListener
+    class MyGUIAgentBrowserDataSource: public MyGUITreeControlDataSource, public SignalListener, public SelectionManager::Listener
     {
     public:
         typedef MyGUIAgentBrowserNodeData ControlNodeDataType;
@@ -42,12 +43,18 @@ namespace Steel
         ~MyGUIAgentBrowserDataSource();
         MyGUIAgentBrowserDataSource &operator=(const MyGUIAgentBrowserDataSource &o);
         
+        /// MyGUITreeControlDataSource interface
         void init(MyGUI::TreeControl *const control, Engine const *const engine);
+        /// MyGUITreeControlDataSource interface
         virtual void shutdown() override;
+        /// MyGUITreeControlDataSource interface
         virtual void notifyTreeNodePrepare(MyGUI::TreeControl *pTreeControl, MyGUI::TreeControlNode *pNode) override;
         
-        virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
+        /// SelectionManager::Listener interface
+        virtual void onSelectionChanged(Selection const& selection) override;
         
+        /// SignalListener interface
+        virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
         enum class PublicSignal : Signal
         {
             /// emit this signal to refresh the browser.

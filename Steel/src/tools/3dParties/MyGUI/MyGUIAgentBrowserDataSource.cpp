@@ -62,9 +62,11 @@ namespace Steel
         registerSignal(mSignals.levelSet);
         mSignals.levelUnset = mEngine->getSignal(Engine::PublicSignal::levelUnset);
         registerSignal(mSignals.levelUnset);
-        
+
         mSignals.needRefresh = getSignal(PublicSignal::needRefresh);
         registerSignal(mSignals.needRefresh);
+
+        mLevel->selectionMan()->addListener(this);
     }
 
     void MyGUIAgentBrowserDataSource::shutdown()
@@ -76,7 +78,7 @@ namespace Steel
             mSignals.levelLoaded = INVALID_SIGNAL;
             mSignals.levelUnset = INVALID_SIGNAL;
             mSignals.needRefresh = INVALID_SIGNAL;
-            
+
             mEngine = nullptr;
         }
     }
@@ -199,6 +201,37 @@ namespace Steel
                 // models nodes arent expandable.
             }
         }
+    }
+
+    void MyGUIAgentBrowserDataSource::onSelectionChanged(Selection const &selection)
+    {
+        if(nullptr == mControl)
+            return;
+
+        if(selection.size() != 1)
+            return;
+
+        AgentId const aid = selection.front();
+        
+        MyGUI::TreeControlNode *selectedNode = nullptr;
+
+        // find node to be selected
+        for(MyGUI::TreeControlNode *node : mControl->getRoot()->getChildren())
+        {
+            ControlNodeDataType const &data = *(node->getData<ControlNodeDataType>());
+
+            if(data.nodeType != ControlNodeDataType::NodeType::Agent)
+                continue;
+            
+            if(data.agentId != aid)
+                continue;
+            
+            selectedNode = node;
+            break;
+        }
+
+        if(nullptr != selectedNode)
+            mControl->setSelection(selectedNode);
     }
 
 }
