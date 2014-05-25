@@ -823,7 +823,7 @@ namespace Steel
         setRootDir(File(rootdir));
     }
 
-    void Engine::setRootDir(Steel::File const& rootdir)
+    void Engine::setRootDir(Steel::File const &rootdir)
     {
         std::string s = "Steel::Engine: setting application root dir to ";
 

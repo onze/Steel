@@ -9,6 +9,7 @@ namespace Steel
     class LocationModelManager;
     class LocationModel: public Model
     {
+        DECLARE_STEEL_MODEL(LocationModel, ModelType::LOCATION);
 
     public:
         /// AgentId of the previous location in this location's path.
@@ -28,11 +29,6 @@ namespace Steel
         virtual ~LocationModel();
         virtual LocationModel &operator=(const LocationModel &o);
         virtual bool operator==(const LocationModel &o) const;
-
-        static ModelType modelType()
-        {
-            return ModelType::LOCATION;
-        }
 
         bool init(LocationModelManager *const locationModelMan);
 

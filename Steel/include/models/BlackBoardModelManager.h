@@ -22,12 +22,9 @@ namespace Steel
 
         /// Creates a new model and returns its id.
         ModelId newModel();
-
-        bool fromSingleJson(Json::Value &model, ModelId &id);
         bool onAgentLinkedToModel(Agent *agent, ModelId mid);
 
     protected:
-
 
     };
 }

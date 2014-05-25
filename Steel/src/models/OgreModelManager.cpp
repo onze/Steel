@@ -48,20 +48,10 @@ namespace Steel
     {
         // TODO Auto-generated destructor stub
     }
-
-    bool OgreModelManager::fromSingleJson(Json::Value &model, ModelId &id)
+    
+    bool OgreModelManager::deserializeToModel(Json::Value const&model, ModelId &mid)
     {
-        id = allocateModel(id);
-        if(INVALID_ID == id)
-            return false;
-        
-        if(!mModels[id].fromJson(model, mLevelRoot, mSceneManager, mLevel->name()))
-        {
-            deallocateModel(id);
-            id = INVALID_ID;
-            return false;
-        }
-        return true;
+        return mModels[mid].fromJson(model, mLevelRoot, mSceneManager, mLevel->name());
     }
 
     ModelId OgreModelManager::newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot)

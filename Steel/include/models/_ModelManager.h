@@ -15,6 +15,18 @@ namespace Steel
         _ModelManager() {}
 
     public:
+        // TODO:
+        /*
+         ModelType modelType() const{return ManagedModel::modelType()};
+         * */
+        typedef M ManagedModel;
+
+        /// modelType associated with this Manager
+        static ModelType staticModelType()
+        {
+            return ManagedModel::staticModelType();
+        }
+
         _ModelManager(Level *level);
         virtual ~_ModelManager();
         /**
@@ -23,7 +35,7 @@ namespace Steel
          * supposed to be longer than the function they're created in (and watchout when multithreading).
          * ModelIds are meant for this, as seen in Agent.h/cpp.
          */
-        virtual M *at(ModelId id);
+        virtual ManagedModel *at(ModelId id);
 
         /// Forward call to allocatedModel, meant to add extra functionality the bare allocation.
         virtual ModelId newModel() {return allocateModel();};
@@ -42,28 +54,32 @@ namespace Steel
         /// Returns true if the given model id points to a model.
         virtual bool isValid(ModelId id);
 
-        /// Initialize new models according to data in the json serialization.
-        virtual std::vector<ModelId> fromJson(Json::Value &models);
+        /// Initializes new models according to data in the json serialization.
+        virtual std::vector<ModelId> fromJson(Json::Value const &models);
         /**
-         * Initialize a single new model according to data in the json serialization.
-         * If mid == INVALID_ID, a new id is found and mid is set to it. Otherwise,
-         * the model will be set the given id.
-         * Returns false is anything went wrong.
+         * Initializes a single model pointed to by mid, according to data in the
+         * json serialization.
+         * If mid == INVALID_ID, a new id is found and mid is set to it. If mid is free,
+         * it becomes the model's id. If mid is valid (ie, in use), updateModel determines
+         * whether (if true) the pointed model is updated, or if the operation is a failure.
+         * Returns false is the operation fails.
+         *
+         * The actual model initialization (the call to fromJson) is done in deserializeToModel,
+         * so that subclass can pass more parameters to their models withouth reimplementing the
+         * allocation.
          */
-        virtual bool fromSingleJson(Json::Value &model, ModelId &id);
+        virtual bool fromSingleJson(Json::Value const &model, ModelId &mid, bool updateModel = false);
 
-        /// Dump refenreced models' json representation into the given object.
-        virtual void toJson(Json::Value &object, std::list<ModelId> const& modelIds);
+        /// Dumps refenreced models' json representation into the given object.
+        virtual void toJson(Json::Value &object, std::list<ModelId> const &modelIds);
+        /// Redirects the call to the pointed model. Returns false if the model is invalid.
+        virtual bool toSingleJson(ModelId mid, Json::Value &object);
 
-        /// modelType associated with this Manager
-        static ModelType modelType()
-        {
-            return M::modelType();
-        }
+//         virtual void swapModels(ModelId midLeft, ModelId midRight) override;
 
         virtual Ogre::String logName()
         {
-            return "ModelManager<" + toString(this->modelType()) + ">";
+            return "ModelManager<" + toString(ManagedModel::staticModelType()) + ">";
         }
 
         virtual bool onAgentLinkedToModel(Agent *agent, ModelId mid);
@@ -75,18 +91,6 @@ namespace Steel
         inline Level *level() {return mLevel;}
 
     protected:
-        /// Returns the lowest Id currently in use
-        inline ModelId firstId()
-        {
-            //TODO: actually track the right value
-            return 0;
-        }
-        /// Returns the lowest Id currently in use
-        inline ModelId lastId()
-        {
-            //TODO: actually track the right value
-            return mModels.size();
-        }
         /**
          * Allocates a new model for the given id and returns its id.
          * If id is INVALID_ID, finds a free id to place the given model at.
@@ -96,16 +100,16 @@ namespace Steel
         ModelId allocateModel(ModelId &id);
         ModelId allocateModel();
 
-        /**
-         * Cleans up the model and marks it as allocable.
-         */
+        /// Cleans up the model and marks it as allocable.
         void deallocateModel(ModelId id);
+
+        virtual bool deserializeToModel(Json::Value const &model, ModelId &mid);
 
         // not owned
         Level *mLevel;
         //owned
         /// Contains models.
-        std::vector<M> mModels;
+        std::vector<ManagedModel> mModels;
         std::list<ModelId> mModelsFreeList;
     };
 }

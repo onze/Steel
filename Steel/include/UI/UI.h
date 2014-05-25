@@ -74,22 +74,23 @@ namespace Steel
         Engine *const engine() const {return mEngine;}
         File UIDataDir() const {return mUIDataDir;}
 
-    protected:
+    private:
         MyGUI::KeyCode getMyGUIKeyIdentifier(Input::Code key) const;
 
         // not owned
-        InputManager *mInputMan;
-        Ogre::RenderWindow *mWindow;
-        Engine *mEngine;
+        InputManager *mInputMan = nullptr;
+        Ogre::RenderWindow *mWindow = nullptr;
+        Engine *mEngine = nullptr;
 
         // owned
+        
         // mygui stuff
         MouseIdentifierMap mMouseIdentifiers;
         typedef std::map<Steel::Input::Code, MyGUI::KeyCode> MyGUIKeyMap;
         struct MyGUIData
         {
-            MyGUI::Gui *gui;
-            MyGUI::OgrePlatform *platform;
+            MyGUI::Gui *gui = nullptr;
+            MyGUI::OgrePlatform *platform = nullptr;
             MyGUIKeyMap keyMap;
         };
         MyGUIData mMyGUIData;

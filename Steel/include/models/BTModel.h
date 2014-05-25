@@ -23,6 +23,8 @@ namespace Steel
      */
     class BTModel: public Model
     {
+        DECLARE_STEEL_MODEL(BTModel, ModelType::BT);
+        
     public:
         /// Name of the BT this model is running
         static const char *SHAPE_NAME_ATTRIBUTE;
@@ -44,23 +46,18 @@ namespace Steel
          */
         bool init(BTModelManager *manager, BTShapeStream *shapeStream);
 
-        static ModelType modelType()
-        {
-            return ModelType::BT;
-        };
-
         /// Deserialize itself from the given Json object. For internal use only, see BTModelManager::buildFromFile.
-        virtual bool fromJson(Json::Value &node);
+        bool fromJson(Json::Value const&node);
 
         /// Serialize itself into the given Json object
-        virtual void toJson(Json::Value &node);
+        void toJson(Json::Value &node);
 
         /// Sets the current shape to the given one.
         bool switchShapeTo(BTShapeStream *shapeStream);
 
         /// Runs the tree until its end or a node yields RUNNING.
         void update(float timestep);
-        virtual void cleanup();
+        void cleanup();
 
         /// Sets the model's current path
         void setPath(Ogre::String const &name);

@@ -5,6 +5,11 @@
 #include "OgreString.h"
 #include "tools/StringUtils.h"
 
+#define DECLARE_STEEL_MODEL(CLASSNAME, MODELTYPE) \
+public:\
+inline static ModelType staticModelType(){return MODELTYPE;}\
+inline ModelType modelType(){return CLASSNAME::staticModelType();}
+
 namespace Steel
 {
     class Agent;
@@ -39,41 +44,18 @@ namespace Steel
                 }
             }
             
-            inline bool isFree() const
-            {
-                return mRefCount == 0L;
-            }
-
-            /// Serialize itself into the given Json object
-            virtual void toJson(Json::Value &object)
-            {
-            }
-
-            /// Deserialize itself from the given Json object. return true is successful.
-            virtual bool fromJson(Json::Value &object)
-            {
-                return true;
-            }
+            inline bool isFree() const {return mRefCount == 0L;}
 
             //getters
-            inline unsigned long refCount()
-            {
-                return mRefCount;
-            }
+            inline unsigned long refCount(){return mRefCount;}
 
             /// Returns the ModelType associated with this model.
-            static ModelType modelType()
-            {
-                return ModelType::LAST;
-            };
+            static ModelType modelType(){return ModelType::LAST;};
 
-            /// Cleans any model specific data. SHould not be called directly, except by dedicated manager.
+            /// Cleans any model specific data. Should not be called directly, except by dedicated manager.
             virtual void cleanup();
 
-            inline std::set<Tag> tags()
-            {
-                return mTags;
-            }
+            inline std::set<Tag> tags() const {return mTags;}
 
             /// write tags to serialization.
             void serializeTags(Json::Value &value);

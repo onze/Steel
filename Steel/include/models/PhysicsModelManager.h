@@ -17,10 +17,7 @@ namespace Steel
             PhysicsModelManager(Level *level, btDynamicsWorld *world);
             virtual ~PhysicsModelManager();
 
-            inline ModelType modelType()
-            {
-                return ModelType::PHYSICS;
-            }
+            inline ModelType modelType() {return ModelType::PHYSICS;}
 
             /// Initialize a new PhysicsModel and returns its identifier.
             ModelId newModel();

@@ -223,7 +223,7 @@ namespace Steel
         dispatchSelectionChangedEvent();
     }
 
-    void SelectionManager::setSelectedAgent(AgentId aid, bool replacePrevious)
+    void SelectionManager::setSelectedAgent(AgentId aid, bool replacePrevious /*= true*/)
     {
         if(replacePrevious)
             clearSelection(true);

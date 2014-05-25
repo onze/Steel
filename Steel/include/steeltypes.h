@@ -10,11 +10,15 @@
 
 #include <Ogre.h>
 
+#ifndef MYGUI_DONT_REPLACE_NULLPTR
+#define MYGUI_DONT_REPLACE_NULLPTR
+#endif
+
 #include "tools/StringUtils.h"
 #include "BT/btnodetypes.h"
 
 // http://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
-#define STEEL_UNUSED(expr) do { (void)(expr); } while (0)
+#define STEEL_UNUSED(EXPR) do { (void)(EXPR); } while (0)
 
 #define STEEL_DELETE(MYPTR) \
 if(nullptr != MYPTR) \
@@ -45,7 +49,7 @@ namespace Steel
     typedef signed long s64;
     typedef float f32;
     typedef double f64;
-    
+
     typedef u64 AgentId;
     typedef u64 ModelId;
     /// invalid Model/Agent id.
@@ -95,6 +99,7 @@ namespace Steel
     /// Shape of the physic enveloppe of an OgreModel
     enum BoundingShape
     {
+        // TODO: to enum class
         BS_BOX = 0,
         BS_SPHERE,
         BS_CONVEXHULL,
@@ -106,6 +111,8 @@ namespace Steel
 
     typedef size_t Hash;
     
+    typedef Ogre::String PropertyGridPropertyId;
+
     class Engine;
     class Level;
     class Model;
@@ -127,6 +134,11 @@ namespace Steel
     class SignalListener;
     class SignalEmitter;
     class SignalManager;
+    class PropertyGrid;
+    class PropertyGridAdapter;
+    class PropertyGridAgentAdapter;
+    //class PropertyGridModelAdapter;
+    class PropertyGridProperty;
 }
 
 #endif

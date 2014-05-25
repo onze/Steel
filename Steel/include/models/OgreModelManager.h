@@ -18,9 +18,6 @@ namespace Steel
             OgreModelManager(Level *level, Ogre::SceneManager *sceneManager, Ogre::SceneNode *levelRoot);
             virtual ~OgreModelManager();
 
-            /// Initialize a new OgreModel according to data in the json serialization.
-            bool fromSingleJson(Json::Value &model, ModelId& id);
-
             /// Initialize a new OgreModel and returns its identifier.
             ModelId newModel(Ogre::String meshName, Ogre::Vector3 pos, Ogre::Quaternion rot);
 
@@ -40,6 +37,8 @@ namespace Steel
             }
 
         protected:
+            bool deserializeToModel(Json::Value const&model, ModelId &mid) override;
+            
             Ogre::SceneManager *mSceneManager;
             Ogre::SceneNode *mLevelRoot;
     };

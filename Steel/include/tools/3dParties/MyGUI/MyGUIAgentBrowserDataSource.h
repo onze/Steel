@@ -26,11 +26,11 @@ namespace Steel
         };
         NodeType nodeType;
         
-        union
-        {
-            ModelId modelId;
-            AgentId agentId;
-        };
+        AgentId agentId;
+        /// INVALID_ID for agent nodes
+        ModelId modelId;
+        /// ModelType::LAST for agent nodes
+        ModelType modelType;
     };
     
     class MyGUIAgentBrowserDataSource: public MyGUITreeControlDataSource, public SignalListener, public SelectionManager::Listener

@@ -91,7 +91,7 @@ namespace Steel
         return true;
     }
 
-    bool BTModel::fromJson(Json::Value &node)
+    bool BTModel::fromJson(Json::Value const &node)
     {
         mCurrentStateIndex = JsonUtils::asUnsignedLong(BTModel::CURRENT_STATE_INDEX_ATTRIBUTE, 0);
         mStatesStack = JsonUtils::asUnsignedLongList(BTModel::STATES_STACK_ATTRIBUTE);
@@ -392,5 +392,4 @@ namespace Steel
         Debug::log("test_BTrees(): passed").endl();
         return true;
     }
-} /* namespace Steel */
-// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+}

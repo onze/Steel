@@ -1,9 +1,9 @@
 #include "models/PhysicsModel.h"
 
+#include <btBulletCollisionCommon.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <OgreEntity.h>
-#include <btBulletCollisionCommon.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 
@@ -20,6 +20,8 @@
 #include <tools/RigidBodyStateWrapper.h>
 #include <SignalListener.h>
 #include <Debug.h>
+#include <bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <bullet/LinearMath/btVector3.h>
 
 namespace Steel
 {
@@ -281,7 +283,7 @@ namespace Steel
         return signal;
     }
 
-    bool PhysicsModel::fromJson(Json::Value &root)
+    bool PhysicsModel::fromJson(Json::Value const&root)
     {
         Json::Value value;
         bool allWasFine = true;

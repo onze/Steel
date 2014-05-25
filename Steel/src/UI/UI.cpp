@@ -1,8 +1,9 @@
 
-#include <Ogre.h>
+#include "steeltypes.h"
 
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI.h>
+
 #include "tools/3dParties/MyGUI/TreeControl.h"
 #include "tools/3dParties/MyGUI/TreeControlItem.h"
 
@@ -96,7 +97,7 @@ namespace Steel
     }
 
     void UI::shutdown()
-    {
+    {   
         Debug::log(STEEL_METH_INTRO).endl();
         stopEditMode();
         mHUD.shutdown();
@@ -135,7 +136,7 @@ namespace Steel
                   Engine *engine)
     {
         Debug::log(STEEL_METH_INTRO).endl();
-        
+
         mUIDataDir = UIDataDir.subfile("current");
         mInputMan = inputMan;
         mWindow = window;

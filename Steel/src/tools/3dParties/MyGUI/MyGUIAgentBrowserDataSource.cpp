@@ -156,10 +156,12 @@ namespace Steel
                 child->setPrepared(agent->modelsIds().size() == 0);
                 child->setExpanded(false);
 
-                ControlNodeDataType data;
-                data.nodeType = ControlNodeDataType::NodeType::Agent;
-                data.agentId = aid;
-                child->setData(data);
+                ControlNodeDataType agentData;
+                agentData.nodeType = ControlNodeDataType::NodeType::Agent;
+                agentData.agentId = aid;
+                agentData.modelId = INVALID_ID;
+                agentData.modelType = ModelType::LAST;
+                child->setData(agentData);
                 node->add(child);
             }
         }
@@ -183,16 +185,19 @@ namespace Steel
                     if(agent->hasModel(modelType))
                     {
                         ModelId mid = agent->modelId(modelType);
-                        Ogre::String nodeName = toString(modelType) + " id: " + Ogre::StringConverter::toString(mid);
-                        MyGUI::TreeControlNode *child = new MyGUI::TreeControlNode(nodeName, "Unknown");
-                        child->setPrepared(true);
-                        child->setExpanded(false);
 
-                        ControlNodeDataType data;
-                        data.nodeType = ControlNodeDataType::NodeType::Model;
-                        data.modelId = mid;
-                        child->setData(data);
-                        node->add(child);
+                        ControlNodeDataType modelData;
+                        modelData.nodeType = ControlNodeDataType::NodeType::Model;
+                        modelData.agentId = agentData.agentId;
+                        modelData.modelId = mid;
+                        modelData.modelType = modelType;
+
+                        Ogre::String nodeName = toString(modelType) + " id: " + Ogre::StringConverter::toString(mid);
+                        MyGUI::TreeControlNode *modelChild = new MyGUI::TreeControlNode(nodeName, "Unknown");
+                        modelChild->setPrepared(true);
+                        modelChild->setExpanded(false);
+                        modelChild->setData(modelData);
+                        node->add(modelChild);
                     }
                 }
             }
@@ -209,23 +214,40 @@ namespace Steel
             return;
 
         if(selection.size() != 1)
+        {
+            mControl->setSelection(nullptr);
             return;
+        }
 
-        AgentId const aid = selection.front();
-        
+        AgentId const selectedAgentId = selection.front();
+
+        MyGUI::TreeControlNode *currentlySelectedNode = mControl->getSelection();
+
+        // no previous selection: update that tree
+        if(nullptr != currentlySelectedNode)
+        {
+            MyGUIAgentBrowserDataSource::ControlNodeDataType *currentlySelectedNodeData = currentlySelectedNode->getData<MyGUIAgentBrowserDataSource::ControlNodeDataType>();
+
+
+            // selected node already matches selection: do nothing
+            if(currentlySelectedNodeData->agentId == selectedAgentId)
+                return;
+        }
+
+
         MyGUI::TreeControlNode *selectedNode = nullptr;
 
         // find node to be selected
-        for(MyGUI::TreeControlNode *node : mControl->getRoot()->getChildren())
+        for(MyGUI::TreeControlNode * node : mControl->getRoot()->getChildren())
         {
             ControlNodeDataType const &data = *(node->getData<ControlNodeDataType>());
 
             if(data.nodeType != ControlNodeDataType::NodeType::Agent)
                 continue;
-            
-            if(data.agentId != aid)
+
+            if(data.agentId != selectedAgentId)
                 continue;
-            
+
             selectedNode = node;
             break;
         }

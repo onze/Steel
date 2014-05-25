@@ -1,28 +1,32 @@
 #include <algorithm>
 #include <json/json.h>
 
+#include "steeltypes.h"
 #include <MyGUI.h>
 
 #include "UI/Editor.h"
-#include "Debug.h"
-#include "tools/StringUtils.h"
-#include "tools/OgreUtils.h"
-#include "Level.h"
-#include "Engine.h"
-#include "UI/UI.h"
 #include "Camera.h"
+#include "Debug.h"
+#include "Engine.h"
+#include "Level.h"
+#include "SelectionManager.h"
+#include "SignalManager.h"
+#include "TagManager.h"
+#include "UI/UI.h"
+#include "UI/PropertyGrid/PropertyGridManager.h"
+#include "UI/PropertyGrid/PropertyGridAgentAdapter.h"
 #include "models/Agent.h"
 #include "models/OgreModelManager.h"
 #include "models/PhysicsModelManager.h"
-#include "tools/JsonUtils.h"
+#include "models/LocationModelManager.h"
+#include "models/AgentManager.h"
 #include "tools/3dParties/MyGUI/TreeControlItemDecorator.h"
 #include "tools/3dParties/MyGUI/TreeControlItem.h"
 #include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
-#include "models/AgentManager.h"
-#include "SelectionManager.h"
-#include "models/LocationModel.h"
-#include "models/LocationModelManager.h"
-#include "TagManager.h"
+#include "tools/3dParties/MyGUI/MyGUIAgentBrowserDataSource.h"
+#include "tools/JsonUtils.h"
+#include "tools/OgreUtils.h"
+#include "tools/StringUtils.h"
 
 namespace Steel
 {
@@ -35,6 +39,9 @@ namespace Steel
 
     const char *Editor::SELECTION_PATH_INFO_BOX = "selectionPathsInfoBox";
     const char *Editor::SELECTIONS_PATH_EDIT_BOX = "selection_path_editbox";
+    const char *Editor::AGENTBROWSER_TREECONTROLL_CHILD = "AgentBrowserTreeControl_Child";
+
+    const char *Editor::MODEL_SERIALIZATION_EDITBOX = "ModelSerializationEditBox";
 
     const Ogre::String Editor::TERRABRUSH_INTENSITY_MYGUIVAR = "terrabrushIntensity";
     const Ogre::String Editor::TERRABRUSH_RADIUS_MYGUIVAR = "terrabrushRadius";
@@ -44,7 +51,7 @@ namespace Steel
         mEngine(nullptr), mInputMan(nullptr),
         mSignals(),
         mDataDir(), mBrush(),
-        mMyGUIWidgets()
+        mMyGUIWidgets(), mAgenModelPropertyGridMan(nullptr)
     {
 #ifdef DEBUG
         mAutoReload = true;
@@ -99,11 +106,20 @@ namespace Steel
         {
             STEEL_DELETE(mMyGUIWidgets.agentBrowserTreeControlItemDecorator);
             STEEL_DELETE(mMyGUIWidgets.resourceTreeControlItemDecorator);
+
+            mMyGUIWidgets.agentItemBrowserTree = nullptr;
             mMyGUIWidgets.selectionTagCloud = nullptr;
             mMyGUIWidgets.tagsListComboBox = nullptr;
             mMyGUIWidgets.selectionPathTextBox = nullptr;
             mMyGUIWidgets.pathsListComboBox = nullptr;
             mMyGUIWidgets.mainWindow = nullptr;
+        }
+
+        if(nullptr != mAgenModelPropertyGridMan)
+        {
+            auto adapter = mAgenModelPropertyGridMan->adapter();
+            STEEL_DELETE(mAgenModelPropertyGridMan);
+            STEEL_DELETE(adapter);
         }
 
         mBrush.shutdown();
@@ -124,7 +140,7 @@ namespace Steel
 
     void Editor::init(unsigned int width, unsigned int height, Engine *engine)
     {
-        Debug::log("Editor::init()").endl();
+        Debug::log(STEEL_METH_INTRO).endl();
 
         if(nullptr != engine)
         {
@@ -143,16 +159,18 @@ namespace Steel
         {
             // resource tree
             {
-                MyGUI::TreeControl *agentItemBrowserTree = (MyGUI::TreeControl *) findMyGUIChildWidget("AgentBrowserTreeControl_Child");
-                if(nullptr != agentItemBrowserTree)
+                mMyGUIWidgets.agentItemBrowserTree = (MyGUI::TreeControl *) findMyGUIChildWidget(Editor::AGENTBROWSER_TREECONTROLL_CHILD);
+
+                if(nullptr != mMyGUIWidgets.agentItemBrowserTree)
                 {
                     // decoration here means addind drag and drop properties to the tree's items
-                    mMyGUIWidgets.agentBrowserTreeControlItemDecorator = new MyGUI::TreeControlItemDecorator(agentItemBrowserTree);
+                    mMyGUIWidgets.agentBrowserTreeControlItemDecorator = new MyGUI::TreeControlItemDecorator(mMyGUIWidgets.agentItemBrowserTree);
                     mMyGUIWidgets.agentBrowserTreeControlItemDecorator->setEnableDragAndDrop(false, false);
                     mMyGUIWidgets.agentBrowserTreeControlItemDecorator->setTextColour(MyGUI::Colour::White);
+                    mMyGUIWidgets.agentItemBrowserTree->eventTreeNodeSelected += MyGUI::newDelegate(this, &Editor::MyGUIAgentBrowserTreeNodeSelected);
                 }
             }
-            
+
             // resource tree
             {
                 MyGUI::TreeControl *resourceTree = (MyGUI::TreeControl *)findMyGUIChildWidget("ResourceTreeControl_Child");
@@ -183,9 +201,20 @@ namespace Steel
                 mMyGUIWidgets.pathsListComboBox = (decltype(mMyGUIWidgets.pathsListComboBox))findMyGUIChildWidget("PathsListComboBox");
                 mMyGUIWidgets.pathsListComboBox->removeAllItems();
             }
+
             // other widgets that are useful to keep a handle on for frequent references
             mMyGUIWidgets.mainWindow = (decltype(mMyGUIWidgets.mainWindow))findMyGUIChildWidget("Root");
-            mMyGUIWidgets.mainWindow->eventWindowChangeCoord += MyGUI::newDelegate(this, &Editor::MyGUIEditorWindowChangeCoord);;
+            mMyGUIWidgets.mainWindow->eventWindowChangeCoord += MyGUI::newDelegate(this, &Editor::MyGUIEditorWindowChangeCoord);
+
+            // agnet property grid
+            {
+                MyGUI::ScrollView *const propertyGrid = (MyGUI::ScrollView *)findMyGUIChildWidget("EditorAgentPropertyGrid");
+
+                if(nullptr == mAgenModelPropertyGridMan && nullptr != propertyGrid)
+                    mAgenModelPropertyGridMan = new PropertyGridManager(propertyGrid);
+                else
+                    Debug::error("could not initialize mAgenModelPropertyGridMan. Skipping.").endl();
+            }
 
             if(nullptr != mMyGUIWidgets.mainWindow)
             {
@@ -301,7 +330,7 @@ namespace Steel
 
         MyGUI::Button *untagBtn = _item->createWidget<MyGUI::Button>("Button", MyGUI::IntCoord(clientCoords.right() - btnSize - border, 0, btnSize, _item->getHeight()), MyGUI::Align::Right | MyGUI::Align::VCenter, "untagBtn");
         untagBtn->setCaption("X");
-        untagBtn->eventMouseButtonClick += MyGUI::newDelegate((UIPanel *)this, &UIPanel::OnMyGUIMouseButtonClick);
+        untagBtn->eventMouseButtonClick += MyGUI::newDelegate((UIPanel *)this, &UIPanel::onMyGUIMouseButtonClick);
         untagBtn->setUserString(UIPanel::SteelOnClick, UIPanel::SteelCommand);
         untagBtn->eventMouseWheel += MyGUI::newDelegate(this, &Editor::MyGUISelectionTagItemMouseWheel);
     }
@@ -352,6 +381,95 @@ namespace Steel
         }
     }
 
+    void Editor::onSelectionChanged(Selection const &selection)
+    {
+        refreshSelectionTagsWidget();
+        refreshSelectionPathWidget();
+    }
+
+    void Editor::MyGUIAgentBrowserTreeNodeSelected(MyGUI::TreeControl *control, MyGUI::TreeControlNode *modelNode)
+    {
+        if(nullptr == mAgenModelPropertyGridMan)
+            return;
+
+        // find which agent and select it.
+        if(mMyGUIWidgets.agentItemBrowserTree->getSelection() != modelNode)
+        {
+            Debug::error(STEEL_METH_INTRO, "invalid selected node in agentItemBrowserTree. Aborting.").endl().breakHere();
+            return;
+        }
+
+        // no selection
+        if(nullptr == modelNode)
+            return;
+
+        // retrieve agent and model ID of the node
+        MyGUIAgentBrowserDataSource::ControlNodeDataType *modelData = modelNode->getData<MyGUIAgentBrowserDataSource::ControlNodeDataType>();
+
+        // node has no data
+        if(nullptr == modelData)
+            return;
+
+        // set selection iff it differs from the current one
+        auto selection = mEngine->level()->selectionMan()->selection();
+
+        if(selection.size() != 1 || modelData->agentId != selection.back())
+            mEngine->level()->selectionMan()->setSelectedAgent(modelData->agentId);
+
+        // the selected model may have changed though, so let's update it
+        setAgentModelPropertyGridTarget();
+    }
+
+    void Editor::setAgentModelPropertyGridTarget()
+    {
+        MyGUI::TreeControlNode *modelNode = mMyGUIWidgets.agentItemBrowserTree->getSelection();
+
+        PropertyGridAdapter *newAdapter = nullptr;
+
+        if(nullptr != modelNode)
+        {
+            // retrieve agent and model ID of the node
+            MyGUIAgentBrowserDataSource::ControlNodeDataType *modelData = modelNode->getData<MyGUIAgentBrowserDataSource::ControlNodeDataType>();
+
+            if(nullptr != modelData)
+            {
+                switch(modelData->nodeType)
+                {
+                    case MyGUIAgentBrowserDataSource::ControlNodeDataType::NodeType::Model:// node is a model node.
+                        switch(modelData->modelType)
+                        {
+                            case ModelType::OGRE:
+                            case ModelType::PHYSICS:
+                            case ModelType::LOCATION:
+                            case ModelType::BT:
+                            case ModelType::BLACKBOARD:
+                            default:
+                                newAdapter = new PropertyGridAdapter(); // TODO: use actual model adapter instead of dummy one
+                                break;
+                        }
+
+                        break;
+
+                    case MyGUIAgentBrowserDataSource::ControlNodeDataType::NodeType::Agent:// node is an agent
+                        newAdapter = new PropertyGridAgentAdapter(mEngine->level()->agentMan(), modelData->agentId);
+                        break;
+                }
+            }
+            else
+            {
+                // node has no data
+            }
+        }
+        else
+        {
+            // no selection
+        }
+
+        auto previousAdapter = mAgenModelPropertyGridMan->adapter();
+        mAgenModelPropertyGridMan->setAdapter(newAdapter);
+        STEEL_DELETE(previousAdapter);
+    }
+
     void Editor::onLevelSet(Level *level)
     {
         level->selectionMan()->addListener(this);
@@ -373,7 +491,7 @@ namespace Steel
             return INVALID_ID;
         }
 
-//      Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
+        //      Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
         Steel::ModelId mid = level->ogreModelMan()->newModel(meshFile.fileName(), pos, rot);
         AgentId aid = mEngine->level()->agentMan()->newAgent();
 
@@ -522,12 +640,6 @@ namespace Steel
         mBrush.onHide();
     }
 
-    void Editor::onSelectionChanged(Selection const&selection)
-    {
-        refreshSelectionTagsWidget();
-        refreshSelectionPathWidget();
-    }
-
     void Editor::refreshSelectionPathWidget()
     {
         if(nullptr == mEngine->level())
@@ -575,7 +687,6 @@ namespace Steel
 
     void Editor::populateSelectionTagsWidget(std::list<Ogre::String> tags)
     {
-//         Debug::log(STEEL_METH_INTRO, "tags: ", tags).endl();
         // MyGUI
         {
             if(nullptr != mMyGUIWidgets.selectionTagCloud)

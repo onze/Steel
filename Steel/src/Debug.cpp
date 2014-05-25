@@ -16,6 +16,7 @@
 #include "InputSystem/ActionCombo.h"
 #include "tools/StringUtils.h"
 #include "BT/BTNode.h"
+#include <UI/PropertyGrid/PropertyGridAdapter.h>
 
 namespace Steel
 {
@@ -166,7 +167,7 @@ namespace Steel
         {
             return (*this)(Ogre::String(msg));
         }
-        
+
         DebugObject &DebugObject::operator()(ModelType mType)
         {
             return (*this)(toString(mType));
@@ -268,9 +269,19 @@ namespace Steel
 
         DebugObject &DebugObject::operator()(SignalBufferEntry const &entry)
         {
-            return (*this)("(")(SignalManager::instance().fromSignal(entry.signal))(", ")(entry.timestamp)(")");
+            return (*this)("(", SignalManager::instance().fromSignal(entry.signal), ", ", entry.timestamp, ")");
         }
 
+        DebugObject &DebugObject::operator()(PropertyGridProperty const &property)
+        {
+            return (*this)("PropertyGridProperty{id: ", property.id(), ", valueType: ", property.valueType(), "}");
+        }
+
+        DebugObject &DebugObject::operator()(PropertyGridPropertyValueType const &valueType)
+        {
+            return (*this)(toString(valueType));
+        }
+        
         DebugObject &DebugObject::operator()(Ogre::ResourceGroupManager::LocationList const &list)
         {
             (*this)("Ogre::ResourceGroupManager::LocationList[");

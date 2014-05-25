@@ -56,6 +56,8 @@ namespace Steel
     class BTShapeStream;
     class SignalBufferEntry;
     class SignalManager;
+    class PropertyGridProperty;
+    enum class PropertyGridPropertyValueType : u32;
 
     namespace Debug
     {
@@ -81,11 +83,6 @@ namespace Steel
             void setColors(Ogre::String pre = StringUtils::BLANK, Ogre::String post = StringUtils::BLANK);
 
             DebugObject &operator()(); // usefull in macro arg expansions (__VA_ARGS__)
-            DebugObject &operator()(const Ogre::Degree msg);
-            DebugObject &operator()(const Ogre::Radian msg);
-            DebugObject &operator()(const Ogre::Vector2 msg);
-            DebugObject &operator()(const Ogre::Vector3 msg);
-            DebugObject &operator()(const Ogre::Quaternion msg);
             DebugObject &operator()(const int msg);
             DebugObject &operator()(const unsigned int msg);
             DebugObject &operator()(const long int msg);
@@ -93,11 +90,6 @@ namespace Steel
             DebugObject &operator()(const float msg);
             DebugObject &operator()(const char *msg);
             DebugObject &operator()(ModelType mtype);
-            DebugObject &operator()(Ogre::String const &msg);
-            DebugObject &operator()(Json::Value const &msg);
-            DebugObject &operator()(MyGUI::Widget const *const widget);
-            DebugObject &operator()(Ogre::StringVectorPtr const vec);
-            DebugObject &operator()(Ogre::StringVector const &vec);
             DebugObject &operator()(File const &file);
             DebugObject &operator()(BTShapeToken const &token);
             DebugObject &operator()(BTShapeStream *const shapeStream);
@@ -106,6 +98,21 @@ namespace Steel
             DebugObject &operator()(Action const &action);
             DebugObject &operator()(ActionCombo const &combo);
             DebugObject &operator()(SignalBufferEntry const &entry);
+            DebugObject &operator()(PropertyGridProperty const &property);
+            DebugObject &operator()(PropertyGridPropertyValueType const &valueType);
+            
+            DebugObject &operator()(Json::Value const &msg);
+            
+            DebugObject &operator()(MyGUI::Widget const *const widget);
+            
+            DebugObject &operator()(const Ogre::Degree msg);
+            DebugObject &operator()(const Ogre::Radian msg);
+            DebugObject &operator()(const Ogre::Vector2 msg);
+            DebugObject &operator()(const Ogre::Vector3 msg);
+            DebugObject &operator()(const Ogre::Quaternion msg);
+            DebugObject &operator()(Ogre::String const &msg);
+            DebugObject &operator()(Ogre::StringVectorPtr const vec);
+            DebugObject &operator()(Ogre::StringVector const &vec);
             DebugObject &operator()(Ogre::ResourceGroupManager::LocationList const &list);
             DebugObject &operator()(Ogre::ResourceGroupManager::ResourceDeclarationList const &list);
 

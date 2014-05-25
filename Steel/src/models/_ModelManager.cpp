@@ -10,20 +10,19 @@
 #include "Level.h"
 #include "models/Agent.h"
 #include "models/Model.h"
+#include <tools/JsonUtils.h>
 
 namespace Steel
 {
 
     template<class M>
     _ModelManager<M>::_ModelManager(Level *level)
-        : ModelManager()
+        : ModelManager(),
+        mLevel(level), 
+        mModels(1), // capacity is doubled each time, therefore it cannot start at 0.
+        mModelsFreeList({0L}) // first model is free
     {
-        // capacity is doubled each time, therefore it cannot start at 0.
-        mModels = std::vector<M>(1);
-        mModelsFreeList = std::list<ModelId>();
-        mModelsFreeList.push_back(0L);
-        mLevel = level;
-        mLevel->registerManager(M::modelType(), this);
+        mLevel->registerManager(ManagedModel::staticModelType(), this);
     }
 
     template<class M>
@@ -70,7 +69,11 @@ namespace Steel
 
         //TODO: use a heap (priority queue), with (mModelsFreeList.size()-id) as priority
         if(mModels[id].isFree())
+        {
+            mModels[id].cleanup();
+            mModels[id].Model::cleanup();
             mModelsFreeList.push_front(id);
+        }
     }
 
     template<class M>
@@ -170,18 +173,17 @@ namespace Steel
     }
 
     template<class M>
-    std::vector<ModelId> _ModelManager<M>::fromJson(Json::Value &models)
+    std::vector<ModelId> _ModelManager<M>::fromJson(Json::Value const &nodes)
     {
         std::vector<ModelId> ids;
 
-        for(Json::ValueIterator it = models.begin(); it != models.end(); ++it)
+        for(Json::ValueIterator it = nodes.begin(); it != nodes.end(); ++it)
         {
-            //TODO: implement id remapping, so that we stay in a low id range
-            Json::Value value = *it;
+            Json::Value node = *it;
             ModelId mid = INVALID_ID;
             mid = Ogre::StringConverter::parseUnsignedLong(it.memberName(), INVALID_ID);
 
-            if(!this->fromSingleJson(value, mid))
+            if(!this->fromSingleJson(node, mid))
                 Debug::error(logName())("could not deserialize model ")(mid).endl();
 
             ids.push_back(mid);
@@ -191,45 +193,82 @@ namespace Steel
     }
 
     template<class M>
-    bool _ModelManager<M>::fromSingleJson(Json::Value &model, ModelId &id)
+    bool _ModelManager<M>::fromSingleJson(Json::Value const &node, ModelId &mid, bool updateModel /*= false*/)
     {
+        ModelId id = mid;
         id = allocateModel(id);
 
-        if(!mModels[id].fromJson(model))
+        // id points to an already existing model
+        if(INVALID_ID == id && !updateModel)
+            return false;
+
+
+        if(!deserializeToModel(node, id))
         {
             deallocateModel(id);
-            id = INVALID_ID;
+            mid = INVALID_ID;
             return false;
         }
 
+        mid = id;
         return true;
     }
 
     template<class M>
-    void _ModelManager<M>::toJson(Json::Value &root, std::list<ModelId> const &modelIds)
+    bool _ModelManager<M>::deserializeToModel(Json::Value const &node, ModelId &mid)
+    {
+        return mModels[mid].fromJson(node);
+    }
+
+    template<class M>
+    void _ModelManager<M>::toJson(Json::Value &nodes, std::list<ModelId> const &modelIds)
     {
         if(mModels.size())
         {
             for(ModelId const & id : modelIds)
             {
-                Model *m = at(id);
+                ManagedModel *managedModel = at(id);
 
-                if(nullptr == m || m->isFree())
+                if(nullptr == managedModel || managedModel->isFree())
                     continue;
 
                 Json::Value node(Json::objectValue);
-                m->toJson(node);
-                root[Ogre::StringConverter::toString(id)] = node;
+                managedModel->toJson(node);
+                nodes[Ogre::StringConverter::toString(id)] = node;
             }
         }
     }
+
+    template<class M>
+    bool _ModelManager<M>::toSingleJson(ModelId mid, Json::Value &value)
+    {
+        ManagedModel *managedModel = at(mid);
+
+        if(nullptr != managedModel)
+        {
+            managedModel->toJson(value);
+            return true;
+        }
+
+        return false;
+    }
+
+// not used so far
+//     template<class M>
+//     void _ModelManager<M>::swapModels(ModelId midLeft, ModelId midRight)
+//     {
+//         bool isValidLeft = isValid(midLeft);
+//         bool isValidRight = isValid(midRight);
+// 
+//         if(isValidLeft || isValidRight)
+//             std::swap(mModels[midLeft], mModels[midRight]);
+//     }
 
     /// Returns true if the linking was successful from the manager's pov.
     template<class M>
     bool _ModelManager<M>::onAgentLinkedToModel(Agent *agent, ModelId mid)
     {
-        // no problem with that
-        return true;
+        return true; // no problem with that
     }
 
     /// Returns true if the linking was successful from the manager's pov.
@@ -244,12 +283,12 @@ namespace Steel
     std::set<Tag> _ModelManager<M>::modelTags(ModelId mid)
     {
         std::set<Tag> output;
-        M *model = at(mid);
+        ManagedModel *managedModel = at(mid);
 
-        if(nullptr == model)
+        if(nullptr == managedModel)
             return output;
 
-        return model->tags();
+        return managedModel->tags();
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -54,6 +54,8 @@ namespace Steel
     class UI;
     class InputManager;
     class Engine;
+    class Model;
+    class PropertyGridManager;
 
     class Editor: public UIPanel, public SelectionManager::Listener, public EngineEventListener
     {
@@ -74,6 +76,10 @@ namespace Steel
         static const char *SELECTION_PATH_INFO_BOX;
         /// Name of the UI Editor element that get user input for tag elements.
         static const char *SELECTIONS_PATH_EDIT_BOX;
+        /// Name of the UI Editor element used to show/edit the currently selected agent model.
+        static const char *MODEL_SERIALIZATION_EDITBOX;
+        /// Name of the agent browser tree control
+        static const char *AGENTBROWSER_TREECONTROLL_CHILD;
 
         /// Name of the MyGUIVariable upon the change of which the editor brush intensity gets updated
         static const Ogre::String TERRABRUSH_INTENSITY_MYGUIVAR;
@@ -162,6 +168,11 @@ namespace Steel
         void populateSelectionTagsWidget(std::list< Ogre::String > tags);
 
         void refreshSelectionPathWidget();
+        
+        /// Called whenever a model is selected in the AgentBrowser.
+        void MyGUIAgentBrowserTreeNodeSelected(MyGUI::TreeControl *control, MyGUI::TreeControlNode *modelNode);
+        /// Dual of updateCurrentModelFromEditBox. Resets the edit box with the model serailization.
+        void setAgentModelPropertyGridTarget();
 
         //not owned
         Engine *mEngine;
@@ -169,13 +180,13 @@ namespace Steel
 
         //owned
         struct Signals
-        {
-            Signal brushIntensityUpdate;
-            Signal brushRadiusUpdate;
-            Signal menuTabChanged;
-            Signal newTagCreated;
-            Signal newPathCreated;
-            Signal pathDeleted;
+        {   
+            Signal brushIntensityUpdate = INVALID_SIGNAL;
+            Signal brushRadiusUpdate = INVALID_SIGNAL;
+            Signal menuTabChanged = INVALID_SIGNAL;
+            Signal newTagCreated = INVALID_SIGNAL;
+            Signal newPathCreated = INVALID_SIGNAL;
+            Signal pathDeleted = INVALID_SIGNAL;
         };
         Signals mSignals;
 
@@ -185,29 +196,23 @@ namespace Steel
 
         /// handles drag and dropping of the MyGUI::TreeControl dedicated to resources
         struct MyGUIWidgets
-        {
-            MyGUIWidgets():
-                resourceTreeControlItemDecorator(nullptr),
-                agentBrowserTreeControlItemDecorator(nullptr),
-                selectionTagCloud(nullptr),
-                tagsListComboBox(nullptr),
-                selectionPathTextBox(nullptr),
-                pathsListComboBox(nullptr),
-                mainWindow(nullptr)
-            {}
+        {            
+            MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator = nullptr;
             
-            MyGUI::TreeControlItemDecorator *resourceTreeControlItemDecorator;
-            MyGUI::TreeControlItemDecorator *agentBrowserTreeControlItemDecorator;
+            MyGUI::TreeControl *agentItemBrowserTree = nullptr;
+            MyGUI::TreeControlItemDecorator *agentBrowserTreeControlItemDecorator = nullptr;
+            MyGUI::ScrollView *propertyGrid = nullptr;
 
-            MyGUI::ItemBox *selectionTagCloud;
-            MyGUI::ComboBox *tagsListComboBox;
+            MyGUI::ItemBox *selectionTagCloud = nullptr;
+            MyGUI::ComboBox *tagsListComboBox = nullptr;
 
-            MyGUI::TextBox *selectionPathTextBox;
-            MyGUI::ComboBox *pathsListComboBox;
+            MyGUI::TextBox *selectionPathTextBox = nullptr;
+            MyGUI::ComboBox *pathsListComboBox = nullptr;
 
-            MyGUI::Window *mainWindow;
+            MyGUI::Window *mainWindow = nullptr;
         };
         MyGUIWidgets mMyGUIWidgets;
+        PropertyGridManager *mAgenModelPropertyGridMan = nullptr; // not a MyGUI widget, yet MyGUI related.
 
     };
 }

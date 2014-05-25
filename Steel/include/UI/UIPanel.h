@@ -95,13 +95,13 @@ namespace Steel
         virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
 
         // MyGUI callbacks
-        void OnMyGUIMouseButtonClick(MyGUI::Widget *button);
-        void OnMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
-        void OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
-        void OnMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index);
-        void OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
-        void OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
-        void OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index);
+        void onMyGUIMouseButtonClick(MyGUI::Widget *button);
+        void onMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
+        void onMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index);
+        void onMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index);
+        void onMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
+        void onMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
+        void onMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index);
 
         /// Parses through the UI tree and sets up widget logic, given their userData
         void setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &widgets);

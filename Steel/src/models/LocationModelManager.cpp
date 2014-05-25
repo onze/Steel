@@ -28,7 +28,7 @@ namespace Steel
         mDebugLines.clear();
     }
 
-    std::vector<ModelId> LocationModelManager::fromJson(Json::Value &root)
+    std::vector<ModelId> LocationModelManager::fromJson(Json::Value const&root)
     {
         mPathsRoots = JsonUtils::asStringUnsignedLongMap(root[LocationModelManager::PATH_ROOTS_ATTRIBUTE]);
 
@@ -50,22 +50,10 @@ namespace Steel
         mModels[mid].init(this);
         return mid;
     }
-
-    bool LocationModelManager::fromSingleJson(Json::Value &model, ModelId &id)
+    
+    bool LocationModelManager::deserializeToModel(Json::Value const&model, ModelId &mid)
     {
-        id = newModel(id);
-
-        if(INVALID_ID == id)
-            return false;
-
-        if(!mModels[id].fromJson(model, this))
-        {
-            deallocateModel(id);
-            id = INVALID_ID;
-            return false;
-        }
-
-        return true;
+        return mModels[mid].fromJson(model, this);
     }
 
     void LocationModelManager::toJson(Json::Value &root, std::list<ModelId> const &modelIds)

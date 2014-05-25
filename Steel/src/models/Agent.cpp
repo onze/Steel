@@ -691,10 +691,9 @@ namespace Steel
         ModelId newBTModelId = INVALID_ID;
         Ogre::String path = mLevel->BTModelMan()->genericFollowPathModelPath();
 
-        if(!mLevel->BTModelMan()->buildFromFile(path, newBTModelId))
+        if(!mLevel->BTModelMan()->buildFromFile(path, newBTModelId, false))
         {
-            Debug::error(intro)("could not retrieve a BTModel for bt file ")
-            .quotes(path)(". Aborting.").endl();
+            Debug::error(intro)("could not retrieve a BTModel for bt file ").quotes(path)(". Aborting.").endl();
             return false;
         }
 

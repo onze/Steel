@@ -27,8 +27,7 @@ namespace Steel
         ModelId newModel();
         ModelId newModel(ModelId &mid);
 
-        std::vector<ModelId> fromJson(Json::Value &model);
-        bool fromSingleJson(Json::Value &model, ModelId &mid);
+        std::vector<ModelId> fromJson(Json::Value const&model);
         void toJson(Json::Value &object, std::list<ModelId> const& modelIds);
         void onAgentUnlinkedFromModel(Agent *agent, ModelId mid);
         bool onAgentLinkedToModel(Agent *agent, ModelId mid);
@@ -78,6 +77,8 @@ namespace Steel
         std::vector<LocationPathName> locationPathNames() const;
 
     private:
+        
+        bool deserializeToModel(Json::Value const&model, ModelId &mid);
         /// The pair content is (src, dst)
         ModelPair makeKey(ModelId mid0, ModelId mid1);
         bool getDebugLine(ModelPair const &key, DynamicLines *&line);

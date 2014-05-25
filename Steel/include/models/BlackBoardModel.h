@@ -10,6 +10,7 @@ namespace Steel
     
     class BlackBoardModel: public Model
     {
+        DECLARE_STEEL_MODEL(BlackBoardModel, ModelType::BLACKBOARD);
 
     public:
         BlackBoardModel();
@@ -17,13 +18,9 @@ namespace Steel
         virtual ~BlackBoardModel();
         virtual BlackBoardModel &operator=(const BlackBoardModel &o);
         virtual bool operator==(const BlackBoardModel &o) const;
-
-        static ModelType modelType()
-        {
-            return ModelType::BLACKBOARD;
-        }
+        
         virtual bool init(BlackBoardModelManager const *manager);
-        virtual bool fromJson(Json::Value &node);
+        virtual bool fromJson(Json::Value const&node);
         virtual void toJson(Json::Value &node);
         virtual void cleanup();
         

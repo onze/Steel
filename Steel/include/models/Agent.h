@@ -169,7 +169,7 @@ namespace Steel
 
         //////////////////////////////////////////////////////////////////////
         // signals
-        /// Emitted signals
+        /// Emitted signals TODO: use PublicSignal pattern instead
         enum class EventType : int
         {
             SELECTED = 1,

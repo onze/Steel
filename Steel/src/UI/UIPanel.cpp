@@ -310,28 +310,28 @@ namespace Steel
             if(MyGUI::Button::getClassTypeName() == widgetTypeName)
             {
                 if(hasOnClick)
-                    widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClick);
+                    widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::onMyGUIMouseButtonClick);
                 else if(hasOnToggle)
-                    widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::OnMyGUIMouseButtonClickForCheckboxToggle);
+                    widget->eventMouseButtonClick += MyGUI::newDelegate(this, &UIPanel::onMyGUIMouseButtonClickForCheckboxToggle);
             }
             // combobox
             else if(MyGUI::ComboBox::getClassTypeName() == widgetTypeName)
             {
                 if(hasOnChange)
-                    static_cast<MyGUI::ComboBox *>(widget)->eventComboChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboChangePosition);
+                    static_cast<MyGUI::ComboBox *>(widget)->eventComboChangePosition += MyGUI::newDelegate(this, &UIPanel::onMyGUIComboChangePosition);
 
                 if(hasOnSubmit)
-                    static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIComboAccept);
+                    static_cast<MyGUI::ComboBox *>(widget)->eventComboAccept += MyGUI::newDelegate(this, &UIPanel::onMyGUIComboAccept);
             }
             // scrollbar
             else if(MyGUI::ScrollBar::getClassTypeName() == widgetTypeName && hasOnChange)
-                static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::OnMyGUIScrollChangePosition);
+                static_cast<MyGUI::ScrollBar *>(widget)->eventScrollChangePosition += MyGUI::newDelegate(this, &UIPanel::onMyGUIScrollChangePosition);
             // editbox
             else if(MyGUI::EditBox::getClassTypeName() == widgetTypeName && hasOnSubmit)
-                static_cast<MyGUI::EditBox *>(widget)->eventEditSelectAccept += MyGUI::newDelegate(this, &UIPanel::OnMyGUIEditSelectAccept);
+                static_cast<MyGUI::EditBox *>(widget)->eventEditSelectAccept += MyGUI::newDelegate(this, &UIPanel::onMyGUIEditSelectAccept);
             // tabcontrol
             else if(MyGUI::TabControl::getClassTypeName() == widgetTypeName && hasOnChange)
-                static_cast<MyGUI::TabControl *>(widget)->eventTabChangeSelect += MyGUI::newDelegate(this, &UIPanel::OnMyGUITabControlChangeSelect);
+                static_cast<MyGUI::TabControl *>(widget)->eventTabChangeSelect += MyGUI::newDelegate(this, &UIPanel::onMyGUITabControlChangeSelect);
 
             // register binding
             if(hasWidgetKey(widget, UIPanel::SteelBind))
@@ -454,7 +454,7 @@ namespace Steel
         mSignalToWidgetsBindings.emplace(std::make_pair(signal, std::make_pair(variableName, SignalToWidgetsBindings::mapped_type::second_type()))).first->second.second.insert(widget);
     }
 
-    void UIPanel::OnMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button)
+    void UIPanel::onMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", button).endl();
@@ -466,7 +466,7 @@ namespace Steel
         executeWidgetCommands(button, commands);
     }
 
-    void UIPanel::OnMyGUIMouseButtonClick(MyGUI::Widget *button)
+    void UIPanel::onMyGUIMouseButtonClick(MyGUI::Widget *button)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", button).endl();
@@ -475,7 +475,7 @@ namespace Steel
         executeWidgetCommands(button, commands);
     }
 
-    void UIPanel::OnMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index)
+    void UIPanel::onMyGUIComboAccept(MyGUI::ComboBox *comboBox, size_t index)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", comboBox).endl();
@@ -484,7 +484,7 @@ namespace Steel
         executeWidgetCommands(comboBox, commands);
     }
 
-    void UIPanel::OnMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index)
+    void UIPanel::onMyGUIComboChangePosition(MyGUI::ComboBox *comboBox, size_t index)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", comboBox).endl();
@@ -493,7 +493,7 @@ namespace Steel
         executeWidgetCommands(comboBox, commands);
     }
 
-    void UIPanel::OnMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index)
+    void UIPanel::onMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", scrollBar).endl();
@@ -502,7 +502,7 @@ namespace Steel
         executeWidgetCommands(scrollBar, commands);
     }
 
-    void UIPanel::OnMyGUIEditSelectAccept(MyGUI::EditBox *editBox)
+    void UIPanel::onMyGUIEditSelectAccept(MyGUI::EditBox *editBox)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", editBox).endl();
@@ -511,7 +511,7 @@ namespace Steel
         executeWidgetCommands(editBox, commands);
     }
 
-    void UIPanel::OnMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index)
+    void UIPanel::onMyGUITabControlChangeSelect(MyGUI::TabControl *tabControl, size_t index)
     {
         if(UIPanel::getDebugEvents())
             Debug::log(STEEL_METH_INTRO, "on ", mName, " from ", tabControl).endl();

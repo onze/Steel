@@ -10,6 +10,8 @@ namespace Steel
 
     class OgreModel: public Model, SignalListener
     {
+        DECLARE_STEEL_MODEL(OgreModel, ModelType::OGRE);
+        
     public:
         static const Ogre::String POSITION_ATTRIBUTE;
         static const Ogre::String ROTATION_ATTRIBUTE;
@@ -20,7 +22,7 @@ namespace Steel
         static const Ogre::String MISSING_MATERIAL_NAME;
         /// Attribute used to set a mesh model (overrites the material the mesh originally links to).
         static const Ogre::String MATERIAL_OVERRIDE_ATTRIBUTE;
-
+        
         OgreModel();
         bool init(Ogre::String meshName,
                   Ogre::Vector3 pos, Ogre::Quaternion rot, Ogre::Vector3 scale,
@@ -30,11 +32,6 @@ namespace Steel
         OgreModel(const OgreModel &o);
         OgreModel &operator=(const OgreModel &o);
         virtual ~OgreModel();
-
-        static ModelType modelType()
-        {
-            return ModelType::OGRE;
-        }
 
         Ogre::Vector3 position() const;
         Ogre::Quaternion rotation() const;
@@ -58,16 +55,16 @@ namespace Steel
 
         /// Used to store the owner agent.
         void setNodeAny(AgentId aid);
-
-        /// Not mean to be used.
-        virtual bool fromJson(const Json::Value &mode);
-        /// Deserialize itself from the given Json object
-        virtual bool fromJson(const Json::Value &node,
+        
+        /// Deserialize itself from the given Json object.
+        bool fromJson(Json::Value const&model);
+        /// Deserialize itself from the given Json object.
+        bool fromJson(const Json::Value &node,
                               Ogre::SceneNode *levelRoot,
                               Ogre::SceneManager *sceneManager,
                               Ogre::String const &resourceGroupName);
         /// Serialize itself into the given Json object
-        virtual void toJson(Json::Value &node);
+        void toJson(Json::Value &node);
 
         /// Dynamically change the material used by the underlying model.
         void setMaterial(Ogre::String resName, const Ogre::String &resourceGroupName);
@@ -77,9 +74,9 @@ namespace Steel
         inline Ogre::SceneNode *sceneNode() {return mSceneNode;}
         bool isVisible() const;
 
-        virtual void cleanup();
-        virtual void onSignal(Signal signal, SignalEmitter *const src = nullptr);
-
+        void cleanup();
+        void onSignal(Signal signal, SignalEmitter *const src = nullptr);
+        
     protected:
         // not owned
         Ogre::SceneManager *mSceneManager;

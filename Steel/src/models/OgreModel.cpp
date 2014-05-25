@@ -186,7 +186,7 @@ namespace Steel
     {
         if(mSceneNode == nullptr)
         {
-            Debug::error("OgreModel::toJson() called while mSceneNode is nullptr !");
+            Debug::error(STEEL_METH_INTRO, "called while mSceneNode is nullptr !");
             return;
         }
 
@@ -202,9 +202,9 @@ namespace Steel
         serializeTags(node);
     }
 
-    bool OgreModel::fromJson(const Json::Value &mode)
+    bool OgreModel::fromJson(Json::Value const&model)
     {
-        Debug::error("OgreModel::fromJson(): wrong deserialization method called.").endl();
+        Debug::error(STEEL_METH_INTRO, "wrong deserialization method called.").endl().breakHere();
         // TODO: implement this method for inplace modification
         return false;
     }

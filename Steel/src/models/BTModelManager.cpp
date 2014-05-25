@@ -26,17 +26,18 @@ namespace Steel
         // TODO Auto-generated destructor stub
     }
 
-    ModelType BTModelManager::modelType()
-    {
-        return ModelType::BT;
-    }
-
     Ogre::String BTModelManager::genericFollowPathModelPath()
     {
         return File(mBasePath).subfile(BTModelManager::GENERIC_FOLLOW_PATH_MODEL_NAME).fullPath();
     }
+    
+    bool BTModelManager::deserializeToModel(Json::Value const&root, ModelId &mid)
+    {
+        Debug::error(STEEL_METH_INTRO, "invalid code path.").endl().breakHere();
+        return false;
+    }
 
-    bool BTModelManager::fromSingleJson(Json::Value &root, ModelId &id)
+    bool BTModelManager::fromSingleJson(Json::Value const&root, ModelId &id, bool updateModel/* = false*/)
     {
         Json::Value value;
 
@@ -63,15 +64,11 @@ namespace Steel
             return false;
         }
 
-        if(!buildFromFile(rootFile, id))
-        {
+        if(!buildFromFile(rootFile, id, updateModel))
             return false;
-        }
 
         if(!mModels[id].fromJson(root))
-        {
             return false;
-        }
 
         // agentTags
         if(!mModels[id].deserializeTags(root))
@@ -83,7 +80,7 @@ namespace Steel
         return true;
     }
 
-    bool BTModelManager::buildFromFile(File const &rootFile, ModelId &id)
+    bool BTModelManager::buildFromFile(File const &rootFile, ModelId &mid, bool updateModel)
     {
         // get the stream
         BTShapeStream *shapeStream = nullptr;
@@ -97,17 +94,20 @@ namespace Steel
         assert(nullptr != shapeStream);
 
         // make it build the state stream
+        ModelId id = mid;
         id = allocateModel(id);
 
-        if(INVALID_ID == id)
+        if(INVALID_ID == id && !updateModel)
             return false;
 
         if(!mModels[id].init(this, shapeStream))
         {
             deallocateModel(id);
-            id = INVALID_ID;
+            mid = INVALID_ID;
+            return false;
         }
 
+        mid = id;
         return true;
     }
 
@@ -115,14 +115,12 @@ namespace Steel
     {
         SignalManager::instance().fireEmittedSignals();
 
-        for(ModelId id = firstId(); id < lastId(); ++id)
+        for(BTModel & model : mModels)
         {
-            BTModel *m = &(mModels[id]);
-
-            if(m->isFree())
+            if(model.isFree())
                 continue;
 
-            m->update(timestep);
+            model.update(timestep);
         }
     }
 

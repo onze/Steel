@@ -40,7 +40,7 @@ namespace Steel
         return true;
     }
 
-    bool BlackBoardModel::fromJson(Json::Value &root)
+    bool BlackBoardModel::fromJson(Json::Value const&root)
     {
         deserializeTags(root);
         mVariables = JsonUtils::asStringStringMap(root[BlackBoardModel::STRING_VARIABLES_ATTRIBUTE]);

@@ -202,7 +202,7 @@ namespace Steel
          * models reference descriptor files.
          */
         void setupReferencePathsLookupTable(Ogre::String const &source);
-
+        
         File mRootDir;
         ConfigFile mConfig;
         Ogre::Root *mRoot;

@@ -199,7 +199,7 @@ namespace MyGUI
 
     void TreeControl::onKeyButtonPressed(KeyCode Key, Char Character)
     {
-        // TODO
+        // TODO: handle multi selection
 
         Widget::onKeyButtonPressed(Key, Character);
     }

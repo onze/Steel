@@ -16,15 +16,16 @@ namespace Steel
 
         BTModelManager(Level *level, Ogre::String mPath);
         virtual ~BTModelManager();
-
-        bool fromSingleJson(Json::Value &root, ModelId &id);
-        virtual ModelType modelType();
+        
+        ModelType modelType() const {return ModelType::BT;}
+        
+        bool fromSingleJson(Json::Value const&model, ModelId &mid, bool updateModel = false) override;
 
         /**
          * Reads the file system at the given directory, build the corresponding BTree,
          * and returns the id of a BTModel executing it.
          */
-        bool buildFromFile(Steel::File const &rootFile, Steel::ModelId &id);
+        bool buildFromFile(Steel::File const &rootFile, Steel::ModelId &id, bool updateModel);
 
         /// Main loop iteration. Update each BT model.
         void update(float timestep);
@@ -41,6 +42,10 @@ namespace Steel
         BTShapeManager mBTShapeMan;
         /// Path to BT folder
         File mBasePath;
+        
+        /// Hidden. Do not use.
+        bool deserializeToModel(Json::Value const &root, ModelId &mid) override;
+    private:
     };
 
 }

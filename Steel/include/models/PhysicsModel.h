@@ -21,6 +21,8 @@ namespace Steel
      */
     class PhysicsModel: public Model, SignalEmitter
     {
+        DECLARE_STEEL_MODEL(PhysicsModel, ModelType::PHYSICS);
+        
     public:
         /// The object's mass.
         static const Ogre::String MASS_ATTRIBUTE;
@@ -71,15 +73,10 @@ namespace Steel
         PhysicsModel &operator=(const PhysicsModel &other);
         virtual ~PhysicsModel();
 
-        static ModelType modelType()
-        {
-            return ModelType::PHYSICS;
-        }
-
         ///serialize itself into the given Json object
         void toJson(Json::Value &node);
         ///deserialize itself from the given Json object. return true is successful.
-        bool fromJson(Json::Value &object);
+        bool fromJson(Json::Value const& root);
 
         void pushState();
         /** Set the current state to the top of the states stack. Returns the current
@@ -128,6 +125,7 @@ namespace Steel
         void setGhost(bool flag);
         /// World interactions are physics interactions with other physics object of the world.
         void enableWorldInteractions(bool flag);
+        
     protected:
         /// Dispatches signals upon valid collisions.
         void collisionCheck(PhysicsModelManager *manager);
