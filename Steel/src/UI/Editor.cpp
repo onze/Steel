@@ -400,21 +400,21 @@ namespace Steel
         }
 
         // no selection
-        if(nullptr == modelNode)
-            return;
+        if(nullptr != modelNode)
+        {
+            // retrieve agent and model ID of the node
+            MyGUIAgentBrowserDataSource::ControlNodeDataType *modelData = modelNode->getData<MyGUIAgentBrowserDataSource::ControlNodeDataType>();
 
-        // retrieve agent and model ID of the node
-        MyGUIAgentBrowserDataSource::ControlNodeDataType *modelData = modelNode->getData<MyGUIAgentBrowserDataSource::ControlNodeDataType>();
+            // node has no data
+            if(nullptr == modelData)
+                return;
 
-        // node has no data
-        if(nullptr == modelData)
-            return;
+            // set selection iff it differs from the current one
+            auto selection = mEngine->level()->selectionMan()->selection();
 
-        // set selection iff it differs from the current one
-        auto selection = mEngine->level()->selectionMan()->selection();
-
-        if(selection.size() != 1 || modelData->agentId != selection.back())
-            mEngine->level()->selectionMan()->setSelectedAgent(modelData->agentId);
+            if(selection.size() != 1 || modelData->agentId != selection.back())
+                mEngine->level()->selectionMan()->setSelectedAgent(modelData->agentId);
+        }
 
         // the selected model may have changed though, so let's update it
         setAgentModelPropertyGridTarget();
