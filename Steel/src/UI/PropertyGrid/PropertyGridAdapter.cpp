@@ -13,6 +13,7 @@ namespace Steel
         {
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Bool);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Float);
+                STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::StringVectorSelection);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::None);
         }
 
@@ -49,6 +50,30 @@ namespace Steel
         if(nullptr != mBoolWriteCallback)
         {
             mBoolWriteCallback(value);
+            emit(getSignal(PublicSignal::changed));
+        }
+        else
+            Debug::warning(*this, " is a read-only property.").endl();
+    }
+
+    void PropertyGridProperty::setCallbacks(StringVectorSelectionReadCallback readCallback, StringVectorSelectionWriteCallback writeCallback)
+    {
+        mValueType = PropertyGridPropertyValueType::StringVectorSelection;
+        mStringVectorSelectionReadCallback = readCallback;
+        mStringVectorSelectionWriteCallback = writeCallback;
+    }
+
+    void PropertyGridProperty::read(StringVectorSelection &value)
+    {
+        if(nullptr != mStringVectorSelectionReadCallback)
+            value = mStringVectorSelectionReadCallback();
+    }
+
+    void PropertyGridProperty::write(StringVectorSelection::selection_type value)
+    {
+        if(nullptr != mStringVectorSelectionWriteCallback)
+        {
+            mStringVectorSelectionWriteCallback(value);
             emit(getSignal(PublicSignal::changed));
         }
         else

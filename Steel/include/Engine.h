@@ -29,7 +29,7 @@ namespace Steel
         static const Ogre::String NONEDIT_MODE_GRABS_INPUT;
         static const Ogre::String COLORED_DEBUG;
         static const Ogre::String OGRE_CONSOLE_OUTPUT;
-        
+
         class Stats
         {
         public:
@@ -127,11 +127,12 @@ namespace Steel
         inline Ogre::RenderWindow *renderWindow() {return mRenderWindow;}
         inline UI *const ui() {return mUI;}
 
-        inline File rootDir() {return mRootDir;}
-        inline File dataDir() {return mRootDir.subfile("data");}
-        inline File rawResourcesDir() {return dataDir().subfile("raw_resources");}
-        inline File resourcesDir() {return dataDir().subfile("resources");}
-        inline File uiDir() {return dataDir().subfile("ui");}
+        inline File rootDir() const {return mRootDir;}
+        inline File dataDir() const {return rootDir() / "data";}
+        inline File levelsDir() const {return dataDir() / "levels";}
+        inline File rawResourcesDir() const {return dataDir() / "raw_resources";}
+        inline File resourcesDir() const {return dataDir() / "resources";}
+        inline File uiDir() const {return dataDir() / "ui";}
 
         inline std::string &windowHandle() {return mWindowHandle;}
 
@@ -145,13 +146,13 @@ namespace Steel
         //setters
 
         /// Sets application main directory.
-        void setRootDir(File const& rootdir);
+        void setRootDir(File const &rootdir);
 
         /// Sets application main directory.
         void setRootDir(Ogre::String rootdir);
 
         inline ConfigFile &config() {return mConfig;}
-        
+
         enum class PublicSignal : u32
         {
             levelSet = 0,
@@ -202,7 +203,7 @@ namespace Steel
          * models reference descriptor files.
          */
         void setupReferencePathsLookupTable(Ogre::String const &source);
-        
+
         File mRootDir;
         ConfigFile mConfig;
         Ogre::Root *mRoot;
@@ -222,7 +223,7 @@ namespace Steel
 
         bool mEditMode;
         Stats mStats;
-        
+
         /// Rotation speed of the camera in edit mode.
         float mGhostCamRotationSpeed;
 

@@ -1,14 +1,17 @@
 #ifndef STEEL_PHYSICSMODEL_H
 #define STEEL_PHYSICSMODEL_H
 
+#include <stack>
+
 #include "steeltypes.h"
 #include "Model.h"
 #include "SignalEmitter.h"
-#include <stack>
 
 class btDynamicsWorld;
 class btPairCachingGhostObject;
 class btRigidBody;
+class btCollisionShape;
+class btVector3;
 
 namespace Steel
 {
@@ -22,7 +25,7 @@ namespace Steel
     class PhysicsModel: public Model, SignalEmitter
     {
         DECLARE_STEEL_MODEL(PhysicsModel, ModelType::PHYSICS);
-        
+
     public:
         /// The object's mass.
         static const Ogre::String MASS_ATTRIBUTE;
@@ -64,8 +67,8 @@ namespace Steel
         {
             CHANGE = 1,
         };
-        
-        Signal registerEvent(EventType evt, SignalListener * const listener);
+
+        Signal registerEvent(EventType evt, SignalListener *const listener);
 
         PhysicsModel();
         PhysicsModel(PhysicsModel const &o);
@@ -76,7 +79,7 @@ namespace Steel
         ///serialize itself into the given Json object
         void toJson(Json::Value &node);
         ///deserialize itself from the given Json object. return true is successful.
-        bool fromJson(Json::Value const& root);
+        bool fromJson(Json::Value const &root);
 
         void pushState();
         /** Set the current state to the top of the states stack. Returns the current
@@ -109,24 +112,32 @@ namespace Steel
         void update(float timestep, PhysicsModelManager *manager);
         /// used to store a void* within the physics object TODO: store an AgentId
         void setUserPointer(Agent *agent);
-        
+
         void enableDeactivation();
         void disableDeactivation();
 
         /// Returns the linear velocity of the object
         Ogre::Vector3 velocity();
-        
+
         float linearDamping();
         void setDamping(float value);
-        
+
         float keepVerticalFactor();
         void setKeepVerticalFactor(float value);
         /// A ghost model won't interact with the world, but may still detect collisions.
         void setGhost(bool flag);
         /// World interactions are physics interactions with other physics object of the world.
         void enableWorldInteractions(bool flag);
-        
+
+        BoundingShape shape() const {return mShape;}
+        void setShape(OgreModel *const omodel, BoundingShape requestedShape);
+
     protected:
+        /// Creates the model's rigid body with a boundingShape matching the given OgreModel entity
+        void createRigidBody(Steel::OgreModel *const omodel);
+        /// Destructs the model's rigid body.
+        void destroyRigidBody();
+        btCollisionShape *createShapeForEntity(Steel::OgreModel *const omodel, Steel::BoundingShape requestedShape, btVector3 &inertia);
         /// Dispatches signals upon valid collisions.
         void collisionCheck(PhysicsModelManager *manager);
 
@@ -134,10 +145,6 @@ namespace Steel
         void removeFromWorld();
         /// Puts back the model's rigidbody from the world, as well as its ghostObject, if any.
         void addToWorld();
-
-        /// Maps a bounding shape string to its enum value. Defaults to sphere.
-        BoundingShape BBoxShapeFromString(Ogre::String &shape);
-        Ogre::String StringShapeFromBBox(BoundingShape &shape);
 
         //not owned
         btDynamicsWorld *mWorld;
@@ -155,10 +162,12 @@ namespace Steel
         {
             bool isKinematics;
             int bodyCollisionFlags;
+            bool isSelected;
         };
         std::stack<State> mStates;
         /// Shape of the physic model representing the graphic model.
         BoundingShape mShape;
+        bool mIsSelected;
 
         /// See GHOST_ATTRIBUTE docstring.
         bool mIsGhost;

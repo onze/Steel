@@ -24,7 +24,7 @@ namespace Steel
     class TerrainManagerEventListener;
     class TerrainPhysicsManager;
     //class TerrainMaterialGenerator;
-    
+
     class TerrainManager: public Ogre::FrameListener
     {
     protected:
@@ -84,7 +84,7 @@ namespace Steel
         /// takes a terrain and serialize its layers into the given json object.
         void serializeLayerList(Ogre::Terrain *terrain, Json::Value &terrainValue);
         /// takes a layer serialization and parse it inot the given layer list.
-        void deserializeLayerList(const Json::Value &layerListValue, Ogre::Terrain::LayerInstanceList &layerList);
+        bool deserializeLayerList(const Json::Value &layerListValue, Ogre::Terrain::LayerInstanceList &layerList);
 
         /// Initial setup method
         void init(Level *level, Ogre::String resourceGroupName, File path, Ogre::SceneManager *sceneManager);
@@ -137,7 +137,7 @@ namespace Steel
                 RaiseShape rshape = RaiseShape::UNIFORM);
 
         /// take a terrain slot seralization and return its deserialized version
-        TerrainSlotData terrainSlotFromJson(Json::Value &terrainSlotValue, TerrainManager::TerrainSlotData &terrainSlot);
+        bool terrainSlotFromJson(Json::Value &terrainSlotValue, Steel::TerrainManager::TerrainSlotData &terrainSlot);
 
         /// Main loop iteration
         void update(float timestep);
@@ -147,22 +147,14 @@ namespace Steel
 
         /// Recompute heightmap for the given terrain
         void updateHeightmap(Ogre::Terrain *terrain);
+        
+        /// Returns the number of terrains currently defined
+        bool hasLoadedTerrains() const;
 
         // getters
-        inline Ogre::TerrainGroup *terrainGroup()
-        {
-            return mTerrainGroup;
-        }
-
-        inline TerrainPhysicsManager *terrainPhysicsMan()
-        {
-            return mTerrainPhysicsMan;
-        }
-
-        inline Ogre::SceneManager *sceneManager()
-        {
-            return mSceneManager;
-        }
+        inline Ogre::TerrainGroup *const terrainGroup() const {return mTerrainGroup;}
+        inline TerrainPhysicsManager *const terrainPhysicsMan()const {return mTerrainPhysicsMan;}
+        inline Ogre::SceneManager *const sceneManager()const {return mSceneManager;}
 
     protected:
 

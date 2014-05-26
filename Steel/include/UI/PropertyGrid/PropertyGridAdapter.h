@@ -12,7 +12,8 @@ namespace Steel
     {
         None = 0,
         Bool,
-        Float
+        Float,
+        StringVectorSelection
     };
 
     Ogre::String toString(PropertyGridPropertyValueType valueType);
@@ -20,12 +21,20 @@ namespace Steel
     class PropertyGridProperty : public SignalEmitter
     {
     public:
+        struct StringVectorSelection
+        {
+            typedef u32 selection_type;
+            StringVector selectableValues;
+            selection_type selectedIndex;
+        };
         
         // read callbacks
         typedef std::function<bool(void)> BoolReadCallback;
+        typedef std::function<StringVectorSelection(void)> StringVectorSelectionReadCallback;
         
         // write callbacks
         typedef std::function<void(bool)> BoolWriteCallback;
+        typedef std::function<void(StringVectorSelection::selection_type)> StringVectorSelectionWriteCallback;
 
         PropertyGridProperty() = delete;
         PropertyGridProperty(PropertyGridPropertyId id);
@@ -34,12 +43,16 @@ namespace Steel
         PropertyGridPropertyId id() const {return mId;}
         PropertyGridPropertyValueType valueType() const {return mValueType;}
         
-        void setCallbacks(BoolReadCallback boolReadCallback, BoolWriteCallback boolWriteCallback);
-        
         /// Reads the property value into the given parameter.
-        void read(bool &flag);
+        void read(bool &value);
         /// Writes the given parameter to the property value.
-        void write(bool flag);
+        void write(bool value);
+        void setCallbacks(BoolReadCallback readCallback, BoolWriteCallback writeCallback);
+        
+        void read(StringVectorSelection &value);
+        void write(StringVectorSelection::selection_type value);
+        void setCallbacks(StringVectorSelectionReadCallback readCallback, StringVectorSelectionWriteCallback writeCallback);
+        
         
         enum class PublicSignal : u32
         {
@@ -55,6 +68,9 @@ namespace Steel
         
         BoolReadCallback mBoolReadCallback;
         BoolWriteCallback mBoolWriteCallback;
+        
+        StringVectorSelectionReadCallback mStringVectorSelectionReadCallback;
+        StringVectorSelectionWriteCallback mStringVectorSelectionWriteCallback;
         
     };
 

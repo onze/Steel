@@ -36,6 +36,27 @@ namespace Steel
         return ModelType::LAST;
     }
 
+    Ogre::String toString(BoundingShape e)
+    {
+        STEEL_ENUM_TO_STRING_START(ModelType)
+        {
+            STEEL_ENUM_TO_STRING_CASE(BoundingShape::BOX);
+            STEEL_ENUM_TO_STRING_CASE(BoundingShape::CONVEXHULL);
+            STEEL_ENUM_TO_STRING_CASE(BoundingShape::SPHERE);
+            STEEL_ENUM_TO_STRING_CASE(BoundingShape::TRIMESH);
+        }
+        return StringUtils::BLANK;
+    }
+
+    BoundingShape toBoundingShape(Ogre::String s)
+    {
+        STEEL_STRING_TO_ENUM_CASE(BoundingShape::BOX);
+        STEEL_STRING_TO_ENUM_CASE(BoundingShape::CONVEXHULL);
+        STEEL_STRING_TO_ENUM_CASE(BoundingShape::SPHERE);
+        STEEL_STRING_TO_ENUM_CASE(BoundingShape::TRIMESH);
+        return BoundingShape::SPHERE;
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

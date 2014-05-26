@@ -14,7 +14,6 @@
 #define MYGUI_DONT_REPLACE_NULLPTR
 #endif
 
-#include "tools/StringUtils.h"
 #include "BT/btnodetypes.h"
 
 // http://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
@@ -56,6 +55,8 @@ namespace Steel
     const u64 INVALID_ID = ULONG_MAX;
     typedef std::list<AgentId> Selection;
     typedef std::pair<ModelId, ModelId> ModelPair;
+    
+    typedef std::vector<Ogre::String> StringVector;
 
     //////////////////////////////////////////////////////////////
     // TIme related stuff go here
@@ -97,14 +98,15 @@ namespace Steel
     const Signal INVALID_TAG = ULONG_MAX;
 
     /// Shape of the physic enveloppe of an OgreModel
-    enum BoundingShape
+    enum class BoundingShape
     {
-        // TODO: to enum class
-        BS_BOX = 0,
-        BS_SPHERE,
-        BS_CONVEXHULL,
-        BS_TRIMESH,
+        BOX = 0,
+        SPHERE,
+        CONVEXHULL,
+        TRIMESH,
     };
+    Ogre::String toString(BoundingShape e);
+    BoundingShape toBoundingShape(Ogre::String s);
 
     /// Name of a path made of linked LocationModels.
     typedef Ogre::String LocationPathName;

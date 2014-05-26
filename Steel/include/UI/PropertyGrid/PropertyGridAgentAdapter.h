@@ -1,8 +1,8 @@
 #ifndef STEEL_PROPERTYGRIDAGENTADAPTER_H
 #define STEEL_PROPERTYGRIDAGENTADAPTER_H
 
+#include "steeltypes.h"
 #include "PropertyGridAdapter.h"
-#include <steeltypes.h>
 
 namespace Steel
 {
@@ -21,11 +21,8 @@ namespace Steel
     private:
         // not owned
         AgentManager const *mAgentMan = nullptr;
-        AgentId mAid;
+        AgentId mAid = INVALID_ID;
     };
-
-    class PropertyGridModelAdapter: public PropertyGridAdapter
-{};
 }
 
 #endif // STEEL_PROPERTYGRIDAGENTADAPTER_H

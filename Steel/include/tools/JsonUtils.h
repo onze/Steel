@@ -110,6 +110,7 @@ namespace Steel
         static unsigned long asUnsignedLong(Json::Value const &value, unsigned long defaultValue = 0);
         static inline ModelId asModelId(Json::Value const &value, unsigned long defaultValue) {return asUnsignedLong(value, defaultValue);};
         static Ogre::String asString(Json::Value const &value, const Ogre::String &defaultValue = StringUtils::BLANK);
+        static Ogre::Vector2 asVector2(Json::Value const &value, const Ogre::Vector2 &defaultValue = Ogre::Vector2::ZERO);
         static Ogre::Vector3 asVector3(Json::Value const &value, const Ogre::Vector3 &defaultValue = Ogre::Vector3::ZERO);
         static Ogre::Quaternion asQuaternion(Json::Value const &value, const Ogre::Quaternion &defaultValue = Ogre::Quaternion::IDENTITY);
 

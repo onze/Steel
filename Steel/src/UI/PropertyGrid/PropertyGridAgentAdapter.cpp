@@ -30,18 +30,20 @@ namespace Steel
         }
 
         /// persistence toggle
+        PropertyGridProperty *prop = new PropertyGridProperty("Persistent");
         {
-            PropertyGridProperty *prop = new PropertyGridProperty("Persistent");
-            PropertyGridProperty::BoolReadCallback readCB([this]()->bool{
+            PropertyGridProperty::BoolReadCallback readCB([this]()->bool
+            {
                 Agent *agent = mAgentMan->getAgent(mAid);
                 return agent->isPersistent();
             });
-            PropertyGridProperty::BoolWriteCallback writeCB([this](bool flag){
+            PropertyGridProperty::BoolWriteCallback writeCB([this](bool flag)
+            {
                 Agent *agent = mAgentMan->getAgent(mAid);
                 agent->setPersistent(flag);
             });
             prop->setCallbacks(readCB, writeCB);
-            mProperties.push_back(prop);
         }
+        mProperties.push_back(prop);
     }
 }

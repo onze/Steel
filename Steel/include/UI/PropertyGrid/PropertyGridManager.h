@@ -8,6 +8,7 @@ namespace MyGUI
 {
     class ScrollView;
     class Widget;
+    class ComboBox;
 }
 
 namespace Steel
@@ -25,7 +26,7 @@ namespace Steel
     {
     private:
         /// within a control
-        static int const sSpaceBetweenWidgets = 5;
+        static int const WIDGET_SPACING = 5;
     public:
         PropertyGridManager() = delete;
         
@@ -52,21 +53,27 @@ namespace Steel
         
         //specialized builder methods
         /// Builds an empty control that only shows the property id
-        void buildDummyControl(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void buildDummyControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
         
         /// Builds a scrollbar control bound to a property of type Float
-        void buildFloatControl(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void buildFloatControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
         void updateFloatControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
         
         /// Builds a checkbox control bound to a property of type Bool
-        void buildBoolControl(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void buildBoolControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
         void updateBoolControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
+        /// Toggle a checkbox
+        void onMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
+        
+        /// Builds a combobox control bound to a property of type StringVectorSelection
+        void buildStringVectorSelectionControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
+        void updateStringVectorSelectionControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
+        /// Combobox event callback
+        void onMyGUIComboAccept(MyGUI::ComboBox* sender, size_t index);
         
         // helper methods
         /// Creates a left aligned Textbox with the property id as label. Returns the label.right value.
-        int insertPropertyIdLabel(MyGUI::Widget *const control, PropertyGridProperty *const property);
-        /// Toggle a checkbox
-        void onMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
+        int insertPropertyIdLabel(MyGUI::Widget *const control, Steel::PropertyGridProperty *const property, int height);
         /// Read the property value into the given control.
         void updateControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
         

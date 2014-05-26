@@ -65,6 +65,9 @@ namespace Steel
 
         mSignals.needRefresh = getSignal(PublicSignal::needRefresh);
         registerSignal(mSignals.needRefresh);
+        
+        mSignals.agentCreated = mLevel->agentMan()->getSignal(AgentManager::PublicSignal::agentCreated);
+        registerSignal(mSignals.agentCreated);
 
         mLevel->selectionMan()->addListener(this);
     }
@@ -121,9 +124,9 @@ namespace Steel
             mControl->reset();
         }
         else if(signal == mSignals.needRefresh)
-        {
             mControl->reset();
-        }
+        else if(signal == mSignals.agentCreated)
+            mControl->reset();
     }
 
     void MyGUIAgentBrowserDataSource::notifyTreeNodePrepare(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node)

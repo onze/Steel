@@ -100,6 +100,31 @@ namespace Steel
         return returned;
     }
 
+    Ogre::Vector2 JsonUtils::asVector2(Json::Value const &value, const Ogre::Vector2 &defaultValue)
+    {
+        if(value.isString())
+        {
+            auto const &s = value.asString();
+
+            if(Ogre::StringConverter::isNumber(s))
+            {
+                float f = Ogre::StringConverter::parseReal(s);
+                return Ogre::Vector2(f, f);
+            }
+            else
+            {
+                return Ogre::StringConverter::parseVector2(s);
+            }
+        }
+        else if(value.isNumeric())
+        {
+            float f = value.asFloat();
+            return Ogre::Vector2(f, f);
+        }
+
+        return defaultValue;
+    }
+
     Ogre::Vector3 JsonUtils::asVector3(Json::Value const &value, const Ogre::Vector3 &defaultValue)
     {
         if(value.isString())

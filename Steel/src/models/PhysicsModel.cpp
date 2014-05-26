@@ -1,8 +1,11 @@
 #include "models/PhysicsModel.h"
 
-#include <btBulletCollisionCommon.h>
-#include <BulletDynamics/Dynamics/btRigidBody.h>
-#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+
+#include <bullet/BulletCollision/btBulletCollisionCommon.h>
+#include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
+#include <bullet/LinearMath/btVector3.h>
 #include <OgreEntity.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
@@ -20,8 +23,6 @@
 #include <tools/RigidBodyStateWrapper.h>
 #include <SignalListener.h>
 #include <Debug.h>
-#include <bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
-#include <bullet/LinearMath/btVector3.h>
 
 namespace Steel
 {
@@ -57,7 +58,7 @@ namespace Steel
         mMass(PhysicsModel::DEFAULT_MODEL_MASS), mFriction(PhysicsModel::DEFAULT_MODEL_FRICTION),
         mDamping(PhysicsModel::DEFAULT_MODEL_DAMPING), mIsKinematics(false),
         mRotationFactor(PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR), mKeepVerticalFactor(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR),
-        mStates(), mShape(BS_SPHERE),
+        mStates(), mShape(BoundingShape::SPHERE), mIsSelected(false),
         mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(), mCollidingAgents(),
         mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE), mEventSignals()
     {
@@ -121,13 +122,7 @@ namespace Steel
                 mGhostObject = nullptr;
             }
 
-            mWorld->removeRigidBody(mBody);
-
-            if(nullptr != mBody->getMotionState())
-                delete mBody->getMotionState();
-
-            delete mBody;
-            mBody = nullptr;
+            destroyRigidBody();
             mWorld = nullptr;
         }
 
@@ -153,39 +148,8 @@ namespace Steel
             return;
         }
 
-        // Create shape
-        BtOgre::StaticMeshToShapeConverter converter(omodel->entity());
+        createRigidBody(omodel);
 
-        btCollisionShape *shape = nullptr;
-
-        switch(mShape)
-        {
-            case BS_BOX:
-                shape = converter.createBox();
-                break;
-
-            case BS_CONVEXHULL:
-                shape = converter.createConvex();
-                break;
-
-            case BS_SPHERE:
-                shape = converter.createSphere();
-                break;
-
-            case BS_TRIMESH:
-                shape = converter.createTrimesh();
-                break;
-        }
-
-        //Calculate inertia.
-        btVector3 inertia;
-        shape->calculateLocalInertia(mMass, inertia);
-
-        //Create BtOgre MotionState (connects Ogre and Bullet).
-        RigidBodyStateWrapper *state = new RigidBodyStateWrapper(omodel->sceneNode());
-
-        //Create the Body.
-        mBody = new btRigidBody(mMass, state, shape, inertia);
         // default
 //         mBody->setCollisionFlags(
 //             btCollisionObject::CF_ANISOTROPIC_FRICTION |
@@ -199,14 +163,38 @@ namespace Steel
 //             //btCollisionObject::CF_NO_CONTACT_RESPONSE
 //             btCollisionObject::CF_STATIC_OBJECT
 //         );
+        addToWorld();
+
         // ghost setup if needed
         setGhost(mIsGhost);
 
-        mBody->setFriction(mFriction);
-        setDamping(mDamping);
-        mWorld->addRigidBody(mBody);
-
         setUserPointer(nullptr);
+    }
+
+    void PhysicsModel::createRigidBody(Steel::OgreModel *const omodel)
+    {
+        // Create shape
+        btVector3 inertia;
+        btCollisionShape *shape = createShapeForEntity(omodel, mShape, inertia);
+
+        //Create BtOgre MotionState (connects Ogre and Bullet).
+        RigidBodyStateWrapper *state = new RigidBodyStateWrapper(omodel->sceneNode());
+
+        //Create the Body.
+        mBody = new btRigidBody(mMass, state, shape, inertia);
+        mBody->setFriction(mFriction);
+
+        setDamping(mDamping);
+    }
+
+    void PhysicsModel::destroyRigidBody()
+    {
+        mWorld->removeRigidBody(mBody);
+
+        if(nullptr != mBody->getMotionState())
+            delete mBody->getMotionState();
+
+        STEEL_DELETE(mBody);
     }
 
     void PhysicsModel::enableWorldInteractions(bool flag)
@@ -267,12 +255,13 @@ namespace Steel
 
     void PhysicsModel::setDamping(float value)
     {
-        mBody->setDamping(value, value);
+        if(nullptr != mBody)
+            mBody->setDamping(value, value);
     }
 
     float PhysicsModel::linearDamping()
     {
-        return (float) mBody->getLinearDamping();
+        return nullptr == mBody?.0f : (float) mBody->getLinearDamping();
     }
 
     Signal PhysicsModel::registerEvent(EventType event, SignalListener *const listener)
@@ -283,7 +272,7 @@ namespace Steel
         return signal;
     }
 
-    bool PhysicsModel::fromJson(Json::Value const&root)
+    bool PhysicsModel::fromJson(Json::Value const &root)
     {
         Json::Value value;
         bool allWasFine = true;
@@ -295,7 +284,7 @@ namespace Steel
         mKeepVerticalFactor = JsonUtils::asFloat(root[PhysicsModel::KEEP_VERTICAL_FACTOR_ATTRIBUTE], PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR);
 
         auto shape = JsonUtils::asString(root[PhysicsModel::BBOX_SHAPE_ATTRIBUTE], Ogre::String(BBOX_SHAPE_NAME_SPHERE));
-        mShape = BBoxShapeFromString(shape);
+        mShape = toBoundingShape(shape);
 
         mIsGhost = JsonUtils::asBool(root[PhysicsModel::GHOST_ATTRIBUTE], false);
 
@@ -373,6 +362,7 @@ namespace Steel
     void PhysicsModel::addToWorld()
     {
         mWorld->addRigidBody(mBody);
+        mBody->setActivationState(ACTIVE_TAG);
     }
 
     void PhysicsModel::removeFromWorld()
@@ -573,42 +563,6 @@ namespace Steel
         }
     }
 
-    BoundingShape PhysicsModel::BBoxShapeFromString(Ogre::String &shape)
-    {
-        if(shape == PhysicsModel::BBOX_SHAPE_NAME_BOX)
-            return BS_BOX;
-
-        if(shape == PhysicsModel::BBOX_SHAPE_NAME_CONVEXHULL)
-            return BS_CONVEXHULL;
-
-        if(shape == PhysicsModel::BBOX_SHAPE_NAME_SPHERE)
-            return BS_SPHERE;
-
-        if(shape == PhysicsModel::BBOX_SHAPE_NAME_TRIMESH)
-            return BS_TRIMESH;
-
-        Debug::error(STEEL_METH_INTRO, "unknown value ").quotes(shape)(". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
-        return BS_SPHERE;
-    }
-
-    Ogre::String PhysicsModel::StringShapeFromBBox(BoundingShape &shape)
-    {
-        if(shape == BS_BOX)
-            return PhysicsModel::BBOX_SHAPE_NAME_BOX;
-
-        if(shape == BS_CONVEXHULL)
-            return PhysicsModel::BBOX_SHAPE_NAME_CONVEXHULL;
-
-        if(shape == BS_SPHERE)
-            return PhysicsModel::BBOX_SHAPE_NAME_SPHERE;
-
-        if(shape == BS_TRIMESH)
-            return PhysicsModel::BBOX_SHAPE_NAME_TRIMESH;
-
-        Debug::error(STEEL_METH_INTRO, "unknown value ").quotes(shape)(". Defaulting to ")(PhysicsModel::BBOX_SHAPE_NAME_SPHERE).endl();
-        return PhysicsModel::BBOX_SHAPE_NAME_SPHERE;
-    }
-
     void PhysicsModel::toJson(Json::Value &node)
     {
         if(PhysicsModel::DEFAULT_MODEL_MASS != mMass)
@@ -629,7 +583,7 @@ namespace Steel
         if(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR != mKeepVerticalFactor)
             node[PhysicsModel::KEEP_VERTICAL_FACTOR_ATTRIBUTE] = JsonUtils::toJson(mKeepVerticalFactor);
 
-        node[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(StringShapeFromBBox(mShape));
+        node[PhysicsModel::BBOX_SHAPE_ATTRIBUTE] = JsonUtils::toJson(toString(mShape));
 
         if(mIsGhost)
             node[PhysicsModel::GHOST_ATTRIBUTE] = JsonUtils::toJson(mIsGhost);
@@ -670,6 +624,8 @@ namespace Steel
         {
             popState();
         }
+
+        mIsSelected = selected;
     }
 
     bool PhysicsModel::popState()
@@ -690,7 +646,7 @@ namespace Steel
 
     void PhysicsModel::pushState()
     {
-        mStates.push( {mIsKinematics, mBody->getCollisionFlags()});
+        mStates.push( {mIsKinematics, mBody->getCollisionFlags(), mIsSelected});
     }
 
     void PhysicsModel::setPosition(const Ogre::Vector3 &pos)
@@ -872,6 +828,68 @@ namespace Steel
         mBody->setActivationState(DISABLE_DEACTIVATION);
     }
 
+    btCollisionShape *PhysicsModel::createShapeForEntity(OgreModel *const omodel, BoundingShape requestedShape, btVector3 &inertia)
+    {
+        if(nullptr == omodel)
+        {
+            Debug::error(STEEL_METH_INTRO, "cannot create shape for null ogre model. Returning nullptr.").endl();
+            return nullptr;
+        }
+
+        if(nullptr == omodel->entity())
+        {
+            Debug::error(STEEL_METH_INTRO, "cannot create shape for null ogre model entity. Returning nullptr.").endl();
+            return nullptr;
+        }
+
+        BtOgre::StaticMeshToShapeConverter converter(omodel->entity());
+        btCollisionShape *shape = nullptr;
+
+        switch(requestedShape)
+        {
+            case BoundingShape::BOX:
+                shape = converter.createBox();
+                break;
+
+            case BoundingShape::CONVEXHULL:
+                shape = converter.createConvex();
+                break;
+
+            case BoundingShape::SPHERE:
+                shape = converter.createSphere();
+                break;
+
+            case BoundingShape::TRIMESH:
+                shape = converter.createTrimesh();
+                break;
+        }
+
+        if(nullptr != shape)
+            shape->calculateLocalInertia(mMass, inertia);
+
+        return shape;
+    }
+
+    void PhysicsModel::setShape(OgreModel *const omodel, BoundingShape requestedShape)
+    {
+        bool isGhostSave = mIsGhost;
+        auto collisionFlagsSave = mBody->getCollisionFlags();
+        bool isKinematicsSave = mIsKinematics;
+
+        setGhost(false);
+
+        destroyRigidBody();
+        mShape = requestedShape;
+        createRigidBody(omodel);
+        addToWorld();
+
+
+        isKinematicsSave ? toRigidBody() : toKinematics();
+        mBody->setCollisionFlags(collisionFlagsSave);
+
+        if(isGhostSave)
+            setGhost(true);
+    }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

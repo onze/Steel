@@ -57,7 +57,7 @@ namespace Steel
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
         mEngine(engine), mViewport(nullptr), mPath(path.subfile(name)), mName(name),
         mBackgroundColor(Ogre::ColourValue::Black), mSceneManager(nullptr), mLevelRoot(nullptr),
-        mManagers(std::map<ModelType, ModelManager *>()), mAgentMan(nullptr), mOgreModelMan(nullptr),
+        mManagers(), mAgentMan(nullptr), mOgreModelMan(nullptr),
         mPhysicsModelMan(nullptr), mBTModelMan(nullptr), mTerrainMan(), mSelectionMan(nullptr), mLocationModelMan(nullptr),
         mBlackBoardModelManagerMan(nullptr),
         mCamera(nullptr), mMainLight(nullptr),
@@ -111,36 +111,29 @@ namespace Steel
         Debug::log(logName() + ".~Level()").endl();
 
         mBlackBoardModelManagerMan->clear();
-        delete mBlackBoardModelManagerMan;
-        mBlackBoardModelManagerMan = nullptr;
+        STEEL_DELETE(mBlackBoardModelManagerMan);
 
         mBTModelMan->clear();
-        delete mBTModelMan;
-        mBTModelMan = nullptr;
+        STEEL_DELETE(mBTModelMan);
 
         mPhysicsModelMan->clear();
-        delete mPhysicsModelMan;
-        mPhysicsModelMan = nullptr;
+        STEEL_DELETE(mPhysicsModelMan);
 
         mTerrainMan.shutdown();
 
         mLocationModelMan->clear();
-        delete mLocationModelMan;
-        mLocationModelMan = nullptr;
+        STEEL_DELETE(mLocationModelMan);
 
         mOgreModelMan->clear();
-        delete mOgreModelMan;
-        mOgreModelMan = nullptr;
+        STEEL_DELETE(mOgreModelMan);
+
+        mManagers.clear();
 
         if(mSceneManager != nullptr)
         {
             Ogre::RenderWindow *window = mEngine->renderWindow();
 
-            if(nullptr != mCamera)
-            {
-                delete mCamera;
-                mCamera = nullptr;
-            }
+            STEEL_DELETE(mCamera);
 
             mSceneManager->clearScene();
             mSceneManager->destroyAllCameras();
@@ -265,7 +258,7 @@ namespace Steel
 
         switch(signal)
         {
-            STEEL_LEVEL_GETSIGNAL_CASE(PublicSignal::loaded);
+                STEEL_LEVEL_GETSIGNAL_CASE(PublicSignal::loaded);
         }
 
 #undef STEEL_LEVEL_GETSIGNAL_CASE
@@ -614,34 +607,48 @@ namespace Steel
             return false;
         }
 
-        if(INVALID_ID == aid)
+        Ogre::String instancitationType = file.extension();
+        bool isModel = instancitationType == "model" || instancitationType == "models" || instancitationType == "model_refs";
+
+        if(isModel && INVALID_ID == aid)
         {
             // will end up pointing to the agent owning all created models
             if(!root.isArray() && root.isMember(Agent::ID_ATTRIBUTE))
                 aid = JsonUtils::asUnsignedLong(root[Agent::ID_ATTRIBUTE], INVALID_ID);
             else
                 aid = agentMan()->newAgent();
+
+            assert(INVALID_ID != aid);
         }
 
-        assert(INVALID_ID != aid);
-
-        Ogre::String instancitationType = file.extension();
+        bool success = false;
 
         if(instancitationType == "model")
-            return loadModelFromSerialization(root, aid);
+            success = loadModelFromSerialization(root, aid);
         else if(instancitationType == "models")
-            return loadModelsFromSerializations(root, aid);
+            success = loadModelsFromSerializations(root, aid);
         else if(instancitationType == "model_refs")
-            return loadModelsReferencesFromSerializations(root, aid);
+            success = loadModelsReferencesFromSerializations(root, aid);
         else if(instancitationType == "terrain_slot")
-            return loadTerrainSlotFromSerialization(root);
+            success = loadTerrainSlotFromSerialization(root);
         else
         {
             Debug::warning(STEEL_METH_INTRO, "instanciation type unknown: ", instancitationType).endl();
-            return false;
+            success = false;
         }
 
-        return true;
+        if(isModel)
+        {
+            if(success)
+            {
+                Agent *agent = mEngine->level()->agentMan()->getAgent(aid);
+
+                if(nullptr != agent)
+                    agent->setPersistent(true);
+            }
+        }
+
+        return success;
     }
 
     bool Level::loadModelFromSerialization(Json::Value &root, Steel::AgentId &aid)
@@ -910,13 +917,20 @@ namespace Steel
                 }
                 else if(svalue == "$slotDropPosition")
                 {
-                    auto slotPosition = getSlotDropPosition();
+                    // if there is no terrain, it makes it pretty much impossible
+                    // to figure out where to drop the resource, so force location to be at origin
+                    auto slotPosition = Ogre::Vector2::ZERO ;
 
-                    // drops farther than 5km away are forbidden
-                    if(slotPosition.length() > 5000)
+                    if(mTerrainMan.hasLoadedTerrains())
                     {
-                        Debug::error(STEEL_METH_INTRO, "slot drop position is invalid (>5k units away):")(slotPosition)(". Aborted.").endl();
-                        return false;
+                        slotPosition = getSlotDropPosition();
+
+                        // drops farther than 5km away are forbidden
+                        if(slotPosition.length() > 5000)
+                        {
+                            Debug::error(STEEL_METH_INTRO, "slot drop position is invalid (>5k units away):")(slotPosition)(". Aborted.").endl();
+                            return false;
+                        }
                     }
 
                     new_svalue = Ogre::StringConverter::toString(slotPosition);
@@ -1103,21 +1117,10 @@ namespace Steel
 
     bool Level::loadTerrainSlotFromSerialization(Json::Value &root)
     {
-        Ogre::String intro = "Level::loadTerrainSlotFromSerialization(): ";
-
-        if(root["slotPosition"].isNull())
-        {
-            Debug::error(intro)("can't find key \"slotPosition\". Aborted.").endl();
-            return false;
-        }
-
         TerrainManager::TerrainSlotData slot;
-        mTerrainMan.terrainSlotFromJson(root, slot);
-
-        if(!slot.isValid())
+        if(!mTerrainMan.terrainSlotFromJson(root, slot) || !slot.isValid())
         {
-            Debug::error(intro)("TerrainManager::TerrainSlotData is not valid. Serialized string was:");
-            Debug::error(root.toStyledString()).endl()("Aborted.").endl();
+            Debug::error(STEEL_METH_INTRO, "TerrainManager::TerrainSlotData is not valid. Serialized string was:")(root).endl()("Aborting.").endl();
             return false;
         }
 
@@ -1127,3 +1130,10 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
+
+
+
+
+
+

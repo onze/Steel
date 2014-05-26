@@ -6,6 +6,7 @@
 #include <MyGUI_Delegate.h>
 #include <MyGUI_Widget.h>
 #include <MyGUI_Button.h>
+#include <MyGUI_ComboBox.h>
 #include <MyGUI_TextBox.h>
 
 #include "UI/PropertyGrid/PropertyGridAdapter.h"
@@ -85,7 +86,7 @@ namespace Steel
             auto enumerator = mContainerWidget->getEnumerator();
             MyGUI::Gui::getInstance().destroyWidgets(enumerator);
         }
-        
+
         mControlsMap.clear();
     }
 
@@ -140,19 +141,21 @@ namespace Steel
         switch(property->valueType())
         {
             case PropertyGridPropertyValueType::Float:
-                buildFloatControl(control, property);
+                buildFloatControl(control, property, height);
                 break;
 
             case PropertyGridPropertyValueType::Bool:
-                buildBoolControl(control, property);
+                buildBoolControl(control, property, height);
+                break;
+
+            case PropertyGridPropertyValueType::StringVectorSelection:
+                buildStringVectorSelectionControl(control, property, height);
                 break;
 
             case PropertyGridPropertyValueType::None:
             default:
-                buildDummyControl(control, property);
+                buildDummyControl(control, property, height);
         }
-
-        height = control->getBottom();
 
         mControlsMap.insert(std::make_pair(property->id(), control));
 
@@ -167,13 +170,15 @@ namespace Steel
         return true;
     }
 
-    int PropertyGridManager::insertPropertyIdLabel(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    int PropertyGridManager::insertPropertyIdLabel(MyGUI::Widget *const control, PropertyGridProperty *const property, int height)
     {
-        MyGUI::TextBox *label = (MyGUI::TextBox *)control->createWidget<MyGUI::TextBox>("TextBox", control->getClientCoord(), MyGUI::Align::Left | MyGUI::Align::Top, "Label");
+        MyGUI::IntCoord coords(control->getClientCoord());
+        coords.top = height;
+        MyGUI::TextBox *label = (MyGUI::TextBox *)control->createWidget<MyGUI::TextBox>("TextBox", coords, MyGUI::Align::Left | MyGUI::Align::Top, "Label");
         label->setColour(MyGUI::Colour::White);
         label->setCaption(property->id() + ":");
         label->setSize(label->getTextSize());
-        return label->getRight() + sSpaceBetweenWidgets;
+        return label->getRight() + WIDGET_SPACING;
     }
 
     void PropertyGridManager::updateControlValue(MyGUI::Widget *const control, PropertyGridProperty *const property)
@@ -188,6 +193,10 @@ namespace Steel
                 updateBoolControlValue(control, property);
                 break;
 
+            case PropertyGridPropertyValueType::StringVectorSelection:
+                updateStringVectorSelectionControlValue(control, property);
+                break;
+
             case PropertyGridPropertyValueType::None:
             default:
                 break;
@@ -195,23 +204,27 @@ namespace Steel
     }
 
 /////////////////// <DUMMY CONTROL>
-    void PropertyGridManager::buildDummyControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    void PropertyGridManager::buildDummyControl(MyGUI::Widget *const control, PropertyGridProperty *const property, int &height)
     {
-        MyGUI::TextBox *label = (MyGUI::TextBox *)control->createWidget<MyGUI::TextBox>("TextBox", control->getClientCoord(), MyGUI::Align::HCenter | MyGUI::Align::Top, "Label");
+        MyGUI::IntCoord coords(control->getClientCoord());
+        coords.top = height;
+        MyGUI::TextBox *label = (MyGUI::TextBox *)control->createWidget<MyGUI::TextBox>("TextBox", coords, MyGUI::Align::HCenter | MyGUI::Align::Top, "Label");
         label->setColour(MyGUI::Colour::White);
         label->setCaption(property->id());
+        height = label->getBottom();
     }
 /////////////////// </DUMMY CONTROL>
 
 /////////////////// <BOOL CONTROL>
-    void PropertyGridManager::buildBoolControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    void PropertyGridManager::buildBoolControl(MyGUI::Widget *const control, PropertyGridProperty *const property, int &height)
     {
-        int left = insertPropertyIdLabel(control, property);
+        int left = insertPropertyIdLabel(control, property, height);
         int size = control->getClientCoord().height;
-        MyGUI::IntCoord coord(left, 0, size, size);
+        MyGUI::IntCoord coord(left, height, size, size);
         MyGUI::Button *checkbox = (MyGUI::Button *)control->createWidget<MyGUI::Button>("CheckBox", coord, MyGUI::Align::Left | MyGUI::Align::Top, "CheckBox");
         checkbox->setUserData(property);
         checkbox->eventMouseButtonClick += MyGUI::newDelegate(this, &PropertyGridManager::onMyGUIMouseButtonClickForCheckboxToggle);
+        height = checkbox->getBottom();
     }
 
     void PropertyGridManager::updateBoolControlValue(MyGUI::Widget *const control, PropertyGridProperty *const property)
@@ -251,7 +264,7 @@ namespace Steel
 /////////////////// </BOOL CONTROL>
 
 /////////////////// <FLOAT CONTROL>
-    void PropertyGridManager::buildFloatControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    void PropertyGridManager::buildFloatControl(MyGUI::Widget *const control, PropertyGridProperty *const property, int &height)
     {
 
     }
@@ -259,7 +272,61 @@ namespace Steel
     {
 
     }
-
 /////////////////// </FLOAT CONTROL>
+
+/////////////////// <SELECTION FROM STRING VECTOR CONTROL>
+    void PropertyGridManager::buildStringVectorSelectionControl(MyGUI::Widget *const control, PropertyGridProperty *const property, int &height)
+    {
+        int left = insertPropertyIdLabel(control, property, height);
+
+        int width = control->getWidth() - left - WIDGET_SPACING;
+        MyGUI::IntCoord coord(left, height, width, height + 20);
+        MyGUI::ComboBox *cbBox = (MyGUI::ComboBox *)control->createWidget<MyGUI::ComboBox>("ComboBox", coord, MyGUI::Align::Left | MyGUI::Align::Top, "ComboBox");
+        cbBox->setEditReadOnly(true);
+        cbBox->setComboModeDrop(true); //a position change also acts as a submit (aka accept) (both events are raised in this order).
+        cbBox->setUserData(property);
+        cbBox->eventComboAccept += MyGUI::newDelegate(this, &PropertyGridManager::onMyGUIComboAccept);
+        height = cbBox->getBottom();
+    }
+
+    void PropertyGridManager::updateStringVectorSelectionControlValue(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    {
+        MyGUI::ComboBox *cbBox = (MyGUI::ComboBox *)control->findWidget("ComboBox");
+
+        if(nullptr == cbBox)
+        {
+            Debug::error(STEEL_METH_INTRO, "could not find comboBox in stringVectorSelection propertyControl. Control: ", control, " property: ", *property, ". Aborting.").endl();
+            return;
+        }
+
+        PropertyGridProperty::StringVectorSelection readItem;
+        property->read(readItem);
+
+        cbBox->removeAllItems();
+
+        for(Ogre::String const & value : readItem.selectableValues)
+            cbBox->addItem(value);
+
+        cbBox->setIndexSelected(readItem.selectedIndex);
+    }
+
+    void PropertyGridManager::onMyGUIComboAccept(MyGUI::ComboBox *sender, size_t index)
+    {
+        MyGUI::ComboBox *cbBox = sender->castType<MyGUI::ComboBox>();
+
+        PropertyGridProperty *const property = *(cbBox->getUserData<PropertyGridProperty *>());
+
+        if(nullptr == property)
+        {
+            Debug::error(STEEL_METH_INTRO, "no property linked to control ", cbBox->getParent()).endl().breakHere();
+            return;
+        }
+
+        if(PropertyGridPropertyValueType::StringVectorSelection == property->valueType())
+            property->write((u32)index);
+        else
+            Debug::error(STEEL_METH_INTRO, "got a combobox event for property ", *property, ". Skipping event.").endl();
+    }
+/////////////////// </SELECTION FROM STRING VECTOR CONTROL>
 
 }

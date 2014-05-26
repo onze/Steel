@@ -77,7 +77,7 @@ namespace Steel
             (*it)->onTerrainEvent(state);
         }
     }
-    
+
     void TerrainManager::shutdown()
     {
 //         if(nullptr != mTerrainMaterialGenerator)
@@ -337,17 +337,15 @@ namespace Steel
         }
     }
 
-    void TerrainManager::deserializeLayerList(const Json::Value &layersValue, Ogre::Terrain::LayerInstanceList &layerList)
+    bool TerrainManager::deserializeLayerList(const Json::Value &layersValue, Ogre::Terrain::LayerInstanceList &layerList)
     {
-        Ogre::String intro = "deserializeLayerList(): ";
-
         if(layersValue.isNull())
-            Debug::warning(intro)("layersValue is null !").endl();
+            Debug::warning(STEEL_METH_INTRO, "layersValue is null !").endl();
 
         if(!layersValue.isConvertibleTo(Json::arrayValue))
         {
-            Debug::warning(intro)("can't convert layersValue to array. Using default.").endl();
-            return;
+            Debug::warning(STEEL_METH_INTRO, "can't convert layersValue to array. Using default.").endl();
+            return false;
         }
         else
         {
@@ -362,8 +360,7 @@ namespace Steel
 
                 if(value.isNull())
                 {
-                    Debug::warning(intro)("key 'layerList[")(layerIndex).endl();
-                    Debug::warning("].worldSize' is null. Skipping !").endl();
+                    Debug::warning(STEEL_METH_INTRO, "key 'layerList[", layerIndex, "].worldSize' is null. Skipping.").endl();
                     continue;
                 }
 
@@ -371,8 +368,7 @@ namespace Steel
 
                 if(-1 == worldSize)
                 {
-                    Debug::warning(intro)("could not parse key 'layerList[")(layerIndex).endl();
-                    Debug::warning("].worldSize' (")(value)("). Skipping !").endl();
+                    Debug::warning(STEEL_METH_INTRO, "could not parse key 'layerList[", layerIndex, "].worldSize' (", value, "). Skipping.").endl();
                     continue;
                 }
 
@@ -381,15 +377,13 @@ namespace Steel
 
                 if(textureNamesValue.isNull())
                 {
-                    Debug::warning(intro)("key 'layerList[")(layerIndex).endl();
-                    Debug::warning("].textureNames' is null. Skipping !").endl();
+                    Debug::warning(STEEL_METH_INTRO, "key 'layerList[", layerIndex, "].textureNames' is null. Skipping.").endl();
                     continue;
                 }
 
                 if(!textureNamesValue.isConvertibleTo(Json::arrayValue))
                 {
-                    Debug::warning(intro)("key 'layerList[")(layerIndex).endl();
-                    Debug::warning("].textureNames' is not an Array (")(textureNamesValue)("). Skipping !").endl();
+                    Debug::warning(STEEL_METH_INTRO, "key 'layerList[", layerIndex, "].textureNames' is not an Array (", textureNamesValue, "). Skipping.").endl();
                     continue;
                 }
 
@@ -428,12 +422,14 @@ namespace Steel
         if(layerList.size() == 0)
         {
             Ogre::String defaultTexturePath = "default_terrain_texture.png";
-            Debug::log(intro)("adding default layer ")(defaultTexturePath)(" to layerList.").endl();
+            Debug::log(STEEL_METH_INTRO, "adding default layer ").quotes(defaultTexturePath)(" to layerList.").endl();
             Ogre::Terrain::LayerInstance instance;
             instance.worldSize = 2;
             instance.textureNames.push_back(defaultTexturePath);
             layerList.push_back(instance);
         }
+
+        return true;
     }
 
     bool TerrainManager::fromJson(Json::Value &root)
@@ -567,11 +563,19 @@ namespace Steel
         updateTerrains();
     }
 
-    TerrainManager::TerrainSlotData TerrainManager::terrainSlotFromJson(Json::Value &terrainSlotValue,
+    bool TerrainManager::terrainSlotFromJson(Json::Value &terrainSlotValue,
             TerrainManager::TerrainSlotData &terrainSlot)
     {
-        auto slotPosition = Ogre::StringConverter::parseVector2(terrainSlotValue["slotPosition"].asString(),
-                            Ogre::Vector2(FLT_MAX, FLT_MAX));
+        Ogre::Vector2 slotPosition = Ogre::Vector2::ZERO;
+
+        if(!terrainSlotValue["slotPosition"].isNull())
+            slotPosition = JsonUtils::asVector2(terrainSlotValue["slotPosition"]);
+        else
+        {
+            Debug::error(STEEL_METH_INTRO, "key ").quotes("slotPosition")(" not found in resource. Aborting. Serialization:").endl()(terrainSlotValue).endl();
+            return false;
+        }
+
         terrainSlot.slot_x = static_cast<long int>(slotPosition.x);
         terrainSlot.slot_y = static_cast<long int>(slotPosition.y);
         terrainSlot.heightmapPath = terrainSlotValue["heightmapPath"].asString().c_str();
@@ -587,7 +591,7 @@ namespace Steel
             terrainSlot.worldSize = TerrainManager::DEFAULT_WORLD_SIZE;
 
         deserializeLayerList(terrainSlotValue["layerList"], terrainSlot.layerList);
-        return terrainSlot;
+        return true;
     }
 
     void TerrainManager::build(Ogre::ColourValue ambient, Ogre::Vector3 lightDir,
@@ -1035,6 +1039,13 @@ namespace Steel
         valid &= layerList.size() > 0;
         return valid;
     }
+
+    bool TerrainManager::hasLoadedTerrains() const
+    {
+        auto it = mTerrainGroup->getTerrainIterator();
+        return it.begin() != it.end();
+    }
+
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

@@ -5,6 +5,7 @@
 #include "Level.h"
 #include "models/LocationModel.h"
 #include "Debug.h"
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -57,6 +58,7 @@ namespace Steel
         Agent *t = new Agent(getFreeAgentId(), mLevel);
         mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
         Debug::log("new agent with id ")(t->id()).endl();
+        SignalManager::instance().emit(getSignal(PublicSignal::agentCreated));
         return t->id();
     }
 
@@ -70,6 +72,7 @@ namespace Steel
             t = new Agent(id, mLevel);
             mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
             Debug::log("new agent with id ")(t->id()).endl();
+            SignalManager::instance().emit(getSignal(PublicSignal::agentCreated));
         }
 
         return t;
@@ -204,6 +207,19 @@ namespace Steel
     const std::set< AgentId > &AgentManager::agentTagged(Tag tag)
     {
         return mTagRegister.emplace(tag, std::set<AgentId>()).first->second;
+    }
+
+    Signal AgentManager::getSignal(AgentManager::PublicSignal signal) const
+    {
+#define STEEL_AGENTMANAGER_GETSIGNAL_CASE(NAME) case NAME:return SignalManager::instance().toSignal("Steel::AgentManager::"#NAME)
+
+        switch(signal)
+        {
+                STEEL_AGENTMANAGER_GETSIGNAL_CASE(PublicSignal::agentCreated);
+        }
+
+#undef STEEL_AGENTMANAGER_GETSIGNAL_CASE
+        return INVALID_SIGNAL;
     }
 
 

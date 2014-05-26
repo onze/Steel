@@ -582,7 +582,7 @@ namespace Steel
 
         return File(path + filename);
     }
-
+    
     File File::operator/(Ogre::String const filename) const
     {
         return subfile(filename);

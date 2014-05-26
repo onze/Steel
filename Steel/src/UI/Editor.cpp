@@ -15,6 +15,7 @@
 #include "UI/UI.h"
 #include "UI/PropertyGrid/PropertyGridManager.h"
 #include "UI/PropertyGrid/PropertyGridAgentAdapter.h"
+#include "UI/PropertyGrid/PropertyGridModelAdapter.h"
 #include "models/Agent.h"
 #include "models/OgreModelManager.h"
 #include "models/PhysicsModelManager.h"
@@ -202,11 +203,7 @@ namespace Steel
                 mMyGUIWidgets.pathsListComboBox->removeAllItems();
             }
 
-            // other widgets that are useful to keep a handle on for frequent references
-            mMyGUIWidgets.mainWindow = (decltype(mMyGUIWidgets.mainWindow))findMyGUIChildWidget("Root");
-            mMyGUIWidgets.mainWindow->eventWindowChangeCoord += MyGUI::newDelegate(this, &Editor::MyGUIEditorWindowChangeCoord);
-
-            // agnet property grid
+            // agent property grid
             {
                 MyGUI::ScrollView *const propertyGrid = (MyGUI::ScrollView *)findMyGUIChildWidget("EditorAgentPropertyGrid");
 
@@ -216,14 +213,23 @@ namespace Steel
                     Debug::error("could not initialize mAgenModelPropertyGridMan. Skipping.").endl();
             }
 
-            if(nullptr != mMyGUIWidgets.mainWindow)
+            // main editor window
             {
-                auto coords = mMyGUIWidgets.mainWindow->getPosition();
-                Ogre::Vector2 position;
+                mMyGUIWidgets.mainWindow = (decltype(mMyGUIWidgets.mainWindow))findMyGUIChildWidget("Root");
+                mMyGUIWidgets.mainWindow->eventWindowChangeCoord += MyGUI::newDelegate(this, &Editor::MyGUIEditorWindowChangeCoord);
 
-                if(mEngine->config().getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
-                    mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
+                if(nullptr != mMyGUIWidgets.mainWindow)
+                {
+                    auto coords = mMyGUIWidgets.mainWindow->getPosition();
+                    Ogre::Vector2 position;
+
+                    if(mEngine->config().getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
+                        mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
+                }
             }
+
+            // other widgets that are useful to keep a handle on for frequent references
+            mMyGUIWidgets.levelSelectionCbbox = (decltype(mMyGUIWidgets.levelSelectionCbbox))findMyGUIChildWidget("LevelSelectionCbbox");
         }
 
         mBrush.init(mEngine, this, mInputMan);
@@ -438,13 +444,16 @@ namespace Steel
                     case MyGUIAgentBrowserDataSource::ControlNodeDataType::NodeType::Model:// node is a model node.
                         switch(modelData->modelType)
                         {
-                            case ModelType::OGRE:
                             case ModelType::PHYSICS:
+                                newAdapter = new PropertyGridPhysicsModelAdapter(mEngine->level(), modelData->agentId, modelData->modelId);
+                                break;
+
+                            case ModelType::OGRE:
                             case ModelType::LOCATION:
                             case ModelType::BT:
                             case ModelType::BLACKBOARD:
                             default:
-                                newAdapter = new PropertyGridAdapter(); // TODO: use actual model adapter instead of dummy one
+                                newAdapter = new PropertyGridModelAdapter(mEngine->level(), modelData->agentId, modelData->modelId);
                                 break;
                         }
 
@@ -470,9 +479,26 @@ namespace Steel
         STEEL_DELETE(previousAdapter);
     }
 
+    void Editor::refreshLevelList()
+    {
+        if(nullptr == mMyGUIWidgets.levelSelectionCbbox)
+            return;
+
+        mMyGUIWidgets.levelSelectionCbbox->removeAllItems();
+
+        for(File const & levelDir : mEngine->levelsDir().ls(File::NodeType::DIR))
+            mMyGUIWidgets.levelSelectionCbbox->addItem(levelDir.fileName());
+
+        Level const *const level = mEngine->level();
+
+        if(nullptr != level)
+            mMyGUIWidgets.levelSelectionCbbox->setIndexSelected(mMyGUIWidgets.levelSelectionCbbox->findItemIndexWith(nullptr == level ? "" : level->name()));
+    }
+
     void Editor::onLevelSet(Level *level)
     {
         level->selectionMan()->addListener(this);
+        refreshLevelList();
         updatePathsList();
     }
 
@@ -631,6 +657,7 @@ namespace Steel
         // TODO: set brush shape
         // processCommand(Ogre::String("editorbrush.terrabrush.distribution.") + select_form->GetOption(index)->GetValue().CString());
 
+        refreshLevelList();
         refreshSelectionTagsWidget();
         refreshSelectionPathWidget();
     }
@@ -749,11 +776,7 @@ namespace Steel
 
             if(file.exists())
             {
-                AgentId aid = INVALID_ID;
-                bool success = mEngine->level()->instanciateResource(file, aid);
-
-                if(success)
-                    mEngine->level()->agentMan()->getAgent(aid)->setPersistent(true);
+                mEngine->level()->instanciateResource(file);
             }
             else
             {
@@ -974,5 +997,7 @@ namespace Steel
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
+
 
 

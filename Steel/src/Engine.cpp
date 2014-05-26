@@ -66,7 +66,7 @@ namespace Steel
 
     Level *Engine::createLevel(Ogre::String levelName)
     {
-        return new Level(this, dataDir().subfile("levels"), levelName);
+        return new Level(this, levelsDir(), levelName);
     }
 
     Level *Engine::setCurrentLevel(Level *newLevel)

@@ -166,6 +166,8 @@ namespace Steel
 
         void refreshSelectionTagsWidget();
         void populateSelectionTagsWidget(std::list< Ogre::String > tags);
+        
+        void refreshLevelList();
 
         void refreshSelectionPathWidget();
         
@@ -210,6 +212,7 @@ namespace Steel
             MyGUI::ComboBox *pathsListComboBox = nullptr;
 
             MyGUI::Window *mainWindow = nullptr;
+            MyGUI::ComboBox *levelSelectionCbbox = nullptr;
         };
         MyGUIWidgets mMyGUIWidgets;
         PropertyGridManager *mAgenModelPropertyGridMan = nullptr; // not a MyGUI widget, yet MyGUI related.

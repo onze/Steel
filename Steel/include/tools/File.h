@@ -122,7 +122,6 @@ namespace Steel
          */
         File subfile(Ogre::String const filename) const;
         File operator/(Ogre::String const filename) const;
-        
 
         /// The file/dir containing this file instance.
         File parentDir() const;

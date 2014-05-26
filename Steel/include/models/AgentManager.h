@@ -50,6 +50,12 @@ namespace Steel
             void removeTaggedAgent(Tag const &tag, AgentId const aid);
             /// Retreive all agents tagged with the given tag
             const std::set< AgentId > & agentTagged(Steel::Tag tag);
+            
+            enum class PublicSignal : u32
+            {
+                agentCreated = 0
+            };
+            Signal getSignal(AgentManager::PublicSignal signal) const;
 
         private:
             /// Creates an empty agent with the given id.
