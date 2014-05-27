@@ -890,6 +890,26 @@ namespace Steel
         if(isGhostSave)
             setGhost(true);
     }
+
+    void PhysicsModel::setMass(float mass)
+    {
+        if(nullptr == mBody)
+            return;
+
+        if(mass != mMass)
+        {
+            mMass = mass;
+            btCollisionShape *const shape = mBody->getCollisionShape();
+
+            btVector3 inertia(.0f, .0f, .0f);
+
+            if(nullptr != shape)
+                shape->calculateLocalInertia(mMass, inertia);
+
+            mBody->setMassProps(mMass, inertia);
+        }
+    }
+
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
 

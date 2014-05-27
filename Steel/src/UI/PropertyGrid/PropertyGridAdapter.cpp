@@ -12,7 +12,7 @@ namespace Steel
         switch(valueType)
         {
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Bool);
-                STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Float);
+                STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Range);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::StringVectorSelection);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::None);
         }
@@ -31,7 +31,7 @@ namespace Steel
     {
 
     }
-
+////////////////////////////// <PropertyGridPropertyValueType::Bool>
     void PropertyGridProperty::setCallbacks(BoolReadCallback boolReadCallback, BoolWriteCallback boolWriteCallback)
     {
         mValueType = PropertyGridPropertyValueType::Bool;
@@ -55,7 +55,9 @@ namespace Steel
         else
             Debug::warning(*this, " is a read-only property.").endl();
     }
+////////////////////////////// </PropertyGridPropertyValueType::Bool>
 
+////////////////////////////// <PropertyGridPropertyValueType::StringVectorSelection>
     void PropertyGridProperty::setCallbacks(StringVectorSelectionReadCallback readCallback, StringVectorSelectionWriteCallback writeCallback)
     {
         mValueType = PropertyGridPropertyValueType::StringVectorSelection;
@@ -79,6 +81,33 @@ namespace Steel
         else
             Debug::warning(*this, " is a read-only property.").endl();
     }
+////////////////////////////// </PropertyGridPropertyValueType::StringVectorSelection>
+
+////////////////////////////// <PropertyGridPropertyValueType::Range>
+    void PropertyGridProperty::setCallbacks(RangeReadCallback readCallback, RangeWriteCallback writeCallback)
+    {
+        mValueType = PropertyGridPropertyValueType::Range;
+        mRangeReadCallback = readCallback;
+        mRangeWriteCallback = writeCallback;
+    }
+
+    void PropertyGridProperty::read(Range &value)
+    {
+        if(nullptr != mRangeReadCallback)
+            value = mRangeReadCallback();
+    }
+
+    void PropertyGridProperty::write(Range const &value)
+    {
+        if(nullptr != mRangeWriteCallback)
+        {
+            mRangeWriteCallback(value);
+            emit(getSignal(PublicSignal::changed));
+        }
+        else
+            Debug::warning(*this, " is a read-only property.").endl();
+    }
+////////////////////////////// </PropertyGridPropertyValueType::Range>
 
     Signal PropertyGridProperty::getSignal(PropertyGridProperty::PublicSignal signal) const
     {

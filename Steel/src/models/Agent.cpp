@@ -21,10 +21,11 @@
 #include "models/BTModel.h"
 #include "models/BTModelManager.h"
 #include "models/AgentManager.h"
-#include <SignalManager.h>
+#include "SignalManager.h"
 
 namespace Steel
 {
+    const char *Agent::NAME_ATTRIBUTE = "name";
     const char *Agent::TAGS_ATTRIBUTE = "tags";
     const char *Agent::ID_ATTRIBUTE = "aid";
     const char *Agent::BEHAVIORS_STACK_ATTRIBUTE = "behaviorsStack";
@@ -32,7 +33,7 @@ namespace Steel
     Agent::PropertyTags Agent::sPropertyTags;
 
     Agent::Agent(AgentId id, Steel::Level *level): mId(id), mLevel(level),
-        mModelIds(std::map<ModelType, ModelId>()), mIsSelected(false), mTags(std::map<Tag, unsigned>()),
+        mModelIds(), mIsSelected(false), mTags(),
         mBehaviorsStack()
     {
     }
@@ -110,7 +111,11 @@ namespace Steel
 
     bool Agent::fromJson(Json::Value &value)
     {
-//  Debug::log("Agent<")(mId)(">::fromJson():").endl()(value.toStyledString()).endl();
+        // name
+        if(value.isMember(Agent::NAME_ATTRIBUTE))
+            setName(JsonUtils::asString(value[Agent::NAME_ATTRIBUTE]));
+
+        // models
         int nModels = 0, nExpected = 0;
 
         for(ModelType mt_it = (ModelType)((int) ModelType::FIRST + 1); mt_it != ModelType::LAST; mt_it = (ModelType)((int) mt_it + 1))
@@ -127,8 +132,7 @@ namespace Steel
 
             if(!linkToModel(mt_it, modelId))
             {
-                Debug::error("Agent::fromJson(): agent ")(mId);
-                Debug::error(" would not link with model<")(mtName)("> ")(mId)(". Skipping.").endl();
+                Debug::error(STEEL_METH_INTRO, "agent: ", mId, " would not link with model<", mtName, "> ", mId, ". Skipping.").endl();
                 continue;
             }
 
@@ -136,10 +140,7 @@ namespace Steel
         }
 
         if(nModels != nExpected)
-        {
-            Debug::warning("Agent::fromJson(): agent ")(mId)(" linked with (")(nModels)(" models, ");
-            Debug::warning(nExpected)(" were expected. Json string:").endl()(value).endl();
-        }
+            Debug::warning(STEEL_METH_INTRO, "agent: ", mId, " is linked with ", nModels, " models, but ", nExpected, " were expected. Json string:").endl()(value).endl();
 
         // behaviors
         mBehaviorsStack = JsonUtils::asModelIdList(value[Agent::BEHAVIORS_STACK_ATTRIBUTE], std::list<ModelId>(), INVALID_ID);
@@ -392,6 +393,10 @@ namespace Steel
     Json::Value Agent::toJson()
     {
         Json::Value root;
+        
+        // name
+        if(hasName())
+            root[Agent::NAME_ATTRIBUTE] = name();
 
         // model ids
         for(std::map<ModelType, ModelId>::iterator it = mModelIds.begin(); it != mModelIds.end(); ++it)

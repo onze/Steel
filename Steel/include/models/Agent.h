@@ -3,6 +3,7 @@
 
 #include "steeltypes.h"
 #include "SignalEmitter.h"
+#include <tools/StringUtils.h>
 
 namespace Steel
 {
@@ -24,6 +25,7 @@ namespace Steel
     class Agent : public SignalEmitter
     {
     public:
+        static const char *NAME_ATTRIBUTE;
         static const char *TAGS_ATTRIBUTE;
         static const char *ID_ATTRIBUTE;
         static const char *BEHAVIORS_STACK_ATTRIBUTE;
@@ -168,10 +170,17 @@ namespace Steel
         void setPersistent(bool flag);
 
         //////////////////////////////////////////////////////////////////////
+        // handy
+        inline Ogre::String const &name()const {return mName;}
+        inline bool hasName()const {return StringUtils::BLANK != name();}
+        inline void setName(Ogre::String const &name) {mName = name;}
+
+        //////////////////////////////////////////////////////////////////////
         // signals
         /// Emitted signals TODO: use PublicSignal pattern instead
         enum class EventType : int
         {
+            //TODO: implement PublicSignal pattern
             SELECTED = 1,
             UNSELECTED = 2,
         };
@@ -180,8 +189,6 @@ namespace Steel
     private:
         /// Emit with an auto lookup for the corresponding signal value.
         void emit(Agent::EventType e);
-    public:
-
 
     private:
         /// Tags used internally, grouped here.
@@ -192,15 +199,16 @@ namespace Steel
         static PropertyTags sPropertyTags;
 
         /// Unique id.
-        AgentId mId;
+        AgentId mId = INVALID_ID;
+        Ogre::String mName = "";
 
         /// Ptr to the level the agent is in.
-        Level *mLevel;
+        Level *mLevel = nullptr;
 
         std::map<ModelType, ModelId> mModelIds;
 
         /// state flag
-        bool mIsSelected;
+        bool mIsSelected = false;
 
         /**
          * The agent's tags. Since some tags are refs to the agent models,

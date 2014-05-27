@@ -90,6 +90,7 @@ namespace Steel
         void toRigidBody();
 
         inline float mass() const {return mMass;}
+        void setMass(float mass);
 
         void rotate(Ogre::Quaternion const &q);
         void setRotation(Ogre::Quaternion const &q);

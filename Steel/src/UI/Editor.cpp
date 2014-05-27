@@ -776,7 +776,13 @@ namespace Steel
 
             if(file.exists())
             {
-                mEngine->level()->instanciateResource(file);
+                AgentId aid = INVALID_ID;
+                mEngine->level()->instanciateResource(file, aid);
+                Agent *const agent = mEngine->level()->agentMan()->getAgent(aid);
+
+                // if an agent was instanciated, make it persistent as that's what we
+                if(nullptr != agent)
+                    agent->setPersistent(true);
             }
             else
             {

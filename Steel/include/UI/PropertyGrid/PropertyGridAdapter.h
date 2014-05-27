@@ -12,7 +12,7 @@ namespace Steel
     {
         None = 0,
         Bool,
-        Float,
+        Range,
         StringVectorSelection
     };
 
@@ -27,14 +27,25 @@ namespace Steel
             StringVector selectableValues;
             selection_type selectedIndex;
         };
-        
+
+        struct Range
+        {
+            typedef f32 value_type;
+            value_type min;
+            value_type max;
+            value_type value;
+            // TODO: enum class RangeType : u32 {Linear = 1, Exponential = 2, LogLinear = 3, etc}
+        };
+
         // read callbacks
         typedef std::function<bool(void)> BoolReadCallback;
         typedef std::function<StringVectorSelection(void)> StringVectorSelectionReadCallback;
-        
+        typedef std::function<Range(void)> RangeReadCallback;
+
         // write callbacks
         typedef std::function<void(bool)> BoolWriteCallback;
         typedef std::function<void(StringVectorSelection::selection_type)> StringVectorSelectionWriteCallback;
+        typedef std::function<void(Range const &)> RangeWriteCallback;
 
         PropertyGridProperty() = delete;
         PropertyGridProperty(PropertyGridPropertyId id);
@@ -42,18 +53,19 @@ namespace Steel
 
         PropertyGridPropertyId id() const {return mId;}
         PropertyGridPropertyValueType valueType() const {return mValueType;}
-        
-        /// Reads the property value into the given parameter.
-        void read(bool &value);
-        /// Writes the given parameter to the property value.
-        void write(bool value);
+
+        void read(bool &value);/// Reads the property value into the given parameter.
+        void write(bool value);/// Writes the given parameter to the property value.
         void setCallbacks(BoolReadCallback readCallback, BoolWriteCallback writeCallback);
-        
-        void read(StringVectorSelection &value);
-        void write(StringVectorSelection::selection_type value);
+
+        void read(StringVectorSelection &value);/// Reads the property value into the given parameter.
+        void write(StringVectorSelection::selection_type value);/// Writes the given parameter to the property value.
         void setCallbacks(StringVectorSelectionReadCallback readCallback, StringVectorSelectionWriteCallback writeCallback);
         
-        
+        void read(Range &value);/// Reads the property value into the given parameter.
+        void write(Range const &value);/// Writes the given parameter to the property value.
+        void setCallbacks(RangeReadCallback readCallback, RangeWriteCallback writeCallback);
+
         enum class PublicSignal : u32
         {
             /// Emitted when the property value changes
@@ -65,13 +77,15 @@ namespace Steel
         PropertyGridPropertyId mId;
         /// the type of value this property represents
         PropertyGridPropertyValueType mValueType;
-        
+
         BoolReadCallback mBoolReadCallback;
         BoolWriteCallback mBoolWriteCallback;
-        
+
         StringVectorSelectionReadCallback mStringVectorSelectionReadCallback;
         StringVectorSelectionWriteCallback mStringVectorSelectionWriteCallback;
-        
+
+        RangeReadCallback mRangeReadCallback;
+        RangeWriteCallback mRangeWriteCallback;
     };
 
     typedef std::vector<PropertyGridProperty *> PropertyGridPropertyVector;

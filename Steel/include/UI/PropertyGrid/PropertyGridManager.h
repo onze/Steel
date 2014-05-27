@@ -3,18 +3,19 @@
 
 #include "steeltypes.h"
 #include "SignalListener.h"
+#include "PropertyGridAdapter.h"
 
 namespace MyGUI
 {
-    class ScrollView;
-    class Widget;
     class ComboBox;
+    class ScrollBar;
+    class ScrollView;
+    class TextBox;
+    class Widget;
 }
 
 namespace Steel
 {
-    class PropertyGridAdapter;
-
     /**
      * Build a set of MyGUI controls to modify a PropertyGridAdapter's properties.
      * 
@@ -53,27 +54,34 @@ namespace Steel
         
         //specialized builder methods
         /// Builds an empty control that only shows the property id
-        void buildDummyControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
-        
-        /// Builds a scrollbar control bound to a property of type Float
-        void buildFloatControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
-        void updateFloatControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void buildDummyControl(MyGUI::Widget *control, PropertyGridProperty *const property);
         
         /// Builds a checkbox control bound to a property of type Bool
-        void buildBoolControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
+        void buildBoolControl(MyGUI::Widget *control, PropertyGridProperty *const property);
         void updateBoolControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
         /// Toggle a checkbox
         void onMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
         
+        /// Builds a scrollbar control bound to a property of type Range
+        void buildRangeControl(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void updateRangeControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void onMyGUIScrollChangePosition(MyGUI::ScrollBar *scrollBar, size_t index);
+        
         /// Builds a combobox control bound to a property of type StringVectorSelection
-        void buildStringVectorSelectionControl(MyGUI::Widget *control, PropertyGridProperty *const property, int &height);
+        void buildStringVectorSelectionControl(MyGUI::Widget *control, PropertyGridProperty *const property);
         void updateStringVectorSelectionControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
         /// Combobox event callback
         void onMyGUIComboAccept(MyGUI::ComboBox* sender, size_t index);
         
         // helper methods
+        int insertLabel(MyGUI::Widget *const control, Ogre::String const&labelName, Ogre::String const&labelCaption, int x)
+        {
+            MyGUI::TextBox *ptr = nullptr;;
+            return insertLabel(control, labelName, labelCaption, x, ptr);
+        }
+        int insertLabel(MyGUI::Widget *const control, const Ogre::String &labelName, const Ogre::String &labelCaption, int x, MyGUI::TextBox *&labelPtr);
         /// Creates a left aligned Textbox with the property id as label. Returns the label.right value.
-        int insertPropertyIdLabel(MyGUI::Widget *const control, Steel::PropertyGridProperty *const property, int height);
+        int insertPropertyIdLabel(MyGUI::Widget *const control, Steel::PropertyGridProperty *const property);
         /// Read the property value into the given control.
         void updateControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
         
@@ -93,6 +101,9 @@ namespace Steel
         typedef std::map<PropertyGridPropertyId, MyGUI::Widget *> ControlsMap;
         /// Maps a property id to its dedicated widget
         ControlsMap mControlsMap;
+        
+        /// Properties Ranges have to be saved in between callbacks, and deleted afterwards
+        std::map<PropertyGridPropertyId, PropertyGridProperty::Range *> mRanges;
     };
 }
 

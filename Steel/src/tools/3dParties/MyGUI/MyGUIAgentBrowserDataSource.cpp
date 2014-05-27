@@ -65,7 +65,7 @@ namespace Steel
 
         mSignals.needRefresh = getSignal(PublicSignal::needRefresh);
         registerSignal(mSignals.needRefresh);
-        
+
         mSignals.agentCreated = mLevel->agentMan()->getSignal(AgentManager::PublicSignal::agentCreated);
         registerSignal(mSignals.agentCreated);
 
@@ -155,6 +155,10 @@ namespace Steel
                 }
 
                 Ogre::String nodeName = "Agent " + Ogre::StringConverter::toString(aid);
+
+                if(agent->hasName())
+                    nodeName.append(" \"" + agent->name() + "\"");
+
                 MyGUI::TreeControlNode *child = new MyGUI::TreeControlNode(nodeName, "Folder");
                 child->setPrepared(agent->modelsIds().size() == 0);
                 child->setExpanded(false);

@@ -632,21 +632,7 @@ namespace Steel
         else if(instancitationType == "terrain_slot")
             success = loadTerrainSlotFromSerialization(root);
         else
-        {
             Debug::warning(STEEL_METH_INTRO, "instanciation type unknown: ", instancitationType).endl();
-            success = false;
-        }
-
-        if(isModel)
-        {
-            if(success)
-            {
-                Agent *agent = mEngine->level()->agentMan()->getAgent(aid);
-
-                if(nullptr != agent)
-                    agent->setPersistent(true);
-            }
-        }
 
         return success;
     }
@@ -1118,6 +1104,7 @@ namespace Steel
     bool Level::loadTerrainSlotFromSerialization(Json::Value &root)
     {
         TerrainManager::TerrainSlotData slot;
+
         if(!mTerrainMan.terrainSlotFromJson(root, slot) || !slot.isValid())
         {
             Debug::error(STEEL_METH_INTRO, "TerrainManager::TerrainSlotData is not valid. Serialized string was:")(root).endl()("Aborting.").endl();
