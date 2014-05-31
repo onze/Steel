@@ -628,7 +628,7 @@ namespace Steel
             u32 maxDepth = 2;
 
             if(resolveModelProperties(root, maxDepth) && loadModelFromSerialization(root, aid))
-                    success = true;
+                success = true;
 
             if(!success)
                 Debug::error(STEEL_METH_INTRO, "could not load model from ", file, ". Aborting.").endl();
@@ -636,7 +636,20 @@ namespace Steel
         else if(instancitationType == "agent")
         {
             if(loadAgentFromSerialization(root, aid))
+            {
+                Agent *agent = agentMan()->getAgent(aid);
+
+                if(nullptr == agent)
+                {
+                    Debug::error(STEEL_METH_INTRO, "an agent shoudl have been created by now.").endl().breakHere();
+                    return false;
+                }
+
+                if(!agent->hasName())
+                    agent->setName(file.fileBaseName());
+
                 success = true;
+            }
             else
             {
                 Debug::error(STEEL_METH_INTRO, "could not load agent from ", file, ". Aborting.").endl();
@@ -822,37 +835,44 @@ namespace Steel
         }
 
         // instanciate all models
-        for(Json::ValueIterator it = node.begin(); it != node.end(); ++it)
+        if(node.begin() != node.end())
         {
-            Json::Value modelNode = *it;
-
-            if(INVALID_ID == aid)
+            for(Json::ValueIterator it = node.begin(); it != node.end(); ++it)
             {
-                Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
+                Json::Value modelNode = *it;
 
-                if(value.isNull() || value.asCString() != toString(ModelType::OGRE))
+                if(INVALID_ID == aid)
                 {
-                    Debug::error(STEEL_METH_INTRO, "serialization is not starting with an OgreModel as modelType. Aborted.").endl();
+                    Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
+
+                    if(value.isNull() || value.asCString() != toString(ModelType::OGRE))
+                    {
+                        Debug::error(STEEL_METH_INTRO, "serialization is not starting with an OgreModel as modelType. Aborted.").endl();
+                        return false;
+                    }
+                }
+
+                u32 maxDepth = 3;
+
+                if(resolveModelProperties(modelNode, maxDepth))
+                {
+                    if(!loadModelFromSerialization(modelNode, aid))
+                    {
+                        Debug::error(STEEL_METH_INTRO, "could not load models. Aborting.").endl();
+                        return false;
+                    }
+                }
+                else
+                {
+                    Debug::error(STEEL_METH_INTRO, "could not resolve model properties. Aborting.").endl();
                     return false;
                 }
-            }
-
-            u32 maxDepth = 3;
-
-            if(resolveModelProperties(modelNode, maxDepth))
-            {
-                if(!loadModelFromSerialization(modelNode, aid))
-                {
-                    Debug::error(STEEL_METH_INTRO, "could not load models. Aborting.").endl();
-                    return false;
-                }
-            }
-            else
-            {
-                Debug::error(STEEL_METH_INTRO, "could not resolve model properties. Aborting.").endl();
-                return false;
             }
         }
+
+        // no model to load, create agent
+        if(INVALID_ID == aid)
+            aid = agentMan()->newAgent();
 
         return true;
     }

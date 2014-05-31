@@ -94,9 +94,6 @@ namespace Steel
         /// write the given string into the file, replacing what's already in.
         File &write(Ogre::String s, OpenMode mode = OM_APPEND);
 
-        /// returns the file name (extension is part of the name)
-        Ogre::String fileName() const;
-
         /// return true is the file exists.
         bool exists() const;
 
@@ -129,16 +126,10 @@ namespace Steel
         File parentDir() const;
 
         /// Convert the File instance to a string of the path it's pointing to.
-        operator Ogre::String() const
-        {
-            return fullPath();
-        }
+        operator Ogre::String() const{return fullPath();}
 
         /// Convert the File instance to a string of the path it's pointing to.
-        operator Ogre::String()
-        {
-            return fullPath();
-        }
+        operator Ogre::String(){return fullPath();}
 
         /**
          * change the path the file instance is poiting to. If the file has change listeners,
@@ -175,10 +166,13 @@ namespace Steel
          */
         NodeType nodeType();
         
-        /// returns the file name (extension is part of the name) const version.
+        /// returns the file name (extension is not part of the name, see fileName) const version.
         Ogre::String fileBaseName() const;
-        /// returns the file name (extension is part of the name)
+        /// returns the file name (extension is not part of the name, see fileName)
         Ogre::String &fileBaseName();
+        
+        /// returns the file name (extension is part of the name)
+        Ogre::String fileName() const;
 
         /// returns the file path (!! excludes its name). const version.
         Ogre::String path() const;

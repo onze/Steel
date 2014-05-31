@@ -147,6 +147,8 @@ namespace Steel
         virtual void onSignal(Signal signal, SignalEmitter *const src);
 
     private:
+        /// Moves the main window at the position saved in the config file.
+        void loadMainWindowPosition();
         /// Called whenever an item of the resource treeControl is dropped
         void MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const &pos);
 

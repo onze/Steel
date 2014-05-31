@@ -28,6 +28,7 @@
 #include "tools/JsonUtils.h"
 #include "tools/OgreUtils.h"
 #include "tools/StringUtils.h"
+#include "Numeric.h"
 
 namespace Steel
 {
@@ -85,13 +86,24 @@ namespace Steel
             if(config.getSetting(Editor::MENUTAB_ITEMNAME_SETTING, tabName))
                 setMyGUIVariable(Editor::MENUTAB_CONTROLNAME_MYGUIVAR, tabName);
 
-            if(nullptr != mMyGUIWidgets.mainWindow)
+            loadMainWindowPosition();
+        }
+    }
+    
+    void Editor::loadMainWindowPosition()
+    {
+        if(nullptr != mMyGUIWidgets.mainWindow)
+        {
+            auto coords = mMyGUIWidgets.mainWindow->getPosition();
+            Ogre::Vector2 position;
+            
+            if(mEngine->config().getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
             {
-                auto coords = mMyGUIWidgets.mainWindow->getPosition();
-                Ogre::Vector2 position;
-
-                if(config.getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
-                    mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
+                f32 const xMax = mEngine->renderWindow()->getWidth() - mMyGUIWidgets.mainWindow->getWidth();
+                f32 const yMax = mEngine->renderWindow()->getHeight() - mMyGUIWidgets.mainWindow->getHeight();
+                position.x = Numeric::clamp(position.x, .0f, xMax);
+                position.y = Numeric::clamp(position.y, .0f, yMax);
+                mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
             }
         }
     }
@@ -217,15 +229,7 @@ namespace Steel
             {
                 mMyGUIWidgets.mainWindow = (decltype(mMyGUIWidgets.mainWindow))findMyGUIChildWidget("Root");
                 mMyGUIWidgets.mainWindow->eventWindowChangeCoord += MyGUI::newDelegate(this, &Editor::MyGUIEditorWindowChangeCoord);
-
-                if(nullptr != mMyGUIWidgets.mainWindow)
-                {
-                    auto coords = mMyGUIWidgets.mainWindow->getPosition();
-                    Ogre::Vector2 position;
-
-                    if(mEngine->config().getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
-                        mMyGUIWidgets.mainWindow->setPosition(position.x, position.y);
-                }
+                loadMainWindowPosition();
             }
 
             // other widgets that are useful to keep a handle on for frequent references
