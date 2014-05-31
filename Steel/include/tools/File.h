@@ -85,9 +85,11 @@ namespace Steel
         /// unregister an event listener. It won't be notified of files events anymore.
         void removeFileListener(FileEventListener *listener);
 
-        /// return the file content.
+        /// Return the file content.
         Ogre::String read(bool skiptEmtpyLines = false) const;
-        bool readInto(Json::Value &root, bool keepComments = true);
+        
+        /// Replaces the given json node's content (all of it) by the file's parsed json.
+        bool readInto(Json::Value &root, bool keepComments = true) const;
 
         /// write the given string into the file, replacing what's already in.
         File &write(Ogre::String s, OpenMode mode = OM_APPEND);

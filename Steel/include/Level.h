@@ -40,7 +40,7 @@ namespace Steel
         /// Model resource parsing
         static const char *MODELS_ATTRIBUTE;
         static const char *MODEL_TYPE_ATTRIBUTE;
-        static const char *MODEL_PATH_ATTRIBUTE;
+        static const char *BASE_MODEL_ATTRIBUTE;
         static const char *MODEL_REF_OVERRIDE_ATTRIBUTE;
 
     public:
@@ -98,7 +98,7 @@ namespace Steel
         Ogre::Vector3 getDropTargetPosition();
         Ogre::Quaternion getDropTargetRotation();
         Ogre::Vector2 getSlotDropPosition();
-        
+
         //////////////////////////////////////////////////////
         // edition
         /**
@@ -117,15 +117,22 @@ namespace Steel
          * If aid is valid (!=INVALID_ID), the model is attached to that agent. Otherwise, a new agent is created,
          * aid is set to its id, and then the model is attached to it.
          * Returns false if a stopping problem occured.
+         * The serialization is assumed to be complete. (ie if it may contain reference to a base model,
+         * use resolveModelProperties to update modelData beforehands)
          */
-        bool loadModelFromSerialization(Json::Value &root, AgentId &aid);
+        bool loadModelFromSerialization(Json::Value &modelData, AgentId &aid);
+        
+        /**
+         * Creates an agentPopulates and agent from a serialization.
+         * If aid is valid (!=INVALID_ID), the corresponding agent is deleted beforehands.
+         */
+        bool loadAgentFromSerialization(Json::Value &agentData, Steel::AgentId &aid);
 
-        /// Instanciate one or many models from a serialization, and returns the AgentId of the agent that controls it.
-        bool loadModelsFromSerializations(Json::Value &root, AgentId &aid);
-
-        /// Instanciate models from a .model_refs file content.
-        bool loadModelsReferencesFromSerializations(Json::Value &root, Steel::AgentId &aid);
-
+        /// Update the given model with whatever its <maxDepth> base class(es) contains
+        bool resolveModelProperties(Json::Value &modelData, u32 maxDepth = 1);
+        /// Update the given model with the base model pointed to by the given file
+        bool resolveModelProperties(File const &baseModelSrc, Json::Value &modelData, u32 maxDepth);
+        
         /**
          * reads an incomplete terrain slot file from the data folder, fills the incomplete parts (i.e.: terrain position),
          * and instanciate it.
@@ -159,7 +166,7 @@ namespace Steel
 
         inline Engine *const engine() const {return mEngine;}
         inline Ogre::Viewport *viewport() const {return mViewport;}
-        
+
         enum class PublicSignal : u32
         {
             loaded = 0

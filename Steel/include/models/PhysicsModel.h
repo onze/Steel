@@ -53,7 +53,7 @@ namespace Steel
 
         /// The shape of the model bounding box. Value should be one of BBOX_SHAPE_NAME_*
         static const Ogre::String BBOX_SHAPE_ATTRIBUTE;
-        /// If true, collision with other objects does not affect them (ie hitbox).
+        /// If true, collisions with other objects do not affect them (ie hitbox).
         static const Ogre::String GHOST_ATTRIBUTE;
         /// Ghost models will emit their signal(s) iff the colliding agent has one of those
         static const Ogre::String EMIT_ON_TAG_ATTRIBUTE;

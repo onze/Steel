@@ -705,12 +705,10 @@ namespace Steel
 
     void Engine::saveConfig(ConfigFile &config)
     {
-        static const Ogre::String intro = "Engine::saveConfig(): ";
-
         if(nullptr != mUI)
             mUI->saveConfig(config);
         else
-            Debug::error(intro)("no UI yet !").endl();
+            Debug::error(STEEL_METH_INTRO, "no UI yet !").endl();
 
         config.setSetting(Engine::GHOST_CAMERA_ROTATION_SPEED_SETTING, mGhostCamRotationSpeed);
 

@@ -532,7 +532,7 @@ namespace Steel
         return rawContent;
     }
 
-    bool File::readInto(Json::Value &root, bool keepComments)
+    bool File::readInto(Json::Value &root, bool keepComments) const
     {
         if(!exists())
         {

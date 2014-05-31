@@ -78,7 +78,7 @@ namespace Steel
             prop->setCallbacks(readCB, writeCB);
             PropertyGridAdapter::mProperties.push_back(prop);
         }
-
+        
         // mass
         {
             PropertyGridProperty *prop = new PropertyGridProperty(PhysicsModel::MASS_ATTRIBUTE);
@@ -86,10 +86,10 @@ namespace Steel
             {
                 PropertyGridProperty::Range range;
                 PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
-
+                
                 if(nullptr != pmodel)
                     range.value = (PropertyGridProperty::Range::value_type)pmodel->mass();
-
+                
                 range.min = 0.;
                 range.max = 100.;
                 Numeric::clamp(range.value, range.min, range.max);
@@ -100,6 +100,32 @@ namespace Steel
                 PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
                 Numeric::clamp(range.value, range.min, range.max);
                 pmodel->setMass((decltype(pmodel->mass()))range.value);
+            });
+            prop->setCallbacks(readCB, writeCB);
+            PropertyGridAdapter::mProperties.push_back(prop);
+        }
+        
+        // damping
+        {
+            PropertyGridProperty *prop = new PropertyGridProperty(PhysicsModel::DAMPING_ATTRIBUTE);
+            PropertyGridProperty::RangeReadCallback readCB([this]()->PropertyGridProperty::Range
+            {
+                PropertyGridProperty::Range range;
+                PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
+                
+                if(nullptr != pmodel)
+                    range.value = (PropertyGridProperty::Range::value_type)pmodel->linearDamping();
+                
+                range.min = 0.;
+                range.max = 1.;
+                Numeric::clamp(range.value, range.min, range.max);
+                return range;
+            });
+            PropertyGridProperty::RangeWriteCallback writeCB([this](PropertyGridProperty::Range const & range)
+            {
+                PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
+                Numeric::clamp(range.value, range.min, range.max);
+                pmodel->setDamping((decltype(pmodel->mass()))range.value);
             });
             prop->setCallbacks(readCB, writeCB);
             PropertyGridAdapter::mProperties.push_back(prop);

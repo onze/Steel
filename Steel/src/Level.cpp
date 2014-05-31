@@ -51,7 +51,7 @@ namespace Steel
 
     const char *Level::MODELS_ATTRIBUTE = "models";
     const char *Level::MODEL_TYPE_ATTRIBUTE = "modelType";
-    const char *Level::MODEL_PATH_ATTRIBUTE = "path";
+    const char *Level::BASE_MODEL_ATTRIBUTE = "_baseModel";
     const char *Level::MODEL_REF_OVERRIDE_ATTRIBUTE = "overrides";
 
     Level::Level(Engine *engine, File path, Ogre::String name) : TerrainManagerEventListener(),
@@ -608,9 +608,9 @@ namespace Steel
         }
 
         Ogre::String instancitationType = file.extension();
-        bool isModel = instancitationType == "model" || instancitationType == "models" || instancitationType == "model_refs";
+        bool requiresAgentCreation = instancitationType == "model" || instancitationType == "agent";
 
-        if(isModel && INVALID_ID == aid)
+        if(requiresAgentCreation && INVALID_ID == aid)
         {
             // will end up pointing to the agent owning all created models
             if(!root.isArray() && root.isMember(Agent::ID_ATTRIBUTE))
@@ -624,11 +624,25 @@ namespace Steel
         bool success = false;
 
         if(instancitationType == "model")
-            success = loadModelFromSerialization(root, aid);
-        else if(instancitationType == "models")
-            success = loadModelsFromSerializations(root, aid);
-        else if(instancitationType == "model_refs")
-            success = loadModelsReferencesFromSerializations(root, aid);
+        {
+            u32 maxDepth = 2;
+
+            if(resolveModelProperties(root, maxDepth) && loadModelFromSerialization(root, aid))
+                    success = true;
+
+            if(!success)
+                Debug::error(STEEL_METH_INTRO, "could not load model from ", file, ". Aborting.").endl();
+        }
+        else if(instancitationType == "agent")
+        {
+            if(loadAgentFromSerialization(root, aid))
+                success = true;
+            else
+            {
+                Debug::error(STEEL_METH_INTRO, "could not load agent from ", file, ". Aborting.").endl();
+                agentMan()->deleteAgent(aid);
+            }
+        }
         else if(instancitationType == "terrain_slot")
             success = loadTerrainSlotFromSerialization(root);
         else
@@ -637,22 +651,75 @@ namespace Steel
         return success;
     }
 
-    bool Level::loadModelFromSerialization(Json::Value &root, Steel::AgentId &aid)
+    bool Level::resolveModelProperties(Json::Value &modelData, u32 maxDepth)
     {
-        Debug::log("Level::loadModelFromSerialization(")(root)(")").endl();
-        Ogre::String intro = "Level::loadModelFromSerialization(): ";
+        // upgrade modelData with referenced data from base models (aka base class for models)
+        bool hasBaseModel = modelData.isMember(Level::BASE_MODEL_ATTRIBUTE);
 
-        if(!root.isObject())
+        if(hasBaseModel)
         {
-            Debug::error("expecting a json object. Aborting.").endl();
+            if(0 == maxDepth)
+            {
+                Debug::error(STEEL_METH_INTRO, "max model referencing depth exceeded. Aborting.").endl();
+                return false;
+            }
+
+            Json::Value pathValue = modelData[Level::BASE_MODEL_ATTRIBUTE];
+
+            if(!pathValue.isString())
+            {
+                Debug::warning(STEEL_METH_INTRO, "Could not read reference path ").quotes(pathValue)(" as string. Aborting").endl();
+                return false;
+            }
+
+            // load the referee
+            Ogre::String path = StringUtils::BLANK;
+            mEngine->resolveReferencePaths(pathValue.asString(), path);
+            File refFile = mEngine->dataDir().subfile(path);
+            Json::Value baseModel;
+
+            if(!resolveModelProperties(refFile, baseModel, maxDepth - 1))
+            {
+                Debug::warning(STEEL_METH_INTRO, "could not read model reference @").quotes(path)(". Aborting.");
+                return false;
+            }
+
+            JsonUtils::updateObject(baseModel, modelData, false, false);
+        }
+
+        return true;
+    }
+
+    bool Level::resolveModelProperties(File const &baseModelSrc, Json::Value &modelData, u32 maxDepth)
+    {
+        if(!baseModelSrc.readInto(modelData, false))
+        {
+            Debug::error(STEEL_METH_INTRO, "could not read model @", baseModelSrc, ". Aborting.").endl();
             return false;
         }
 
-        Json::Value value = root[Level::MODEL_TYPE_ATTRIBUTE];
+        return resolveModelProperties(modelData, maxDepth);
+    }
+
+    bool Level::loadModelFromSerialization(Json::Value &modelData, Steel::AgentId &aid)
+    {
+        if(!modelData.isObject())
+        {
+            Debug::error(STEEL_METH_INTRO, "expecting a json object. Aborting.").endl();
+            return false;
+        }
+
+        if(!dynamicFillSerialization(modelData, aid))
+        {
+            Debug::error(STEEL_METH_INTRO, "dynamic fill failed O_o. Aborting.").endl();
+            return false;
+        }
+
+        Json::Value value = modelData[Level::MODEL_TYPE_ATTRIBUTE];
 
         if(value.isNull())
         {
-            Debug::error("serialization is missing a ").quotes(Level::MODEL_TYPE_ATTRIBUTE)(" value. Aborted.").endl();
+            Debug::error(STEEL_METH_INTRO, "missing ").quotes(Level::MODEL_TYPE_ATTRIBUTE)(" attribute. Aborted.").endl();
             return false;
         }
 
@@ -667,11 +734,11 @@ namespace Steel
 
             if(INVALID_ID == aid)
             {
-                Debug::error(intro)("could not create an agent to link the model to. Aborted.").endl();
+                Debug::error(STEEL_METH_INTRO, "could not create an agent to link the model to. Aborted.").endl();
                 return false;
             }
 
-            Debug::log(intro)("created agent ")(aid).endl();
+            Debug::log(STEEL_METH_INTRO, "created agent ")(aid).endl();
         }
 
         // ask the right manager to load this model
@@ -679,7 +746,7 @@ namespace Steel
 
         if(ModelType::LAST == modelType)
         {
-            Debug::warning(intro)("Unknown model type: ")(modelTypeString).endl();
+            Debug::warning(STEEL_METH_INTRO, "Unknown model type: ")(modelTypeString).endl();
             return false;
         }
 
@@ -688,42 +755,37 @@ namespace Steel
 
         if(nullptr == agent)
         {
-            Debug::log(intro)("could not retrieve agent for id ")(aid).endl();
+            Debug::log(STEEL_METH_INTRO, "could not retrieve agent for id ")(aid).endl();
             return false;
         }
 
         if(INVALID_ID != agent->modelId(modelType))
         {
-            Debug::error(intro)("cannot create a second ")(modelTypeString)(" Model to agent ")
-            (aid)(". Skipping ")(modelTypeString)(" Model instanciation.").endl();
-            return true; // skipped, not aborted
+            Debug::error(STEEL_METH_INTRO, "cannot create a second ", modelTypeString, " Model for agent ", aid, ". Aborting.").endl();
+            return false;
         }
 
         // try to instanciate the model
-        intro.append("in ").append(modelTypeString).append(" type: ");
         auto manager = modelManager(modelType);
 
         if(nullptr == manager)
         {
-            Debug::error(intro)("could not find proper manager for modelType ")
-            (modelTypeString)(". ")("Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "could not find proper manager for modelType ", modelTypeString, ". Aborting.").endl();
             return false;
         }
 
         ModelId mid = INVALID_ID;
 
-        if(!manager->fromSingleJson(root, mid) || INVALID_ID == mid)
+        if(!manager->fromSingleJson(modelData, mid) || INVALID_ID == mid)
         {
-            Debug::error(intro)("could not build model from serialization:")
-            (root)("Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "could not build model from serialization:", modelData, ". Aborting.").endl();
             return false;
         }
 
         if(!linkAgentToModel(aid, modelType, mid))
         {
             manager->decRef(mid);
-            Debug::error(intro)("could not link agent ")(aid)(" to  ")(modelTypeString)(" Model ")
-            (mid)(". Model released. Aborted.").endl();
+            Debug::error(STEEL_METH_INTRO, "could not link agent ", aid, " to  ", modelTypeString, " Model ", mid, ". Model released. Aborted.").endl();
 
             if(fresh_aid)
                 agentMan()->deleteAgent(aid);
@@ -731,9 +793,67 @@ namespace Steel
             return false;
         }
         else
-            Debug::log("new ")(modelTypeString)(" Model with id ")(mid)(" linked to agent ")(aid).endl();
+            Debug::log(STEEL_METH_INTRO, "new ", modelTypeString, " Model with id ", mid, " linked to agent ", aid).endl();
 
         //TODO add visual notification in the UI
+        return true;
+    }
+
+    bool Level::loadAgentFromSerialization(Json::Value &agentData, Steel::AgentId &aid)
+    {
+        if(!agentData.isObject())
+        {
+            Debug::error(STEEL_METH_INTRO, "Expecting object content. Aborting.").endl();
+            return false;
+        }
+
+        if(!agentData.isMember(Level::MODELS_ATTRIBUTE))
+        {
+            Debug::error(STEEL_METH_INTRO, "member not found: ").quotes(Level::MODELS_ATTRIBUTE)(". Aborting.").endl();
+            return false;
+        }
+
+        Json::Value node = agentData[Level::MODELS_ATTRIBUTE];
+
+        if(!node.isArray() || node.isNull())
+        {
+            Debug::warning(STEEL_METH_INTRO).quotes(Level::MODELS_ATTRIBUTE)(" attribute is not valid (expecting a non-empty array).").endl();
+            return false;
+        }
+
+        // instanciate all models
+        for(Json::ValueIterator it = node.begin(); it != node.end(); ++it)
+        {
+            Json::Value modelNode = *it;
+
+            if(INVALID_ID == aid)
+            {
+                Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
+
+                if(value.isNull() || value.asCString() != toString(ModelType::OGRE))
+                {
+                    Debug::error(STEEL_METH_INTRO, "serialization is not starting with an OgreModel as modelType. Aborted.").endl();
+                    return false;
+                }
+            }
+
+            u32 maxDepth = 3;
+
+            if(resolveModelProperties(modelNode, maxDepth))
+            {
+                if(!loadModelFromSerialization(modelNode, aid))
+                {
+                    Debug::error(STEEL_METH_INTRO, "could not load models. Aborting.").endl();
+                    return false;
+                }
+            }
+            else
+            {
+                Debug::error(STEEL_METH_INTRO, "could not resolve model properties. Aborting.").endl();
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -924,178 +1044,6 @@ namespace Steel
             }
 
             node = new_svalue.c_str();
-        }
-
-        return true;
-    }
-
-    bool Level::loadModelsFromSerializations(Json::Value &root, Steel::AgentId &aid)
-    {
-        Ogre::String intro = "Level::loadModelsFromSerializations(): ";
-
-        if(!root.isObject())
-        {
-            Debug::error(intro)("Expecting object content. Aborting.").endl();
-            return false;
-        }
-
-        if(!root.isMember(Level::MODELS_ATTRIBUTE))
-        {
-            Debug::error(intro)("member ").quotes(Level::MODELS_ATTRIBUTE)(" not found. Aborting.").endl();
-            return false;
-        }
-
-        Json::Value node = root[Level::MODELS_ATTRIBUTE];
-
-        if(!node.isArray() || node.isNull())
-        {
-            Debug::warning(intro).quotes(Level::MODELS_ATTRIBUTE)(" attribute is not valid (expecting a non-empty array).").endl();
-            return false;
-        }
-
-        // instanciate all models
-        for(Json::ValueIterator it = node.begin(); it != node.end(); ++it)
-        {
-            Json::Value modelNode = *it;
-
-            if(INVALID_ID == aid)
-            {
-                Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
-
-                if(value.isNull() || value.asCString() != toString(ModelType::OGRE))
-                {
-                    Debug::error("serialization is not starting with an OgreModel as modelType. Aborted.").endl();
-                    return false;
-                }
-            }
-
-            if(!loadModelFromSerialization(modelNode, aid))
-            {
-                Debug::error(intro)("could not load models. Aborting.").endl();
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool Level::loadModelsReferencesFromSerializations(Json::Value &root, Steel::AgentId &aid)
-    {
-        Ogre::String intro = "Level::loadModelsReferencesFromSerializations(): ";
-
-        if(!root.isMember(Level::MODELS_ATTRIBUTE))
-        {
-            Debug::error(intro)("member ").quotes(Level::MODELS_ATTRIBUTE)(" not found. Aborting.").endl();
-            return false;
-        }
-
-        Json::Value models = root[Level::MODELS_ATTRIBUTE];
-
-        if(models.isNull())
-        {
-            Debug::warning(intro).quotes(Level::MODELS_ATTRIBUTE)(" attribute is null. Aborting.");
-            return false;
-        }
-
-        if(!models.isArray())
-        {
-            Debug::warning(intro).quotes(Level::MODELS_ATTRIBUTE)(" attribute is not an array. Aborting.");
-            return false;
-        }
-
-        bool revertAgent = false;
-
-        for(Json::ValueIterator it = models.begin(); it != models.end(); ++it)
-        {
-            Json::Value refNode = *it, modelNode;
-
-            // if path is there, it's a reference
-            bool hasPathMember = refNode.isMember(Level::MODEL_PATH_ATTRIBUTE);
-
-            if(hasPathMember)
-            {
-                Json::Value pathValue = refNode[Level::MODEL_PATH_ATTRIBUTE];
-
-                if(!pathValue.isString())
-                {
-                    Debug::warning(intro)("Could not read reference path ").quotes(pathValue)(" as string. Aborting").endl();
-                    revertAgent = true;
-                    break;
-                }
-
-                // load the referee
-                Ogre::String path = StringUtils::BLANK;
-                mEngine->resolveReferencePaths(pathValue.asString(), path);
-                File file = mEngine->dataDir().subfile(path);
-
-                if(!file.readInto(modelNode, false))
-                {
-                    Debug::warning(intro)("Could not read reference path \"")(path)("\". Aborting.");
-                    revertAgent = true;
-                    break;
-                }
-
-                // possibly add attributes overrides
-                if(refNode.isMember(Level::MODEL_REF_OVERRIDE_ATTRIBUTE))
-                {
-                    Json::Value overrides = refNode[Level::MODEL_REF_OVERRIDE_ATTRIBUTE];
-
-                    if(!overrides.isObject())
-                    {
-                        Debug::error(STEEL_METH_INTRO, "invalid overrides:", overrides, ". Was expecting an object. Aborting").endl();
-                        revertAgent = true;
-                        break;
-                    }
-
-                    // actual overrides
-                    JsonUtils::updateObjectWithOverrides(overrides, modelNode);
-                }
-
-            }
-
-            if(INVALID_ID == aid)
-            {
-                if(!modelNode.isObject())
-                {
-                    Debug::error(intro)("serialization is not a json object. Aborting.").endl();
-                    revertAgent = true;
-                    break;
-                }
-
-                Json::Value value = modelNode[Level::MODEL_TYPE_ATTRIBUTE];
-
-                if(value.isNull() || !value.isString() || value.asString() != toString(ModelType::OGRE))
-                {
-                    Debug::error(intro)("serialization is not starting with a model of type ModelType::OGRE. Aborted.").endl();
-                    revertAgent = true;
-                    break;
-                }
-            }
-
-            // should be done here too, as we may have newly loaded data
-            if(!dynamicFillSerialization(modelNode, aid))
-            {
-                revertAgent = true;
-                break;
-            }
-
-            if(!loadModelFromSerialization(modelNode, aid))
-            {
-                Debug::error(intro)("could not load models. Aborting.").endl();
-                revertAgent = true;
-                break;
-            }
-        }
-
-        if(revertAgent)
-        {
-            if(INVALID_ID != aid)
-            {
-                agentMan()->deleteAgent(aid);
-                aid = INVALID_ID;
-            }
-
-            return false;
         }
 
         return true;

@@ -18,6 +18,9 @@ namespace Steel
     {
     public:
         static void updateObjectWithOverrides(Json::Value const &src, Json::Value &dst);
+        
+        /// Copies src keys to dst keys.
+        static void updateObject(Json::Value const &src, Json::Value &dst, bool overrideDuplicates, bool warnOnDuplicates);
 
         static Json::Value toJson(std::list<Ogre::String> const &container)
         {
@@ -138,8 +141,6 @@ namespace Steel
 
 
     private:
-        /// Copies src keys to dst keys.
-        static void updateObject(Json::Value const &src, Json::Value &dst, bool overrideDuplicates, bool warnOnDuplicates);
     };
 }
 

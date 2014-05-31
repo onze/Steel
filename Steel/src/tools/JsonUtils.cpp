@@ -16,8 +16,6 @@ namespace Steel
                                  bool const overrideDuplicates,
                                  bool const warnOnDuplicates)
     {
-        Ogre::String intro = "JsonUtils::updateObject";
-
         if(src.isNull() || dst.isNull() || !src.isObject() || !dst.isObject())
             return;
 
@@ -28,7 +26,7 @@ namespace Steel
             if(detectDuplicates && dst.isMember(name))
             {
                 if(warnOnDuplicates)
-                    Debug::warning(intro)("duplicate key \"")(name)("\"").endl();
+                    Debug::warning(STEEL_FUNC_INTRO, "duplicate key ").quotes(name).endl();
 
                 if(!overrideDuplicates)
                     continue;

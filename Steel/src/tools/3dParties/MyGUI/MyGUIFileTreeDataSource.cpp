@@ -6,8 +6,8 @@
 #include "tools/3dParties/MyGUI/TreeControl.h"
 #include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
 #include "tools/File.h"
-#include <tools/ConfigFile.h>
-#include <tools/OgreUtils.h>
+#include "tools/ConfigFile.h"
+#include "tools/OgreUtils.h"
 #include "Debug.h"
 
 namespace Steel
@@ -75,7 +75,6 @@ namespace Steel
 
         File const &cwd = *(node->getData<ControlNodeDataType>());
         auto subFiles = cwd.ls(File::ANY);
-//         Debug::log(STEEL_METH_INTRO, "cwd: ", cwd, " found ", subFiles.size(), " subfiles.").endl();
         std::sort(subFiles.begin(), subFiles.end());
 
         for(File const & subFile : subFiles)
@@ -91,10 +90,23 @@ namespace Steel
 
     void MyGUIFileSystemDataSource::notifyTreeNodeSelected(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node)
     {
-        if(!node->hasChildren())
-            return;
-        
+        // save ancestors expansion-ness
+        MyGUI::TreeControlNode *parent = node->getParent();
+
+        while(parent != nullptr && treeControl->getRoot() != parent)
+        {
+            saveNodeState(parent);
+            parent = parent->getParent();
+        }
+
+        if(node->hasChildren())
+            saveNodeState(node);
+    }
+    
+    void MyGUIFileSystemDataSource::saveNodeState(MyGUI::TreeControlNode const *const node)
+    {
         File const &file = *(node->getData<ControlNodeDataType>());
+        // save node expansion-ness
         ConfigFile conf = confFile(file);
         conf.setSetting("expand", Ogre::StringConverter::toString(node->isExpanded()));
         conf.save();

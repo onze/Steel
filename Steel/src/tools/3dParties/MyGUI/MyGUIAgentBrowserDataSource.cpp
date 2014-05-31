@@ -233,14 +233,12 @@ namespace Steel
         // no previous selection: update that tree
         if(nullptr != currentlySelectedNode)
         {
-            MyGUIAgentBrowserDataSource::ControlNodeDataType *currentlySelectedNodeData = currentlySelectedNode->getData<MyGUIAgentBrowserDataSource::ControlNodeDataType>();
-
+            ControlNodeDataType *currentlySelectedNodeData = currentlySelectedNode->getData<ControlNodeDataType>();
 
             // selected node already matches selection: do nothing
             if(currentlySelectedNodeData->agentId == selectedAgentId)
                 return;
         }
-
 
         MyGUI::TreeControlNode *selectedNode = nullptr;
 
