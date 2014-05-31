@@ -8,6 +8,7 @@
 namespace MyGUI
 {
     class ComboBox;
+    class EditBox;
     class ScrollBar;
     class ScrollView;
     class TextBox;
@@ -61,6 +62,12 @@ namespace Steel
         void updateBoolControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
         /// Toggle a checkbox
         void onMyGUIMouseButtonClickForCheckboxToggle(MyGUI::Widget *button);
+        
+        /// Builds a textbox control bound to a property of type String
+        void buildStringControl(MyGUI::Widget *control, PropertyGridProperty *const property);
+        void updateStringControlValue(MyGUI::Widget *control, PropertyGridProperty *const property);
+        /// textBox content changed
+        void onMyGUIEditSelectAccept(MyGUI::EditBox *editBox);
         
         /// Builds a scrollbar control bound to a property of type Range
         void buildRangeControl(MyGUI::Widget *control, PropertyGridProperty *const property);

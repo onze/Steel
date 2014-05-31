@@ -29,6 +29,23 @@ namespace Steel
             return;
         }
 
+        /// gaent name
+        {
+            PropertyGridProperty *prop = new PropertyGridProperty("Name");
+            PropertyGridProperty::StringReadCallback readCB([this]()->Ogre::String
+            {
+                Agent *agent = mAgentMan->getAgent(mAid);
+                return agent->name();
+            });
+            PropertyGridProperty::StringWriteCallback writeCB([this](Ogre::String const& name)
+            {
+                Agent *agent = mAgentMan->getAgent(mAid);
+                agent->setName(name);
+            });
+            prop->setCallbacks(readCB, writeCB);
+            mProperties.push_back(prop);
+        }
+
         /// persistence toggle
         {
             PropertyGridProperty *prop = new PropertyGridProperty("Persistent");

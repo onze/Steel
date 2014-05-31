@@ -157,7 +157,7 @@ namespace Steel
                 Ogre::String nodeName = "Agent " + Ogre::StringConverter::toString(aid);
 
                 if(agent->hasName())
-                    nodeName.append(" \"" + agent->name() + "\"");
+                    nodeName.append(" " + agent->name());
 
                 MyGUI::TreeControlNode *child = new MyGUI::TreeControlNode(nodeName, "Folder");
                 child->setPrepared(agent->modelsIds().size() == 0);

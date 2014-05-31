@@ -154,6 +154,10 @@ namespace Steel
                 buildBoolControl(control, property);
                 break;
 
+            case PropertyGridPropertyValueType::String:
+                buildStringControl(control, property);
+                break;
+
             case PropertyGridPropertyValueType::Range:
                 buildRangeControl(control, property);
                 break;
@@ -205,6 +209,10 @@ namespace Steel
                 updateBoolControlValue(control, property);
                 break;
 
+            case PropertyGridPropertyValueType::String:
+                updateStringControlValue(control, property);
+                break;
+
             case PropertyGridPropertyValueType::Range:
                 updateRangeControlValue(control, property);
                 break;
@@ -226,9 +234,9 @@ namespace Steel
         label->setColour(MyGUI::Colour::White);
         label->setCaption(property->id());
     }
-/////////////////// </DUMMY CONTROL>
+    /////////////////// </DUMMY CONTROL>
 
-/////////////////// <BOOL CONTROL>
+    /////////////////// <BOOL CONTROL>
     void PropertyGridManager::buildBoolControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
     {
         int left = insertPropertyIdLabel(control, property) + WIDGET_SPACING;
@@ -276,6 +284,50 @@ namespace Steel
             Debug::error(STEEL_METH_INTRO, "got a checkbox event for property ", *property, ". Skipping event.").endl();
     }
 /////////////////// </BOOL CONTROL>
+
+/////////////////// <STRING CONTROL>
+    void PropertyGridManager::buildStringControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    {
+        int left = insertPropertyIdLabel(control, property) + WIDGET_SPACING;
+
+        MyGUI::IntCoord coord(left, 1, control->getRight() - 2 * WIDGET_SPACING, control->getBottom() - 2);
+        MyGUI::EditBox *editBox = (MyGUI::EditBox *)control->createWidget<MyGUI::EditBox>("EditBox", coord, MyGUI::Align::Left | MyGUI::Align::VCenter, "EditBox");
+
+        editBox->setUserData(property);
+        editBox->eventEditSelectAccept += MyGUI::newDelegate(this, &PropertyGridManager::onMyGUIEditSelectAccept);
+    }
+
+    void PropertyGridManager::updateStringControlValue(MyGUI::Widget *const control, PropertyGridProperty *const property)
+    {
+        MyGUI::EditBox *editBox = (MyGUI::EditBox *)control->findWidget("EditBox");
+
+        if(nullptr == editBox)
+        {
+            Debug::error(STEEL_METH_INTRO, "could not find editBox in String propertyControl. Control: ", control, " property: ", *property, ". Aborting.").endl();
+            return;
+        }
+
+        Ogre::String value = StringUtils::BLANK;
+        property->read(value);
+        editBox->setCaption(value);
+    }
+
+    void PropertyGridManager::onMyGUIEditSelectAccept(MyGUI::EditBox *editBox)
+    {
+        PropertyGridProperty *const property = *(editBox->getUserData<PropertyGridProperty *>());
+
+        if(nullptr == property)
+        {
+            Debug::error(STEEL_METH_INTRO, "no property linked to control ", editBox->getParent()).endl().breakHere();
+            return;
+        }
+
+        if(PropertyGridPropertyValueType::String == property->valueType())
+            property->write(editBox->getCaption());
+        else
+            Debug::error(STEEL_METH_INTRO, "got an editBox event for property ", *property, ". Skipping event.").endl();
+    }
+/////////////////// </STRING  CONTROL>
 
 /////////////////// <RANGE CONTROL>
     void PropertyGridManager::buildRangeControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
@@ -359,7 +411,7 @@ namespace Steel
             if(nullptr != label)
                 label->setCaption(Ogre::StringConverter::toString(range->value, 6));
         }
-        
+
         decltype(range->value) percent = (range->value - range->min) / (range->max - range->min) * ((decltype(range->value))99.f); // within [0, 99]
         scrollBar->setScrollPosition((size_t)percent);
 

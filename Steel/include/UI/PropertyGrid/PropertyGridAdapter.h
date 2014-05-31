@@ -12,6 +12,7 @@ namespace Steel
     {
         None = 0,
         Bool,
+        String,
         Range,
         StringVectorSelection
     };
@@ -39,11 +40,13 @@ namespace Steel
 
         // read callbacks
         typedef std::function<bool(void)> BoolReadCallback;
+        typedef std::function<Ogre::String(void)> StringReadCallback;
         typedef std::function<StringVectorSelection(void)> StringVectorSelectionReadCallback;
         typedef std::function<Range(void)> RangeReadCallback;
 
         // write callbacks
         typedef std::function<void(bool)> BoolWriteCallback;
+        typedef std::function<void(Ogre::String const&)> StringWriteCallback;
         typedef std::function<void(StringVectorSelection::selection_type)> StringVectorSelectionWriteCallback;
         typedef std::function<void(Range const &)> RangeWriteCallback;
 
@@ -57,6 +60,10 @@ namespace Steel
         void read(bool &value);/// Reads the property value into the given parameter.
         void write(bool value);/// Writes the given parameter to the property value.
         void setCallbacks(BoolReadCallback readCallback, BoolWriteCallback writeCallback);
+        
+        void read(Ogre::String &value);/// Reads the property value into the given parameter.
+        void write(Ogre::String const& value);/// Writes the given parameter to the property value.
+        void setCallbacks(StringReadCallback readCallback, StringWriteCallback writeCallback);
 
         void read(StringVectorSelection &value);/// Reads the property value into the given parameter.
         void write(StringVectorSelection::selection_type value);/// Writes the given parameter to the property value.
@@ -80,6 +87,9 @@ namespace Steel
 
         BoolReadCallback mBoolReadCallback;
         BoolWriteCallback mBoolWriteCallback;
+        
+        StringReadCallback mStringReadCallback;
+        StringWriteCallback mStringWriteCallback;
 
         StringVectorSelectionReadCallback mStringVectorSelectionReadCallback;
         StringVectorSelectionWriteCallback mStringVectorSelectionWriteCallback;

@@ -12,6 +12,7 @@ namespace Steel
         switch(valueType)
         {
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Bool);
+                STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::String);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::Range);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::StringVectorSelection);
                 STEEL_TOSTRING_CASE(PropertyGridPropertyValueType::None);
@@ -31,20 +32,20 @@ namespace Steel
     {
 
     }
-////////////////////////////// <PropertyGridPropertyValueType::Bool>
+    ////////////////////////////// <PropertyGridPropertyValueType::Bool>
     void PropertyGridProperty::setCallbacks(BoolReadCallback boolReadCallback, BoolWriteCallback boolWriteCallback)
     {
         mValueType = PropertyGridPropertyValueType::Bool;
         mBoolReadCallback = boolReadCallback;
         mBoolWriteCallback = boolWriteCallback;
     }
-
+    
     void PropertyGridProperty::read(bool &value)
     {
         if(nullptr != mBoolReadCallback)
             value = mBoolReadCallback();
     }
-
+    
     void PropertyGridProperty::write(bool value)
     {
         if(nullptr != mBoolWriteCallback)
@@ -56,6 +57,32 @@ namespace Steel
             Debug::warning(*this, " is a read-only property.").endl();
     }
 ////////////////////////////// </PropertyGridPropertyValueType::Bool>
+    
+////////////////////////////// <PropertyGridPropertyValueType::String>
+    void PropertyGridProperty::setCallbacks(StringReadCallback readCallback, StringWriteCallback writeCallback)
+    {
+        mValueType = PropertyGridPropertyValueType::String;
+        mStringReadCallback = readCallback;
+        mStringWriteCallback = writeCallback;
+    }
+    
+    void PropertyGridProperty::read(Ogre::String &value)
+    {
+        if(nullptr != mStringReadCallback)
+            value = mStringReadCallback();
+    }
+    
+    void PropertyGridProperty::write(Ogre::String const& value)
+    {
+        if(nullptr != mStringWriteCallback)
+        {
+            mStringWriteCallback(value);
+            emit(getSignal(PublicSignal::changed));
+        }
+        else
+            Debug::warning(*this, " is a read-only property.").endl();
+    }
+////////////////////////////// </PropertyGridPropertyValueType::String>
 
 ////////////////////////////// <PropertyGridPropertyValueType::StringVectorSelection>
     void PropertyGridProperty::setCallbacks(StringVectorSelectionReadCallback readCallback, StringVectorSelectionWriteCallback writeCallback)
