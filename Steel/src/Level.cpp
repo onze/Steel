@@ -874,6 +874,8 @@ namespace Steel
         if(INVALID_ID == aid)
             aid = agentMan()->newAgent();
 
+        Agent *agent = agentMan()->getAgent(aid);
+        agent->fromJson(agentData);
         return true;
     }
 

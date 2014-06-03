@@ -51,7 +51,7 @@ namespace Steel
 
         if(value.isNull())
         {
-            Debug::error(STEEL_METH_INTRO, "unknown BTModel ", BTModel::SHAPE_NAME_ATTRIBUTE, " ").quotes(value)(". Aborting.").endl();
+            Debug::error(STEEL_METH_INTRO, "unknown BTModel attribute").quotes(BTModel::SHAPE_NAME_ATTRIBUTE)(" with value ").quotes(value)(". Aborting.").endl();
             return false;
         }
 

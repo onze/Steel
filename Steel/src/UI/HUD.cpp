@@ -45,7 +45,6 @@ namespace Steel
 
     void HUD::init(int width, int height, Engine *engine)
     {
-        Debug::log("HUD::init()").endl();
         UIPanel::init(width, height);
         mEngine = engine;
     }
