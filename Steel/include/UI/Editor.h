@@ -151,6 +151,8 @@ namespace Steel
         void loadMainWindowPosition();
         /// Called whenever an item of the resource treeControl is dropped
         void MyGUIResourceTreeItemDropped(MyGUI::TreeControlItemDecorator *sender, MyGUI::TreeControlNode *node, MyGUI::IntPoint const &pos);
+        /// Called whenever a node is expanded or collapsed
+        void MyGUIResourceTreeNodeExpandCollapse(MyGUI::TreeControl *sender, MyGUI::TreeControlNode *node);
 
         /// Creates a MyGUI widget to represent a tag of the currently selected agent.
         void MyGUIRequestCreateSelectionTagItem(MyGUI::ItemBox *_sender, MyGUI::Widget *_item);

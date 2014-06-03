@@ -23,7 +23,7 @@
 #include "models/AgentManager.h"
 #include "tools/3dParties/MyGUI/TreeControlItemDecorator.h"
 #include "tools/3dParties/MyGUI/TreeControlItem.h"
-#include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
+#include "tools/3dParties/MyGUI/MyGUITreeControlDataSource.h"
 #include "tools/3dParties/MyGUI/MyGUIAgentBrowserDataSource.h"
 #include "tools/JsonUtils.h"
 #include "tools/OgreUtils.h"
@@ -170,7 +170,7 @@ namespace Steel
 
         // finalize MYGui setup
         {
-            // resource tree
+            // agent browser
             {
                 mMyGUIWidgets.agentItemBrowserTree = (MyGUI::TreeControl *) findMyGUIChildWidget(Editor::AGENTBROWSER_TREECONTROLL_CHILD);
 
@@ -195,6 +195,8 @@ namespace Steel
                     mMyGUIWidgets.resourceTreeControlItemDecorator->setEnableDragAndDrop(false, true);
                     mMyGUIWidgets.resourceTreeControlItemDecorator->eventItemDropped += MyGUI::newDelegate(this, &Editor::MyGUIResourceTreeItemDropped);
                     mMyGUIWidgets.resourceTreeControlItemDecorator->setTextColour(MyGUI::Colour::White);
+                    // register to node selection callback to save open-ness state
+                    resourceTree->eventTreeNodeExpandCollapse += MyGUI::newDelegate(this, &Editor::MyGUIResourceTreeNodeExpandCollapse);
                 }
             }
 
@@ -365,6 +367,24 @@ namespace Steel
 
         Ogre::String rawCommand = "instanciate." + file.fullPath();
         processCommand(rawCommand);
+    }
+    
+    void Editor::MyGUIResourceTreeNodeExpandCollapse(MyGUI::TreeControl *sender, MyGUI::TreeControlNode *node)
+    {
+        // save node expansion-ness
+        auto it = mMyGUIData.treeControlDataSources.find(sender);
+        if(mMyGUIData.treeControlDataSources.end()!=it)
+        {
+            File const &file = *(node->getData<MyGUIFileSystemDataSource::ControlNodeDataType>());
+            MyGUIFileSystemDataSource *dataSource = static_cast<MyGUIFileSystemDataSource *>(it->second);
+            ConfigFile conf = dataSource->confFile(file);
+            conf.setSetting("expand", Ogre::StringConverter::toString(node->isExpanded()));
+            conf.save();
+        }
+        else
+        {
+            Debug::error(STEEL_METH_INTRO, "could not find MyGUIFileSystemDataSource for widget ", sender, " and node ", node).endl();
+        }
     }
 
     void Editor::onSignal(Signal signal, SignalEmitter *const src)
