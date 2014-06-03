@@ -24,6 +24,7 @@
 namespace MyGUI
 {
     class Widget;
+    class TreeControl;
 }
 
 namespace Steel
