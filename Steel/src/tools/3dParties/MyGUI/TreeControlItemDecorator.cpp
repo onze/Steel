@@ -132,7 +132,7 @@ namespace MyGUI
 
     void TreeControlItemDecorator::treeItemMouseButtonReleasedEvent(MyGUI::Widget *_sender, int _left, int _top, MyGUI::MouseButton _id)
     {
-        if(nullptr != mDraggedItem) // is null if wthe item was not draggable
+        if(nullptr != mDraggedItem) // is null if the item was not draggable
         {
             TreeControlItem *_item = *_sender->getUserData<TreeControlItem *>();
             TreeControlNode *_node = *_item->getUserData<TreeControlNode *>();

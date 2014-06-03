@@ -258,7 +258,7 @@ namespace Steel
         }
 
         if(nullptr != selectedNode)
-            mControl->setSelection(selectedNode);
+            mControl->setSelection(selectedNode, true);
     }
 
 }

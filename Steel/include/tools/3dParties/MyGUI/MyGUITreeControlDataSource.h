@@ -45,11 +45,12 @@ namespace Steel
         virtual void notifyTreeNodeSelected(MyGUI::TreeControl *treeControl, MyGUI::TreeControlNode *node);
         
         void saveNodeState(MyGUI::TreeControlNode const *const node);
+        /// Returns the config file associated with a node.
+        ConfigFile confFile(File const &dir);
 
     private:
         // Not enough parameters. Use the public one.
         virtual void init(MyGUI::TreeControl *const control) override;
-        ConfigFile confFile(File const &dir);
         bool isDirectoryExpanded(File const &file);
 
         Ogre::String mDataRoot;

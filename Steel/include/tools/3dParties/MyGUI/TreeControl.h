@@ -31,7 +31,7 @@ namespace MyGUI
         bool isRootVisible() const;
 
         TreeControlNode *getSelection() const;
-        void setSelection(TreeControlNode *pSelection);
+        void setSelection(TreeControlNode *pSelection, bool updateScroll = false);
 
         void invalidate();
         void reset();
@@ -46,6 +46,8 @@ namespace MyGUI
         EventHandle_TreeControlPtrNodePtr eventTreeNodeContextMenu;
         EventHandle_TreeControlPtrNodePtr eventTreeNodePrepare;
         EventHandle_TreeControlPtrSizeT eventTreeScrolled;
+        /// triggered when a node gets expanded or collapsed (either selected of not).
+        EventHandle_TreeControlPtrNodePtr eventTreeNodeExpandCollapse;
         
         /** Event : Request for item decoration (adding more than just the node's text). Note: called once per update (ie may times)\n
          *      signature : void method(MyGUI::TreeControl *_sender, MyGUI::TreeControlItem *_item, MyGUI::TreeControlNode *_node)

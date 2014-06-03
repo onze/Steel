@@ -4,7 +4,7 @@
 #include "steelassert.h"
 
 #include "tools/3dParties/MyGUI/TreeControl.h"
-#include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
+#include "tools/3dParties/MyGUI/MyGUITreeControlDataSource.h"
 #include "tools/File.h"
 #include "tools/ConfigFile.h"
 #include "tools/OgreUtils.h"
@@ -25,7 +25,7 @@ namespace Steel
     {
         mControl = control;
         mControl->eventTreeNodePrepare += MyGUI::newDelegate(this, &MyGUITreeControlDataSource::notifyTreeNodePrepare);
-        mControl->eventTreeNodeSelected += MyGUI::newDelegate(this, &MyGUITreeControlDataSource::notifyTreeNodeSelected);
+//         mControl->eventTreeNodeSelected += MyGUI::newDelegate(this, &MyGUITreeControlDataSource::notifyTreeNodeSelected);
     }
 
     ////////////////////////////////////////////////////////////////////

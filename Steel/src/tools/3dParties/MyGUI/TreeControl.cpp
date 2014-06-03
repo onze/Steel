@@ -173,7 +173,7 @@ namespace MyGUI
         invalidate();
     }
 
-    void TreeControl::setSelection(TreeControlNode *pSelection)
+    void TreeControl::setSelection(TreeControlNode *pSelection, bool updateScroll/* = false*/)
     {
         if(mpSelection == pSelection)
             return;
@@ -185,6 +185,9 @@ namespace MyGUI
             pSelection->setExpanded(true);
             pSelection = pSelection->getParent();
         }
+        
+        if(updateScroll)
+            ;//scrollTo();TODO: scroll to selected node
 
         invalidate();
         eventTreeNodeSelected(this, mpSelection);
@@ -537,6 +540,8 @@ namespace MyGUI
 
         TreeControlNode *pNode = pItem->getNode();
         pNode->setExpanded(!pNode->isExpanded());
+        
+        eventTreeNodeExpandCollapse(this, pNode);
 
         if(!pNode->isExpanded() && mpSelection && mpSelection->hasAncestor(pNode))
         {

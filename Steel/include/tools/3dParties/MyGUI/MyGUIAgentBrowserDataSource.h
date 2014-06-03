@@ -3,9 +3,9 @@
 
 #include "steeltypes.h"
 #include "tools/File.h"
-#include "MyGUIFileTreeDataSource.h"
+#include "MyGUITreeControlDataSource.h"
 #include "SignalListener.h"
-#include <SelectionManager.h>
+#include "SelectionManager.h"
 
 namespace MyGUI
 {
