@@ -55,7 +55,7 @@ namespace Steel
 
     public:
         UIPanel(UI &ui);
-        UIPanel(UI &ui, Ogre::String const& name, File resourceDir);
+        UIPanel(UI &ui, Ogre::String const &name, File resourceDir);
         UIPanel(const UIPanel &o);
         virtual ~UIPanel();
         virtual UIPanel &operator=(const UIPanel &o);
@@ -112,13 +112,13 @@ namespace Steel
         void executeSetVariableCommand(MyGUI::Widget *widget);
         void executeEngineCommand(MyGUI::Widget *widget);
         void emitWidgetSignal(MyGUI::Widget *widget);
-        
+
         static bool getDebugEvents() {return sDebugEvents;}
-        static void setDebugEvents(bool flag) {sDebugEvents=flag;}
+        static void setDebugEvents(bool flag) {sDebugEvents = flag;}
     protected:
         /// If set to true, events generate more debug data.
         static bool sDebugEvents;
-        
+
         void buildDependences();
         Ogre::String layoutName();
 
@@ -148,7 +148,7 @@ namespace Steel
         /// screen size, in pixels.
         unsigned mWidth, mHeight;
         bool mIsVisible;
-        
+
         /// name of the panel
         Ogre::String mName;
         /// location of all resources for this panel
@@ -158,14 +158,14 @@ namespace Steel
         /// where the layout is
         File resourceFile();
         File skinFile();
-        typedef std::vector<MyGUITreeControlDataSource *> MyGUITreeControlDataSourceVector;
+        typedef std::map<MyGUI::Widget *, MyGUITreeControlDataSource *> MyGUITreeControlDataSourceMap;
         struct MyGUIData
         {
             MyGUI::VectorWidgetPtr layout;
             MyGUI::IResource *resource;
             typedef std::map<Ogre::String, Ogre::String> StringStringMap;
             StringStringMap UIVariables;
-            MyGUITreeControlDataSourceVector treeControlDataSources;
+            MyGUITreeControlDataSourceMap treeControlDataSources;
         };
         MyGUIData mMyGUIData;
 

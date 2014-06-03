@@ -15,9 +15,8 @@
 #include "UI/UI.h"
 #include "SignalManager.h"
 #include "tools/OgreUtils.h"
-#include "tools/3dParties/MyGUI/MyGUIFileTreeDataSource.h"
+#include "tools/3dParties/MyGUI/MyGUIAgentBrowserDataSource.h"
 #include "tools/3dParties/MyGUI/TreeControl.h"
-#include <tools/3dParties/MyGUI/MyGUIAgentBrowserDataSource.h>
 
 namespace Steel
 {
@@ -220,8 +219,9 @@ namespace Steel
         {
             while(mMyGUIData.treeControlDataSources.size())
             {
-                MyGUITreeControlDataSource *dataSource = mMyGUIData.treeControlDataSources.back();
-                mMyGUIData.treeControlDataSources.pop_back();
+                auto it = mMyGUIData.treeControlDataSources.begin();
+                MyGUITreeControlDataSource *dataSource = it->second;
+                mMyGUIData.treeControlDataSources.erase(it);
                 dataSource->shutdown();
                 delete dataSource;
             }
@@ -285,8 +285,6 @@ namespace Steel
 
     void UIPanel::setupMyGUIWidgetsLogic(std::vector<MyGUI::Widget *> &fringe)
     {
-        Debug::log(STEEL_METH_INTRO, "name: ", mName).endl();
-
         // parse UI tree depth-first, subscribe to:
         // - all button clicks
         // - all combobox udpates
@@ -348,8 +346,6 @@ namespace Steel
             while(it.next())
                 fringe.push_back(it.current());
         }
-
-        Debug::log("UIPanel::setupMyGUIWidgetsLogic() done !").endl();
     }
 
     MyGUI::Widget *const UIPanel::findMyGUIChildWidget(Ogre::String const &name)
@@ -425,7 +421,7 @@ namespace Steel
                     }
 
                     if(nullptr != dataSource)
-                        mMyGUIData.treeControlDataSources.push_back(dataSource);
+                        mMyGUIData.treeControlDataSources.insert(std::make_pair(treeControl, dataSource));
                 }
                 else
                 {
