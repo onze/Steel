@@ -32,20 +32,22 @@ namespace Steel
     {
 
     }
-    ////////////////////////////// <PropertyGridPropertyValueType::Bool>
-    void PropertyGridProperty::setCallbacks(BoolReadCallback boolReadCallback, BoolWriteCallback boolWriteCallback)
+
+////////////////////////////// <PropertyGridPropertyValueType::Bool>
+    void PropertyGridProperty::setCallbacks(BoolReadCallback readCallback, BoolWriteCallback writeCallback)
     {
         mValueType = PropertyGridPropertyValueType::Bool;
-        mBoolReadCallback = boolReadCallback;
-        mBoolWriteCallback = boolWriteCallback;
+        mBoolReadCallback = readCallback;
+        mBoolWriteCallback = writeCallback;
+        mReadOnly = nullptr == writeCallback;
     }
-    
+
     void PropertyGridProperty::read(bool &value)
     {
         if(nullptr != mBoolReadCallback)
             value = mBoolReadCallback();
     }
-    
+
     void PropertyGridProperty::write(bool value)
     {
         if(nullptr != mBoolWriteCallback)
@@ -57,22 +59,23 @@ namespace Steel
             Debug::warning(*this, " is a read-only property.").endl();
     }
 ////////////////////////////// </PropertyGridPropertyValueType::Bool>
-    
+
 ////////////////////////////// <PropertyGridPropertyValueType::String>
     void PropertyGridProperty::setCallbacks(StringReadCallback readCallback, StringWriteCallback writeCallback)
     {
         mValueType = PropertyGridPropertyValueType::String;
         mStringReadCallback = readCallback;
         mStringWriteCallback = writeCallback;
+        mReadOnly = nullptr == writeCallback;
     }
-    
+
     void PropertyGridProperty::read(Ogre::String &value)
     {
         if(nullptr != mStringReadCallback)
             value = mStringReadCallback();
     }
-    
-    void PropertyGridProperty::write(Ogre::String const& value)
+
+    void PropertyGridProperty::write(Ogre::String const &value)
     {
         if(nullptr != mStringWriteCallback)
         {
@@ -90,6 +93,7 @@ namespace Steel
         mValueType = PropertyGridPropertyValueType::StringVectorSelection;
         mStringVectorSelectionReadCallback = readCallback;
         mStringVectorSelectionWriteCallback = writeCallback;
+        mReadOnly = nullptr == writeCallback;
     }
 
     void PropertyGridProperty::read(StringVectorSelection &value)
@@ -116,6 +120,7 @@ namespace Steel
         mValueType = PropertyGridPropertyValueType::Range;
         mRangeReadCallback = readCallback;
         mRangeWriteCallback = writeCallback;
+        mReadOnly = nullptr == writeCallback;
     }
 
     void PropertyGridProperty::read(Range &value)
@@ -163,7 +168,7 @@ namespace Steel
 
     Signal PropertyGridAdapter::getSignal(PropertyGridAdapter::PublicSignal signal) const
     {
-#define STEEL_PROPERTYGRIDADAPTER_GETSIGNAL_CASE(NAME) case NAME:return SignalManager::instance().toSignal("Steel::Engine::"#NAME)
+#define STEEL_PROPERTYGRIDADAPTER_GETSIGNAL_CASE(NAME) case NAME:return SignalManager::instance().toSignal("Steel::PropertyGridAdapter::"#NAME)
 
         switch(signal)
         {
