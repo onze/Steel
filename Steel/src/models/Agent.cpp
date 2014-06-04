@@ -22,6 +22,7 @@
 #include "models/BTModelManager.h"
 #include "models/AgentManager.h"
 #include "SignalManager.h"
+#include "Engine.h"
 
 namespace Steel
 {
@@ -29,6 +30,8 @@ namespace Steel
     const char *Agent::TAGS_ATTRIBUTE = "tags";
     const char *Agent::ID_ATTRIBUTE = "aid";
     const char *Agent::BEHAVIORS_STACK_ATTRIBUTE = "behaviorsStack";
+
+    const char *Agent::PAUSE_ON_SELECTED_SETTING = "Agent::pauseOnSelected";
 
     Agent::PropertyTags Agent::sPropertyTags;
 
@@ -368,15 +371,21 @@ namespace Steel
         if(nullptr != om)
             om->setSelected(selected);
 
-        PhysicsModel *pm = physicsModel();
+        bool pauseModels = true;
+        mLevel->engine()->config().getSetting(Agent::PAUSE_ON_SELECTED_SETTING, pauseModels, true);
 
-        if(nullptr != pm)
-            pm->setSelected(selected);
+        if(pauseModels)
+        {
+            PhysicsModel *pm = physicsModel();
 
-        BTModel *btm = btModel();
+            if(nullptr != pm)
+                pm->setSelected(selected);
 
-        if(nullptr != btm)
-            btm->setSelected(selected);
+            BTModel *btm = btModel();
+
+            if(nullptr != btm)
+                btm->setSelected(selected);
+        }
 
         mIsSelected = selected;
         emit(mIsSelected ? EventType::SELECTED : EventType::UNSELECTED);
@@ -393,7 +402,7 @@ namespace Steel
     Json::Value Agent::toJson()
     {
         Json::Value root;
-        
+
         // name
         if(hasName())
             root[Agent::NAME_ATTRIBUTE] = name();

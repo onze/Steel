@@ -21,7 +21,7 @@ namespace Steel
     const char *BTModel::STATES_STACK_ATTRIBUTE = "statesStack";
 
     const Ogre::String BTModel::CURRENT_PATH_NAME_VARIABLE = "__currentPath";
-
+    
     BTModel::BTModel():
         mOwnerAgent(INVALID_ID), mBlackBoardModelId(INVALID_ID), mLevel(nullptr),
         mStateStream(), mCurrentStateIndex(0), mStatesStack(),

@@ -1,5 +1,6 @@
 #include "models/BlackBoardModel.h"
 #include <tools/JsonUtils.h>
+#include <SignalManager.h>
 
 namespace Steel
 {
@@ -40,7 +41,7 @@ namespace Steel
         return true;
     }
 
-    bool BlackBoardModel::fromJson(Json::Value const&root)
+    bool BlackBoardModel::fromJson(Json::Value const &root)
     {
         deserializeTags(root);
         mVariables = JsonUtils::asStringStringMap(root[BlackBoardModel::STRING_VARIABLES_ATTRIBUTE]);
@@ -62,14 +63,24 @@ namespace Steel
 
     void BlackBoardModel::setVariable(Ogre::String const &name, Ogre::String const &value)
     {
+        bool isNew = mVariables.end() == mVariables.find(name);
+
         mVariables.erase(name);
         mVariables[name] = value;
+
+        if(isNew)
+            SignalManager::instance().emit(getSignal(PublicSignal::newVariable));
     }
 
     void BlackBoardModel::setVariable(Ogre::String const &name, AgentId const &value)
     {
+        bool isNew = mVariables.end() == mVariables.find(name);
+
         mVariables.erase(name);
         mVariables[name] = Ogre::StringConverter::toString(value);
+
+        if(isNew)
+            SignalManager::instance().emit(getSignal(PublicSignal::newVariable));
     }
 
     Ogre::String BlackBoardModel::getStringVariable(Ogre::String const &name)
@@ -91,10 +102,29 @@ namespace Steel
 
         return (AgentId) Ogre::StringConverter::parseUnsignedLong(it->second, INVALID_ID);
     }
-    
+
     void BlackBoardModel::unsetVariable(Ogre::String const &name)
     {
+        bool existed = mVariables.end() != mVariables.find(name);
+        
         mVariables.erase(name);
+        
+        if(existed)
+            SignalManager::instance().emit(getSignal(PublicSignal::variableDeleted));
+    }
+
+    Signal BlackBoardModel::getSignal(BlackBoardModel::PublicSignal signal) const
+    {
+#define STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE(NAME) case NAME:return SignalManager::instance().toSignal("Steel::BlackBoardModel::"#NAME)
+
+        switch(signal)
+        {
+                STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE(PublicSignal::newVariable);
+                STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE(PublicSignal::variableDeleted);
+        }
+
+#undef STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE
+        return INVALID_SIGNAL;
     }
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

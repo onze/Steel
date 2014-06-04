@@ -112,7 +112,6 @@ namespace Steel
         }
 
         mHasMaterialOverride = false;
-
         Model::cleanup();
     }
 
@@ -202,7 +201,7 @@ namespace Steel
         serializeTags(node);
     }
 
-    bool OgreModel::fromJson(Json::Value const&model)
+    bool OgreModel::fromJson(Json::Value const &model)
     {
         Debug::error(STEEL_METH_INTRO, "wrong deserialization method called.").endl().breakHere();
         // TODO: implement this method for inplace modification
@@ -248,13 +247,10 @@ namespace Steel
         if(node.isMember(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE))
         {
             value = node[OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE];
+            materialName = JsonUtils::asString(value, StringUtils::BLANK);
 
-            if(!value.isString())
-                Debug::error(STEEL_METH_INTRO, "field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is not a string.").endl();
-            else if(value.isNull())
-                Debug::error(STEEL_METH_INTRO, "field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(" is null.").endl();
-            else
-                materialName = Ogre::String(value.asString());
+            if(StringUtils::BLANK == materialName)
+                Debug::error(STEEL_METH_INTRO, "could not read field ").quotes(OgreModel::MATERIAL_OVERRIDE_ATTRIBUTE)(": ").quotes(value).endl();
         }
 
         // agentTags

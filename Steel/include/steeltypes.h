@@ -55,8 +55,9 @@ namespace Steel
     const u64 INVALID_ID = ULONG_MAX;
     typedef std::list<AgentId> Selection;
     typedef std::pair<ModelId, ModelId> ModelPair;
-    
+
     typedef std::vector<Ogre::String> StringVector;
+    typedef std::map<Ogre::String, Ogre::String> StringStringMap;
 
     //////////////////////////////////////////////////////////////
     // TIme related stuff go here
@@ -112,7 +113,7 @@ namespace Steel
     typedef Ogre::String LocationPathName;
 
     typedef size_t Hash;
-    
+
     typedef Ogre::String PropertyGridPropertyId;
 
     class Engine;

@@ -29,6 +29,9 @@ namespace Steel
         static const char *TAGS_ATTRIBUTE;
         static const char *ID_ATTRIBUTE;
         static const char *BEHAVIORS_STACK_ATTRIBUTE;
+        
+        /// If false, Agents will not pause their models when selected. The OgreModel is not affected by this setting.
+        static const char *PAUSE_ON_SELECTED_SETTING;
 
         Agent(AgentId id, Level *level);
         virtual ~Agent();

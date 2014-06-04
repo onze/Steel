@@ -805,8 +805,8 @@ namespace Steel
 
             return false;
         }
-        else
-            Debug::log(STEEL_METH_INTRO, "new ", modelTypeString, " Model with id ", mid, " linked to agent ", aid).endl();
+//         else
+//             Debug::log(STEEL_METH_INTRO, "new ", modelTypeString, " Model with id ", mid, " linked to agent ", aid).endl();
 
         //TODO add visual notification in the UI
         return true;

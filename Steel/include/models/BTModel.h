@@ -24,7 +24,7 @@ namespace Steel
     class BTModel: public Model
     {
         DECLARE_STEEL_MODEL(BTModel, ModelType::BT);
-        
+
     public:
         /// Name of the BT this model is running
         static const char *SHAPE_NAME_ATTRIBUTE;
@@ -47,7 +47,7 @@ namespace Steel
         bool init(BTModelManager *manager, BTShapeStream *shapeStream);
 
         /// Deserialize itself from the given Json object. For internal use only, see BTModelManager::buildFromFile.
-        bool fromJson(Json::Value const&node);
+        bool fromJson(Json::Value const &node);
 
         /// Serialize itself into the given Json object
         void toJson(Json::Value &node);
@@ -92,13 +92,15 @@ namespace Steel
         inline bool debug() const {return mDebug;}
         inline void setDebug(bool flag) {mDebug = flag;}
 
+        BTStateStream stateStream()const {return mStateStream;}
+
     protected:
         /**
          * Name of the string variable containing the name of the path the model currently
          * follows. This is the name the default path following BTree looks for.
          */
         static const Ogre::String CURRENT_PATH_NAME_VARIABLE;
-        /// Link the owner agent with a newly created blackboard model, and returns a pointer to it
+        /// Link the owner agent with a newly created blackboard model, and returns a pointer to it, or nullptr.
         BlackBoardModel *getOwnerAgentBlackboard();
 
         // not owned
@@ -124,8 +126,8 @@ namespace Steel
         /// Can be set to true to display debug information. Also used by BT nodes.
         bool mDebug;
     };
-    
-    bool utest_BTrees(UnitTestExecutionContext const* context);
+
+    bool utest_BTrees(UnitTestExecutionContext const *context);
 }
 #endif /* STEEL_BTMODEL_H_ */
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

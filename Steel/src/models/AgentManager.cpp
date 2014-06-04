@@ -57,7 +57,7 @@ namespace Steel
     {
         Agent *t = new Agent(getFreeAgentId(), mLevel);
         mAgents.insert(std::pair<AgentId, Agent *>(t->id(), t));
-        Debug::log("new agent with id ")(t->id()).endl();
+//         Debug::log("new agent with id ")(t->id()).endl();
         SignalManager::instance().emit(getSignal(PublicSignal::agentCreated));
         return t->id();
     }
