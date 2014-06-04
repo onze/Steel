@@ -104,18 +104,12 @@ namespace Steel
         {
             Agent *currentLocationAgent = btModel->level()->agentMan()->getAgent(currentLocationAgentId);
 
-            if(nullptr == currentLocationAgent)
-            {
-                nextLocationAgentId = INVALID_ID;
-            }
-            else
+            if(nullptr != currentLocationAgent)
             {
                 LocationModel const *const lModel = currentLocationAgent->locationModel();
 
-                if(nullptr != lModel)
-                {
+                if(nullptr != lModel && lModel->hasAnyDestination())
                     nextLocationAgentId = *(lModel->destinations().begin());
-                }
             }
         }
 
