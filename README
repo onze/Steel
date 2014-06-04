@@ -3,14 +3,14 @@
 This project is an entity-based game engine, that makes use of the following libraries:
 - Ogre3d (rendering)
 - OIS (input system)
-- libRocket + MyGUI (UI) (currently trying out different UI solutions to move away from libRocket)
-- Bullet (physics) + btOgre
+- MyGUI (UI)
+- Bullet (physics) + btOgre to link it with Ogre
 - Inotify (file changes monitoring on linux)
 - the stl ! :D
-AI is custom though (behavior trees).
+AI is custom (behavior trees).
 ---
-The engine inludes an ingame editor. Even basic resources are missing from this repository so far, which would result in a black screen -- best case scenario.
+The engine inludes an ingame editor. Basic resources are missing from this repository so far, which would result in a black screen -- best case scenario.
 
 As of now, the engine is a WIP anyway.
 
-Files include a short, hardcoded CMakeLists.txt known to build the engine under linux once paths to libs are setup. Libraries choice keeps the door open for Steel going multiplatform (windows/mac/consoles/whatnot).
+Files include a short, hardcoded CMakeLists.txt known to build the engine under linux once paths to libs are setup. Libraries choice keeps the door open for multiplatform development, but the fulltime job doesn't :P
