@@ -69,7 +69,9 @@ namespace Steel
         mVariables[name] = value;
 
         if(isNew)
-            SignalManager::instance().emit(getSignal(PublicSignal::newVariable));
+            emit(getSignal(PublicSignal::newVariable));
+        else
+            emit(getSignal(PublicSignal::variableChanged));
     }
 
     void BlackBoardModel::setVariable(Ogre::String const &name, AgentId const &value)
@@ -80,7 +82,9 @@ namespace Steel
         mVariables[name] = Ogre::StringConverter::toString(value);
 
         if(isNew)
-            SignalManager::instance().emit(getSignal(PublicSignal::newVariable));
+            emit(getSignal(PublicSignal::newVariable));
+        else
+            emit(getSignal(PublicSignal::variableChanged));
     }
 
     Ogre::String BlackBoardModel::getStringVariable(Ogre::String const &name)
@@ -110,7 +114,7 @@ namespace Steel
         mVariables.erase(name);
         
         if(existed)
-            SignalManager::instance().emit(getSignal(PublicSignal::variableDeleted));
+            emit(getSignal(PublicSignal::variableDeleted));
     }
 
     Signal BlackBoardModel::getSignal(BlackBoardModel::PublicSignal signal) const
@@ -120,6 +124,7 @@ namespace Steel
         switch(signal)
         {
                 STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE(PublicSignal::newVariable);
+                STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE(PublicSignal::variableChanged);
                 STEEL_BLACKBOARDMODEL_GETSIGNAL_CASE(PublicSignal::variableDeleted);
         }
 

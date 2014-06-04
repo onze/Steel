@@ -3,12 +3,13 @@
 
 #include "steeltypes.h"
 #include "Model.h"
+#include "SignalEmitter.h"
 
 namespace Steel
 {
     class BlackBoardModelManager;
 
-    class BlackBoardModel: public Model
+    class BlackBoardModel: public Model, public SignalEmitter
     {
         DECLARE_STEEL_MODEL(BlackBoardModel, ModelType::BLACKBOARD);
 
@@ -35,10 +36,12 @@ namespace Steel
         
         enum class PublicSignal : u32
         {
-            /// Emitted when the a variable is set for the first time
+            /// Emitted when a variable is set for the first time
             newVariable = 1,
-            /// Emitted when the a variable is unset
-            variableDeleted
+            /// Emitted when a variable value is updated
+            variableChanged,
+            /// Emitted when a variable is unset
+            variableDeleted,
         };
         Signal getSignal(BlackBoardModel::PublicSignal signal) const;
 
