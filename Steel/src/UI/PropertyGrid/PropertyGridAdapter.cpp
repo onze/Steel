@@ -172,7 +172,7 @@ namespace Steel
 
         switch(signal)
         {
-                STEEL_PROPERTYGRIDADAPTER_GETSIGNAL_CASE(PublicSignal::newProperty);
+            STEEL_PROPERTYGRIDADAPTER_GETSIGNAL_CASE(PublicSignal::newProperty);
         }
 
 #undef STEEL_PROPERTYGRIDADAPTER_GETSIGNAL_CASE
@@ -196,5 +196,8 @@ namespace Steel
 
         return mProperties;
     }
+    
+    void PropertyGridAdapter::onSignal(Signal signal, SignalEmitter *const source)
+    {}
 
 }

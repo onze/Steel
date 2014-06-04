@@ -101,7 +101,7 @@ namespace Steel
         struct Signals
         {
             Signal newAdapterProperty = INVALID_SIGNAL;
-            std::set<Signal> propertyChanged;
+            SignalSet propertyChanged;
         };
         Signals mSignals;
         

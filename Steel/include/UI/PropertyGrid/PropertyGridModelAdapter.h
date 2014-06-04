@@ -19,6 +19,7 @@ namespace Steel
         virtual ~PropertyGridModelAdapter();
 
         virtual void buildProperties() override;
+        Signal getSignal(PropertyGridAdapter::PublicSignal signal) const override {return PropertyGridAdapter::getSignal(signal);}
 
     protected:
         // not owned
@@ -57,6 +58,7 @@ namespace Steel
         void buildProperties() override;
         
         Signal getSignal(PropertyGridAdapter::PublicSignal signal) const override;
+        void onSignal(Signal signal, SignalEmitter *const source) override;
     };
 }
 

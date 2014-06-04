@@ -9,6 +9,7 @@
 #include "models/BlackBoardModelManager.h"
 #include "Level.h"
 #include "Numeric.h"
+#include "SignalManager.h"
 
 namespace Steel
 {
@@ -157,24 +158,41 @@ namespace Steel
         if(PropertyGridAdapter::PublicSignal::newProperty == signal)
         {
             BlackBoardModel *const bbModel = mLevel->blackBoardModelMan()->at(mMid);
-            if(nullptr!=bbModel)
+
+            if(nullptr != bbModel)
                 return bbModel->getSignal(BlackBoardModel::PublicSignal::newVariable);
         }
-        return PropertyGridAdapter::getSignal(signal);
+
+        return PropertyGridModelAdapter::getSignal(signal);
     }
-    
+
+    void PropertyGridBlackboardModelAdapter::onSignal(Signal signal, SignalEmitter *const source)
+    {
+        BlackBoardModel *const bbModel = mLevel->blackBoardModelMan()->at(mMid);
+
+        if(nullptr != bbModel)
+        {
+            if(signal == bbModel->getSignal(BlackBoardModel::PublicSignal::variableChanged))
+            {
+                // TODO: don't update ALL props because of 1 variable update. Get the updated variable, sned the corresponding property's signal.
+                for(PropertyGridProperty * const prop : properties())
+                    SignalManager::instance().emit(prop->getSignal(PropertyGridProperty::PublicSignal::changed), prop);
+            }
+        }
+    }
+
     void PropertyGridBlackboardModelAdapter::buildProperties()
     {
         BlackBoardModel *const bbModel = mLevel->blackBoardModelMan()->at(mMid);
 
         if(nullptr == bbModel)
             return;
-        
+
         // variables
         for(auto it : bbModel->variables())
         {
             Ogre::String key = it.first;
-            
+
             PropertyGridProperty *prop = new PropertyGridProperty(key);
             PropertyGridProperty::StringReadCallback readCB([this, key]()->Ogre::String
             {
@@ -184,6 +202,8 @@ namespace Steel
             prop->setCallbacks(readCB, nullptr);
             PropertyGridAdapter::mProperties.push_back(prop);
         }
+
+        registerSignal(bbModel->getSignal(BlackBoardModel::PublicSignal::variableChanged));
     }
 }
 
