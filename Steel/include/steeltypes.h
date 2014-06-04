@@ -94,6 +94,8 @@ namespace Steel
 
     typedef u64 Signal;
     const Signal INVALID_SIGNAL = ULONG_MAX;
+    typedef std::set<Signal> SignalSet;
+    typedef std::map<Signal, Ogre::String> SignalStringMap;
 
     typedef u64 Tag;
     const Signal INVALID_TAG = ULONG_MAX;
