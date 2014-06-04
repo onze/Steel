@@ -46,7 +46,7 @@ namespace Steel
 
         // write callbacks
         typedef std::function<void(bool)> BoolWriteCallback;
-        typedef std::function<void(Ogre::String const&)> StringWriteCallback;
+        typedef std::function<void(Ogre::String const &)> StringWriteCallback;
         typedef std::function<void(StringVectorSelection::selection_type)> StringVectorSelectionWriteCallback;
         typedef std::function<void(Range const &)> RangeWriteCallback;
 
@@ -57,18 +57,20 @@ namespace Steel
         PropertyGridPropertyId id() const {return mId;}
         PropertyGridPropertyValueType valueType() const {return mValueType;}
 
+        bool isReadOnly()const {return mReadOnly;}
+
         void read(bool &value);/// Reads the property value into the given parameter.
         void write(bool value);/// Writes the given parameter to the property value.
         void setCallbacks(BoolReadCallback readCallback, BoolWriteCallback writeCallback);
-        
+
         void read(Ogre::String &value);/// Reads the property value into the given parameter.
-        void write(Ogre::String const& value);/// Writes the given parameter to the property value.
+        void write(Ogre::String const &value);/// Writes the given parameter to the property value.
         void setCallbacks(StringReadCallback readCallback, StringWriteCallback writeCallback);
 
         void read(StringVectorSelection &value);/// Reads the property value into the given parameter.
         void write(StringVectorSelection::selection_type value);/// Writes the given parameter to the property value.
         void setCallbacks(StringVectorSelectionReadCallback readCallback, StringVectorSelectionWriteCallback writeCallback);
-        
+
         void read(Range &value);/// Reads the property value into the given parameter.
         void write(Range const &value);/// Writes the given parameter to the property value.
         void setCallbacks(RangeReadCallback readCallback, RangeWriteCallback writeCallback);
@@ -84,10 +86,11 @@ namespace Steel
         PropertyGridPropertyId mId;
         /// the type of value this property represents
         PropertyGridPropertyValueType mValueType;
+        bool mReadOnly = true;
 
         BoolReadCallback mBoolReadCallback;
         BoolWriteCallback mBoolWriteCallback;
-        
+
         StringReadCallback mStringReadCallback;
         StringWriteCallback mStringWriteCallback;
 
@@ -121,9 +124,10 @@ namespace Steel
 
         enum class PublicSignal : u32
         {
+            /// Emitted when the adapter has a new property to adapt
             newProperty = 1
         };
-        Signal getSignal(PropertyGridAdapter::PublicSignal signal) const;
+        virtual Signal getSignal(PropertyGridAdapter::PublicSignal signal) const;
 
     protected:
         /// Meant to be overriden by subclass. Fills mProperties according to adaptee.
