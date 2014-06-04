@@ -3,6 +3,8 @@
 
 #include "steeltypes.h"
 #include "PropertyGridAdapter.h"
+#include "SignalListener.h"
+#include "SignalEmitter.h"
 
 namespace Steel
 {
@@ -35,6 +37,26 @@ namespace Steel
         
     protected:
         StringVector const &boundingShapeValues();
+    };
+    
+    class PropertyGridBTModelAdapter: public PropertyGridModelAdapter
+    {
+    public:
+        PropertyGridBTModelAdapter(Level *const level, AgentId aid, ModelId mid): PropertyGridModelAdapter(level, aid, mid) {};
+        ~PropertyGridBTModelAdapter() {};
+        
+        void buildProperties() override;
+    };
+    
+    class PropertyGridBlackboardModelAdapter: public PropertyGridModelAdapter
+    {
+    public:
+        PropertyGridBlackboardModelAdapter(Level *const level, AgentId aid, ModelId mid): PropertyGridModelAdapter(level, aid, mid) {};
+        ~PropertyGridBlackboardModelAdapter() {};
+        
+        void buildProperties() override;
+        
+        Signal getSignal(PropertyGridAdapter::PublicSignal signal) const override;
     };
 }
 
