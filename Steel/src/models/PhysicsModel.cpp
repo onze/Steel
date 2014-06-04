@@ -264,8 +264,35 @@ namespace Steel
         return nullptr == mBody?.0f : (float) mBody->getLinearDamping();
     }
 
+    Signal PhysicsModel::getSignal(PhysicsModel::PublicSignal eSignal)
+    {
+        Signal *signal = nullptr;
+
+        switch(eSignal)
+        {
+            case PublicSignal::changed:
+                signal = &(mSignals.changed);
+                break;
+        }
+
+        if(nullptr == signal)
+            return INVALID_SIGNAL;
+
+        if(INVALID_SIGNAL == *signal)
+            (*signal) = SignalManager::instance().anonymousSignal();
+
+        return *signal;
+    }
+
     Signal PhysicsModel::registerEvent(EventType event, SignalListener *const listener)
     {
+        switch(event)
+        {
+            case EventType::CHANGE:
+                return getSignal(PublicSignal::changed);
+                break;
+        }
+
         auto it = mEventSignals.find(event);
         Signal signal = mEventSignals.end() == it ? mEventSignals.emplace(event, SignalManager::instance().anonymousSignal()).first->second : it->second;
         listener->registerSignal(signal);
@@ -404,9 +431,7 @@ namespace Steel
     void PhysicsModel::update(float timestep, PhysicsModelManager *manager)
     {
         if(mIsGhost && mEmitOnTag.size())
-        {
             collisionCheck(manager);
-        }
 
         if(static_cast<RigidBodyStateWrapper *>(mBody->getMotionState())->poolTransform())
         {
@@ -414,6 +439,9 @@ namespace Steel
 
             if(mEventSignals.end() != it)
                 emit(it->second);
+
+            if(INVALID_SIGNAL != mSignals.changed)
+                emit(mSignals.changed);
         }
 
         if(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR != mKeepVerticalFactor)

@@ -133,6 +133,12 @@ namespace Steel
         BoundingShape shape() const {return mShape;}
         void setShape(OgreModel *const omodel, BoundingShape requestedShape);
 
+        enum class PublicSignal : u32
+        {
+            changed = 0
+        };
+        Signal getSignal(PhysicsModel::PublicSignal eSignal);
+
     protected:
         /// Creates the model's rigid body with a boundingShape matching the given OgreModel entity
         void createRigidBody(Steel::OgreModel *const omodel);
@@ -169,6 +175,12 @@ namespace Steel
         /// Shape of the physic model representing the graphic model.
         BoundingShape mShape;
         bool mIsSelected;
+
+        struct Signals
+        {
+            Signal changed = INVALID_SIGNAL;
+        };
+        Signals mSignals;
 
         /// See GHOST_ATTRIBUTE docstring.
         bool mIsGhost;
