@@ -89,14 +89,14 @@ namespace Steel
             loadMainWindowPosition();
         }
     }
-    
+
     void Editor::loadMainWindowPosition()
     {
         if(nullptr != mMyGUIWidgets.mainWindow)
         {
             auto coords = mMyGUIWidgets.mainWindow->getPosition();
             Ogre::Vector2 position;
-            
+
             if(mEngine->config().getSetting(Editor::MENU_WINDOW_POSITION_SETTING, position, Ogre::Vector2(coords.left, coords.top)))
             {
                 f32 const xMax = mEngine->renderWindow()->getWidth() - mMyGUIWidgets.mainWindow->getWidth();
@@ -368,12 +368,13 @@ namespace Steel
         Ogre::String rawCommand = "instanciate." + file.fullPath();
         processCommand(rawCommand);
     }
-    
+
     void Editor::MyGUIResourceTreeNodeExpandCollapse(MyGUI::TreeControl *sender, MyGUI::TreeControlNode *node)
     {
         // save node expansion-ness
         auto it = mMyGUIData.treeControlDataSources.find(sender);
-        if(mMyGUIData.treeControlDataSources.end()!=it)
+
+        if(mMyGUIData.treeControlDataSources.end() != it)
         {
             File const &file = *(node->getData<MyGUIFileSystemDataSource::ControlNodeDataType>());
             MyGUIFileSystemDataSource *dataSource = static_cast<MyGUIFileSystemDataSource *>(it->second);
@@ -472,10 +473,16 @@ namespace Steel
                                 newAdapter = new PropertyGridPhysicsModelAdapter(mEngine->level(), modelData->agentId, modelData->modelId);
                                 break;
 
+                            case ModelType::BT:
+                                newAdapter = new PropertyGridBTModelAdapter(mEngine->level(), modelData->agentId, modelData->modelId);
+                                break;
+
+                            case ModelType::BLACKBOARD:
+                                newAdapter = new PropertyGridBlackboardModelAdapter(mEngine->level(), modelData->agentId, modelData->modelId);
+                                break;
+
                             case ModelType::OGRE:
                             case ModelType::LOCATION:
-                            case ModelType::BT:
-                            case ModelType::BLACKBOARD:
                             default:
                                 newAdapter = new PropertyGridModelAdapter(mEngine->level(), modelData->agentId, modelData->modelId);
                                 break;

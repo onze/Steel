@@ -228,19 +228,22 @@ namespace Steel
 
         AgentId const selectedAgentId = selection.front();
 
-        MyGUI::TreeControlNode *currentlySelectedNode = mControl->getSelection();
+        MyGUI::TreeControlNode *selectedNode = mControl->getSelection();
 
         // no previous selection: update that tree
-        if(nullptr != currentlySelectedNode)
+        if(nullptr != selectedNode)
         {
-            ControlNodeDataType *currentlySelectedNodeData = currentlySelectedNode->getData<ControlNodeDataType>();
+            ControlNodeDataType *currentlySelectedNodeData = selectedNode->getData<ControlNodeDataType>();
 
             // selected node already matches selection: do nothing
             if(currentlySelectedNodeData->agentId == selectedAgentId)
+            {
+                selectedNode->setPrepared(false);
                 return;
+            }
         }
 
-        MyGUI::TreeControlNode *selectedNode = nullptr;
+        selectedNode = nullptr;
 
         // find node to be selected
         for(MyGUI::TreeControlNode * node : mControl->getRoot()->getChildren())
@@ -258,7 +261,10 @@ namespace Steel
         }
 
         if(nullptr != selectedNode)
+        {
+            selectedNode->setPrepared(false);
             mControl->setSelection(selectedNode, true);
+        }
     }
 
 }
