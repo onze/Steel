@@ -13,6 +13,7 @@
 #include "Debug.h"
 #include "UI/PropertyGrid/PropertyGridAdapter.h"
 #include "SignalManager.h"
+#include "tools/MyGUIUtils.h"
 
 namespace Steel
 {
@@ -139,7 +140,7 @@ namespace Steel
         Ogre::String const controlName = "PropertyGridManager_Control_" + property->id();
 
         // original control size is set here, but the method that build the control can totally resize it.
-        MyGUI::IntCoord coords(0, height, mContainerWidget->getWidth(), 20);
+        MyGUI::IntCoord coords(0, height, mContainerWidget->getClientWidget()->getWidth(), 20);
         MyGUI::Widget *control = mContainerWidget->createWidget<MyGUI::Widget>(skin, coords, MyGUI::Align::HCenter | MyGUI::Align::Top, controlName);
 
         if(nullptr == control)
@@ -241,9 +242,10 @@ namespace Steel
     {
         int left = insertPropertyIdLabel(control, property) + WIDGET_SPACING;
 
-        int size = control->getClientCoord().height - 2;
-        MyGUI::IntCoord coord(left, 1, size, size);
+        int size = control->getClientCoord().height;
+        MyGUI::IntCoord coord(left, 0, size, size);
         MyGUI::Button *checkbox = (MyGUI::Button *)control->createWidget<MyGUI::Button>("CheckBox", coord, MyGUI::Align::Left | MyGUI::Align::VCenter, "CheckBox");
+        checkbox->setEnabled(!property->isReadOnly());
 
         checkbox->setUserData(property);
         checkbox->eventMouseButtonClick += MyGUI::newDelegate(this, &PropertyGridManager::onMyGUIMouseButtonClickForCheckboxToggle);
@@ -288,10 +290,11 @@ namespace Steel
 /////////////////// <STRING CONTROL>
     void PropertyGridManager::buildStringControl(MyGUI::Widget *const control, PropertyGridProperty *const property)
     {
-        int left = insertPropertyIdLabel(control, property) + WIDGET_SPACING;
+        int left = insertPropertyIdLabel(control, property);
 
-        MyGUI::IntCoord coord(left, 1, control->getRight() - 2 * WIDGET_SPACING, control->getBottom() - 2);
+        MyGUI::IntCoord coord(left + WIDGET_SPACING, 0, control->getRight() - left - 2 * WIDGET_SPACING, control->getHeight());
         MyGUI::EditBox *editBox = (MyGUI::EditBox *)control->createWidget<MyGUI::EditBox>("EditBox", coord, MyGUI::Align::Left | MyGUI::Align::VCenter, "EditBox");
+        editBox->setEditReadOnly(property->isReadOnly());
 
         editBox->setUserData(property);
         editBox->eventEditSelectAccept += MyGUI::newDelegate(this, &PropertyGridManager::onMyGUIEditSelectAccept);
@@ -338,6 +341,8 @@ namespace Steel
         int width = control->getWidth() - left - WIDGET_SPACING * 2;
         MyGUI::IntCoord coord(left + WIDGET_SPACING, 1, width, control->getHeight() - 2);
         MyGUI::ScrollBar *scrollBar = (MyGUI::ScrollBar *)control->createWidget<MyGUI::ScrollBar>("SliderH", coord, MyGUI::Align::Left | MyGUI::Align::Top, "ScrollBar");
+        scrollBar->setEnabled(!property->isReadOnly());
+        MyGUIUtils::expandWidgetCoord(control, 0, 0, 0, 2);
 
         scrollBar->setScrollRange(100);
         scrollBar->setUserData(property);
@@ -455,8 +460,9 @@ namespace Steel
         int left = insertPropertyIdLabel(control, property) + WIDGET_SPACING;
 
         int width = control->getWidth() - left - WIDGET_SPACING;
-        MyGUI::IntCoord coord(left, 1, width, control->getHeight() - 2);
+        MyGUI::IntCoord coord(left, 0, width, control->getHeight());
         MyGUI::ComboBox *cbBox = (MyGUI::ComboBox *)control->createWidget<MyGUI::ComboBox>("ComboBox", coord, MyGUI::Align::Left | MyGUI::Align::Top, "ComboBox");
+        cbBox->setEnabled(!property->isReadOnly());
 
         cbBox->setEditReadOnly(true);
         cbBox->setComboModeDrop(true); //a position change also acts as a submit (aka accept) (both events are raised in this order).

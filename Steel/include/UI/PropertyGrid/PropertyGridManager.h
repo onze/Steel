@@ -28,7 +28,7 @@ namespace Steel
     {
     private:
         /// within a control
-        static int const WIDGET_SPACING = 5;
+        static int const WIDGET_SPACING = 2;
     public:
         PropertyGridManager() = delete;
         
