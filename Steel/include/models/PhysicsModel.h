@@ -128,7 +128,7 @@ namespace Steel
 
         enum class PublicSignal : u32
         {
-            changed = 0
+            transformed = 0
         };
         Signal getSignal(PhysicsModel::PublicSignal eSignal);
 
@@ -171,6 +171,7 @@ namespace Steel
 
         struct Signals
         {
+            /// Emitted when the model is moved, rotated, or scaled
             Signal tranformed = INVALID_SIGNAL;
         };
         Signals mSignals;

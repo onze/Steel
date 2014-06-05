@@ -266,7 +266,7 @@ namespace Steel
 
         switch(eSignal)
         {
-            case PublicSignal::changed:
+            case PublicSignal::transformed:
                 signal = &(mSignals.tranformed);
                 break;
         }
