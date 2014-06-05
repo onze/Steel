@@ -388,15 +388,35 @@ namespace Steel
         }
 
         mIsSelected = selected;
-        emit(mIsSelected ? EventType::SELECTED : EventType::UNSELECTED);
+
+        Signal emittedSignal = mIsSelected ? mSignals.selected : mSignals.unselected;
+
+        if(INVALID_SIGNAL != emittedSignal)
+            emit(emittedSignal);
     }
 
-    void Agent::emit(Agent::EventType e)
+    Signal Agent::getSignal(Agent::PublicSignal eSignal)
     {
-        auto const it = mSignalMap.find(e);
+        Signal *signal = nullptr;
 
-        if(mSignalMap.end() != it)
-            this->SignalEmitter::emit(it->second);
+        switch(eSignal)
+        {
+            case PublicSignal::selected:
+                signal = &(mSignals.selected);
+                break;
+
+            case PublicSignal::unselected:
+                signal = &(mSignals.unselected);
+                break;
+        }
+
+        if(nullptr == signal)
+            return INVALID_SIGNAL;
+
+        if(INVALID_SIGNAL == *signal)
+            (*signal) = SignalManager::instance().anonymousSignal();
+
+        return *signal;
     }
 
     Json::Value Agent::toJson()
@@ -755,13 +775,6 @@ namespace Steel
     Ogre::String Agent::BTPath()
     {
         return nullptr == btModel() ? LocationModel::EMPTY_PATH : btModel()->path();
-    }
-
-    Signal Agent::signal(EventType e)
-    {
-        auto it = mSignalMap.find(e);
-        return mSignalMap.end() == it ? mSignalMap.emplace(e, SignalManager::instance().anonymousSignal()).first->second : it->second;
-
     }
 
     bool Agent::isPersistent()

@@ -180,18 +180,12 @@ namespace Steel
 
         //////////////////////////////////////////////////////////////////////
         // signals
-        /// Emitted signals TODO: use PublicSignal pattern instead
-        enum class EventType : int
+        enum class PublicSignal : u32
         {
-            //TODO: implement PublicSignal pattern
-            SELECTED = 1,
-            UNSELECTED = 2,
+            selected = 0,
+            unselected
         };
-        /// Returns the signal for the given event
-        Signal signal(EventType e);
-    private:
-        /// Emit with an auto lookup for the corresponding signal value.
-        void emit(Agent::EventType e);
+        Signal getSignal(Agent::PublicSignal eSignal);
 
     private:
         /// Tags used internally, grouped here.
@@ -222,8 +216,14 @@ namespace Steel
         /// Stack of behaviors. Current one is in mModelIds though.
         std::list<ModelId> mBehaviorsStack;
 
-        typedef std::map<EventType, Signal> SignalMap;
-        SignalMap mSignalMap;
+        struct Signals
+        {
+            /// Emitted when the agent is selected
+            Signal selected = INVALID_SIGNAL;
+            /// Emitted when the agent is unselected
+            Signal unselected = INVALID_SIGNAL;
+        };
+        Signals mSignals;
     };
 
 }
