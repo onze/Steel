@@ -42,8 +42,10 @@ namespace Json
 
 namespace Steel
 {
+    typedef short unsigned int u16;
     typedef unsigned int u32;
     typedef unsigned long u64;
+    typedef signed int s16;
     typedef signed int s32;
     typedef signed long s64;
     typedef float f32;

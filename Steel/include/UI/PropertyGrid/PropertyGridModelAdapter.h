@@ -36,6 +36,8 @@ namespace Steel
 
         void buildProperties() override;
         
+        void onSignal(Signal signal, SignalEmitter *const source) override;
+        
     protected:
         StringVector const &boundingShapeValues();
     };

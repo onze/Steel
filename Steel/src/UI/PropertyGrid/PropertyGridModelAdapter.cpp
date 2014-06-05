@@ -41,8 +41,46 @@ namespace Steel
         return values;
     }
 
+    void PropertyGridPhysicsModelAdapter::onSignal(Signal signal, SignalEmitter *const source)
+    {
+        PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
+
+        if(nullptr != pmodel)
+        {
+            if(signal == pmodel->getSignal(PhysicsModel::PublicSignal::changed))
+            {
+                // TODO: don't update ALL props because of 1 variable update. Get the updated variable, send the corresponding property's signal.
+                for(PropertyGridProperty * const prop : properties())
+                    SignalManager::instance().emit(prop->getSignal(PropertyGridProperty::PublicSignal::changed), prop);
+            }
+        }
+    }
+
     void PropertyGridPhysicsModelAdapter::buildProperties()
     {
+        // speed
+        {
+            PropertyGridProperty *prop = new PropertyGridProperty("Velocity");
+            PropertyGridProperty::StringReadCallback readCB([this]()->Ogre::String
+            {
+                PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
+
+                if(nullptr == pmodel)
+                    return StringUtils::BLANK;
+
+                Ogre::Vector3 const v = pmodel->velocity();
+                u16 width = 4;
+                Ogre::String const r = "{" +
+                Ogre::StringConverter::toString(v.x, width) + ", " +
+                Ogre::StringConverter::toString(v.y, width) + ", " +
+                Ogre::StringConverter::toString(v.z, width)
+                + "}";
+                return r;
+            });
+            prop->setCallbacks(readCB, nullptr);
+            PropertyGridAdapter::mProperties.push_back(prop);
+        }
+
         // shape list
         {
             PropertyGridProperty *prop = new PropertyGridProperty(PhysicsModel::BBOX_SHAPE_ATTRIBUTE);
@@ -135,6 +173,11 @@ namespace Steel
             prop->setCallbacks(readCB, writeCB);
             PropertyGridAdapter::mProperties.push_back(prop);
         }
+
+        PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
+
+        if(nullptr != pmodel)
+            registerSignal(pmodel->getSignal(PhysicsModel::PublicSignal::changed));
     }
 
     void PropertyGridBTModelAdapter::buildProperties()

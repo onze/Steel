@@ -155,6 +155,8 @@ namespace Steel
     }
 
 ///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 
     PropertyGridAdapter::PropertyGridAdapter():
         mProperties()
@@ -199,5 +201,16 @@ namespace Steel
     
     void PropertyGridAdapter::onSignal(Signal signal, SignalEmitter *const source)
     {}
+    
+    PropertyGridProperty *const PropertyGridAdapter::getProperty(Ogre::String const& id) const
+    {
+        for(PropertyGridProperty * const prop : mProperties)
+        {
+            if(id == prop->id())
+                return prop;
+        }
+        
+        return nullptr;
+    }
 
 }

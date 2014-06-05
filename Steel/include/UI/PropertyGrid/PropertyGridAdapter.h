@@ -26,6 +26,8 @@ namespace Steel
      * member value).
      * Said differently, it provides an interface that the PropertyGridManager can understand and build
      * controls to (1)reflect and (2)affect the property's state.
+     * 
+     * Note that signals emitted by a property are not anonymous.
      */
     class PropertyGridProperty : public SignalEmitter
     {
@@ -85,6 +87,7 @@ namespace Steel
         void write(Range const &value);/// Writes the given parameter to the property value.
         void setCallbacks(RangeReadCallback readCallback, RangeWriteCallback writeCallback);
 
+        /// Signals emitted by a property are not anonymous (src points to the property).
         enum class PublicSignal : u32
         {
             /// Emitted when the property value changes (should be emitted by adapter that created the property).
@@ -137,12 +140,15 @@ namespace Steel
 
         /// to be overloaded by subclasses if needed (in order to listen to adaptee changes for instance...)
         virtual Signal getSignal(PropertyGridAdapter::PublicSignal signal) const;
+        
 
     protected:
         /// Meant to be overriden by subclass. Fills mProperties according to adaptee.
         virtual void buildProperties() {};
         /// Removes and deletes all properties from mProperties.
         void removeProperties();
+        /// find by id
+        PropertyGridProperty *const getProperty(Ogre::String const& id) const;
 
         // owned
         PropertyGridPropertyVector mProperties;
