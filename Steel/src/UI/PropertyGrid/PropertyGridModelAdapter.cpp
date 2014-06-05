@@ -47,7 +47,7 @@ namespace Steel
 
         if(nullptr != pmodel)
         {
-            if(signal == pmodel->getSignal(PhysicsModel::PublicSignal::changed))
+            if(signal == pmodel->getSignal(PhysicsModel::PublicSignal::transformed))
             {
                 // TODO: don't update ALL props because of 1 variable update. Get the updated variable, send the corresponding property's signal.
                 for(PropertyGridProperty * const prop : properties())
@@ -177,7 +177,7 @@ namespace Steel
         PhysicsModel *const pmodel = mLevel->physicsModelMan()->at(mMid);
 
         if(nullptr != pmodel)
-            registerSignal(pmodel->getSignal(PhysicsModel::PublicSignal::changed));
+            registerSignal(pmodel->getSignal(PhysicsModel::PublicSignal::transformed));
     }
 
     void PropertyGridBTModelAdapter::buildProperties()
