@@ -63,13 +63,6 @@ namespace Steel
         static const Ogre::String BBOX_SHAPE_NAME_SPHERE;
         static const Ogre::String BBOX_SHAPE_NAME_TRIMESH;
 
-        enum class EventType : int
-        {
-            CHANGE = 1,
-        };
-
-        Signal registerEvent(EventType evt, SignalListener *const listener);
-
         PhysicsModel();
         PhysicsModel(PhysicsModel const &o);
         void init(btDynamicsWorld *world, OgreModel *omodel);
@@ -178,7 +171,7 @@ namespace Steel
 
         struct Signals
         {
-            Signal changed = INVALID_SIGNAL;
+            Signal tranformed = INVALID_SIGNAL;
         };
         Signals mSignals;
 
@@ -192,8 +185,6 @@ namespace Steel
         std::set<AgentId> mCollidingAgents;
         /// See LEVITATE_ATTRIBUTE
         bool mLevitate;
-        /// events for which the object will emit a signal
-        std::map<EventType, Signal> mEventSignals;
     };
 }
 #endif // STEEL_PHYSICSMODEL_H

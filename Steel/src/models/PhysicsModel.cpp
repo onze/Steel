@@ -60,7 +60,7 @@ namespace Steel
         mRotationFactor(PhysicsModel::DEFAULT_MODEL_ROTATION_FACTOR), mKeepVerticalFactor(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR),
         mStates(), mShape(BoundingShape::SPHERE), mIsSelected(false),
         mIsGhost(false), mGhostObject(nullptr), mEmitOnTag(), mCollidingAgents(),
-        mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE), mEventSignals()
+        mLevitate(PhysicsModel::DEFAULT_MODEL_LEVITATE)
     {
     }
 
@@ -79,8 +79,7 @@ namespace Steel
         mGhostObject(o.mGhostObject),
         mEmitOnTag(o.mEmitOnTag),
         mCollidingAgents(o.mCollidingAgents),
-        mLevitate(o.mLevitate),
-        mEventSignals(o.mEventSignals.begin(), o.mEventSignals.end())
+        mLevitate(o.mLevitate)
     {
     }
 
@@ -99,8 +98,6 @@ namespace Steel
             mGhostObject = o.mGhostObject;
             mEmitOnTag = o.mEmitOnTag;
             mCollidingAgents = o.mCollidingAgents;
-            mEventSignals.clear();
-            mEventSignals.insert(o.mEventSignals.begin(), o.mEventSignals.end());
         }
 
         return *this;
@@ -126,7 +123,6 @@ namespace Steel
             mWorld = nullptr;
         }
 
-        mEventSignals.clear();
         mEmitOnTag.clear();
         Model::cleanup();
     }
@@ -271,7 +267,7 @@ namespace Steel
         switch(eSignal)
         {
             case PublicSignal::changed:
-                signal = &(mSignals.changed);
+                signal = &(mSignals.tranformed);
                 break;
         }
 
@@ -282,21 +278,6 @@ namespace Steel
             (*signal) = SignalManager::instance().anonymousSignal();
 
         return *signal;
-    }
-
-    Signal PhysicsModel::registerEvent(EventType event, SignalListener *const listener)
-    {
-        switch(event)
-        {
-            case EventType::CHANGE:
-                return getSignal(PublicSignal::changed);
-                break;
-        }
-
-        auto it = mEventSignals.find(event);
-        Signal signal = mEventSignals.end() == it ? mEventSignals.emplace(event, SignalManager::instance().anonymousSignal()).first->second : it->second;
-        listener->registerSignal(signal);
-        return signal;
     }
 
     bool PhysicsModel::fromJson(Json::Value const &root)
@@ -435,13 +416,8 @@ namespace Steel
 
         if(static_cast<RigidBodyStateWrapper *>(mBody->getMotionState())->poolTransform())
         {
-            auto const it = mEventSignals.find(EventType::CHANGE);
-
-            if(mEventSignals.end() != it)
-                emit(it->second);
-
-            if(INVALID_SIGNAL != mSignals.changed)
-                emit(mSignals.changed);
+            if(INVALID_SIGNAL != mSignals.tranformed)
+                emit(mSignals.tranformed);
         }
 
         if(PhysicsModel::DEFAULT_MODEL_KEEP_VERTICAL_FACTOR != mKeepVerticalFactor)
