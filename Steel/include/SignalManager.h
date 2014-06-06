@@ -43,6 +43,12 @@ namespace Steel
         Signal anonymousSignal();
         Ogre::String fromSignal(const Signal signal);
 
+        void setLogFiredSignals(bool flag) {mLogFiredSignals = flag;}
+        bool logFiredSignals() const {return mLogFiredSignals;}
+        
+        void setLogEmittedSignals(bool flag) {mLogEmittedSignals = flag;}
+        bool logEmittedSignals() const {return mLogEmittedSignals;}
+
     private:
         static SignalManager *sInstance;
 
@@ -57,8 +63,14 @@ namespace Steel
         /// Instances to notify of emitted signals.
         std::map<Signal, std::set<SignalListener *>> mListeners;
 
-        /// Emitted signals
-        std::set<std::pair<Signal, SignalEmitter *>> mEmittedSignals;
+        /// Emitted signals.
+        typedef std::set<std::pair<Signal, SignalEmitter *>> EmittedSignals;
+        EmittedSignals mEmittedSignals;
+
+        /// Activates logging all signals values upon firing.
+        bool mLogFiredSignals = false;
+        /// Activates logging all signals values upon emission.
+        bool mLogEmittedSignals = false;
     };
 }
 

@@ -609,12 +609,18 @@ namespace Steel
         {
             mLevel->processCommand(command);
         }
+        else if(command[0] == "switch_log_fired_signals")
+        {
+            SignalManager::instance().setLogFiredSignals(!SignalManager::instance().logFiredSignals());
+        }
+        else if(command[0] == "switch_log_emitted_signals")
+        {
+            SignalManager::instance().setLogEmittedSignals(!SignalManager::instance().logEmittedSignals());
+        }
         else if(command[0] == "ui")
         {
             if(nullptr != mUI)
-            {
                 return mUI->processCommand(command);
-            }
             else
             {
                 Debug::error(intro).quotes(command)(": no UI yet !").endl();
@@ -624,9 +630,7 @@ namespace Steel
         else if(command[0] == "editor")
         {
             if(nullptr != mUI)
-            {
                 return mUI->editor().processCommand(command);
-            }
             else
             {
                 //TODO: UI-independant editor ?
@@ -635,9 +639,7 @@ namespace Steel
             }
         }
         else if(command[0] == "reloadConfig")
-        {
             loadConfig(mConfig);
-        }
         else if(command[0] == "set_level")
         {
             if(command.size() > 1)

@@ -14,11 +14,16 @@ namespace Steel
 
     SignalManager::~SignalManager()
     {
-
     }
 
     void SignalManager::emit(Signal signal, SignalEmitter *src)
     {
+        if(INVALID_SIGNAL == signal)
+            return;
+
+        if(mLogEmittedSignals)
+            Debug::log("[Emitted] signal ", signal, " ").quotes(fromSignal(signal)).endl();
+
         mEmittedSignals.insert(std::make_pair(signal, src));
     }
 
@@ -26,7 +31,7 @@ namespace Steel
     {
         if(mEmittedSignals.size())
         {
-            decltype(mEmittedSignals) copy(mEmittedSignals.begin(), mEmittedSignals.end());
+            EmittedSignals copy(mEmittedSignals.begin(), mEmittedSignals.end());
             mEmittedSignals.clear();
 
             while(copy.size())
@@ -40,6 +45,9 @@ namespace Steel
 
     SignalManager &SignalManager::fire(Signal signal, SignalEmitter *const src/* = nullptr*/)
     {
+        if(mLogFiredSignals)
+            Debug::log("[Fired] signal ", signal, " ").quotes(fromSignal(signal)).endl();
+        
         auto it = mListeners.find(signal);
 
         if(mListeners.end() == it)
