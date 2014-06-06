@@ -182,6 +182,22 @@ namespace Steel
 
     void PropertyGridBTModelAdapter::buildProperties()
     {
+        // model debug flag
+        {
+            PropertyGridProperty *prop = new PropertyGridProperty("Debug");
+            PropertyGridProperty::BoolReadCallback readCB([this]()->bool
+            {
+                BTModel *const btModel = mLevel->BTModelMan()->at(mMid);
+                return btModel->debug();
+            });
+            PropertyGridProperty::BoolWriteCallback writeCB([this](bool flag)
+            {
+                BTModel *const btModel = mLevel->BTModelMan()->at(mMid);
+                return btModel->setDebug(flag);
+            });
+            prop->setCallbacks(readCB, writeCB);
+            PropertyGridAdapter::mProperties.push_back(prop);
+        }
         // stateStream name
         {
             PropertyGridProperty *prop = new PropertyGridProperty("StateStream");
