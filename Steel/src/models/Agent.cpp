@@ -121,9 +121,10 @@ namespace Steel
         // models
         int nModels = 0, nExpected = 0;
 
-        for(ModelType mt_it = (ModelType)((int) ModelType::FIRST + 1); mt_it != ModelType::LAST; mt_it = (ModelType)((int) mt_it + 1))
+        for(auto modelTypeInt = toIntegral(ModelType::FIRST); modelTypeInt != toIntegral(ModelType::LAST); ++modelTypeInt)
         {
-            Ogre::String mtName = toString(mt_it);
+            ModelType modelType = (ModelType)modelTypeInt;
+            Ogre::String mtName = toString(modelType);
             Json::Value mTypeValue = value[mtName];
 
             // possibly no model of this type"__Agent::PropertyTag.persistent"
@@ -133,7 +134,7 @@ namespace Steel
             ++nExpected;
             ModelId modelId = (ModelId) Ogre::StringConverter::parseUnsignedLong(mTypeValue.asString());
 
-            if(!linkToModel(mt_it, modelId))
+            if(!linkToModel(modelType, modelId))
             {
                 Debug::error(STEEL_METH_INTRO, "agent: ", mId, " would not link with model<", mtName, "> ", mId, ". Skipping.").endl();
                 continue;
@@ -287,7 +288,6 @@ namespace Steel
             case ModelType::BT:
             case ModelType::PHYSICS:
             case ModelType::BLACKBOARD:
-            case ModelType::FIRST:
             case ModelType::LAST:
                 break;
         }

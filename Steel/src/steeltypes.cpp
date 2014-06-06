@@ -11,7 +11,6 @@ namespace Steel
     {
         STEEL_ENUM_TO_STRING_START(ModelType)
         {
-            STEEL_ENUM_TO_STRING_CASE(ModelType::FIRST);
             STEEL_ENUM_TO_STRING_CASE(ModelType::OGRE);
             STEEL_ENUM_TO_STRING_CASE(ModelType::PHYSICS);
             STEEL_ENUM_TO_STRING_CASE(ModelType::LOCATION);
@@ -26,7 +25,6 @@ namespace Steel
 
     ModelType toModelType(Ogre::String s)
     {
-        STEEL_STRING_TO_ENUM_CASE(ModelType::FIRST);
         STEEL_STRING_TO_ENUM_CASE(ModelType::OGRE);
         STEEL_STRING_TO_ENUM_CASE(ModelType::PHYSICS);
         STEEL_STRING_TO_ENUM_CASE(ModelType::LOCATION);

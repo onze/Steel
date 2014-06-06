@@ -1,12 +1,13 @@
 #ifndef STEEL_STEELTYPES_H_
 #define STEEL_STEELTYPES_H_
 
+#include <functional>
 #include <limits.h>
 #include <list>
 #include <map>
 #include <set>
+#include <type_traits> //for std::underlying_type
 #include <vector>
-#include <functional>
 
 #include <Ogre.h>
 
@@ -76,19 +77,16 @@ namespace Steel
     /// usable enum values need to stay contiguous starting at 0.
     enum class ModelType : s32
     {
-        //ModelType::FIRST should stay first
-        FIRST = -1,
-
-        //put next ones here
         // ModelType::Ogre should be first of actual types, since this order is the loading order, and all models depend on OgreModels.
-        OGRE,
+        OGRE = 0,
         PHYSICS,
         LOCATION,
         BLACKBOARD,
         BT,
 
-        //ModelType::LAST should stay last (to enable looping).
-        LAST
+        //LAST and FIRST should stay last (to enable looping).
+        LAST,
+        FIRST = OGRE
     };
 
     Ogre::String toString(ModelType e);
@@ -119,6 +117,17 @@ namespace Steel
     typedef size_t Hash;
 
     typedef Ogre::String PropertyGridPropertyId;
+
+    /** 
+     * Casts an enum class value to its underlying type.
+     * See details there: 
+     * http://stackoverflow.com/questions/14589417/can-an-enum-class-be-converted-to-the-underlying-type
+     */
+    template<typename E>
+    constexpr auto toIntegral(E e) -> typename std::underlying_type<E>::type
+    {
+        return static_cast<typename std::underlying_type<E>::type>(e);
+    }
 
     class Engine;
     class Level;

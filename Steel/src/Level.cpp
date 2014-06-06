@@ -18,14 +18,11 @@
 
 #include <Ogre.h>
 
-#include <Engine.h>
+#include "Engine.h"
 #include "Level.h"
 #include "Camera.h"
-#include "tools/OgreUtils.h"
-#include "tools/StringUtils.h"
-#include "tools/JsonUtils.h"
-#include "terrain/TerrainPhysicsManager.h"
 #include "SelectionManager.h"
+#include "SignalManager.h"
 #include "models/Agent.h"
 #include "models/AgentManager.h"
 #include "models/BlackBoardModelManager.h"
@@ -34,7 +31,10 @@
 #include "models/Model.h"
 #include "models/OgreModelManager.h"
 #include "models/PhysicsModelManager.h"
-#include "SignalManager.h"
+#include "terrain/TerrainPhysicsManager.h"
+#include "tools/OgreUtils.h"
+#include "tools/StringUtils.h"
+#include "tools/JsonUtils.h"
 
 namespace Steel
 {
@@ -216,9 +216,10 @@ namespace Steel
         {
             mAgentMan->deleteAllAgents();
 
-            for(ModelType mt = ModelType::FIRST; mt < ModelType::LAST; mt = (ModelType)(((unsigned long)mt) + 1L))
+            for(auto modelTypeInt = toIntegral(ModelType::FIRST); modelTypeInt != toIntegral(ModelType::LAST); ++modelTypeInt)
             {
-                ModelManager *mm = modelManager(mt);
+                ModelType modelType = (ModelType)modelTypeInt;
+                ModelManager *mm = modelManager(modelType);
 
                 if(nullptr == mm)
                     continue;
@@ -401,10 +402,9 @@ namespace Steel
         Debug::log("processing models...").endl();
         Json::Value models;
 
-        for(ModelType modelType = (ModelType)((int) ModelType::FIRST + 1);
-                modelType != ModelType::LAST;
-                modelType = (ModelType)((int) modelType + 1))
+        for(auto modelTypeInt = toIntegral(ModelType::FIRST); modelTypeInt != toIntegral(ModelType::LAST); ++modelTypeInt)
         {
+            ModelType modelType = (ModelType)modelTypeInt;
             ModelManager *mm = modelManager(modelType);
 
             if(mm == nullptr)
@@ -496,9 +496,10 @@ namespace Steel
         }
         else
         {
-            for(ModelType i = (ModelType)((unsigned long) ModelType::FIRST + 1); i != ModelType::LAST; i = (ModelType)((unsigned long) i + 1))
+            for(auto modelTypeInt = toIntegral(ModelType::FIRST); modelTypeInt != toIntegral(ModelType::LAST); ++modelTypeInt)
             {
-                Ogre::String type = toString(i);
+                ModelType modelType = (ModelType)modelTypeInt;
+                Ogre::String type = toString(modelType);
                 Json::Value models = dict[type];
 
                 if(models.isNull())
@@ -507,7 +508,7 @@ namespace Steel
                     continue;
                 }
 
-                ModelManager *mm = modelManager(i);
+                ModelManager *mm = modelManager(modelType);
 
                 if(mm == nullptr)
                 {
@@ -805,6 +806,7 @@ namespace Steel
 
             return false;
         }
+
 //         else
 //             Debug::log(STEEL_METH_INTRO, "new ", modelTypeString, " Model with id ", mid, " linked to agent ", aid).endl();
 
@@ -1087,10 +1089,3 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
-
-
-
-
-
-
-

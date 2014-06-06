@@ -187,8 +187,10 @@ namespace Steel
                     return;
                 }
 
-                for(ModelType modelType = (ModelType)((unsigned long) ModelType::FIRST + 1); modelType != ModelType::LAST; modelType = (ModelType)((unsigned long) modelType + 1))
+                for(auto modelTypeInt = toIntegral(ModelType::FIRST); modelTypeInt != toIntegral(ModelType::LAST); ++modelTypeInt)
                 {
+                    ModelType modelType = (ModelType)modelTypeInt;
+
                     if(agent->hasModel(modelType))
                     {
                         ModelId mid = agent->modelId(modelType);
