@@ -1,28 +1,28 @@
 #include "models/PhysicsModel.h"
 
+#include <OgreEntity.h>
 
 #include <bullet/BulletCollision/btBulletCollisionCommon.h>
 #include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 #include <bullet/LinearMath/btVector3.h>
-#include <OgreEntity.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 
 #include "steeltypes.h"
-#include "models/Agent.h"
-#include "models/OgreModel.h"
-#include "tools/StringUtils.h"
-#include "tools/JsonUtils.h"
-#include "TagManager.h"
+#include "Debug.h"
+#include "Level.h"
+#include "SignalListener.h"
 #include "SignalManager.h"
-#include <models/PhysicsModelManager.h>
-#include <Level.h>
-#include <models/AgentManager.h>
-#include <tools/RigidBodyStateWrapper.h>
-#include <SignalListener.h>
-#include <Debug.h>
+#include "TagManager.h"
+#include "models/Agent.h"
+#include "models/AgentManager.h"
+#include "models/OgreModel.h"
+#include "models/PhysicsModelManager.h"
+#include "tools/JsonUtils.h"
+#include "tools/RigidBodyStateWrapper.h"
+#include "tools/StringUtils.h"
 
 namespace Steel
 {
@@ -160,6 +160,7 @@ namespace Steel
 //             btCollisionObject::CF_STATIC_OBJECT
 //         );
         addToWorld();
+        mBody->setActivationState(DISABLE_DEACTIVATION);
 
         // ghost setup if needed
         setGhost(mIsGhost);
@@ -401,7 +402,6 @@ namespace Steel
         if(mIsKinematics)
         {
             removeFromWorld();
-            //         mBody->forceActivationState(ACTIVE_TAG);
             mBody->setActivationState(ACTIVE_TAG);
             mBody->setCollisionFlags(mBody->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
             mIsKinematics = false;
@@ -781,7 +781,6 @@ namespace Steel
     {
         if(nullptr == mBody)
             return;
-
         mBody->applyCentralImpulse(BtOgre::Convert::toBullet(f));
     }
 
