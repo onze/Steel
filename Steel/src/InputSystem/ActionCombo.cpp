@@ -131,7 +131,8 @@ namespace Steel
             for(Action const & action : mActions)
             {
                 // check max delay between inputs
-                if(it != it_current && static_cast<decltype(sDefaultTimeGap)>(it_current->timestamp - it_prev->timestamp) > sDefaultTimeGap)
+                if(it != it_current && 
+                    static_cast<decltype(sDefaultTimeGap)>(it_current->timestamp - it_prev->timestamp) > sDefaultTimeGap)
                 {
                     allResolved = false;
                     break;

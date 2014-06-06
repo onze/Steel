@@ -7,6 +7,7 @@
 #include <bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 #include <bullet/LinearMath/btVector3.h>
+#include <bullet/LinearMath/btMotionState.h>
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 
@@ -188,8 +189,15 @@ namespace Steel
     {
         mWorld->removeRigidBody(mBody);
 
-        if(nullptr != mBody->getMotionState())
-            delete mBody->getMotionState();
+        btCollisionShape *shape = mBody->getCollisionShape();
+
+        if(nullptr != shape)
+            delete shape;
+
+        btMotionState *motionState = mBody->getMotionState();
+
+        if(nullptr != motionState)
+            delete motionState;
 
         STEEL_DELETE(mBody);
     }
@@ -433,14 +441,11 @@ namespace Steel
     void PhysicsModel::setUserPointer(Agent *agent)
     {
         if(nullptr != mBody)
-        {
             mBody->setUserPointer(agent);
-        }
 
-        if(nullptr != mGhostObject)
-        {
+        if(nullptr != mGhostObject);
+
 //             mGhostObject->setUserPointer(agent);
-        }
     }
 
     void PhysicsModel::collisionCheck(PhysicsModelManager *manager)
@@ -547,9 +552,7 @@ namespace Steel
 //                     std::set<Tag> _signals=toEmit_it->second;
 //                     Debug::log(_tag).endl()(_signals).endl()(mEmitOnTag).endl();
                     if(mEmitOnTag.end() != toEmit_it)
-                    {
                         signals.insert(toEmit_it->second.begin(), toEmit_it->second.end());
-                    }
                 }
 
                 // emit signals
@@ -781,6 +784,7 @@ namespace Steel
     {
         if(nullptr == mBody)
             return;
+
         mBody->applyCentralImpulse(BtOgre::Convert::toBullet(f));
     }
 

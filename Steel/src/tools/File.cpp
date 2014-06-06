@@ -507,10 +507,10 @@ namespace Steel
         s.seekg(0, std::ios::beg);
 
         char *fileData = new char[fileLength + (std::ios::pos_type) 1];
-
         s.read(fileData, (int) fileLength);
         fileData[fileLength] = '\0';
         Ogre::String rawContent(fileData);
+        delete[] fileData;
 
         if(skiptEmtpyLines)
         {

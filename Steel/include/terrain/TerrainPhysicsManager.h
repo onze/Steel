@@ -22,86 +22,88 @@ class btHeightfieldTerrainShape;
 namespace Steel
 {
     class TerrainManager;
-    
+
     class TerrainPhysicsManager: public TerrainManagerEventListener, Ogre::FrameListener
     {
-        private:
-            TerrainPhysicsManager(const TerrainPhysicsManager& other);
-            virtual TerrainPhysicsManager& operator=(const TerrainPhysicsManager& other);
-            virtual bool operator==(const TerrainPhysicsManager& other) const;
-            class TerrainPhysics
-            {
-                public:
-                    TerrainPhysics()
-                        : mTerrainShape(nullptr), mMotionState(nullptr), mBody(nullptr), mHeightfieldData(nullptr)
-                    {
-                    }
-                    btHeightfieldTerrainShape *mTerrainShape;
-                    btDefaultMotionState* mMotionState;
-                    btRigidBody* mBody;
-                    float *mHeightfieldData;
-            };
-
+    private:
+        TerrainPhysicsManager(const TerrainPhysicsManager &other);
+        virtual TerrainPhysicsManager &operator=(const TerrainPhysicsManager &other);
+        virtual bool operator==(const TerrainPhysicsManager &other) const;
+        class TerrainPhysics
+        {
         public:
-            TerrainPhysicsManager(TerrainManager *terrainMan);
-            virtual ~TerrainPhysicsManager();
+            TerrainPhysics();
+            virtual ~TerrainPhysics();
+            
+            void init(float *heightfieldData, btHeightfieldTerrainShape *terrainShape, btDefaultMotionState *motionState, btRigidBody *body);
+            void shutdown(btDynamicsWorld *const world);
+            
+            float *mHeightfieldData;
+            btHeightfieldTerrainShape *mTerrainShape;
+            btDefaultMotionState *mMotionState;
+            btRigidBody *mBody;
+        };
 
-            /// Instanciates a physics terrain. See bullet terrain demo for reference.
-            bool createTerrainFor(Ogre::Terrain* ogreTerrain);
-            /// Deletes a physics terrain
-            bool removeTerrainFor(Ogre::Terrain* ogreTerrain);
+    public:
+        TerrainPhysicsManager(TerrainManager *terrainMan);
+        virtual ~TerrainPhysicsManager();
 
-            /// Adds a physics terrain's to the simulation
-            bool activateTerrainFor(Ogre::Terrain *ogreTerrain);
-            /// Removes a physics terrain's from the simulation
-            bool deactivateTerrainFor(Ogre::Terrain *ogreTerrain);
+        /// Instanciates a physics terrain. See bullet terrain demo for reference.
+        bool createTerrainFor(Ogre::Terrain *ogreTerrain);
+        /// Deletes a physics terrain
+        bool removeTerrainFor(Ogre::Terrain *ogreTerrain);
 
-            btTransform getOgreTerrainTransform(Ogre::Terrain * oterrain);
+        /// Adds a physics terrain's to the simulation
+        bool activateTerrainFor(Ogre::Terrain *ogreTerrain);
+        /// Removes a physics terrain's from the simulation
+        bool deactivateTerrainFor(Ogre::Terrain *ogreTerrain);
 
-            /// Called by Ogre once per frame
-            bool frameRenderingQueued(const Ogre::FrameEvent &evt);
+        btTransform getOgreTerrainTransform(Ogre::Terrain *oterrain);
 
-            /// Inherited from TerrainManagerEventListener
-            void onTerrainEvent(TerrainManager::LoadingState state);
+        /// Called by Ogre once per frame
+        bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 
-            /// Returns whether debug draw of physic shapes is activated
-            bool getDebugDraw();
+        /// Inherited from TerrainManagerEventListener
+        void onTerrainEvent(TerrainManager::LoadingState state);
 
-            /// Main loop iteration
-            void update(float timestep);
+        /// Returns whether debug draw of physic shapes is activated
+        bool getDebugDraw();
 
-            /// Update height values
-            void updateHeightmap(Ogre::Terrain* terrain);
+        /// Main loop iteration
+        void update(float timestep);
 
-            // getters
-            inline btDynamicsWorld *world()
-            {
-                return mWorld;
-            }
+        /// Update height values
+        void updateHeightmap(Ogre::Terrain *terrain);
 
-            /// Returns the PhysicsTerrain representing the given terrain.
-            TerrainPhysics *getTerrainFor(Ogre::Terrain *ogreTerrain) const;
+        // getters
+        inline btDynamicsWorld *world()
+        {
+            return mWorld;
+        }
 
-            // setters
-            /// De/activate debug draw of physic shapes
-            void setDebugDraw(bool flag);
-            void setWorldGravity(Ogre::Vector3 const& gravity);
+        /// Returns the PhysicsTerrain representing the given terrain.
+        TerrainPhysics *getTerrainFor(Ogre::Terrain *ogreTerrain) const;
 
-        protected:
-            void updateHeightmap(Ogre::Terrain *oterrain, TerrainPhysics* pterrain);
-            // not owned
-            /// owner
-            TerrainManager *mTerrainMan;
+        // setters
+        /// De/activate debug draw of physic shapes
+        void setDebugDraw(bool flag);
+        void setWorldGravity(Ogre::Vector3 const &gravity);
 
-            // owned
-            std::map<Ogre::Terrain *, TerrainPhysics *> mTerrains;
+    protected:
+        void updateHeightmap(Ogre::Terrain *oterrain, TerrainPhysics *pterrain);
+        // not owned
+        /// owner
+        TerrainManager *mTerrainMan;
 
-            btDynamicsWorld *mWorld;
-            btSequentialImpulseConstraintSolver *mSolver;
-            btCollisionDispatcher *mDispatcher;
-            btDefaultCollisionConfiguration *mCollisionConfig;
-            btBroadphaseInterface *mBroadphase;
-            BtOgre::DebugDrawer *mDebugDrawer;
+        // owned
+        std::map<Ogre::Terrain *, TerrainPhysics *> mTerrains;
+
+        btDynamicsWorld *mWorld;
+        btSequentialImpulseConstraintSolver *mSolver;
+        btCollisionDispatcher *mDispatcher;
+        btDefaultCollisionConfiguration *mCollisionConfig;
+        btBroadphaseInterface *mBroadphase;
+        BtOgre::DebugDrawer *mDebugDrawer;
 
     };
 }

@@ -3,6 +3,7 @@
 
 class btCollisionObjectWrapper;
 class btDynamicsWorld;
+class btGhostPairCallback;
 
 #include "steeltypes.h"
 #include "_ModelManager.h"
@@ -30,6 +31,7 @@ namespace Steel
             // not owned
             btDynamicsWorld *mWorld;
             //owned
+            btGhostPairCallback* mbulletGhostPairCallback;
     };
 }
 #endif // STEEL_PHYSICSMODELMANAGER_H

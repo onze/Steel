@@ -105,9 +105,9 @@ namespace Steel
         void parseSignalString(Ogre::String const &signal);
 
         /// Main symbol of the Enum Polymorphism Pattern.
-        Type mType;
+        Type mType = Type::INVALID_TYPE;
         /// Signal the action resolves on.
-        Signal mSignal;
+        Signal mSignal = INVALID_SIGNAL;
 
         // meta info
         /// In milliseconds. Max delay since last action for this one to be able to resolve.

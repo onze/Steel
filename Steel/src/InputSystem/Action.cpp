@@ -359,7 +359,7 @@ namespace Steel
 
 
         {
-            char const *const value = "A";
+            Ogre::String value = "A";
             Signal const signal = SignalManager::instance().toSignal(value);
             Action a(value);
             Action b(signal);

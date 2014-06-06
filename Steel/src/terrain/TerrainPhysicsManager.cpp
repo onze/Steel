@@ -1,8 +1,8 @@
 #include <BtOgreGP.h>
 #include <BtOgrePG.h>
 #include <BtOgreExtras.h>
-#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
-#include <BulletCollision/BroadphaseCollision/btBroadphaseProxy.h>
+#include <bullet/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
+#include <bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h>
 #include <OgreTerrain.h>
 
 #include "Debug.h"
@@ -13,6 +13,55 @@
 
 namespace Steel
 {
+    TerrainPhysicsManager::TerrainPhysics::TerrainPhysics():
+        mHeightfieldData(nullptr), mTerrainShape(nullptr), mMotionState(nullptr), mBody(nullptr)
+    {
+    }
+
+    TerrainPhysicsManager::TerrainPhysics::~TerrainPhysics()
+    {
+    }
+
+    void TerrainPhysicsManager::TerrainPhysics::init(float *heightfieldData,
+            btHeightfieldTerrainShape *terrainShape,
+            btDefaultMotionState *motionState,
+            btRigidBody *body)
+    {
+        mHeightfieldData = heightfieldData;
+        mTerrainShape = terrainShape;
+        mMotionState = motionState;
+        mBody = body;
+    }
+
+    void TerrainPhysicsManager::TerrainPhysics::shutdown(btDynamicsWorld *const world)
+    {
+        if(nullptr != mBody)
+        {
+            // destroy rigid body
+            {
+                world->removeRigidBody(mBody);
+
+                btCollisionShape *shape = mBody->getCollisionShape();
+
+                if(nullptr != shape)
+                    delete shape;
+
+                // not supposed to have one. This is a terrain after all...
+                btMotionState *motionState = mBody->getMotionState();
+
+                if(nullptr != motionState)
+                    delete motionState;
+
+                STEEL_DELETE(mBody);
+            }
+            STEEL_DELETE(mMotionState);
+            STEEL_DELETE(mTerrainShape);
+            STEEL_DELETE(mHeightfieldData);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////
+
     TerrainPhysicsManager::TerrainPhysicsManager(TerrainManager *terrainMan):
         TerrainManagerEventListener(), Ogre::FrameListener(),
         mTerrainMan(nullptr), mTerrains(std::map<Ogre::Terrain *, TerrainPhysics *>()),
@@ -170,31 +219,28 @@ namespace Steel
         mTerrains[ogreTerrain] = terrain;
 
         // give it a bullet representation
-        terrain->mHeightfieldData = new float[side * side];
-        terrain->mTerrainShape = new btHeightfieldTerrainShape(side, side,
-                terrain->mHeightfieldData,
-                1.f,
-                minHeight, maxHeight,
-                1, PHY_FLOAT, false);
-        terrain->mTerrainShape->setUseDiamondSubdivision(true);
-        terrain->mTerrainShape->setLocalScaling(btVector3(metersBetweenVertices, 1.f, metersBetweenVertices));
-
         btTransform transform = getOgreTerrainTransform(ogreTerrain);
-        terrain->mMotionState = new btDefaultMotionState(transform);
-
-
         btScalar mass(0.);
         btVector3 localInertia(0, 0, 0);
-
         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,
                 terrain->mMotionState,
                 terrain->mTerrainShape,
                 localInertia);
-        terrain->mBody = new btRigidBody(rbInfo);
-        {
-            auto flags = btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT;
-            terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | flags);
-        }
+
+        float *shapeData = new float[side * side];
+        terrain->init(shapeData,
+                      new btHeightfieldTerrainShape(side, side,
+                              shapeData,
+                              1.f,
+                              minHeight, maxHeight,
+                              1, PHY_FLOAT, false),
+                      new btDefaultMotionState(transform),
+                      new btRigidBody(rbInfo)
+                     );
+        terrain->mTerrainShape->setUseDiamondSubdivision(true);
+        terrain->mTerrainShape->setLocalScaling(btVector3(metersBetweenVertices, 1.f, metersBetweenVertices));
+        auto flags = btCollisionObject::CF_STATIC_OBJECT | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT;
+        terrain->mBody->setCollisionFlags(terrain->mBody->getCollisionFlags() | flags);
 
         updateHeightmap(ogreTerrain, terrain);
 
@@ -269,17 +315,7 @@ namespace Steel
         }
 
         TerrainPhysics *terrain = (*it).second;
-
-        if(nullptr != terrain->mBody)
-        {
-            mWorld->removeRigidBody(terrain->mBody);
-
-            if(nullptr != terrain->mBody->getMotionState())
-                delete terrain->mBody->getMotionState();
-
-            delete terrain->mBody;
-        }
-
+        terrain->shutdown(mWorld);
         delete terrain;
         mTerrains.erase(it);
         return true;

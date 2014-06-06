@@ -137,11 +137,6 @@ namespace Steel
 
         mBrush.shutdown();
 
-        if(nullptr != mEngine->level())
-        {
-            mEngine->level()->selectionMan()->removeListener(this);
-        }
-
         mEngine->removeEngineEventListener(this);
         UIPanel::shutdown();
     }
@@ -256,9 +251,6 @@ namespace Steel
         updatePathsList();
 
         mEngine->addEngineEventListener(this);
-
-        if(nullptr != mEngine->level())
-            mEngine->level()->selectionMan()->addListener(this);
     }
 
     void Editor::MyGUIEditorWindowChangeCoord(MyGUI::Window *window)
@@ -528,14 +520,17 @@ namespace Steel
 
     void Editor::onLevelSet(Level *level)
     {
-        level->selectionMan()->addListener(this);
+        if(nullptr != level)
+            level->selectionMan()->addListener(this);
+
         refreshLevelList();
         updatePathsList();
     }
 
     void Editor::onLevelUnset(Level *level)
     {
-        level->selectionMan()->removeListener(this);
+        if(nullptr != level)
+            level->selectionMan()->removeListener(this);
     }
 
     AgentId Editor::instanciateFromMeshFile(File &meshFile, Ogre::Vector3 &pos, Ogre::Quaternion &rot)

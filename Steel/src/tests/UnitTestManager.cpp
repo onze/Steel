@@ -6,9 +6,9 @@
 #include <InputSystem/ActionCombo.h>
 #include "tools/ConfigFile.h"
 #include "tools/StringUtils.h"
-#include <BT/BTShapeManager.h>
-#include <BT/BTStateStream.h>
-#include <models/BTModel.h>
+#include "BT/BTShapeManager.h"
+#include "BT/BTStateStream.h"
+#include "models/BTModel.h"
 
 namespace Steel
 {

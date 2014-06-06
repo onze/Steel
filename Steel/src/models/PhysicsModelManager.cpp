@@ -1,13 +1,16 @@
 #include "models/PhysicsModelManager.h"
 
-#include "BulletDynamics/Dynamics/btDynamicsWorld.h"
-#include "BulletCollision/CollisionDispatch/btGhostObject.h"
+#include <bullet/BulletDynamics/Dynamics/btDynamicsWorld.h>
+#include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h>
+// #include "BulletDynamics/Dynamics/btDynamicsWorld.h"
+// #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 
+#include "Debug.h"
 #include "Level.h"
-#include <models/OgreModel.h>
-#include <models/Agent.h>
-#include <models/OgreModelManager.h>
-#include <Debug.h>
+#include "models/Agent.h"
+#include "models/OgreModel.h"
+#include "models/OgreModelManager.h"
 
 
 extern ContactAddedCallback gContactAddedCallback;
@@ -16,17 +19,21 @@ extern ContactDestroyedCallback gContactDestroyedCallback;
 namespace Steel
 {
     PhysicsModelManager::PhysicsModelManager(Level *level, btDynamicsWorld *world): _ModelManager<PhysicsModel>(level),
-        mWorld(nullptr)
+        mWorld(nullptr), mbulletGhostPairCallback(nullptr)
     {
         mWorld = world;
 
         // allows for ghost functionality (hitbox/triggers)
-        mWorld->getPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
+        mbulletGhostPairCallback = new btGhostPairCallback();
+        mWorld->getPairCache()->setInternalGhostPairCallback(mbulletGhostPairCallback);
     }
 
     PhysicsModelManager::~PhysicsModelManager()
     {
-        mWorld = nullptr;
+        STEEL_DELETE(mbulletGhostPairCallback);
+
+        if(nullptr != mWorld)
+            mWorld = nullptr;
     }
 
     ModelId PhysicsModelManager::newModel()

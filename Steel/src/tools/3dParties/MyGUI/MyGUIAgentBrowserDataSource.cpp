@@ -68,12 +68,18 @@ namespace Steel
 
         mSignals.agentCreated = mLevel->agentMan()->getSignal(AgentManager::PublicSignal::agentCreated);
         registerSignal(mSignals.agentCreated);
-
+        
         mLevel->selectionMan()->addListener(this);
     }
 
     void MyGUIAgentBrowserDataSource::shutdown()
     {
+        if(nullptr != mLevel)
+        {
+            mLevel->selectionMan()->removeListener(this);
+            mLevel = nullptr;
+        }
+
         if(nullptr != mEngine)
         {
             unregisterAllSignals();
@@ -105,9 +111,12 @@ namespace Steel
         if(signal == mSignals.levelSet)
         {
             mLevel = mEngine->level();
+            mLevel->selectionMan()->addListener(this);
+            
             unregisterSignal(mSignals.levelLoaded);
             mSignals.levelLoaded = mLevel->getSignal(Level::PublicSignal::loaded);
             registerSignal(mSignals.levelLoaded);
+            
         }
         else if(signal == mSignals.levelLoaded)
         {
@@ -118,6 +127,8 @@ namespace Steel
         }
         else if(signal == mSignals.levelUnset)
         {
+            mLevel->selectionMan()->removeListener(this);
+            
             unregisterSignal(mSignals.levelLoaded); // may be unset before being loaded
             mSignals.levelLoaded = INVALID_SIGNAL;
             mLevel = nullptr;

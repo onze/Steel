@@ -24,6 +24,7 @@ namespace Steel
 
     SelectionManager::~SelectionManager()
     {
+        clearSelection();
     }
 
     SelectionManager &SelectionManager::operator=(const SelectionManager &o)
@@ -37,7 +38,7 @@ namespace Steel
         return *this;
     }
 
-    void SelectionManager::clearSelection(bool discardEvent)
+    void SelectionManager::clearSelection(bool discardEvent/* = false*/)
     {
         Agent *agent;
 
@@ -592,7 +593,7 @@ namespace Steel
 
     void SelectionManager::dispatchSelectionChangedEvent()
     {
-        decltype(mListeners) copy(mListeners);
+        decltype(mListeners) copy(mListeners.begin(), mListeners.end());
 
         for(auto const & listener : copy)
             listener->onSelectionChanged(mSelection);

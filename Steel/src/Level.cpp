@@ -95,13 +95,14 @@ namespace Steel
         mLevelRoot = mSceneManager->getRootSceneNode()->createChildSceneNode("levelNode", Ogre::Vector3::ZERO);
         mTerrainMan.init(this, mName + ".terrainManager", path.subfile(mName), mSceneManager);
 
-        mSelectionMan = new SelectionManager(this);
-        mAgentMan = new AgentManager(this);
         mOgreModelMan = new OgreModelManager(this, mSceneManager, mLevelRoot);
         mPhysicsModelMan = new PhysicsModelManager(this, mTerrainMan.terrainPhysicsMan()->world());
         mBTModelMan = new BTModelManager(this, mEngine->rawResourcesDir().subfile("BT"));
         mLocationModelMan = new LocationModelManager(this);
         mBlackBoardModelManagerMan = new BlackBoardModelManager(this);
+
+        mAgentMan = new AgentManager(this);
+        mSelectionMan = new SelectionManager(this);
 
         mSceneManager->setAmbientLight(Ogre::ColourValue::White);
     }
@@ -110,24 +111,34 @@ namespace Steel
     {
         Debug::log(logName() + ".~Level()").endl();
 
-        mBlackBoardModelManagerMan->clear();
-        STEEL_DELETE(mBlackBoardModelManagerMan);
+        if(nullptr != mSelectionMan)
+            mSelectionMan->clearSelection();
 
-        mBTModelMan->clear();
-        STEEL_DELETE(mBTModelMan);
+        STEEL_DELETE(mSelectionMan);
 
-        mPhysicsModelMan->clear();
-        STEEL_DELETE(mPhysicsModelMan);
+        mAgentMan->deleteAllAgents();
+        STEEL_DELETE(mAgentMan);
 
-        mTerrainMan.shutdown();
+        // model managers
+        {
+            mBlackBoardModelManagerMan->clear();
+            STEEL_DELETE(mBlackBoardModelManagerMan);
 
-        mLocationModelMan->clear();
-        STEEL_DELETE(mLocationModelMan);
+            mBTModelMan->clear();
+            STEEL_DELETE(mBTModelMan);
 
-        mOgreModelMan->clear();
-        STEEL_DELETE(mOgreModelMan);
+            mPhysicsModelMan->clear();
+            STEEL_DELETE(mPhysicsModelMan);
+
+            mLocationModelMan->clear();
+            STEEL_DELETE(mLocationModelMan);
+
+            mOgreModelMan->clear();
+            STEEL_DELETE(mOgreModelMan);
+        }
 
         mManagers.clear();
+        mTerrainMan.shutdown();
 
         if(mSceneManager != nullptr)
         {

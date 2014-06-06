@@ -5,7 +5,7 @@
 #include "Level.h"
 #include "models/LocationModel.h"
 #include "Debug.h"
-#include <SignalManager.h>
+#include "SignalManager.h"
 
 namespace Steel
 {
@@ -193,7 +193,8 @@ namespace Steel
 
     void AgentManager::addTaggedAgent(const Tag &tag, const AgentId aid)
     {
-        mTagRegister.emplace(tag, std::set<AgentId>()).first->second.insert(aid);
+        auto it = mTagRegister.insert(std::make_pair(tag, std::set<AgentId>()));
+        it.first->second.insert(aid);
     }
 
     void AgentManager::removeTaggedAgent(const Tag &tag, const AgentId aid)
