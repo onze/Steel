@@ -250,6 +250,7 @@ namespace Steel
             }
         }
 
+        mStats.frameCount = 0;
         return 0;
     }
 
@@ -444,6 +445,8 @@ namespace Steel
 
             if(delay > 0)
                 usleep(static_cast<useconds_t>(delay * ms2us));
+
+            ++mStats.frameCount;
 
             if(singleLoop)
                 break;

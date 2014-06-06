@@ -34,11 +34,14 @@ namespace Steel
         {
         public:
             /// msec
-            double lastGraphicFrameDuration;
+            double lastGraphicFrameDuration = 0.;
             /// includes eveything except rendering. msec
-            double lastEngineDuration;
+            double lastEngineDuration = 0.;
             /// msec
-            double lastFullFrameDuration;
+            double lastFullFrameDuration = 0.;
+
+            /// number of frames since startup
+            u64 frameCount = 0L;
         };
 
         Engine(Ogre::String confFilename = StringUtils::BLANK);
