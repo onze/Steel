@@ -66,6 +66,7 @@ namespace Steel
             mLevel->agentMan()->deleteAgent(*it);
 
         mSelection.clear();
+        dispatchSelectionChangedEvent();
     }
 
     void SelectionManager::rotateSelection(Ogre::Vector3 rotation)
