@@ -124,7 +124,7 @@ namespace Steel
         bool mKilled;
 
         /// Can be set to true to display debug information. Also used by BT nodes.
-        bool mDebug;
+        bool mDebug; // default value in ctor
     };
 
     bool utest_BTrees(UnitTestExecutionContext const *context);

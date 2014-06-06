@@ -125,8 +125,6 @@ namespace Steel
 
     void BTModel::update(float timestep)
     {
-        bool debug = false;
-
         if(mPaused || mKilled)
             return;
 
@@ -161,7 +159,7 @@ namespace Steel
             switch(nodeState)
             {
                 case BTNodeState::READY:
-                    if(debug)
+                    if(debug())
                         Debug::log("running ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     node->run(this, timestep);
@@ -180,7 +178,7 @@ namespace Steel
                         return;
                     }
 
-                    if(debug)
+                    if(debug())
                         Debug::log("skipping to  #")(newIndex).endl();
 
                     // visiting a child
@@ -200,7 +198,7 @@ namespace Steel
                 case BTNodeState::FAILURE:
                 case BTNodeState::SUCCESS:
 
-                    if(debug)
+                    if(debug())
                         Debug::log(nodeState == BTNodeState::SUCCESS ? "SUCCESS" : "FAILURE")(" from ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     // root's success
@@ -220,7 +218,7 @@ namespace Steel
                     continue;
 
                 case BTNodeState::RUNNING:
-                    if(debug)
+                    if(debug())
                         Debug::log("keeping running ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     node->run(this, timestep);
