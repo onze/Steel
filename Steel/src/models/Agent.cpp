@@ -9,20 +9,20 @@
 
 #include <json/json.h>
 
-#include "models/Agent.h"
 #include "Debug.h"
-#include "models/_ModelManager.h"
-#include "models/OgreModelManager.h"
+#include "Engine.h"
 #include "Level.h"
-#include "tools/JsonUtils.h"
+#include "SignalManager.h"
 #include "TagManager.h"
-#include "models/LocationModelManager.h"
-#include "models/PhysicsModel.h"
+#include "models/_ModelManager.h"
+#include "models/Agent.h"
+#include "models/AgentManager.h"
 #include "models/BTModel.h"
 #include "models/BTModelManager.h"
-#include "models/AgentManager.h"
-#include "SignalManager.h"
-#include "Engine.h"
+#include "models/LocationModelManager.h"
+#include "models/OgreModelManager.h"
+#include "models/PhysicsModel.h"
+#include "tools/JsonUtils.h"
 
 namespace Steel
 {
