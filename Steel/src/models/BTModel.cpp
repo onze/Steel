@@ -218,8 +218,8 @@ namespace Steel
                     continue;
 
                 case BTNodeState::RUNNING:
-                    if(debug())
-                        Debug::log("keeping running ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
+//                     if(debug())
+//                         Debug::log("keeping running ")(BTShapeTokenTypeAsString[(int)token.type])(" #")(token.begin).endl();
 
                     node->run(this, timestep);
                     // stop execution for this frame.

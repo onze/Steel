@@ -4,6 +4,7 @@
 #include <Ogre.h>
 
 #include "Debug.h"
+#include "Engine.h"
 #include "Level.h"
 #include "BT/BTNavigator.h"
 #include "models/BTModel.h"
