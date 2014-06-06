@@ -1,8 +1,8 @@
 #ifndef STEEL_BTNAVIGATOR_H_
 #define STEEL_BTNAVIGATOR_H_
 
-#include <steeltypes.h>
-#include <BT/BTNode.h>
+#include "steeltypes.h"
+#include "BT/BTNode.h"
 
 namespace Steel
 {

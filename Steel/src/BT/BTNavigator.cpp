@@ -1,17 +1,16 @@
 #include <assert.h>
 #include <iostream>
 
-#include <OgreQuaternion.h>
-#include <OgreSceneNode.h>
+#include <Ogre.h>
 
+#include "Debug.h"
+#include "Level.h"
 #include "BT/BTNavigator.h"
-#include <Debug.h>
-#include <tools/JsonUtils.h>
-#include <tools/DynamicLines.h>
-#include <models/BTModel.h>
-#include <models/AgentManager.h>
-#include <models/Agent.h>
-#include <Level.h>
+#include "models/BTModel.h"
+#include "models/AgentManager.h"
+#include "models/Agent.h"
+#include "tools/JsonUtils.h"
+#include "tools/DynamicLines.h"
 
 namespace Steel
 {
@@ -162,7 +161,7 @@ namespace Steel
                 mState = BTNodeState::RUNNING;
                 mPreviousPosition = agent->position() + agent->rotation() * Ogre::Vector3::UNIT_SCALE;
 
-                if(btModel->debug())
+                if(0 && btModel->debug() && btModel->level()->engine()->stats().frameCount > 100)
                     initDebugLines(btModel->level()->levelRoot());
 
             case BTNodeState::RUNNING:
@@ -181,14 +180,12 @@ namespace Steel
                 auto targetPos = targetAgent->position();
                 auto velocity = agent->velocity();
                 Ogre::Vector3 direction = (targetPos - position).normalisedCopy();
-
+                
                 if(velocity.squaredLength() < mSpeed * mSpeed)
-                {
                     agent->applyCentralImpulse(direction * mSpeed * timestep);
-                }
 
                 // target reached ?
-                if(agent->position().squaredDistance(targetPos) < .1)
+                if(agent->position().squaredDistance(targetPos) < velocity.squaredLength())
                 {
                     mState = BTNodeState::SUCCESS;
 
@@ -201,12 +198,12 @@ namespace Steel
                     if(mLookAtTarget)
                     {
                         Ogre::Quaternion rotation = agent->rotation();
-                        Ogre::Vector3 srcDir = rotation*Ogre::Vector3::UNIT_Z;
+                        Ogre::Vector3 srcDir = rotation * Ogre::Vector3::UNIT_Z;
 //                         srcDir.y=0;
                         srcDir.normalise();
-                        
+
                         agent->applyTorqueImpulse(srcDir.crossProduct(direction) * timestep);
-                        
+
 //                         Ogre::Quaternion dstRotation = srcDir.getRotationTo(direction);
 //                         agent->setBodyRotation(dstRotation*rotation);
                     }
@@ -243,3 +240,4 @@ namespace Steel
 
 }
 // kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+
