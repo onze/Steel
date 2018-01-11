@@ -1,3 +1,9 @@
+I worked for a year or so on a c++ game demo. 
+I built the entity-based game engine, in which I glued together specialized libraries and custom additions.
+I built an input buffer similar to the one in Street Fighter on top of the OIS input system (http://streetfighter.wikia.com/wiki/Inputs). 
+The AI is made with a custom behavior tree library, based on Bjoern Knafla's articles (https://www.gamasutra.com/view/news/128548/InDepth_Behavior_Tree_Entrails.php). 
+
+
 == Steel ==
 
 This project is an entity-based game engine, that makes use of the following libraries:
